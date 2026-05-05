@@ -1,0 +1,27 @@
+{
+  "name": "genius-computer-education",
+  "version": "1.0.0",
+  "description": "Genius Computer Education Website",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "express-session": "^1.19.0",
+    "googleapis": "^171.4.0",
+    "image-size": "^2.0.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "puppeteer": "^24.42.0",
+    "qrcode": "^1.5.4",
+    "razorpay": "^2.9.6",
+    "unzipper": "^0.12.3",
+    "xlsx": "^0.18.5"
+  }
+}

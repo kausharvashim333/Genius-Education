@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genius Computer Education</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="logo.png" alt="Genius Computer Education Logo" class="nav-logo" onerror="this.style.display='none'">
+                <a href="index.html">Genius Computer Education</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#courses">Courses</a></li>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#blog">Blog</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="student-portal.html" class="nav-cta nav-student"><i class="fas fa-user-graduate"></i> Student Portal</a></li>
+                <li><a href="faculty-portal.html" class="nav-cta nav-faculty"><i class="fas fa-chalkboard-teacher"></i> Faculty Portal</a></li>
+                <li><a href="admin.html" class="nav-cta nav-admin"><i class="fas fa-user-shield"></i> Admin</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Announcement Ticker -->
+    <div class="announcement-ticker" id="announcementTicker">
+        <div class="ticker-content" id="tickerContent">
+            <span>No active announcements</span>
+        </div>
+    </div>
+
+    <!-- Carousel + Hero combined -->
+    <section id="home" class="hero carousel-hero">
+        <div class="carousel-wrapper" id="carouselWrapper">
+            <div class="carousel" id="carousel">
+                <div class="carousel-track" id="carouselTrack"></div>
+                <button class="carousel-btn prev" onclick="carouselMove(-1)">&#10094;</button>
+                <button class="carousel-btn next" onclick="carouselMove(1)">&#10095;</button>
+                <div class="carousel-dots" id="carouselDots"></div>
+            </div>
+        </div>
+        <div class="hero-overlay">
+            <div class="hero-content">
+                <h1>Welcome to Genius Computer Education</h1>
+                <p>Apna future banayein digital skills ke saath</p>
+                <a href="#courses" class="btn btn-primary">View Courses</a>
+                <a href="apply.html" class="btn btn-hero-apply"><i class="fas fa-user-graduate"></i> Apply Online</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Notice Ticker Bar -->
+    <div class="notice-ticker-bar" id="noticeTickerBar" style="display:none;">
+        <div class="notice-ticker-label"><i class="fas fa-bell"></i> Notice</div>
+        <div class="notice-ticker-track-wrap">
+            <div class="notice-ticker-track" id="noticeTickerTrack"></div>
+        </div>
+    </div>
+
+    <!-- Notice Board Section -->
+    <section id="notices" class="notice-section" style="display:none;">
+        <div class="container">
+            <h2 class="section-title">Notice Board</h2>
+            <div class="notice-controls">
+                <div class="notice-search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="noticeSearch" placeholder="Search notices..." oninput="filterNotices()">
+                </div>
+                <div class="notice-filter-btns" id="noticeCatFilters">
+                    <button class="notice-filter-btn active" data-cat="All" onclick="setNoticeFilter(this)">All</button>
+                    <button class="notice-filter-btn" data-cat="General" onclick="setNoticeFilter(this)">General</button>
+                    <button class="notice-filter-btn" data-cat="Exam" onclick="setNoticeFilter(this)">Exam</button>
+                    <button class="notice-filter-btn" data-cat="Fee" onclick="setNoticeFilter(this)">Fee</button>
+                    <button class="notice-filter-btn" data-cat="Holiday" onclick="setNoticeFilter(this)">Holiday</button>
+                    <button class="notice-filter-btn" data-cat="Event" onclick="setNoticeFilter(this)">Event</button>
+                    <button class="notice-filter-btn" data-cat="Result" onclick="setNoticeFilter(this)">Result</button>
+                </div>
+            </div>
+            <div class="notice-list" id="noticeList"></div>
+            <p id="noticeEmpty" style="display:none;text-align:center;color:#94a3b8;padding:30px;">Koi notice nahi mili.</p>
+        </div>
+    </section>
+
+    <section id="courses" class="courses">
+        <div class="container">
+            <h2 class="section-title">Our Courses</h2>
+            <div class="courses-grid" id="coursesContainer"></div>
+        </div>
+    </section>
+
+    <!-- Blog Section -->
+    <section id="blog" class="blog-section">
+        <div class="container">
+            <h2 class="section-title">Blog</h2>
+            <div class="blog-grid" id="blogContainer">
+                <!-- Blog posts will be loaded here -->
+            </div>
+            <p id="blogEmpty" style="display:none;text-align:center;color:#94a3b8;padding:30px;">No blog posts available.</p>
+        </div>
+    </section>
+
+    <section id="about" class="about">
+        <div class="container">
+            <h2 class="section-title">About Us</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Our History</h3>
+                    <p id="aboutDescription">Genius Computer Education 10+ saal se quality education de raha hai.</p>
+                    <div class="about-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">10+</div>
+                            <div class="stat-label">Years of Experience</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">5000+</div>
+                            <div class="stat-label">Students Trained</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">50+</div>
+                            <div class="stat-label">Courses Offered</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-map" id="aboutMapContainer" style="display:none;">
+                    <iframe id="aboutMapIframe" src="" width="100%" height="350" style="border:none; border-radius:12px;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+            <!-- Team Section -->
+            <div class="team-section" style="margin-top: 50px;">
+                <h3 style="text-align: center; font-size: 2rem; margin-bottom: 30px; color: #333;">Our Team</h3>
+                <div class="team-grid">
+                    <div class="team-card">
+                        <div class="team-avatar"><i class="fas fa-user-tie"></i></div>
+                        <h4>Director</h4>
+                        <p>Managing the institute with vision and dedication</p>
+                    </div>
+                    <div class="team-card">
+                        <div class="team-avatar"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <h4>Faculty</h4>
+                        <p>Experienced teachers providing quality education</p>
+                    </div>
+                    <div class="team-card">
+                        <div class="team-avatar"><i class="fas fa-headset"></i></div>
+                        <h4>Support Staff</h4>
+                        <p>Always ready to help students</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="gallery" class="gallery">
+        <div class="container">
+            <h2 class="section-title">Our Gallery</h2>
+            <div class="gallery-grid" id="galleryContainer"></div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2 class="section-title">Contact Us</h2>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h3>Address</h3>
+                            <p id="instituteAddress">Main Road, Near Bus Stand</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h3>Phone</h3>
+                            <p id="institutePhone">+91 98765 43210</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h3>Email</h3>
+                            <p id="instituteEmail">info@geniuscomputer.com</p>
+                        </div>
+                    </div>
+                    <div class="social-links">
+                        <h3>Follow Us</h3>
+                        <div class="social-icons">
+                            <a href="#" target="_blank"><i class="fab fa-facebook"></i></a>
+                            <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
+                            <a href="#" target="_blank"><i class="fab fa-youtube"></i></a>
+                            <a href="#" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-form-wrapper">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" placeholder="Enter your name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" placeholder="Enter your phone number" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <textarea id="message" rows="5" placeholder="How can we help you?" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-large"><i class="fas fa-paper-plane"></i> Send Message</button>
+                    </form>
+                </div>
+            </div>
+            <div class="contact-map" id="contactMap" style="display:none;">
+                <iframe id="contactMapIframe" src="" width="100%" height="350" style="border:none; border-radius:12px;" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#courses">Courses</a></li>
+                        <li><a href="#blog">Blog</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="disclaimer.html">Disclaimer</a></li>
+                        <li><a href="terms.html">Terms & Conditions</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="refund.html">Refund Policy</a></li>
+                        <li><a href="sitemap.html">Sitemap</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <p id="footerAddress">Main Road, Near Bus Stand</p>
+                    <p id="footerPhone">+91 98765 43210</p>
+                    <p id="footerEmail">info@geniuseducation.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Genius Computer Education. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Right-click prevention based on settings
+        (async function() {
+            try {
+                const settings = await fetch('/api/settings').then(r => r.json());
+                if (settings.rightClickPrevention) {
+                    // Prevent right-click
+                    document.addEventListener('contextmenu', function(e) {
+                        e.preventDefault();
+                        alert('Right-click is disabled on this website.');
+                        return false;
+                    });
+                    
+                    // Prevent keyboard shortcuts for inspecting
+                    document.addEventListener('keydown', function(e) {
+                        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+                        if (e.key === 'F12' || 
+                            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
+                            (e.ctrlKey && e.key === 'U')) {
+                            e.preventDefault();
+                            alert('Developer tools are disabled on this website.');
+                            return false;
+                        }
+                    });
+                    
+                    // Prevent text selection
+                    document.addEventListener('selectstart', function(e) {
+                        e.preventDefault();
+                        return false;
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading settings for right-click prevention:', err);
+            }
+        })();
+    </script>
+</body>
+</html>
