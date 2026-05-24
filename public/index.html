@@ -8,11 +8,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Popup Modal -->
+    <div id="popupModal" class="popup-modal">
+        <div class="popup-modal-content">
+            <button class="popup-modal-close" onclick="closePopupModal()"><i class="fas fa-times"></i></button>
+            <div id="popupModalBody">
+                <!-- Popup content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
-                <img src="logo.png" alt="Genius Computer Education Logo" class="nav-logo" onerror="this.style.display='none'">
+                <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22%3EG%3C/text%3E%3C/svg%3E" alt="Genius Computer Education Logo" class="nav-logo" style="display: block; max-height: 45px; max-width: 45px; height: auto; width: auto; border-radius: 10px;">
                 <a href="index.html">Genius Computer Education</a>
             </div>
             <ul class="nav-menu">
@@ -21,9 +31,9 @@
                 <li><a href="#about">About Us</a></li>
                 <li><a href="#blog">Blog</a></li>
                 <li><a href="#contact">Contact</a></li>
-                <li><a href="student-portal.html" class="nav-cta nav-student"><i class="fas fa-user-graduate"></i> Student Portal</a></li>
-                <li><a href="faculty-portal.html" class="nav-cta nav-faculty"><i class="fas fa-chalkboard-teacher"></i> Faculty Portal</a></li>
-                <li><a href="admin.html" class="nav-cta nav-admin"><i class="fas fa-user-shield"></i> Admin</a></li>
+                <li id="navEntranceExamItem" style="display:none;"><a href="entrance-portal.html" class="nav-cta nav-entrance" style="background: linear-gradient(135deg, #f59e0b, #ef4444);"><i class="fas fa-graduation-cap icon-3d"></i> Entrance Exam</a></li>
+                <li><a href="student-portal.html" class="nav-cta nav-student"><i class="fas fa-user-graduate icon-3d"></i> Student Portal</a></li>
+                <li><a href="faculty-portal.html" class="nav-cta nav-faculty"><i class="fas fa-chalkboard-teacher icon-3d"></i> Faculty Portal</a></li>
             </ul>
             <div class="hamburger">
                 <span></span>
@@ -52,10 +62,10 @@
         </div>
         <div class="hero-overlay">
             <div class="hero-content">
-                <h1>Welcome to Genius Computer Education</h1>
-                <p>Apna future banayein digital skills ke saath</p>
-                <a href="#courses" class="btn btn-primary">View Courses</a>
-                <a href="apply.html" class="btn btn-hero-apply"><i class="fas fa-user-graduate"></i> Apply Online</a>
+                <h1 id="heroHeading">Welcome to Genius Computer Education</h1>
+                <p id="heroSubheading">Apna future banayein digital skills ke saath</p>
+                <a href="#courses" class="btn btn-primary" id="heroButton1">View Courses</a>
+                <a href="apply.html" class="btn btn-hero-apply" id="heroButton2"><i class="fas fa-user-graduate icon-3d"></i> Apply Online</a>
             </div>
         </div>
     </section>
@@ -138,7 +148,7 @@
             </div>
             <!-- Team Section -->
             <div class="team-section" style="margin-top: 50px;">
-                <h3 style="text-align: center; font-size: 2rem; margin-bottom: 30px; color: #333;">Our Team</h3>
+                <h3 style="text-align: center; font-size: 2rem; margin-bottom: 30px; color: #fff;">Our Team</h3>
                 <div class="team-grid">
                     <div class="team-card">
                         <div class="team-avatar"><i class="fas fa-user-tie"></i></div>
@@ -163,7 +173,30 @@
     <section id="gallery" class="gallery">
         <div class="container">
             <h2 class="section-title">Our Gallery</h2>
-            <div class="gallery-grid" id="galleryContainer"></div>
+            <div class="gallery-filters" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:30px;">
+                <button class="gallery-filter-btn active" data-filter="all" style="padding:8px 20px;background:rgba(59,130,246,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:20px;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.3s;">All</button>
+                <button class="gallery-filter-btn" data-filter="events" style="padding:8px 20px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:20px;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.3s;">Events</button>
+                <button class="gallery-filter-btn" data-filter="campus" style="padding:8px 20px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:20px;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.3s;">Campus</button>
+                <button class="gallery-filter-btn" data-filter="students" style="padding:8px 20px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:20px;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.3s;">Students</button>
+                <button class="gallery-filter-btn" data-filter="awards" style="padding:8px 20px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:20px;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.3s;">Awards</button>
+                <button class="gallery-filter-btn" data-filter="facilities" style="padding:8px 20px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:20px;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.3s;">Facilities</button>
+            </div>
+            <div class="gallery-grid masonry-grid" id="galleryContainer"></div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials-section">
+        <div class="container">
+            <h3 class="section-title">Student Reviews</h3>
+            <div class="testimonials-carousel">
+                <div class="testimonials-wrapper" id="testimonialsContainer">
+                    <!-- Testimonials will be loaded here -->
+                </div>
+                <button class="carousel-btn prev-btn" onclick="slideTestimonials(-1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="carousel-btn next-btn" onclick="slideTestimonials(1)"><i class="fas fa-chevron-right"></i></button>
+                <div class="carousel-dots" id="carouselDots"></div>
+            </div>
         </div>
     </section>
 
@@ -183,7 +216,7 @@
                         <i class="fas fa-phone"></i>
                         <div>
                             <h3>Phone</h3>
-                            <p id="institutePhone">+91 98765 43210</p>
+                            <div id="institutePhone"></div>
                         </div>
                     </div>
                     <div class="info-item">
@@ -194,13 +227,6 @@
                         </div>
                     </div>
                     <div class="social-links">
-                        <h3>Follow Us</h3>
-                        <div class="social-icons">
-                            <a href="#" target="_blank"><i class="fab fa-facebook"></i></a>
-                            <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
-                            <a href="#" target="_blank"><i class="fab fa-youtube"></i></a>
-                            <a href="#" target="_blank"><i class="fab fa-whatsapp"></i></a>
-                        </div>
                     </div>
                 </div>
                 <div class="contact-form-wrapper">
@@ -231,12 +257,53 @@
         </div>
     </section>
 
+    <!-- Floating Social Sidebar (Desktop) -->
+    <div class="social-sidebar">
+        <a href="https://facebook.com" target="_blank" class="social-icon facebook" title="Facebook">
+            <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="https://instagram.com" target="_blank" class="social-icon instagram" title="Instagram">
+            <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://whatsapp.com" target="_blank" class="social-icon whatsapp" title="WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+        <a href="https://youtube.com" target="_blank" class="social-icon youtube" title="YouTube">
+            <i class="fab fa-youtube"></i>
+        </a>
+        <a href="https://linkedin.com" target="_blank" class="social-icon linkedin" title="LinkedIn">
+            <i class="fab fa-linkedin-in"></i>
+        </a>
+    </div>
+
+    <!-- Sticky Bottom Bar (Mobile) -->
+    <div class="mobile-social-toggle" id="mobileSocialToggle">
+        <i class="fas fa-share-alt"></i>
+    </div>
+    <div class="mobile-social-bar" id="mobileSocialBar">
+        <a href="https://facebook.com" target="_blank" class="mobile-social-icon facebook" title="Facebook">
+            <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="https://instagram.com" target="_blank" class="mobile-social-icon instagram" title="Instagram">
+            <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://whatsapp.com" target="_blank" class="mobile-social-icon whatsapp" title="WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+        <a href="https://youtube.com" target="_blank" class="mobile-social-icon youtube" title="YouTube">
+            <i class="fab fa-youtube"></i>
+        </a>
+        <a href="https://linkedin.com" target="_blank" class="mobile-social-icon linkedin" title="LinkedIn">
+            <i class="fab fa-linkedin-in"></i>
+        </a>
+    </div>
+
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Quick Links</h3>
-                    <ul>
+                    <h3 class="footer-accordion-toggle"><i class="fas fa-link"></i> Quick Links <i class="fas fa-chevron-down accordion-icon"></i></h3>
+                    <ul class="footer-accordion-content">
                         <li><a href="#home">Home</a></li>
                         <li><a href="#courses">Courses</a></li>
                         <li><a href="#blog">Blog</a></li>
@@ -245,8 +312,8 @@
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h3>Legal</h3>
-                    <ul>
+                    <h3 class="footer-accordion-toggle"><i class="fas fa-gavel"></i> Legal <i class="fas fa-chevron-down accordion-icon"></i></h3>
+                    <ul class="footer-accordion-content">
                         <li><a href="disclaimer.html">Disclaimer</a></li>
                         <li><a href="terms.html">Terms & Conditions</a></li>
                         <li><a href="privacy.html">Privacy Policy</a></li>
@@ -255,10 +322,12 @@
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h3>Contact</h3>
-                    <p id="footerAddress">Main Road, Near Bus Stand</p>
-                    <p id="footerPhone">+91 98765 43210</p>
-                    <p id="footerEmail">info@geniuseducation.com</p>
+                    <h3 class="footer-accordion-toggle"><i class="fas fa-envelope"></i> Contact <i class="fas fa-chevron-down accordion-icon"></i></h3>
+                    <div class="footer-accordion-content">
+                        <p id="footerAddress">Main Road, Near Bus Stand</p>
+                        <div id="footerPhone"></div>
+                        <p id="footerEmail">info@geniuseducation.com</p>
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -269,6 +338,312 @@
 
     <script src="js/main.js"></script>
     <script>
+        // Show entrance exam button only when feature is enabled by admin
+        (async function () {
+            try {
+                const res = await fetch('/api/entrance-settings');
+                const data = await res.json();
+                if (data && data.enabled) {
+                    const item = document.getElementById('navEntranceExamItem');
+                    if (item) item.style.display = '';
+                }
+            } catch (e) { /* silently ignore */ }
+        })();
+    </script>
+    <script>
+        // Load favicon from settings
+        async function loadFavicon() {
+            try {
+                const response = await fetch('/api/settings');
+                const settings = await response.json();
+                if (settings.favicon) {
+                    // Remove existing favicon if any
+                    const existingFavicon = document.querySelector('link[rel="icon"]');
+                    if (existingFavicon) {
+                        existingFavicon.remove();
+                    }
+                    // Add new favicon
+                    const link = document.createElement('link');
+                    link.rel = 'icon';
+                    link.type = 'image/x-icon';
+                    link.href = settings.favicon;
+                    document.head.appendChild(link);
+                }
+            } catch (err) {
+                console.error('Failed to load favicon:', err);
+            }
+        }
+        loadFavicon();
+
+        // Load contact info from settings
+        async function loadContactInfo() {
+            try {
+                const response = await fetch('/api/settings');
+                const settings = await response.json();
+                
+                // Load address
+                if (settings.address) {
+                    const addressEl = document.getElementById('instituteAddress');
+                    const footerAddressEl = document.getElementById('footerAddress');
+                    if (addressEl) addressEl.textContent = settings.address;
+                    if (footerAddressEl) footerAddressEl.textContent = settings.address;
+                }
+                
+                // Load email
+                if (settings.email) {
+                    const emailEl = document.getElementById('instituteEmail');
+                    const footerEmailEl = document.getElementById('footerEmail');
+                    if (emailEl) emailEl.textContent = settings.email;
+                    if (footerEmailEl) footerEmailEl.textContent = settings.email;
+                }
+                
+                // Load phone numbers
+                if (settings.phone) {
+                    const phones = Array.isArray(settings.phone) ? settings.phone : [settings.phone];
+                    const institutePhoneEl = document.getElementById('institutePhone');
+                    const footerPhoneEl = document.getElementById('footerPhone');
+                    
+                    const phoneHtml = phones.map(phone => 
+                        `<a href="tel:${phone.replace(/\s/g, '')}" style="color: inherit; text-decoration: none; display: block; margin-bottom: 5px;">${phone}</a>`
+                    ).join('');
+                    
+                    if (institutePhoneEl) institutePhoneEl.innerHTML = phoneHtml;
+                    if (footerPhoneEl) footerPhoneEl.innerHTML = phoneHtml;
+                }
+            } catch (err) {
+                console.error('Failed to load contact info:', err);
+            }
+        }
+        loadContactInfo();
+
+        // Popup Modal
+        function closePopupModal() {
+            document.getElementById('popupModal').classList.remove('active');
+            // Store in localStorage to not show again (optional)
+            localStorage.setItem('popupShown', Date.now().toString());
+        }
+
+        async function loadPopupModal() {
+            try {
+                const response = await fetch('/api/settings');
+                const settings = await response.json();
+                
+                // Check if popup is enabled
+                if (settings.popup && settings.popup.enabled) {
+                    const popupBody = document.getElementById('popupModalBody');
+                    
+                    let html = '';
+                    if (settings.popup.image) {
+                        html += `<img src="${settings.popup.image}" alt="Popup" class="popup-modal-image">`;
+                    }
+                    if (settings.popup.title) {
+                        html += `<h2 class="popup-modal-title">${settings.popup.title}</h2>`;
+                    }
+                    if (settings.popup.description) {
+                        html += `<p class="popup-modal-description">${settings.popup.description}</p>`;
+                    }
+                    if (settings.popup.buttons && settings.popup.buttons.length > 0) {
+                        html += '<div class="popup-modal-buttons">';
+                        settings.popup.buttons.forEach(btn => {
+                            const btnClass = btn.style || 'btn-primary';
+                            html += `<a href="${btn.link || '#'}" class="btn ${btnClass}">${btn.text}</a>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    popupBody.innerHTML = html;
+                    
+                    // Show popup after a short delay
+                    setTimeout(() => {
+                        // Check if already shown recently (optional - comment out if you want to show every time)
+                        // const lastShown = localStorage.getItem('popupShown');
+                        // const now = Date.now();
+                        // const oneDay = 24 * 60 * 60 * 1000;
+                        
+                        // Show popup if not shown in last 24 hours or if you want to show every time, remove this check
+                        // if (!lastShown || (now - parseInt(lastShown) > oneDay)) {
+                            document.getElementById('popupModal').classList.add('active');
+                        // }
+                    }, 1000);
+                }
+            } catch (err) {
+                console.error('Failed to load popup modal:', err);
+            }
+        }
+        loadPopupModal();
+
+        // Footer accordion functionality for mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const footerToggles = document.querySelectorAll('.footer-accordion-toggle');
+            
+            footerToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const section = this.parentElement;
+                    section.classList.toggle('active');
+                });
+            });
+            
+            // Mobile social bar toggle
+            const mobileSocialToggle = document.getElementById('mobileSocialToggle');
+            const mobileSocialBar = document.getElementById('mobileSocialBar');
+            
+            if (mobileSocialToggle && mobileSocialBar) {
+                mobileSocialToggle.addEventListener('click', function() {
+                    mobileSocialBar.classList.toggle('active');
+                });
+            }
+            
+            // Load social media links from API
+            (async function() {
+                try {
+                    const res = await fetch('/api/social-media');
+                    const data = await res.json();
+                    if (data.success && data.socialMedia) {
+                        const sm = data.socialMedia;
+                        
+                        // Update desktop sidebar links
+                        document.querySelectorAll('.social-icon').forEach(icon => {
+                            const title = icon.getAttribute('title');
+                            if (title === 'Facebook') icon.href = sm.facebookUrl || 'https://facebook.com';
+                            if (title === 'Instagram') icon.href = sm.instagramUrl || 'https://instagram.com';
+                            if (title === 'WhatsApp') icon.href = sm.whatsappUrl || 'https://whatsapp.com';
+                            if (title === 'YouTube') icon.href = sm.youtubeUrl || 'https://youtube.com';
+                            if (title === 'LinkedIn') icon.href = sm.linkedinUrl || 'https://linkedin.com';
+                        });
+                        
+                        // Update mobile social bar links
+                        document.querySelectorAll('.mobile-social-icon').forEach(icon => {
+                            const title = icon.getAttribute('title');
+                            if (title === 'Facebook') icon.href = sm.facebookUrl || 'https://facebook.com';
+                            if (title === 'Instagram') icon.href = sm.instagramUrl || 'https://instagram.com';
+                            if (title === 'WhatsApp') icon.href = sm.whatsappUrl || 'https://whatsapp.com';
+                            if (title === 'YouTube') icon.href = sm.youtubeUrl || 'https://youtube.com';
+                            if (title === 'LinkedIn') icon.href = sm.linkedinUrl || 'https://linkedin.com';
+                        });
+                    }
+                } catch (err) {
+                    console.error('Error loading social media links:', err);
+                }
+            })();
+        });
+
+        // Load section visibility from API
+        (async function() {
+            try {
+                const res = await fetch('/api/section-visibility');
+                const data = await res.json();
+                if (data.success && data.sections) {
+                    const sectionMap = {
+                        carousel: 'home',
+                        notices: 'notices',
+                        courses: 'courses',
+                        blog: 'blog',
+                        about: 'about',
+                        gallery: 'gallery',
+                        testimonials: 'testimonials',
+                        contact: 'contact'
+                    };
+                    Object.keys(sectionMap).forEach(key => {
+                        const el = document.getElementById(sectionMap[key]);
+                        if (el && data.sections[key] === false) {
+                            el.style.display = 'none';
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading section visibility:', err);
+            }
+        })();
+
+        // Load section texts from API
+        (async function() {
+            try {
+                const res = await fetch('/api/section-texts');
+                const data = await res.json();
+                if (data.success && data.texts) {
+                    const sectionMap = {
+                        notices: 'notices',
+                        courses: 'courses',
+                        blog: 'blog',
+                        about: 'about',
+                        gallery: 'gallery',
+                        testimonials: 'testimonials',
+                        contact: 'contact'
+                    };
+                    Object.keys(sectionMap).forEach(key => {
+                        const section = document.getElementById(sectionMap[key]);
+                        if (section && data.texts[key]) {
+                            const title = section.querySelector('.section-title');
+                            if (title) title.textContent = data.texts[key];
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading section texts:', err);
+            }
+        })();
+
+        // Load hero text from API
+        (async function() {
+            try {
+                const res = await fetch('/api/hero-text');
+                const data = await res.json();
+                if (data.success && data.heroText) {
+                    const heroText = data.heroText;
+                    const isMobile = window.innerWidth <= 769;
+                    
+                    // Use mobile-specific text on mobile view
+                    const heading = isMobile ? (heroText.headingMobile || heroText.heading) : heroText.heading;
+                    const subheading = isMobile ? (heroText.subheadingMobile || heroText.subheading) : heroText.subheading;
+                    const headingSize = isMobile ? (heroText.headingSizeMobile || heroText.headingSize) : heroText.headingSize;
+                    const subheadingSize = isMobile ? (heroText.subheadingSizeMobile || heroText.subheadingSize) : heroText.subheadingSize;
+                    const button1Text = isMobile ? (heroText.button1TextMobile || heroText.button1Text) : heroText.button1Text;
+                    const button2Text = isMobile ? (heroText.button2TextMobile || heroText.button2Text) : heroText.button2Text;
+                    
+                    // Update text content
+                    const headingEl = document.getElementById('heroHeading');
+                    const subheadingEl = document.getElementById('heroSubheading');
+                    const button1El = document.getElementById('heroButton1');
+                    const button2El = document.getElementById('heroButton2');
+                    
+                    if (headingEl) headingEl.textContent = heading || 'Welcome to Genius Computer Education';
+                    if (subheadingEl) subheadingEl.textContent = subheading || 'Apna future banayein digital skills ke saath';
+                    if (button1El) button1El.textContent = button1Text || 'View Courses';
+                    if (button2El) button2El.innerHTML = '<i class="fas fa-user-graduate icon-3d"></i> ' + (button2Text || 'Apply Online');
+                    
+                    // Update font sizes
+                    if (headingEl && headingSize) {
+                        headingEl.style.fontSize = headingSize + 'rem';
+                    }
+                    if (subheadingEl && subheadingSize) {
+                        subheadingEl.style.fontSize = subheadingSize + 'rem';
+                    }
+                    
+                    // Apply animation (only on desktop)
+                    if (headingEl && !isMobile && heroText.animation) {
+                        switch(heroText.animation) {
+                            case 'cursorBlink':
+                                headingEl.style.animation = '0.8s infinite cursorBlink';
+                                break;
+                            case 'fadeIn':
+                                headingEl.style.animation = 'fadeIn 1s ease-in';
+                                break;
+                            case 'slideUp':
+                                headingEl.style.animation = 'slideUp 0.8s ease-out';
+                                break;
+                            case 'typewriter':
+                                headingEl.style.animation = 'typewriter 2s steps(40)';
+                                break;
+                            default:
+                                headingEl.style.animation = 'none';
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading hero text:', err);
+            }
+        })();
+
         // Right-click prevention based on settings
         (async function() {
             try {
@@ -303,6 +678,37 @@
                 console.error('Error loading settings for right-click prevention:', err);
             }
         })();
+
+        // 3D Card Tilt Effect
+        document.querySelectorAll('.blog-card, .course-card, .stat-item').forEach(card => {
+            card.classList.add('card-tilt');
+            
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (y - centerY) / 10;
+                const rotateY = (centerX - x) / 10;
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+            });
+        });
     </script>
+
+    <!-- Course Detail Modal -->
+    <div id="courseDetailModal" class="modal">
+        <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <button class="modal-close-btn" onclick="closeCourseModal()">&times;</button>
+            <div id="courseModalContent"></div>
+        </div>
+    </div>
 </body>
 </html>

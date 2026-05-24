@@ -1,19 +1,53 @@
+require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
-const { imageSize } = require('image-size');
-const nodemailer = require('nodemailer');
-const puppeteer = require('puppeteer');
-const QRCode = require('qrcode');
+const session = require('express-session');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const session = require('express-session');
-const { google } = require('googleapis');
+const crypto = require('crypto');
+const path = require('path');
+const fs = require('fs');
+const nodemailer = require('nodemailer');
+const puppeteer = require('puppeteer');
+const qrcode = require('qrcode');
+const archiver = require('archiver');
+const unzipper = require('unzipper');
+const speakeasy = require('speakeasy');
+const xlsx = require('xlsx');
+const imageSize = require('image-size');
+const bcrypt = require('bcrypt');
+const { body, validationResult } = require('express-validator');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+
+// XSS sanitization helper
+function sanitizeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, function(m) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[m];
+    });
+}
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
+
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+
+const CALENDAR_CLIENT_ID = process.env.GOOGLE_CALENDAR_CLIENT_ID || '';
+const CALENDAR_CLIENT_SECRET = process.env.GOOGLE_CALENDAR_CLIENT_SECRET || '';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+const GMB_LOCATION_ID = process.env.GMB_LOCATION_ID || '';
+const GMB_SERVICE_ACCOUNT_KEY_PATH = process.env.GMB_SERVICE_ACCOUNT_KEY_PATH || '';
 
 // Global formatDate function for DD-MMM-YYYY format (with month name)
 function formatDate(date) {
@@ -42,18 +76,93 @@ function formatDate(date) {
     } catch { return date; }
 }
 
+// Input validation middleware
+const validateRequest = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    next();
+};
+
 // Middleware
-app.use(cors());
-app.use(express.json());
+// CORS configuration - restrict to specific origins
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://192.168.31.12:3000',
+    'http://localhost',
+    'http://127.0.0.1'
+];
+app.use(cors({
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS policy: This origin is not allowed'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Security headers with Helmet
+app.use(helmet({
+    contentSecurityPolicy: false, // Disable CSP for now as it may break inline scripts
+    crossOriginEmbedderPolicy: false
+}));
+
+// Rate limiting for API endpoints
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/api/', limiter);
+
+// Stricter rate limiting for auth endpoints
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Limit each IP to 5 login attempts per windowMs
+    message: 'Too many login attempts, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/api/login', authLimiter);
+app.use('/api/admin-login', authLimiter);
+
+// Handle preflight requests
+app.options('*', (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.sendStatus(200);
+});
+app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
+// Root route - serve index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Session configuration
 app.use(session({
-    secret: 'genius-education-secret-key-2024',
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // Set to true in production with HTTPS
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // Set to true in production with HTTPS
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: 'strict'
+    }
 }));
 
 // Passport initialization
@@ -70,20 +179,27 @@ passport.deserializeUser((user, done) => {
 });
 
 // Google Calendar OAuth Configuration
-const calendarOAuth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CALENDAR_CLIENT_ID || '18109152240-86vmncbsnc2n4ik59t2j2nmsspci62ci.apps.googleusercontent.com',
-    process.env.GOOGLE_CALENDAR_CLIENT_SECRET || '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',
-    'http://localhost:3000/admin/calendar-callback'
-);
+const calendarOAuth2Client = (CALENDAR_CLIENT_ID && CALENDAR_CLIENT_SECRET)
+    ? new google.auth.OAuth2(
+        CALENDAR_CLIENT_ID,
+        CALENDAR_CLIENT_SECRET,
+        'http://localhost:3000/admin/calendar-callback'
+    )
+    : null;
 
 // Store access token in session (for simplicity)
 let calendarAccessToken = null;
 
 // Calendar API client
-const calendar = google.calendar({ version: 'v3', auth: calendarOAuth2Client });
+const calendar = calendarOAuth2Client
+    ? google.calendar({ version: 'v3', auth: calendarOAuth2Client })
+    : null;
 
 // Google Calendar OAuth Routes
 app.get('/admin/calendar-auth', (req, res) => {
+    if (!calendarOAuth2Client) {
+        return res.status(503).json({ success: false, message: 'Google Calendar not configured on server' });
+    }
     const authUrl = calendarOAuth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: ['https://www.googleapis.com/auth/calendar.readonly'],
@@ -92,6 +208,9 @@ app.get('/admin/calendar-auth', (req, res) => {
 });
 
 app.get('/admin/calendar-callback', async (req, res) => {
+    if (!calendarOAuth2Client) {
+        return res.redirect('/admin.html?page=attendance&calendar=error');
+    }
     const { code } = req.query;
     try {
         const { tokens } = await calendarOAuth2Client.getToken(code);
@@ -107,6 +226,9 @@ app.get('/admin/calendar-callback', async (req, res) => {
 // --- Google Calendar Integration ---
 app.get('/api/calendar/events', async (req, res) => {
     try {
+        if (!calendarOAuth2Client || !calendar) {
+            return res.status(503).json({ success: false, message: 'Google Calendar not configured' });
+        }
         if (!calendarAccessToken) {
             return res.status(401).json({ success: false, message: 'Calendar not authenticated' });
         }
@@ -141,6 +263,9 @@ app.get('/api/calendar/events', async (req, res) => {
 
 app.get('/api/calendar/holidays', async (req, res) => {
     try {
+        if (!calendarOAuth2Client || !calendar) {
+            return res.status(503).json({ success: false, message: 'Google Calendar not configured' });
+        }
         if (!calendarAccessToken) {
             return res.status(401).json({ success: false, message: 'Calendar not authenticated' });
         }
@@ -180,63 +305,58 @@ app.get('/api/calendar/auth-status', (req, res) => {
     res.json({ success: true, authenticated: !!calendarAccessToken });
 });
 
-// Google OAuth Strategy for Students
-passport.use('google-student', new GoogleStrategy({
-    name: 'google-student',
-    clientID: process.env.GOOGLE_CLIENT_ID || '18109152240-1fj2gvcd8kofcn1huu61iotlip7ee1b2.apps.googleusercontent.com',
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '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',
-    callbackURL: 'http://localhost:3000/auth/google/callback'
-},
-(accessToken, refreshToken, profile, done) => {
-    // Find or create user based on Google profile
-    const students = readData('students.json') || [];
-    let student = students.find(s => s.email === profile.emails[0].value);
-    
-    if (!student) {
-        // Create new student from Google profile
-        student = {
-            id: Date.now(),
-            name: profile.displayName,
-            email: profile.emails[0].value,
-            phone: '',
-            googleId: profile.id,
-            course: '',
-            batch: '',
-            status: 'Pending',
-            fees: { totalFees: 0, paidAmount: 0, dueAmount: 0, payments: [] },
-            loginPassword: Math.random().toString(36).substring(2, 10).toUpperCase()
-        };
-        students.push(student);
-        writeData('students.json', students);
-    } else {
-        // Update existing student with Google ID if not already linked
-        if (!student.googleId) {
+// Google OAuth Strategy for Students/Faculty (only when configured)
+if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+    passport.use('google-student', new GoogleStrategy({
+        name: 'google-student',
+        clientID: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        callbackURL: 'http://localhost:3000/auth/google/callback'
+    },
+    (accessToken, refreshToken, profile, done) => {
+        const students = readData('students.json') || [];
+        let student = students.find(s => s.email === profile.emails[0].value);
+
+        if (!student) {
+            student = {
+                id: Date.now(),
+                name: profile.displayName,
+                email: profile.emails[0].value,
+                phone: '',
+                googleId: profile.id,
+                course: '',
+                batch: '',
+                status: 'Pending',
+                fees: { totalFees: 0, paidAmount: 0, dueAmount: 0, payments: [] },
+                loginPassword: Math.random().toString(36).substring(2, 10).toUpperCase()
+            };
+            students.push(student);
+            writeData('students.json', students);
+        } else if (!student.googleId) {
             student.googleId = profile.id;
             writeData('students.json', students);
         }
-    }
-    
-    return done(null, student);
-}));
 
-// Google OAuth Strategy for Faculty
-passport.use('google-faculty', new GoogleStrategy({
-    name: 'google-faculty',
-    clientID: process.env.GOOGLE_CLIENT_ID || '18109152240-1fj2gvcd8kofcn1huu61iotlip7ee1b2.apps.googleusercontent.com',
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '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',
-    callbackURL: 'http://localhost:3000/auth/google/faculty/callback'
-},
-(accessToken, refreshToken, profile, done) => {
-    // Find faculty based on Google profile
-    const faculty = readData('faculty.json') || [];
-    const user = faculty.find(f => f.email === profile.emails[0].value);
+        return done(null, student);
+    }));
 
-    if (!user) {
-        return done(new Error('Faculty not found'), null);
-    }
+    passport.use('google-faculty', new GoogleStrategy({
+        name: 'google-faculty',
+        clientID: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        callbackURL: 'http://localhost:3000/auth/google/faculty/callback'
+    },
+    (accessToken, refreshToken, profile, done) => {
+        const faculty = readData('faculty.json') || [];
+        const user = faculty.find(f => f.email === profile.emails[0].value);
 
-    done(null, user);
-}));
+        if (!user) {
+            return done(new Error('Faculty not found'), null);
+        }
+
+        done(null, user);
+    }));
+}
 
 // Create directories
 ['uploads','uploads/gallery','uploads/logo','uploads/carousel','uploads/students/photos','uploads/students/signatures','uploads/students/documents','uploads/notices','uploads/videos','uploads/thumbnails','uploads/assignments','uploads/bulk-uploads','uploads/study-materials','uploads/alumni','uploads/video-resources','data'].forEach(dir => {
@@ -247,12 +367,19 @@ passport.use('google-faculty', new GoogleStrategy({
 function readData(file) {
     const filePath = path.join(__dirname, 'data', file);
     if (!fs.existsSync(filePath)) return null;
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    try {
+        return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    } catch (e) {
+        console.error(`[readData] Failed to parse ${file}:`, e.message);
+        return null;
+    }
 }
 
 function writeData(file, data) {
     const filePath = path.join(__dirname, 'data', file);
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    const tempPath = `${filePath}.tmp`;
+    fs.writeFileSync(tempPath, JSON.stringify(data, null, 2));
+    fs.renameSync(tempPath, filePath);
 }
 
 function createStudentSession(studentId, req) {
@@ -333,12 +460,12 @@ function touchVideoSingleSession(studentId, videoId) {
 function initData() {
     if (!readData('courses.json')) {
         writeData('courses.json', [
-            { id: 1, name: 'Basic Computer Course', duration: '1 Month', price: 2500, description: 'Computer basics, MS Office, Internet' },
-            { id: 2, name: 'Tally Prime with GST', duration: '2 Months', price: 4500, description: 'Accounting with GST using Tally Prime' },
-            { id: 3, name: 'Web Development', duration: '3 Months', price: 8000, description: 'HTML, CSS, JavaScript, Bootstrap' },
-            { id: 4, name: 'Python Programming', duration: '2 Months', price: 6000, description: 'Python basics to advanced' },
-            { id: 5, name: 'Graphic Design', duration: '2 Months', price: 5500, description: 'Photoshop, Illustrator, Canva' },
-            { id: 6, name: 'Digital Marketing', duration: '1 Month', price: 4000, description: 'SEO, Social Media, Email Marketing' }
+            { id: 1, name: 'Basic Computer Course', duration: '1 Month', fee: 2500, feeType: 'Per Program', description: 'Computer basics, MS Office, Internet' },
+            { id: 2, name: 'Tally Prime with GST', duration: '2 Months', fee: 4500, feeType: 'Per Program', description: 'Accounting with GST using Tally Prime' },
+            { id: 3, name: 'Web Development', duration: '3 Months', fee: 8000, feeType: 'Per Program', description: 'HTML, CSS, JavaScript, Bootstrap' },
+            { id: 4, name: 'Python Programming', duration: '2 Months', fee: 6000, feeType: 'Per Program', description: 'Python basics to advanced' },
+            { id: 5, name: 'Graphic Design', duration: '2 Months', fee: 5500, feeType: 'Per Program', description: 'Photoshop, Illustrator, Canva' },
+            { id: 6, name: 'Digital Marketing', duration: '1 Month', fee: 4000, feeType: 'Per Program', description: 'SEO, Social Media, Email Marketing' }
         ]);
     }
     if (!readData('faculty.json')) {
@@ -389,6 +516,49 @@ function generateRollNo() {
     const year = new Date().getFullYear();
     const count = students.filter(s => s.rollNo && s.rollNo.includes(`-${year}-`)).length + 1;
     return `GCE-${year}-${String(count).padStart(3, '0')}`;
+}
+
+// Application ID: GCE-APP-YYYY-NNNN (sequential per year)
+function generateApplicationId() {
+    const students = readData('students.json') || [];
+    const year = new Date().getFullYear();
+    const prefix = `GCE-APP-${year}-`;
+    const count = students.filter(s => s.applicationId && s.applicationId.startsWith(prefix)).length + 1;
+    return `${prefix}${String(count).padStart(4, '0')}`;
+}
+
+// Receipt No: RCP-YYYY-NNNNNN (sequential across all payments per year)
+function generateReceiptNo() {
+    const students = readData('students.json') || [];
+    const year = new Date().getFullYear();
+    const prefix = `RCP-${year}-`;
+    let count = 0;
+    students.forEach(s => {
+        const pays = s.fees && Array.isArray(s.fees.payments) ? s.fees.payments : [];
+        pays.forEach(p => { if (p.receipt && p.receipt.startsWith(prefix)) count++; });
+    });
+    return `${prefix}${String(count + 1).padStart(6, '0')}`;
+}
+
+// ---- Activity Log Helper ----
+function logActivity(action, actor, details, req) {
+    try {
+        const logs = readData('activity-logs.json') || [];
+        logs.push({
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            timestamp: new Date().toISOString(),
+            action: action || '',
+            actorType: (actor && actor.type) || 'public',
+            actorId: (actor && actor.id) || '',
+            actorName: (actor && actor.name) || '',
+            details: details || {},
+            ip: (req && (req.headers['x-forwarded-for'] || req.ip)) || '',
+            userAgent: (req && req.headers && req.headers['user-agent']) || ''
+        });
+        // Cap at last 5000 logs
+        if (logs.length > 5000) logs.splice(0, logs.length - 5000);
+        writeData('activity-logs.json', logs);
+    } catch (e) { console.error('logActivity error:', e); }
 }
 
 // ---- Email logo helper (returns CID embed + attachment for reliable rendering in mail clients) ----
@@ -474,13 +644,13 @@ th{background:#f8fafc;font-weight:600;width:30%;color:#555;}
 .footer{background:#f8fafc;border-top:1px solid #e5e7eb;padding:10px 30px;text-align:center;font-size:.78rem;color:#888;margin-top:15px;}
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
 </style></head><body>
-<div class="header"><div class="header-left">${logo}<div><h2>${inst}</h2><p>${addr}${phone ? ' | ' + phone : ''}</p></div></div><div class="badge">ADMISSION SLIP</div></div>
+<div class="header"><div class="header-left"><div><h2>${inst}</h2><p>${addr}${phone ? ' | ' + phone : ''}</p></div></div><div class="badge">ADMISSION SLIP</div></div>
 <div class="body">
 <div class="roll">&#127891; Roll No: ${student.rollNo}</div>
 <h3>Student Information</h3>
 <table><tr><th>Full Name</th><td><strong>${student.name}</strong></td><th>Date of Birth</th><td>${student.dob || '-'}</td></tr>
 <tr><th>Phone</th><td>${student.phone}</td><th>Email</th><td>${student.email || '-'}</td></tr>
-<tr><th>Father / Guardian</th><td>${student.parentName || '-'}</td><th>Guardian Phone</th><td>${student.parentPhone || '-'}</td></tr>
+<tr><th>Father / Guardian</th><td>${student.fatherName || student.parentName || '-'}</td><th>Guardian Phone</th><td>${student.fatherPhone || student.parentPhone || '-'}</td></tr>
 <tr><th>Address</th><td colspan="3">${student.address || '-'}</td></tr></table>
 <h3>Course Details</h3>
 <table><tr><th>Course</th><td><strong>${student.course}</strong></td><th>Batch</th><td>${student.batch || '-'}</td></tr>
@@ -501,18 +671,25 @@ ${p ? `<h3>Payment Details</h3><table><tr><th>Receipt No.</th><td>${p.receipt}</
 
 async function sendSlipEmail(student, payment, type = 'admission') {
     const settings = readData('settings.json') || {};
-    if (!settings.smtpUser || !settings.smtpPass) throw new Error('Email (SMTP) settings configure karo pehle - Settings > Email Configuration.');
+    const smtpUser = process.env.SMTP_USER || settings.smtpUser;
+    const smtpPass = process.env.SMTP_PASS || settings.smtpPass;
+    const smtpHost = process.env.SMTP_HOST || settings.smtpHost || 'smtp.gmail.com';
+    const smtpPort = parseInt(process.env.SMTP_PORT) || parseInt(settings.smtpPort) || 465;
+    const smtpSecure = process.env.SMTP_SECURE === 'true' || settings.smtpSecure !== false;
+    
+    if (!smtpUser || !smtpPass) throw new Error('Email (SMTP) settings configure karo pehle - Settings > Email Configuration.');
+    
     const transporter = nodemailer.createTransport({
-        host: settings.smtpHost || 'smtp.gmail.com',
-        port: parseInt(settings.smtpPort) || 587,
-        secure: false,
-        auth: { user: settings.smtpUser, pass: settings.smtpPass }
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpSecure,
+        auth: { user: smtpUser, pass: smtpPass }
     });
     const logoInfo = getEmailLogo(settings, 'max-height:55px;');
     const html = generateSlipHTML(student, settings, payment, logoInfo.html);
     const inst = settings.name || 'Genius Computer Education';
     await transporter.sendMail({
-        from: `"${inst}" <${settings.smtpUser}>`,
+        from: `"${inst}" <${smtpUser}>`,
         to: student.email,
         subject: type === 'admission' ? `Admission Confirmed - ${student.rollNo} | ${inst}` : `Payment Receipt - ${student.rollNo} | ${inst}`,
         html,
@@ -523,6 +700,11 @@ async function sendSlipEmail(student, payment, type = 'admission') {
 // Multer config for gallery images
 const galleryStorage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'uploads/gallery'),
+    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+});
+
+const carouselStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'uploads/carousel'),
     filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
 
@@ -541,11 +723,6 @@ const uploadGallery = multer({
         if (ext && mime) cb(null, true);
         else cb(new Error('Only image files allowed!'));
     }
-});
-
-const carouselStorage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/carousel'),
-    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
 
 const uploadCarousel = multer({
@@ -572,6 +749,35 @@ const uploadLogo = multer({
     }
 });
 
+// Favicon storage
+const faviconStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'uploads/logo'),
+    filename: (req, file, cb) => cb(null, 'favicon' + path.extname(file.originalname))
+});
+
+const uploadFavicon = multer({
+    storage: faviconStorage,
+    limits: { fileSize: 2 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const types = /jpeg|jpg|png|gif|webp|ico|svg/;
+        const ext = types.test(path.extname(file.originalname).toLowerCase());
+        const mime = types.test(file.mimetype);
+        if (ext && mime) cb(null, true);
+        else cb(new Error('Only image files allowed!'));
+    }
+});
+
+const popupImageStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'uploads/logo'),
+    filename: (req, file, cb) => cb(null, 'popup-' + Date.now() + path.extname(file.originalname))
+});
+
+const uploadPopupImage = multer({
+    storage: popupImageStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }
+    // Removed file filter to allow all image types
+});
+
 // Signature storage for authorized signatory
 const signatureStorage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'uploads/logo'),
@@ -595,7 +801,10 @@ const uploadSignature = multer({
 // --- Auth ---
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-    if (username === 'admin' && password === 'admin123') {
+    if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
+        return res.status(503).json({ success: false, message: 'Admin credentials are not configured on server' });
+    }
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
         res.json({ success: true, message: 'Login successful' });
     } else {
         res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -667,11 +876,11 @@ app.delete('/api/courses/:id', (req, res) => {
 
 // --- Faculty ---
 app.get('/api/faculty', (req, res) => {
-    res.json(readData('faculty.json'));
+    res.json(readData('faculty.json') || []);
 });
 
 app.post('/api/faculty', async (req, res) => {
-    const faculty = readData('faculty.json');
+    const faculty = readData('faculty.json') || [];
     const crypto = require('crypto');
     
     // Generate random password
@@ -691,19 +900,20 @@ app.post('/api/faculty', async (req, res) => {
     try {
         const nodemailer = require('nodemailer');
         const settings = readData('settings.json') || {};
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
         
         const transporter = nodemailer.createTransport({
-            host: settings.smtpHost || 'smtp.gmail.com',
-            port: settings.smtpPort || 587,
-            secure: false,
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpSecure,
             auth: {
-                user: settings.smtpUser,
-                pass: settings.smtpPass
+                user: smtpUser,
+                pass: smtpPass
             }
         });
         
         const mailOptions = {
-            from: settings.smtpUser,
+            from: smtpUser,
             to: member.email,
             subject: 'Faculty Portal Login Credentials',
             html: `
@@ -734,15 +944,23 @@ app.delete('/api/faculty/:id', (req, res) => {
     res.json({ success: true });
 });
 
-app.post('/api/faculty-login', (req, res) => {
-    const faculty = readData('faculty.json') || [];
+app.post('/api/faculty/login', async (req, res) => {
     const { email, password } = req.body;
-    const user = faculty.find(f => f.email === email && f.password === password);
-    if (user) {
-        res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false } });
+    const faculty = readData('faculty.json') || [];
+    const user = faculty.find(f => f.email === email);
+    if (!user) return res.json({ success: false, message: 'Invalid credentials' });
+
+    // Verify password (compare with hash if hashed, or plain text for existing users)
+    let passwordMatch;
+    if (user.password.startsWith('$2b$')) {
+        passwordMatch = await bcrypt.compare(password, user.password);
     } else {
-        res.json({ success: false, message: 'Invalid credentials' });
+        passwordMatch = password === user.password;
     }
+
+    if (!passwordMatch) return res.json({ success: false, message: 'Invalid credentials' });
+
+    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false } });
 });
 
 // Faculty OTP Login
@@ -778,19 +996,20 @@ app.post('/api/faculty/send-otp', async (req, res) => {
     try {
         const nodemailer = require('nodemailer');
         const settings = readData('settings.json') || {};
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
         
         const transporter = nodemailer.createTransport({
-            host: settings.smtpHost || 'smtp.gmail.com',
-            port: settings.smtpPort || 587,
-            secure: false,
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpSecure,
             auth: {
-                user: settings.smtpUser,
-                pass: settings.smtpPass
+                user: smtpUser,
+                pass: smtpPass
             }
         });
         
         const mailOptions = {
-            from: settings.smtpUser,
+            from: smtpUser,
             to: email,
             subject: 'Faculty Portal - OTP Verification',
             html: `
@@ -841,29 +1060,38 @@ app.post('/api/faculty/verify-otp', (req, res) => {
 });
 
 // Faculty Password Change
-app.post('/api/faculty/change-password', (req, res) => {
-    const { email, currentPassword, newPassword } = req.body;
-    const faculty = readData('faculty.json') || [];
-    const userIndex = faculty.findIndex(f => f.email === email);
-    
-    if (userIndex === -1) {
-        return res.json({ success: false, message: 'Faculty not found' });
+app.post('/api/faculty/change-password', async (req, res) => {
+    try {
+        const { email, currentPassword, newPassword } = req.body;
+        const faculty = readData('faculty.json') || [];
+        const user = faculty.find(f => f.email === email);
+        if (!user) return res.json({ success: false, message: 'User not found' });
+
+        // Verify current password (compare with hash if hashed, or plain text for existing users)
+        let passwordMatch;
+        if (user.password.startsWith('$2b$')) {
+            passwordMatch = await bcrypt.compare(currentPassword, user.password);
+        } else {
+            passwordMatch = currentPassword === user.password;
+        }
+
+        if (!passwordMatch) {
+            return res.json({ success: false, message: 'Current password is incorrect' });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password and mark as changed
+        user.password = hashedPassword;
+        user.passwordChanged = true;
+
+        writeData('faculty.json', faculty);
+        res.json({ success: true, message: 'Password changed successfully' });
+    } catch (err) {
+        console.error('Password change error:', err);
+        res.json({ success: false, message: 'Error changing password' });
     }
-    
-    const user = faculty[userIndex];
-    
-    // Verify current password
-    if (user.password !== currentPassword) {
-        return res.json({ success: false, message: 'Current password is incorrect' });
-    }
-    
-    // Update password and mark as changed
-    user.password = newPassword;
-    user.passwordChanged = true;
-    faculty[userIndex] = user;
-    writeData('faculty.json', faculty);
-    
-    res.json({ success: true, message: 'Password changed successfully' });
 });
 
 // Faculty Forgot Password - Send OTP
@@ -900,19 +1128,20 @@ app.post('/api/faculty/forgot-password', async (req, res) => {
     try {
         const nodemailer = require('nodemailer');
         const settings = readData('settings.json') || {};
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
         
         const transporter = nodemailer.createTransport({
-            host: settings.smtpHost || 'smtp.gmail.com',
-            port: settings.smtpPort || 587,
-            secure: false,
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpSecure,
             auth: {
-                user: settings.smtpUser,
-                pass: settings.smtpPass
+                user: smtpUser,
+                pass: smtpPass
             }
         });
         
         const mailOptions = {
-            from: settings.smtpUser,
+            from: smtpUser,
             to: email,
             subject: 'Faculty Portal - Password Reset OTP',
             html: `
@@ -935,61 +1164,76 @@ app.post('/api/faculty/forgot-password', async (req, res) => {
 });
 
 // Faculty Reset Password with OTP
-app.post('/api/faculty/reset-password', (req, res) => {
-    const { email, otp, newPassword } = req.body;
-    const otps = readData('faculty-otps.json') || [];
-    
-    // Find valid OTP for password reset
-    const otpRecord = otps.find(o => o.email === email && o.otp === otp && o.expiresAt > Date.now() && o.purpose === 'password-reset');
-    
-    if (!otpRecord) {
-        return res.json({ success: false, message: 'Invalid or expired OTP' });
+app.post('/api/faculty/reset-password', async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        const faculty = readData('faculty.json') || [];
+        const userIndex = faculty.findIndex(f => f.email === email);
+        if (userIndex === -1) return res.status(400).json({ success: false, message: 'Faculty not found' });
+
+        // Find valid OTP for password reset
+        const otps = readData('faculty-otps.json') || [];
+        const otpRecord = otps.find(o => o.email === email && o.otp === otp && o.expiresAt > Date.now() && o.purpose === 'password-reset');
+
+        if (!otpRecord) {
+            return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password
+        faculty[userIndex].password = hashedPassword;
+        faculty[userIndex].passwordChanged = true;
+        writeData('faculty.json', faculty);
+
+        // Remove used OTP
+        const filteredOtps = otps.filter(o => o.email !== email || o.otp !== otp);
+        writeData('faculty-otps.json', filteredOtps);
+
+        res.json({ success: true, message: 'Password reset successfully' });
+    } catch (err) {
+        console.error('Password reset error:', err);
+        res.json({ success: false, message: 'Error resetting password' });
     }
-    
-    // Get faculty data
-    const faculty = readData('faculty.json') || [];
-    const userIndex = faculty.findIndex(f => f.id === otpRecord.facultyId);
-    
-    if (userIndex === -1) {
-        return res.json({ success: false, message: 'Faculty not found' });
-    }
-    
-    // Update password
-    faculty[userIndex].password = newPassword;
-    faculty[userIndex].passwordChanged = true;
-    writeData('faculty.json', faculty);
-    
-    // Remove used OTP
-    const filteredOtps = otps.filter(o => o.email !== email);
-    writeData('faculty-otps.json', filteredOtps);
-    
-    res.json({ success: true, message: 'Password reset successfully' });
 });
 
 // Student Password Change
-app.post('/api/student/change-password', (req, res) => {
-    const { rollNo, currentPassword, newPassword } = req.body;
-    const students = readData('students.json') || [];
-    const userIndex = students.findIndex(s => s.rollNo === rollNo);
-    
-    if (userIndex === -1) {
-        return res.json({ success: false, message: 'Student not found' });
+app.post('/api/student/change-password', async (req, res) => {
+    try {
+        const { rollNo, currentPassword, newPassword } = req.body;
+        const students = readData('students.json') || [];
+        const userIndex = students.findIndex(s => s.rollNo === rollNo);
+
+        if (userIndex === -1) {
+            return res.json({ success: false, message: 'Student not found' });
+        }
+
+        // Verify current password (compare with hash if hashed, or plain text for existing users)
+        let passwordMatch;
+        if (students[userIndex].loginPassword.startsWith('$2b$')) {
+            passwordMatch = await bcrypt.compare(currentPassword, students[userIndex].loginPassword);
+        } else {
+            passwordMatch = currentPassword === students[userIndex].loginPassword;
+        }
+
+        if (!passwordMatch) {
+            return res.json({ success: false, message: 'Current password is incorrect' });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password and mark as changed
+        students[userIndex].loginPassword = hashedPassword;
+        students[userIndex].passwordChanged = true;
+
+        writeData('students.json', students);
+        res.json({ success: true, message: 'Password changed successfully' });
+    } catch (err) {
+        console.error('Student password change error:', err);
+        res.json({ success: false, message: 'Error changing password' });
     }
-    
-    const user = students[userIndex];
-    
-    // Verify current password
-    if (user.loginPassword !== currentPassword) {
-        return res.json({ success: false, message: 'Current password is incorrect' });
-    }
-    
-    // Update password and mark as changed
-    user.loginPassword = newPassword;
-    user.passwordChanged = true;
-    students[userIndex] = user;
-    writeData('students.json', students);
-    
-    res.json({ success: true, message: 'Password changed successfully' });
 });
 
 // Student OTP Authentication
@@ -1024,18 +1268,19 @@ app.post('/api/student-auth/request-otp', (req, res) => {
     // Send OTP via email
     try {
         const settings = readData('settings.json') || {};
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
         const transporter = nodemailer.createTransport({
-            host: settings.smtpHost || 'smtp.gmail.com',
-            port: settings.smtpPort || 587,
-            secure: false,
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpSecure,
             auth: {
-                user: settings.smtpUser,
-                pass: settings.smtpPass
+                user: smtpUser,
+                pass: smtpPass
             }
         });
         
         const mailOptions = {
-            from: settings.smtpUser,
+            from: smtpUser,
             to: email,
             subject: 'Student Portal - OTP Verification',
             html: `
@@ -1066,39 +1311,44 @@ app.post('/api/student-auth/request-otp', (req, res) => {
 app.post('/api/student-auth/verify-otp', (req, res) => {
     const { email, otp } = req.body;
     const otps = readData('student-otps.json') || [];
-
     const otpRecord = otps.find(o => o.email === email && o.otp === otp && o.expiresAt > Date.now());
 
     if (!otpRecord) {
-        return res.json({ success: false, error: 'Invalid or expired OTP' });
+        return res.json({ success: false, message: 'Invalid or expired OTP' });
     }
 
-    // Get student data
     const students = readData('students.json') || [];
     const student = students.find(s => s.rollNo === otpRecord.studentRollNo);
 
     if (!student) {
-        return res.json({ success: false, error: 'Student not found' });
+        return res.json({ success: false, message: 'Student not found' });
     }
 
-    // Remove used OTP
-    const filteredOtps = otps.filter(o => o.email !== email);
-    writeData('student-otps.json', filteredOtps);
+    // Generate session token
+    const sessionToken = crypto.randomBytes(32).toString('hex');
+    const sessionData = {
+        studentId: student.rollNo,
+        token: sessionToken,
+        expiresAt: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+    };
 
-    const sessionToken = createStudentSession(student.id, req);
+    const sessions = readData('student-sessions.json') || [];
+    sessions.push(sessionData);
+    writeData('student-sessions.json', sessions);
 
     res.json({
         success: true,
         student: {
             id: student.id,
             name: student.name,
-            email: student.email,
             rollNo: student.rollNo,
+            email: student.email,
+            phone: student.phone,
             course: student.course,
             batch: student.batch,
-            passwordChanged: student.passwordChanged || false,
-            sessionToken
-        }
+            passwordChanged: student.passwordChanged || false
+        },
+        sessionToken: sessionToken
     });
 });
 
@@ -1151,6 +1401,266 @@ app.post('/api/student-auth/validate-session', (req, res) => {
     });
 });
 
+// ===== Public Admission - Email OTP Verification =====
+// Used to verify the applicant's email before allowing admission form submission.
+
+app.post('/api/apply/send-otp', async (req, res) => {
+    try {
+        const { email, name } = req.body;
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ success: false, message: 'Valid email zaroori hai' });
+        }
+        // Block if email already used by an existing student
+        const existing = (readData('students.json') || []).find(s => (s.email || '').toLowerCase() === email.toLowerCase());
+        if (existing) {
+            return res.status(400).json({ success: false, message: 'Yeh email pehle se registered hai' });
+        }
+
+        // Rate-limit: max 5 OTP requests per email per hour
+        const otps = readData('apply-otps.json') || [];
+        const recent = otps.filter(o => o.email === email && (Date.now() - (o.createdAt || 0)) < 60 * 60 * 1000);
+        if (recent.length >= 5) {
+            return res.status(429).json({ success: false, message: 'Bahut zyada OTP requests. 1 ghante baad try karein.' });
+        }
+
+        const otp = crypto.randomInt(100000, 1000000).toString();
+        const record = {
+            email: email.toLowerCase(),
+            otp,
+            verified: false,
+            verifyToken: '',
+            createdAt: Date.now(),
+            expiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes
+        };
+
+        // Replace previous unverified OTPs for this email
+        const filtered = otps.filter(o => o.email !== email.toLowerCase() || o.verified);
+        filtered.push(record);
+        writeData('apply-otps.json', filtered);
+
+        const settings = readData('settings.json') || {};
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
+        if (!smtpUser || !smtpPass) {
+            return res.status(500).json({ success: false, message: 'Email service abhi unavailable hai. Admin se contact karein.' });
+        }
+        const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpSecure,
+            auth: { user: smtpUser, pass: smtpPass }
+        });
+        const inst = settings.name || 'Genius Computer Education';
+        const logo = getEmailLogo(settings);
+        await transporter.sendMail({
+            from: `${inst} <${smtpUser}>`,
+            to: email,
+            subject: `${inst} - Admission Email Verification OTP`,
+            html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+<div style="background:#2563eb;color:#fff;padding:20px;text-align:center;">${logo.html}<h2 style="margin:8px 0 0;">Email Verification</h2></div>
+<div style="padding:24px;color:#1f2937;">
+<p>Dear ${name ? String(name).slice(0, 60) : 'Applicant'},</p>
+<p>Aapne ${inst} ke admission form par apply kiya hai. Apna email verify karne ke liye yeh OTP use karein:</p>
+<div style="text-align:center;margin:24px 0;">
+<span style="display:inline-block;font-size:32px;letter-spacing:8px;font-weight:700;background:#eff6ff;color:#1d4ed8;padding:14px 28px;border-radius:10px;border:2px dashed #2563eb;">${otp}</span>
+</div>
+<p style="color:#6b7280;font-size:13px;">Yeh OTP <strong>10 minute</strong> tak valid hai. Agar aapne yeh request nahi kiya, to ise ignore karein.</p>
+</div>
+<div style="background:#f9fafb;padding:16px;text-align:center;color:#6b7280;font-size:12px;">&copy; ${new Date().getFullYear()} ${inst}</div>
+</div>`,
+            attachments: logo.attachments
+        });
+        logActivity('apply.send-otp', { type: 'public' }, { email }, req);
+        res.json({ success: true, message: 'OTP email par bhej diya gaya hai' });
+    } catch (e) {
+        console.error('apply send-otp error:', e);
+        res.status(500).json({ success: false, message: 'OTP nahi bhej paaye. Thodi der baad try karein.' });
+    }
+});
+
+app.post('/api/apply/verify-otp', (req, res) => {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ success: false, message: 'Email aur OTP zaroori hai' });
+    const otps = readData('apply-otps.json') || [];
+    const idx = otps.findIndex(o => o.email === email.toLowerCase() && o.otp === otp && !o.verified);
+    if (idx === -1) return res.status(400).json({ success: false, message: 'Galat OTP' });
+    if (Date.now() > otps[idx].expiresAt) return res.status(400).json({ success: false, message: 'OTP expire ho gaya. Naya OTP mangaiye.' });
+
+    const verifyToken = crypto.randomBytes(24).toString('hex');
+    otps[idx].verified = true;
+    otps[idx].verifyToken = verifyToken;
+    otps[idx].verifiedAt = Date.now();
+    otps[idx].tokenExpiresAt = Date.now() + 30 * 60 * 1000; // token valid 30 min
+    writeData('apply-otps.json', otps);
+    logActivity('apply.verify-otp', { type: 'public' }, { email }, req);
+    res.json({ success: true, verifyToken, message: 'Email verified successfully' });
+});
+
+// Duplicate check endpoints for public admission form
+app.get('/api/check-mobile', (req, res) => {
+    const { phone } = req.query;
+    if (!phone) return res.json({ exists: false });
+    const students = readData('students.json') || [];
+    const exists = students.some(s => s.phone === phone);
+    res.json({ exists });
+});
+
+app.get('/api/check-email', (req, res) => {
+    const { email } = req.query;
+    if (!email) return res.json({ exists: false });
+    const students = readData('students.json') || [];
+    const exists = students.some(s => s.email && s.email.toLowerCase() === email.toLowerCase());
+    res.json({ exists });
+});
+
+app.get('/api/check-aadhar', (req, res) => {
+    const { aadhar } = req.query;
+    if (!aadhar) return res.json({ exists: false });
+    const students = readData('students.json') || [];
+    const exists = students.some(s => s.aadhar === aadhar);
+    res.json({ exists });
+});
+
+// ===== Staff OTP for Admission Submission (Cash/UPI mismanagement prevention) =====
+// Authorized staff = faculty.json entries with canSubmitAdmission === true.
+
+function isAuthorizedStaff(email) {
+    if (!email) return null;
+    const faculty = readData('faculty.json') || [];
+    const f = faculty.find(x => (x.email || '').toLowerCase() === email.toLowerCase());
+    if (!f) return null;
+    if (f.canSubmitAdmission !== true) return null;
+    return f;
+}
+
+app.post('/api/staff/send-otp', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ success: false, message: 'Valid staff email zaroori hai' });
+        }
+        const staff = isAuthorizedStaff(email);
+        if (!staff) {
+            return res.status(403).json({ success: false, message: 'Yeh email admission submit ke liye authorized nahi hai. Admin se contact karein.' });
+        }
+
+        // Rate-limit: max 5 OTP per 1 hour per staff
+        const otps = readData('staff-otps.json') || [];
+        const recent = otps.filter(o => o.email === email.toLowerCase() && (Date.now() - (o.createdAt || 0)) < 60 * 60 * 1000);
+        if (recent.length >= 5) {
+            return res.status(429).json({ success: false, message: 'Bahut zyada OTP requests. Kuch der baad try karein.' });
+        }
+
+        const otp = crypto.randomInt(100000, 1000000).toString();
+        const record = {
+            email: email.toLowerCase(),
+            otp,
+            staffId: staff.id,
+            staffName: staff.name,
+            verified: false,
+            staffToken: '',
+            createdAt: Date.now(),
+            expiresAt: Date.now() + 10 * 60 * 1000 // 10 min
+        };
+        const filtered = otps.filter(o => o.email !== email.toLowerCase() || o.verified);
+        filtered.push(record);
+        writeData('staff-otps.json', filtered);
+
+        const settings = readData('settings.json') || {};
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
+        if (!smtpUser || !smtpPass) {
+            return res.status(500).json({ success: false, message: 'Email service unavailable' });
+        }
+        const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpSecure,
+            auth: { user: smtpUser, pass: smtpPass }
+        });
+        const inst = settings.name || 'Genius Computer Education';
+        const logo = getEmailLogo(settings);
+        await transporter.sendMail({
+            from: `${inst} <${smtpUser}>`,
+            to: email,
+            subject: `${inst} - Staff Admission OTP`,
+            html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+<div style="background:#7c3aed;color:#fff;padding:20px;text-align:center;">${logo.html}<h2 style="margin:8px 0 0;">Staff Admission Verification</h2></div>
+<div style="padding:24px;color:#1f2937;">
+<p>Dear ${staff.name},</p>
+<p>Aap admission form submit kar rahe hain (Cash/UPI payment). Confirm karne ke liye yeh OTP use karein:</p>
+<div style="text-align:center;margin:24px 0;">
+<span style="display:inline-block;font-size:32px;letter-spacing:8px;font-weight:700;background:#f5f3ff;color:#6d28d9;padding:14px 28px;border-radius:10px;border:2px dashed #7c3aed;">${otp}</span>
+</div>
+<p style="color:#6b7280;font-size:13px;">Yeh OTP <strong>10 minute</strong> tak valid hai. Single-use hai - submit hone ke baad expire ho jayega.</p>
+<p style="color:#dc2626;font-size:13px;"><strong>⚠️ Security:</strong> Agar aapne yeh OTP request nahi kiya, to immediately admin ko inform karein.</p>
+</div>
+<div style="background:#f9fafb;padding:16px;text-align:center;color:#6b7280;font-size:12px;">&copy; ${new Date().getFullYear()} ${inst}</div>
+</div>`,
+            attachments: logo.attachments
+        });
+        logActivity('staff.send-otp', { type: 'staff', id: staff.id, name: staff.name }, { email }, req);
+        res.json({ success: true, staffName: staff.name, message: 'OTP staff email par bhej diya gaya hai' });
+    } catch (e) {
+        console.error('staff send-otp error:', e);
+        res.status(500).json({ success: false, message: 'OTP nahi bhej paaye. Try again.' });
+    }
+});
+
+app.post('/api/staff/verify-otp', (req, res) => {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ success: false, message: 'Email aur OTP zaroori hai' });
+    const otps = readData('staff-otps.json') || [];
+    const idx = otps.findIndex(o => o.email === email.toLowerCase() && o.otp === otp && !o.verified);
+    if (idx === -1) return res.status(400).json({ success: false, message: 'Galat OTP' });
+    if (Date.now() > otps[idx].expiresAt) return res.status(400).json({ success: false, message: 'OTP expire ho gaya' });
+
+    const staffToken = crypto.randomBytes(24).toString('hex');
+    otps[idx].verified = true;
+    otps[idx].staffToken = staffToken;
+    otps[idx].verifiedAt = Date.now();
+    otps[idx].tokenExpiresAt = Date.now() + 15 * 60 * 1000; // 15 min to submit
+    writeData('staff-otps.json', otps);
+    logActivity('staff.verify-otp', { type: 'staff', id: otps[idx].staffId, name: otps[idx].staffName }, { email }, req);
+    res.json({ success: true, staffToken, staffName: otps[idx].staffName, message: 'Staff verified' });
+});
+
+// Helper: consume staff token (single-use, returns staff info or null)
+function consumeStaffToken(token) {
+    if (!token) return null;
+    const otps = readData('staff-otps.json') || [];
+    const idx = otps.findIndex(o => o.staffToken === token && o.verified);
+    if (idx === -1) return null;
+    if (Date.now() > (otps[idx].tokenExpiresAt || 0)) return null;
+    const info = { id: otps[idx].staffId, name: otps[idx].staffName, email: otps[idx].email };
+    otps.splice(idx, 1);
+    writeData('staff-otps.json', otps);
+    return info;
+}
+
+// Toggle admission-access for a faculty member
+app.patch('/api/faculty/:id/admission-access', (req, res) => {
+    const faculty = readData('faculty.json') || [];
+    const idx = faculty.findIndex(f => f.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Faculty not found' });
+    const newVal = req.body.canSubmitAdmission === true;
+    faculty[idx].canSubmitAdmission = newVal;
+    writeData('faculty.json', faculty);
+    logActivity('faculty.admission-access-toggle', { type: 'admin' }, { facultyId: faculty[idx].id, name: faculty[idx].name, canSubmitAdmission: newVal }, req);
+    res.json({ success: true, faculty: faculty[idx] });
+});
+
+// Helper: validate apply verify token
+function consumeApplyVerifyToken(email, token) {
+    if (!email || !token) return false;
+    const otps = readData('apply-otps.json') || [];
+    const idx = otps.findIndex(o => o.email === email.toLowerCase() && o.verifyToken === token && o.verified);
+    if (idx === -1) return false;
+    if (Date.now() > (otps[idx].tokenExpiresAt || 0)) return false;
+    // Consume: invalidate token after use
+    otps.splice(idx, 1);
+    writeData('apply-otps.json', otps);
+    return true;
+}
+
 // Student logout — the ONLY way to truly end a session
 app.post('/api/student-auth/logout', (req, res) => {
     const { studentId, sessionToken } = req.body;
@@ -1164,11 +1674,225 @@ app.post('/api/student-auth/logout', (req, res) => {
 
 // Admin Credentials Management
 let adminCredentials = null;
+const adminLoginAttempts = new Map(); // Track failed login attempts by IP
+const adminSessions = new Map(); // Track active admin sessions
 
 function generateRandomPassword(length = 12) {
     const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$';
     return Array.from({length}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
+
+// Rate limiting helper
+function checkRateLimit(ip) {
+    const attempts = adminLoginAttempts.get(ip) || { count: 0, resetTime: Date.now() + 15 * 60 * 1000 };
+    
+    // Reset if time expired
+    if (Date.now() > attempts.resetTime) {
+        adminLoginAttempts.set(ip, { count: 0, resetTime: Date.now() + 15 * 60 * 1000 });
+        return { allowed: true, remaining: 5 };
+    }
+    
+    // Check if limit exceeded (5 attempts per 15 minutes)
+    if (attempts.count >= 5) {
+        return { allowed: false, remaining: 0, resetIn: Math.ceil((attempts.resetTime - Date.now()) / 1000) };
+    }
+    
+    return { allowed: true, remaining: 5 - attempts.count };
+}
+
+// Record failed login attempt
+function recordFailedAttempt(ip) {
+    const attempts = adminLoginAttempts.get(ip) || { count: 0, resetTime: Date.now() + 15 * 60 * 1000 };
+    attempts.count++;
+    adminLoginAttempts.set(ip, attempts);
+}
+
+// Clear failed attempts on successful login
+function clearFailedAttempts(ip) {
+    adminLoginAttempts.delete(ip);
+}
+
+// Generate session token
+function generateSessionToken() {
+    return crypto.randomBytes(32).toString('hex');
+}
+
+// Create admin session
+function createAdminSession(ip) {
+    const token = generateSessionToken();
+    const expiresAt = Date.now() + 30 * 60 * 1000; // 30 minutes
+    adminSessions.set(token, { ip, expiresAt });
+    return { token, expiresAt };
+}
+
+// Verify admin session
+function verifyAdminSession(token, ip) {
+    const session = adminSessions.get(token);
+    if (!session) return false;
+    if (Date.now() > session.expiresAt) {
+        adminSessions.delete(token);
+        return false;
+    }
+    if (session.ip !== ip) return false;
+    return true;
+}
+
+// Cleanup expired sessions
+setInterval(() => {
+    const now = Date.now();
+    for (const [token, session] of adminSessions.entries()) {
+        if (now > session.expiresAt) {
+            adminSessions.delete(token);
+        }
+    }
+}, 5 * 60 * 1000); // Check every 5 minutes
+
+// Admin session verification middleware
+function verifyAdminSessionMiddleware(req, res, next) {
+    const token = req.headers['x-admin-session'];
+    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'No session token provided' });
+    }
+    
+    if (!verifyAdminSession(token, ip)) {
+        return res.status(401).json({ success: false, message: 'Invalid or expired session' });
+    }
+    
+    next();
+}
+
+// Session verification endpoint
+app.get('/api/admin/verify-session', (req, res) => {
+    const token = req.headers['x-admin-session'];
+    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    
+    if (!token) {
+        return res.json({ valid: false, message: 'No session token' });
+    }
+    
+    const isValid = verifyAdminSession(token, ip);
+    res.json({ valid: isValid });
+});
+
+// Logout endpoint
+app.post('/api/admin/logout', (req, res) => {
+    const token = req.headers['x-admin-session'];
+    if (token) {
+        adminSessions.delete(token);
+    }
+    res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// Admin Gate Passcode Verification
+app.post('/api/admin/verify-gate-passcode', async (req, res) => {
+    const { passcode, recaptchaToken } = req.body;
+    const gatePasscode = process.env.ADMIN_GATE_PASSCODE || '1234';
+    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+    
+    if (!passcode) {
+        return res.json({ success: false, message: 'Passcode required' });
+    }
+    
+    // Verify reCAPTCHA token
+    if (recaptchaToken && recaptchaSecret) {
+        try {
+            const recaptchaResponse = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `secret=${recaptchaSecret}&response=${recaptchaToken}`
+            });
+            const recaptchaData = await recaptchaResponse.json();
+            
+            if (!recaptchaData.success || recaptchaData.score < 0.5) {
+                return res.json({ success: false, message: 'reCAPTCHA verification failed. Please try again.' });
+            }
+        } catch (error) {
+            console.error('reCAPTCHA verification error:', error);
+            return res.json({ success: false, message: 'reCAPTCHA verification error' });
+        }
+    }
+    
+    if (passcode === gatePasscode) {
+        res.json({ success: true, message: 'Passcode verified' });
+    } else {
+        res.json({ success: false, message: 'Invalid passcode' });
+    }
+});
+
+// TOTP Secret Management
+let adminTOTPSecret = null;
+
+// Generate TOTP secret for admin
+app.post('/api/admin/generate-totp-secret', async (req, res) => {
+    try {
+        const settings = readData('settings.json') || {};
+        const instituteName = settings.name || 'Genius Computer Education';
+        const adminEmail = settings.adminEmail || settings.email;
+        
+        if (!adminEmail) {
+            return res.json({ success: false, message: 'Admin email not configured' });
+        }
+        
+        // Generate TOTP secret
+        const secret = speakeasy.generateSecret({
+            name: `${instituteName} Admin`,
+            issuer: instituteName,
+            length: 32
+        });
+        
+        // Store secret in memory
+        adminTOTPSecret = secret.base32;
+        
+        // Generate QR code
+        const qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url);
+        
+        res.json({
+            success: true,
+            secret: secret.base32,
+            qrCode: qrCodeUrl,
+            message: 'TOTP secret generated. Scan QR code with your authenticator app.'
+        });
+    } catch (error) {
+        console.error('Error generating TOTP secret:', error);
+        res.json({ success: false, message: 'Failed to generate TOTP secret' });
+    }
+});
+
+// Verify TOTP code
+app.post('/api/admin/verify-totp', (req, res) => {
+    const { token } = req.body;
+    
+    if (!token) {
+        return res.json({ success: false, message: 'TOTP token required' });
+    }
+    
+    if (!adminTOTPSecret) {
+        return res.json({ success: false, message: 'TOTP not configured. Please set up 2FA first.' });
+    }
+    
+    // Verify TOTP token
+    const verified = speakeasy.totp.verify({
+        secret: adminTOTPSecret,
+        encoding: 'base32',
+        token: token,
+        window: 2 // Allow 2 time steps (approximately 1 minute) before/after
+    });
+    
+    if (verified) {
+        res.json({ success: true, message: 'TOTP verified' });
+    } else {
+        res.json({ success: false, message: 'Invalid TOTP code' });
+    }
+});
+
+// Check if TOTP is configured
+app.get('/api/admin/totp-status', (req, res) => {
+    res.json({
+        configured: adminTOTPSecret !== null
+    });
+});
 
 app.post('/api/admin/generate-credentials', async (req, res) => {
     try {
@@ -1192,18 +1916,19 @@ app.post('/api/admin/generate-credentials', async (req, res) => {
         };
         
         // Send email with credentials
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
         const transporter = nodemailer.createTransport({
-            host: settings.smtpHost || 'smtp.gmail.com',
-            port: parseInt(settings.smtpPort) || 587,
-            secure: false,
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpSecure,
             auth: {
-                user: settings.smtpUser,
-                pass: settings.smtpPass
+                user: smtpUser,
+                pass: smtpPass
             }
         });
         
         const mailOptions = {
-            from: settings.smtpUser,
+            from: smtpUser,
             to: adminEmail,
             subject: 'Admin Panel Login Credentials - Genius Computer Education',
             html: `
@@ -1237,8 +1962,38 @@ app.post('/api/admin/generate-credentials', async (req, res) => {
     }
 });
 
-app.post('/api/admin/verify-credentials', (req, res) => {
-    const { username, password } = req.body;
+app.post('/api/admin/verify-credentials', async (req, res) => {
+    const { username, password, totpToken, recaptchaToken } = req.body;
+    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+    
+    // Verify reCAPTCHA token
+    if (recaptchaToken && recaptchaSecret) {
+        try {
+            const recaptchaResponse = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `secret=${recaptchaSecret}&response=${recaptchaToken}`
+            });
+            const recaptchaData = await recaptchaResponse.json();
+            
+            if (!recaptchaData.success || recaptchaData.score < 0.5) {
+                return res.json({ success: false, message: 'reCAPTCHA verification failed. Please try again.' });
+            }
+        } catch (error) {
+            console.error('reCAPTCHA verification error:', error);
+            return res.json({ success: false, message: 'reCAPTCHA verification error' });
+        }
+    }
+    
+    // Check rate limiting
+    const rateLimit = checkRateLimit(ip);
+    if (!rateLimit.allowed) {
+        return res.status(429).json({ 
+            success: false, 
+            message: `Too many failed login attempts. Please try again in ${rateLimit.resetIn} seconds.` 
+        });
+    }
     
     if (!adminCredentials) {
         return res.json({ success: false, message: 'No credentials generated. Please request new credentials.' });
@@ -1252,28 +2007,89 @@ app.post('/api/admin/verify-credentials', (req, res) => {
     
     // Verify credentials
     if (username === adminCredentials.username && password === adminCredentials.password) {
+        // Check if TOTP is configured and required
+        if (adminTOTPSecret) {
+            if (!totpToken) {
+                return res.json({ 
+                    success: false, 
+                    requireTOTP: true,
+                    message: 'TOTP code required for 2FA' 
+                });
+            }
+            
+            // Verify TOTP token
+            const verified = speakeasy.totp.verify({
+                secret: adminTOTPSecret,
+                encoding: 'base32',
+                token: totpToken,
+                window: 2
+            });
+            
+            if (!verified) {
+                return res.json({ 
+                    success: false, 
+                    message: 'Invalid TOTP code',
+                    requireTOTP: true
+                });
+            }
+        }
+        
         // Clear credentials after successful login
         adminCredentials = null;
-        res.json({ success: true, message: 'Login successful' });
+        // Clear failed attempts
+        clearFailedAttempts(ip);
+        // Create session
+        const session = createAdminSession(ip);
+        res.json({ 
+            success: true, 
+            message: 'Login successful',
+            sessionToken: session.token,
+            expiresAt: session.expiresAt
+        });
     } else {
-        res.json({ success: false, message: 'Invalid credentials' });
+        // Record failed attempt
+        recordFailedAttempt(ip);
+        const remainingAttempts = 5 - (adminLoginAttempts.get(ip)?.count || 0);
+        res.json({ 
+            success: false, 
+            message: 'Invalid credentials',
+            remainingAttempts 
+        });
     }
 });
 
 // --- Gallery ---
 app.get('/api/gallery', (req, res) => {
-    res.json(readData('gallery.json'));
+    res.json(readData('gallery.json') || []);
 });
 
 app.post('/api/gallery', uploadGallery.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ success: false, message: 'No image uploaded' });
-    const gallery = readData('gallery.json');
+    const gallery = readData('gallery.json') || [];
     const item = {
         id: Date.now(),
         title: req.body.title,
+        category: req.body.category || 'general',
         image: '/uploads/gallery/' + req.file.filename
     };
     gallery.push(item);
+    writeData('gallery.json', gallery);
+    res.json({ success: true, item });
+});
+
+app.put('/api/gallery/:id', uploadGallery.single('image'), (req, res) => {
+    let gallery = readData('gallery.json');
+    const index = gallery.findIndex(g => g.id == req.params.id);
+    if (index === -1) return res.status(404).json({ success: false, message: 'Gallery item not found' });
+
+    const item = gallery[index];
+    item.title = req.body.title;
+    item.category = req.body.category || 'general';
+    if (req.file) {
+        item.image = '/uploads/gallery/' + req.file.filename;
+    }
+
+    gallery[index] = item;
     writeData('gallery.json', gallery);
     res.json({ success: true, item });
 });
@@ -1292,11 +2108,11 @@ app.delete('/api/gallery/:id', (req, res) => {
 
 // --- Enquiries ---
 app.get('/api/enquiries', (req, res) => {
-    res.json(readData('enquiries.json'));
+    res.json(readData('enquiries.json') || []);
 });
 
 app.post('/api/enquiries', (req, res) => {
-    const enquiries = readData('enquiries.json');
+    const enquiries = readData('enquiries.json') || [];
     const enquiry = { id: Date.now(), date: formatDate(new Date()), replied: false, ...req.body };
     enquiries.unshift(enquiry);
     writeData('enquiries.json', enquiries);
@@ -1320,15 +2136,16 @@ app.post('/api/enquiries/:id/reply', async (req, res) => {
         const enquiry = enquiries[idx];
         const replyText = req.body.reply;
         
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
         if (!enquiry.email) return res.status(400).json({ success: false, error: 'No email address found for this enquiry' });
-        if (!settings.smtpUser || !settings.smtpPass) return res.status(400).json({ success: false, error: 'SMTP email settings not configured. Go to Settings > Email Configuration.' });
+        if (!smtpUser || !smtpPass) return res.status(400).json({ success: false, error: 'SMTP email settings not configured. Go to Settings > Email Configuration.' });
         
         const inst = settings.name || 'Genius Computer Education';
         const transporter = nodemailer.createTransport({
-            host: settings.smtpHost || 'smtp.gmail.com',
-            port: parseInt(settings.smtpPort) || 587,
-            secure: false,
-            auth: { user: settings.smtpUser, pass: settings.smtpPass }
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpSecure,
+            auth: { user: smtpUser, pass: smtpPass }
         });
         
         const logoInfo = getEmailLogo(settings, 'max-height:50px;');
@@ -1610,13 +2427,25 @@ function generatePassword() {
     return Array.from({length: 8}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
+function getSMTPConfig() {
+    const settings = readData('settings.json') || {};
+    const smtpUser = process.env.SMTP_USER || settings.smtpUser;
+    const smtpPass = process.env.SMTP_PASS || settings.smtpPass;
+    const smtpHost = process.env.SMTP_HOST || settings.smtpHost || 'smtp.gmail.com';
+    const smtpPort = parseInt(process.env.SMTP_PORT) || parseInt(settings.smtpPort) || 465;
+    const smtpSecure = process.env.SMTP_SECURE === 'true' || settings.smtpSecure !== false;
+    
+    return { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure };
+}
+
 async function sendLoginCredentials(student, password) {
     const settings = readData('settings.json') || {};
-    if (!settings.smtpUser || !settings.smtpPass || !student.email) return;
-    const transporter = nodemailer.createTransport({ host: settings.smtpHost || 'smtp.gmail.com', port: parseInt(settings.smtpPort) || 587, secure: false, auth: { user: settings.smtpUser, pass: settings.smtpPass } });
+    const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
+    if (!smtpUser || !smtpPass || !student.email) return;
+    const transporter = nodemailer.createTransport({ host: smtpHost, port: smtpPort, secure: smtpSecure, auth: { user: smtpUser, pass: smtpPass } });
     const inst = settings.name || 'Genius Computer Education';
     await transporter.sendMail({
-        from: `"${inst}" <${settings.smtpUser}>`,
+        from: `"${inst}" <${smtpUser}>`,
         to: student.email,
         subject: `Admission Confirmed - Login Credentials | ${inst}`,
         html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
@@ -1644,11 +2473,12 @@ app.post('/api/student-auth/request-otp', async (req, res) => {
     const otp = generateOTP();
     otpStore.set(email, { otp, expiry: Date.now() + 5 * 60 * 1000 });
     const settings = readData('settings.json') || {};
+    const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
     try {
-        const transporter = nodemailer.createTransport({ host: settings.smtpHost || 'smtp.gmail.com', port: 587, secure: false, auth: { user: settings.smtpUser, pass: settings.smtpPass } });
+        const transporter = nodemailer.createTransport({ host: smtpHost, port: smtpPort, secure: smtpSecure, auth: { user: smtpUser, pass: smtpPass } });
         const inst = settings.name || 'Genius Computer Education';
         await transporter.sendMail({
-            from: `"${inst}" <${settings.smtpUser}>`,
+            from: `"${inst}" <${smtpUser}>`,
             to: email,
             subject: `Login OTP - Student Portal | ${inst}`,
             html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
@@ -1745,21 +2575,6 @@ app.post('/api/student-auth/google-signin', async (req, res) => {
     }
 });
 
-// --- Razorpay Order ---
-app.post('/api/payment/create-order', async (req, res) => {
-    const settings = readData('settings.json') || {};
-    const razorpayKey = settings.razorpayKeyId;
-    const razorpaySecret = settings.razorpayKeySecret;
-    if (!razorpayKey || !razorpaySecret) return res.status(400).json({ error: 'Razorpay keys not configured in Settings.' });
-    const crypto = require('crypto');
-    const Razorpay = require('razorpay').default || require('razorpay');
-    const instance = new Razorpay({ key_id: razorpayKey, key_secret: razorpaySecret });
-    try {
-        const order = await instance.orders.create({ amount: parseInt(req.body.amount) * 100, currency: 'INR', receipt: 'rcpt_' + Date.now() });
-        res.json({ success: true, order, key: razorpayKey });
-    } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
 // --- Students ---
 const studentStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -1769,7 +2584,7 @@ const studentStorage = multer.diskStorage({
     },
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.fieldname + path.extname(file.originalname))
 });
-const uploadStudent = multer({ storage: studentStorage, limits: { fileSize: 5 * 1024 * 1024 } });
+const uploadStudent = multer({ storage: studentStorage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 // --- Videos ---
 const videoStorage = multer.diskStorage({
@@ -1822,7 +2637,19 @@ const studyMaterialStorage = multer.diskStorage({
 const uploadStudyMaterial = multer({ storage: studyMaterialStorage, limits: { fileSize: 50 * 1024 * 1024 } });
 
 app.get('/api/students', (req, res) => {
-    res.json(readData('students.json') || []);
+    const students = readData('students.json') || [];
+    const { course, batch } = req.query;
+    
+    if (course || batch) {
+        const filtered = students.filter(s => {
+            const matchCourse = !course || s.course === course;
+            const matchBatch = !batch || s.batch === batch;
+            return matchCourse && matchBatch;
+        });
+        res.json(filtered);
+    } else {
+        res.json(students);
+    }
 });
 
 app.get('/api/students/:id', (req, res) => {
@@ -1834,12 +2661,64 @@ app.get('/api/students/:id', (req, res) => {
 app.post('/api/students', uploadStudent.fields([{name:'photo',maxCount:1},{name:'signature',maxCount:1},{name:'documents',maxCount:5}]), (req, res) => {
     const students = readData('students.json') || [];
     const d = req.body;
-    const total = parseInt(d.totalFees) || 0;
-    const paid = parseInt(d.amountPaid) || 0;
-    const due = parseInt(d.pendingFees) || 0;
-    const receiptNo = 'RCP-' + Date.now();
+
+    // ===== Public/Staff flow detection =====
+    // - staffToken: submitted via apply.html when payment is Cash/UPI (mismanagement guard)
+    // - verifyToken: applicant email OTP (used for non-Cash/UPI/online-gateway flows)
+    // Admin panel calls this endpoint without either token.
+    const isPublicFlow = !!(d.verifyToken || d.staffToken);
+    let staffInfo = null;
+    if (d.staffToken) {
+        staffInfo = consumeStaffToken(d.staffToken);
+        if (!staffInfo) {
+            return res.status(400).json({ success: false, message: 'Staff verification expired ya invalid hai. Dobara OTP verify karein.' });
+        }
+    } else if (d.verifyToken) {
+        const ok = consumeApplyVerifyToken(d.email, d.verifyToken);
+        if (!ok) {
+            return res.status(400).json({ success: false, message: 'Email verification expired ya invalid hai. Kripya email OTP dobara verify karein.' });
+        }
+    }
+
+    // ===== Server-side amount verification =====
+    // Trust course price from courses.json, NOT client-supplied totalFees
+    const courses = readData('courses.json') || [];
+    const courseRec = courses.find(c => c.name === d.course);
+    if (!courseRec) {
+        return res.status(400).json({ success: false, message: 'Selected course valid nahi hai' });
+    }
+    const total = parseInt(courseRec.fee || courseRec.price) || 0;
+    let paid = parseInt(d.amountPaid) || 0;
+    const paymentType = (d.paymentType || 'custom').toLowerCase();
+    const paymentMode = d.paymentMode || 'Cash';
+
+    // Allow any payment amount (no 40% restriction)
+    if (paid < 0) {
+        return res.status(400).json({ success: false, message: 'Payment amount valid nahi hai' });
+    }
+    // Allow payment more than total (advance payment)
+    // Public flow restrictions
+    if (isPublicFlow) {
+        if (!['UPI', 'Online', 'Card'].includes(paymentMode) && paymentMode !== 'Cash') {
+            return res.status(400).json({ success: false, message: 'Invalid payment mode' });
+        }
+        // Cash / UPI = manual entry → MUST have staffToken (mismanagement guard)
+        const modeNorm = String(paymentMode).toLowerCase();
+        if ((modeNorm === 'cash' || modeNorm === 'upi') && !staffInfo) {
+            return res.status(403).json({ success: false, message: 'Cash / UPI payment ke liye Staff verification zaroori hai.' });
+        }
+        // For UPI, require transaction proof
+        if (modeNorm === 'upi' && !d.utrNumber && !d.transactionId) {
+            return res.status(400).json({ success: false, message: 'UTR / Transaction ID zaroori hai' });
+        }
+    }
+    const due = Math.max(0, total - paid);
+
+    const receiptNo = generateReceiptNo();
+    const applicationId = generateApplicationId();
     const student = {
         id: Date.now(),
+        applicationId,
         rollNo: generateRollNo(),
         name: d.name, dob: d.dob, gender: d.gender, category: d.category,
         bloodGroup: d.bloodGroup, phone: d.phone, whatsapp: d.whatsapp,
@@ -1850,6 +2729,15 @@ app.post('/api/students', uploadStudent.fields([{name:'photo',maxCount:1},{name:
         course: d.course, batch: d.batch, batchId: d.batchId || '',
         admissionDate: d.admissionDate || formatDate(new Date()),
         status: 'Active',
+        emailVerified: !!d.verifyToken,
+        source: staffInfo ? 'staff' : (isPublicFlow ? 'public' : 'admin'),
+        submittedBy: staffInfo ? {
+            staffId: staffInfo.id,
+            staffName: staffInfo.name,
+            staffEmail: staffInfo.email,
+            ip: (req.headers['x-forwarded-for'] || req.ip) || '',
+            timestamp: new Date().toISOString()
+        } : null,
         loginPassword: generatePassword(),
         photo: req.files?.photo ? '/uploads/students/photos/' + req.files.photo[0].filename : '',
         signature: req.files?.signature ? '/uploads/students/signatures/' + req.files.signature[0].filename : '',
@@ -1857,13 +2745,44 @@ app.post('/api/students', uploadStudent.fields([{name:'photo',maxCount:1},{name:
         fees: {
             totalFees: total, paidAmount: paid, dueAmount: due,
             payments: [{ id: Date.now(), date: formatDate(new Date()), amount: paid,
-                type: d.paymentType === 'partial' ? 'Partial Payment (40%)' : 'Full Payment (100%)',
-                mode: d.paymentMode || 'Cash', transactionId: d.transactionId || '', 
+                type: paymentType === 'partial' ? 'Partial Payment (40%)' : 'Full Payment (100%)',
+                mode: paymentMode, transactionId: d.transactionId || '',
                 upiId: d.upiId || '', utrNumber: d.utrNumber || '', receipt: receiptNo }]
         }
     };
     students.push(student);
     writeData('students.json', students);
+
+    // Add admission payment to payments.json for dashboard revenue tracking
+    const payments = readData('payments.json') || [];
+    payments.push({
+        id: Date.now(),
+        studentId: student.id,
+        studentName: student.name,
+        studentRollNo: student.rollNo,
+        course: student.course,
+        amount: paid,
+        mode: paymentMode,
+        type: paymentType === 'partial' ? 'Partial Payment (40%)' : 'Full Payment (100%)',
+        transactionId: d.transactionId || '',
+        upiId: d.upiId || '',
+        utrNo: d.utrNumber || '',
+        studentReceipt: receiptNo,
+        receipt: receiptNo,
+        date: formatDate(new Date()),
+        status: 'approved'
+    });
+    writeData('payments.json', payments);
+
+    const actorType = staffInfo ? 'staff' : (isPublicFlow ? 'public' : 'admin');
+    logActivity('student.create', {
+        type: actorType,
+        id: staffInfo ? staffInfo.id : student.id,
+        name: staffInfo ? staffInfo.name : student.name
+    }, {
+        applicationId, rollNo: student.rollNo, course: student.course, total, paid, paymentMode, receiptNo,
+        submittedBy: student.submittedBy || null
+    }, req);
     if (d.sendEmail === 'true' && student.email) {
         sendSlipEmail(student, student.fees.payments[0], 'admission').catch(console.error);
         sendLoginCredentials(student, student.loginPassword).catch(console.error);
@@ -1872,9 +2791,48 @@ app.post('/api/students', uploadStudent.fields([{name:'photo',maxCount:1},{name:
 });
 
 app.delete('/api/students/:id', (req, res) => {
+    const sid = req.params.id;
+
+    // Helper to filter out student from any JSON file
+    const cleanFile = (filename, key = 'studentId') => {
+        const data = readData(filename) || [];
+        const filtered = data.filter(item => item[key] != sid);
+        writeData(filename, filtered);
+    };
+
+    // 1. Remove student
     let students = readData('students.json') || [];
-    students = students.filter(s => s.id != req.params.id);
+    const removed = students.find(s => s.id == sid);
+    students = students.filter(s => s.id != sid);
     writeData('students.json', students);
+    if (removed) {
+        logActivity('student.delete', { type: 'admin', id: sid, name: removed.name }, {
+            applicationId: removed.applicationId, rollNo: removed.rollNo, course: removed.course
+        }, req);
+    }
+
+    // 2. Clean all related data files
+    cleanFile('payments.json');
+    cleanFile('attendance.json');
+    cleanFile('certificates.json');
+    cleanFile('exam-results.json');
+    cleanFile('exam-grades.json');
+    cleanFile('exam-attempts.json');
+    cleanFile('video-ratings.json');
+    cleanFile('video-bookmarks.json');
+    cleanFile('video-watch-later.json');
+    cleanFile('video-comments.json');
+    cleanFile('notifications.json');
+
+    // 3. Remove student's video progress from all videos
+    let videos = readData('videos.json') || [];
+    videos.forEach(v => {
+        if (v.progress && v.progress[sid]) {
+            delete v.progress[sid];
+        }
+    });
+    writeData('videos.json', videos);
+
     res.json({ success: true });
 });
 
@@ -1883,18 +2841,29 @@ app.post('/api/students/:id/payment', (req, res) => {
     const idx = students.findIndex(s => s.id == req.params.id);
     if (idx === -1) return res.status(404).json({ error: 'Not found' });
     const amt = parseInt(req.body.amount);
+    if (!Number.isFinite(amt) || amt <= 0) {
+        return res.status(400).json({ success: false, message: 'Valid payment amount zaroori hai' });
+    }
     const status = req.body.status || 'approved'; // Default to approved for backward compatibility
-    const payment = { 
-        id: Date.now(), 
+    // Server-side: cannot pay more than dueAmount (only check for approved payments)
+    if (status === 'approved') {
+        const dueLeft = (students[idx].fees && students[idx].fees.dueAmount) || 0;
+        if (amt > dueLeft) {
+            return res.status(400).json({ success: false, message: `Pending due ₹${dueLeft} se zyada payment allowed nahi` });
+        }
+    }
+    const payment = {
+        id: Date.now(),
         studentId: parseInt(req.params.id),
         studentName: students[idx].name,
-        date: formatDate(new Date()), 
+        date: formatDate(new Date()),
         amount: amt,
         type: req.body.type || 'Fee Payment',
         mode: req.body.mode || 'Cash',
         transactionId: req.body.transactionId || '',
         utrNo: req.body.utrNo || '',
-        receipt: 'RCP-' + Date.now(),
+        studentReceipt: req.body.studentReceipt || req.body.receiptNo || '',
+        receipt: generateReceiptNo(),
         status: status
     };
     
@@ -1913,8 +2882,22 @@ app.post('/api/students/:id/payment', (req, res) => {
             sendSlipEmail(students[idx], payment, 'payment').catch(console.error);
         }
     }
-    
+
+    logActivity('payment.create', { type: 'student', id: req.params.id, name: students[idx].name }, {
+        amount: amt, mode: payment.mode, type: payment.type, receipt: payment.receipt, status
+    }, req);
+
     res.json({ success: true, student: students[idx] });
+});
+
+// ===== Activity Logs (Admin View) =====
+app.get('/api/activity-logs', (req, res) => {
+    const logs = readData('activity-logs.json') || [];
+    const limit = Math.min(parseInt(req.query.limit) || 200, 1000);
+    const action = (req.query.action || '').trim();
+    let filtered = logs.slice().reverse(); // newest first
+    if (action) filtered = filtered.filter(l => (l.action || '').includes(action));
+    res.json({ success: true, total: filtered.length, logs: filtered.slice(0, limit) });
 });
 
 // Update student profile (including photo)
@@ -1966,6 +2949,54 @@ app.post('/api/students/:id/update-profile', uploadStudent.single('photo'), (req
     res.json({ success: true, student: students[idx] });
 });
 
+// Compatibility route: admin panel sends JSON with PUT /api/students/:id
+app.put('/api/students/:id', (req, res) => {
+    const students = readData('students.json') || [];
+    const idx = students.findIndex(s => s.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+
+    const d = req.body || {};
+    if (d.name !== undefined) students[idx].name = d.name;
+    if (d.dob !== undefined) students[idx].dob = d.dob;
+    if (d.gender !== undefined) students[idx].gender = d.gender;
+    if (d.category !== undefined) students[idx].category = d.category;
+    if (d.bloodGroup !== undefined) students[idx].bloodGroup = d.bloodGroup;
+    if (d.phone !== undefined) students[idx].phone = d.phone;
+    if (d.email !== undefined) students[idx].email = d.email;
+    if (d.aadhar !== undefined) students[idx].aadhar = d.aadhar;
+    if (d.address !== undefined) students[idx].address = d.address;
+    if (d.fatherName !== undefined) students[idx].fatherName = d.fatherName;
+    if (d.fatherPhone !== undefined) students[idx].fatherPhone = d.fatherPhone;
+    if (d.motherName !== undefined) students[idx].motherName = d.motherName;
+    if (d.familyIncome !== undefined) students[idx].familyIncome = d.familyIncome;
+    if (d.course !== undefined) students[idx].course = d.course;
+    if (d.batch !== undefined) students[idx].batch = d.batch;
+    if (d.status !== undefined) students[idx].status = d.status;
+
+    if (d.qualification !== undefined) {
+        try {
+            students[idx].qualification = typeof d.qualification === 'string'
+                ? JSON.parse(d.qualification)
+                : d.qualification;
+        } catch (e) {
+            return res.status(400).json({ success: false, message: 'Invalid qualification data' });
+        }
+    }
+
+    writeData('students.json', students);
+    res.json({ success: true, student: students[idx] });
+});
+
+app.post('/api/students/:id/icard-status', (req, res) => {
+    const students = readData('students.json') || [];
+    const idx = students.findIndex(s => s.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Student not found' });
+
+    students[idx].icardGenerated = !!req.body.icardGenerated;
+    writeData('students.json', students);
+    res.json({ success: true, student: students[idx] });
+});
+
 app.post('/api/students/:id/send-slip', async (req, res) => {
     const students = readData('students.json') || [];
     const student = students.find(s => s.id == req.params.id);
@@ -1992,35 +3023,75 @@ app.post('/api/payments/:id/approve', (req, res) => {
     const payments = readData('payments.json') || [];
     const paymentIdx = payments.findIndex(p => p._id == req.params.id || p.id == req.params.id);
     if (paymentIdx === -1) return res.status(404).json({ success: false, message: 'Payment not found' });
-    
+
+    const payment = payments[paymentIdx];
+    const wasApproved = payment.status === 'approved';
+
     // Update payment status
     payments[paymentIdx].status = 'approved';
     writeData('payments.json', payments);
-    
-    // Update student fees
-    const students = readData('students.json') || [];
-    const studentIdx = students.findIndex(s => s.id == payments[paymentIdx].studentId);
-    if (studentIdx !== -1) {
-        // Add payment to student's fee payments
-        const payment = { ...payments[paymentIdx] };
-        students[studentIdx].fees.payments.push(payment);
-        students[studentIdx].fees.paidAmount += payment.amount;
-        students[studentIdx].fees.dueAmount = Math.max(0, students[studentIdx].fees.dueAmount - payment.amount);
-        writeData('students.json', students);
+
+    // Update student fees only if not already approved (idempotent)
+    if (!wasApproved) {
+        const students = readData('students.json') || [];
+        const studentIdx = students.findIndex(s => s.id == payment.studentId);
+        if (studentIdx !== -1) {
+            const student = students[studentIdx];
+            student.fees = student.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0, payments: [] };
+            student.fees.payments = student.fees.payments || [];
+
+            // Avoid duplicate insertion if same payment id already present
+            const dupIdx = student.fees.payments.findIndex(p => p.id == payment.id);
+            if (dupIdx === -1) {
+                student.fees.payments.push({ ...payment });
+            } else {
+                student.fees.payments[dupIdx] = { ...payment };
+            }
+
+            student.fees.paidAmount = (parseInt(student.fees.paidAmount) || 0) + (parseInt(payment.amount) || 0);
+            student.fees.dueAmount = Math.max(0, (parseInt(student.fees.dueAmount) || 0) - (parseInt(payment.amount) || 0));
+            writeData('students.json', students);
+
+            logActivity('payment.approve', { type: 'admin', id: payment.id, name: payment.studentName }, {
+                paymentId: payment.id, studentId: payment.studentId, amount: payment.amount,
+                paidAmount: student.fees.paidAmount, dueAmount: student.fees.dueAmount
+            }, req);
+        }
     }
-    
-    res.json({ success: true });
+
+    res.json({ success: true, payment: payments[paymentIdx] });
 });
 
 app.post('/api/payments/:id/deny', (req, res) => {
     const payments = readData('payments.json') || [];
     const paymentIdx = payments.findIndex(p => p._id == req.params.id || p.id == req.params.id);
     if (paymentIdx === -1) return res.status(404).json({ success: false, message: 'Payment not found' });
-    
+
+    const payment = payments[paymentIdx];
+    const wasApproved = payment.status === 'approved';
+
     // Update payment status to denied
     payments[paymentIdx].status = 'denied';
     writeData('payments.json', payments);
-    
+
+    // If previously approved, reverse the fee deduction
+    if (wasApproved) {
+        const students = readData('students.json') || [];
+        const studentIdx = students.findIndex(s => s.id == payment.studentId);
+        if (studentIdx !== -1) {
+            const student = students[studentIdx];
+            student.fees = student.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0, payments: [] };
+            student.fees.payments = (student.fees.payments || []).filter(p => p.id != payment.id);
+            student.fees.paidAmount = Math.max(0, (parseInt(student.fees.paidAmount) || 0) - (parseInt(payment.amount) || 0));
+            student.fees.dueAmount = (parseInt(student.fees.dueAmount) || 0) + (parseInt(payment.amount) || 0);
+            writeData('students.json', students);
+        }
+    }
+
+    logActivity('payment.deny', { type: 'admin', id: payment.id, name: payment.studentName }, {
+        paymentId: payment.id, studentId: payment.studentId, amount: payment.amount, reversed: wasApproved
+    }, req);
+
     res.json({ success: true });
 });
 
@@ -3794,7 +4865,8 @@ app.post('/api/admin/videos/:id/notify-availability', async (req, res) => {
     if (!video) return res.status(404).json({ success: false, message: 'Video not found' });
 
     const settings = readData('settings.json') || {};
-    if (!settings.smtpUser || !settings.smtpPass) {
+    const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
+    if (!smtpUser || !smtpPass) {
         return res.status(400).json({ success: false, message: 'SMTP settings are not configured.' });
     }
 
@@ -3808,10 +4880,10 @@ app.post('/api/admin/videos/:id/notify-availability', async (req, res) => {
 
     try {
         const transporter = nodemailer.createTransport({
-            host: settings.smtpHost || 'smtp.gmail.com',
-            port: parseInt(settings.smtpPort) || 587,
-            secure: false,
-            auth: { user: settings.smtpUser, pass: settings.smtpPass }
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpSecure,
+            auth: { user: smtpUser, pass: smtpPass }
         });
         const fromName = settings.name || 'Genius Computer Education';
         const startText = video.availabilityStart ? formatDate(video.availabilityStart) : 'Now';
@@ -4647,26 +5719,24 @@ app.get('/verify-certificate', (req, res) => {
                     const cert = data.certificate;
                     resultDiv.className = 'result success';
                     resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = \`
-                        <h3><i class="fas fa-check-circle"></i> Certificate Verified</h3>
-                        <p><span class="label">Student:</span> \${cert.studentName}</p>
-                        <p><span class="label">Certificate Type:</span> \${cert.certificateType}</p>
-                        <p><span class="label">Certificate No:</span> \${cert.certificateNumber}</p>
-                        <p><span class="label">Course:</span> \${cert.course}</p>
-                        <p><span class="label">Roll No:</span> \${cert.rollNo}</p>
-                        <p><span class="label">Grade:</span> \${cert.grade || '—'}</p>
-                        <p><span class="label">Issue Date:</span> \${cert.issueDate}</p>
-                        <p><span class="label">Template:</span> \${cert.template}</p>
-                    \`;
+                    resultDiv.innerHTML = '<h3><i class="fas fa-check-circle"></i> Certificate Verified</h3>' +
+                        '<p><span class="label">Student:</span> ' + sanitizeHTML(cert.studentName) + '</p>' +
+                        '<p><span class="label">Certificate Type:</span> ' + sanitizeHTML(cert.certificateType) + '</p>' +
+                        '<p><span class="label">Certificate No:</span> ' + sanitizeHTML(cert.certificateNumber) + '</p>' +
+                        '<p><span class="label">Course:</span> ' + sanitizeHTML(cert.course) + '</p>' +
+                        '<p><span class="label">Roll No:</span> ' + sanitizeHTML(cert.rollNo) + '</p>' +
+                        '<p><span class="label">Grade:</span> ' + sanitizeHTML(cert.grade || '—') + '</p>' +
+                        '<p><span class="label">Issue Date:</span> ' + sanitizeHTML(cert.issueDate) + '</p>' +
+                        '<p><span class="label">Template:</span> ' + sanitizeHTML(cert.template) + '</p>';
                 } else {
                     resultDiv.className = 'result error';
                     resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = '<h3><i class="fas fa-times-circle"></i> Not Found</h3><p>' + data.message + '</p>';
+                    resultDiv.textContent = 'Not Found: ' + sanitizeHTML(data.message);
                 }
             } catch (e) {
                 resultDiv.className = 'result error';
                 resultDiv.style.display = 'block';
-                resultDiv.innerHTML = '<h3>Error</h3><p>Unable to verify certificate</p>';
+                resultDiv.textContent = 'Error: Unable to verify certificate';
             }
         }
         
@@ -5285,12 +6355,12 @@ app.get('/api/students/:id/slip', (req, res) => {
 
 // --- Carousel ---
 app.get('/api/carousel', (req, res) => {
-    res.json(readData('carousel.json'));
+    res.json(readData('carousel.json') || []);
 });
 
 app.post('/api/carousel', uploadCarousel.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ success: false, message: 'No image uploaded' });
-    const carousel = readData('carousel.json');
+    const carousel = readData('carousel.json') || [];
     const item = {
         id: Date.now(),
         caption: req.body.caption || '',
@@ -6563,12 +7633,6 @@ app.get('/api/exam-results/:studentId', (req, res) => {
     res.json({ success: true, results: studentResults });
 });
 
-// API to get all exam grades for admin (to publish results)
-app.get('/api/exam-grades', (req, res) => {
-    const grades = readData('exam-grades.json') || [];
-    res.json({ success: true, grades });
-});
-
 // API to publish exam result
 app.post('/api/exam-grades/publish', async (req, res) => {
     const { gradeId, sendEmail } = req.body;
@@ -6783,7 +7847,8 @@ app.post('/api/exam-grades/cancel-schedule', (req, res) => {
 // Email helper for exam results
 async function sendExamResultEmail(grade) {
     const settings = readData('settings.json') || {};
-    if (!settings.smtpUser || !settings.smtpPass) return { sent: false, reason: 'SMTP not configured' };
+    const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
+    if (!smtpUser || !smtpPass) return { sent: false, reason: 'SMTP not configured' };
     
     const students = readData('students.json') || [];
     const student = students.find(s => s.id == grade.studentId);
@@ -6793,10 +7858,10 @@ async function sendExamResultEmail(grade) {
     const passColor = grade.status === 'Passed' ? '#22c55e' : '#ef4444';
     
     const transporter = nodemailer.createTransport({
-        host: settings.smtpHost || 'smtp.gmail.com',
-        port: parseInt(settings.smtpPort) || 587,
-        secure: false,
-        auth: { user: settings.smtpUser, pass: settings.smtpPass }
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpSecure,
+        auth: { user: smtpUser, pass: smtpPass }
     });
     
     // Generate PDF attachment for the result
@@ -7443,20 +8508,33 @@ app.get('/api/question-papers/:studentId', (req, res) => {
 });
 
 // --- Google Auth Routes ---
-app.get('/auth/google', passport.authenticate('google-student', { scope: ['profile', 'email'] }));
+if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+    app.get('/auth/google', passport.authenticate('google-student', { scope: ['profile', 'email'] }));
 
-app.get('/auth/google/faculty', passport.authenticate('google-faculty', { scope: ['profile', 'email'] }));
+    app.get('/auth/google/faculty', passport.authenticate('google-faculty', { scope: ['profile', 'email'] }));
 
-app.get('/auth/google/callback', passport.authenticate('google-student', { failureRedirect: '/student-portal.html?error=google_auth_failed' }), (req, res) => {
-    // Successful authentication for students
-    res.redirect('/student-portal.html?google_auth=success');
-});
+    app.get('/auth/google/callback', passport.authenticate('google-student', { failureRedirect: '/student-portal.html?error=google_auth_failed' }), (req, res) => {
+        // Check if the Google email is registered in students.json
+        const students = readData('students.json') || [];
+        const student = students.find(s => s.email === req.user.email);
+        
+        if (!student) {
+            return res.redirect('/student-portal.html?error=email_not_registered');
+        }
+        
+        res.redirect('/student-portal.html?google_auth=success');
+    });
 
-app.get('/auth/google/faculty/callback', passport.authenticate('google-faculty', { failureRedirect: '/faculty-portal.html?error=google_auth_failed' }), (req, res) => {
-    // Faculty authenticated, redirect to faculty portal with auth data
-    const facultyData = { id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role, subject: req.user.subject };
-    res.redirect(`/faculty-portal.html?auth=success&data=${encodeURIComponent(JSON.stringify(facultyData))}`);
-});
+    app.get('/auth/google/faculty/callback', passport.authenticate('google-faculty', { failureRedirect: '/faculty-portal.html?error=google_auth_failed' }), (req, res) => {
+        const facultyData = { id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role, subject: req.user.subject };
+        res.redirect(`/faculty-portal.html?auth=success&data=${encodeURIComponent(JSON.stringify(facultyData))}`);
+    });
+} else {
+    app.get('/auth/google', (req, res) => res.redirect('/student-portal.html?error=google_auth_not_configured'));
+    app.get('/auth/google/faculty', (req, res) => res.redirect('/faculty-portal.html?error=google_auth_not_configured'));
+    app.get('/auth/google/callback', (req, res) => res.redirect('/student-portal.html?error=google_auth_not_configured'));
+    app.get('/auth/google/faculty/callback', (req, res) => res.redirect('/faculty-portal.html?error=google_auth_not_configured'));
+}
 
 app.get('/api/auth/user', (req, res) => {
     if (req.isAuthenticated()) {
@@ -7475,7 +8553,7 @@ app.get('/auth/logout', (req, res) => {
 
 // --- About ---
 app.get('/api/about', (req, res) => {
-    res.json(readData('about.json'));
+    res.json(readData('about.json') || {});
 });
 
 app.put('/api/about', (req, res) => {
@@ -7486,7 +8564,7 @@ app.put('/api/about', (req, res) => {
 
 // --- Settings ---
 app.get('/api/settings', (req, res) => {
-    res.json(readData('settings.json'));
+    res.json(readData('settings.json') || {});
 });
 
 app.put('/api/settings', (req, res) => {
@@ -7546,6 +8624,103 @@ app.delete('/api/signature', (req, res) => {
     res.json({ success: true });
 });
 
+// --- Favicon Upload ---
+app.post('/api/favicon', uploadFavicon.single('favicon'), (req, res) => {
+    console.log('Favicon upload request received');
+    if (!req.file) {
+        console.log('No file uploaded');
+        return res.status(400).json({ success: false, message: 'No favicon uploaded' });
+    }
+    console.log('File received:', req.file);
+    const settings = readData('settings.json') || {};
+    // Delete old favicon
+    if (settings.favicon) {
+        const oldPath = path.join(__dirname, settings.favicon);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+    settings.favicon = '/uploads/logo/' + req.file.filename;
+    writeData('settings.json', settings);
+    console.log('Favicon saved:', settings.favicon);
+    res.json({ success: true, favicon: settings.favicon });
+});
+
+app.get('/favicon.ico', (req, res) => {
+    const settings = readData('settings.json') || {};
+    if (settings.favicon) {
+        const faviconPath = path.join(__dirname, settings.favicon);
+        if (fs.existsSync(faviconPath)) {
+            return res.sendFile(faviconPath);
+        }
+    }
+    // Return 204 No Content if no favicon is set
+    res.status(204).end();
+});
+
+// --- Popup Image Upload ---
+app.post('/api/popup-image', uploadPopupImage.single('popupImage'), (req, res) => {
+    console.log('Popup image upload request received');
+    console.log('Req file:', req.file);
+    console.log('Req body:', req.body);
+    if (!req.file) {
+        console.log('No file uploaded');
+        return res.status(400).json({ success: false, message: 'No popup image uploaded' });
+    }
+    console.log('File received:', req.file);
+    const settings = readData('settings.json') || {};
+    // Initialize popup object if it doesn't exist
+    if (!settings.popup) {
+        settings.popup = {};
+    }
+    // Delete old popup image
+    if (settings.popup.image) {
+        const oldPath = path.join(__dirname, settings.popup.image);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+    settings.popup.image = '/uploads/logo/' + req.file.filename;
+    writeData('settings.json', settings);
+    console.log('Popup image saved:', settings.popup.image);
+    res.json({ success: true, image: settings.popup.image });
+});
+
+// Error handling middleware for multer
+app.use((err, req, res, next) => {
+    console.error('Error middleware:', err);
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ success: false, message: 'File too large. Max size is 5MB' });
+        }
+        return res.status(400).json({ success: false, message: err.message });
+    }
+    if (err) {
+        return res.status(400).json({ success: false, message: err.message });
+    }
+    next();
+});
+
+app.delete('/api/popup-image', (req, res) => {
+    const settings = readData('settings.json') || {};
+    if (settings.popup && settings.popup.image) {
+        const imagePath = path.join(__dirname, settings.popup.image);
+        if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+        if (settings.popup) {
+            settings.popup.image = '';
+        }
+        writeData('settings.json', settings);
+    }
+    res.json({ success: true });
+});
+
+app.delete('/api/favicon', (req, res) => {
+    const settings = readData('settings.json');
+    if (settings.favicon) {
+        const favPath = path.join(__dirname, settings.favicon);
+        if (fs.existsSync(favPath)) fs.unlinkSync(favPath);
+    }
+    settings.favicon = '';
+    writeData('settings.json', settings);
+    res.json({ success: true });
+});
+
 // Multer error handling
 app.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {
@@ -7558,6 +8733,1087 @@ app.use((err, req, res, next) => {
         return res.status(400).json({ success: false, message: err.message });
     }
     next();
+});
+
+// --- QR Code Generator ---
+app.get('/api/qr', async (req, res) => {
+    const { text, size = 120 } = req.query;
+    if (!text) return res.status(400).json({ success: false, message: 'Text required' });
+    try {
+        const dataUrl = await QRCode.toDataURL(text, { width: parseInt(size), margin: 1, color: { dark: '#1e40af', light: '#ffffff' } });
+        res.json({ success: true, dataUrl });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// --- Manual Testimonials API ---
+app.get('/api/testimonials', (req, res) => {
+    try {
+        const testimonials = readData('testimonials.json') || [];
+        res.json({ success: true, testimonials });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to fetch testimonials' });
+    }
+});
+
+app.post('/api/testimonials', (req, res) => {
+    try {
+        const { name, rating, comment, position, image, studentId, alumniId } = req.body;
+        
+        if (!name || !rating || !comment) {
+            return res.status(400).json({ success: false, message: 'Name, rating, and comment are required' });
+        }
+
+        const testimonials = readData('testimonials.json') || [];
+        
+        // If studentId is provided, get student photo
+        let photo = image || '';
+        if (studentId) {
+            const students = readData('students.json') || [];
+            const student = students.find(s => s.id == studentId);
+            if (student && student.photo) {
+                photo = student.photo;
+            }
+        }
+        
+        // If alumniId is provided, get alumni photo
+        if (alumniId) {
+            const alumni = readData('data/alumni.json') || [];
+            const alumnus = alumni.find(a => a.id == alumniId);
+            if (alumnus && alumnus.photo) {
+                photo = alumnus.photo;
+            }
+        }
+
+        const newTestimonial = {
+            id: Date.now(),
+            name,
+            rating: parseInt(rating),
+            comment,
+            position: position || '',
+            image: photo,
+            studentId: studentId || '',
+            alumniId: alumniId || '',
+            date: new Date().toISOString()
+        };
+
+        testimonials.push(newTestimonial);
+        writeData('testimonials.json', testimonials);
+        
+        res.json({ success: true, testimonial: newTestimonial });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to add testimonial' });
+    }
+});
+
+app.delete('/api/testimonials/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const testimonials = readData('testimonials.json') || [];
+        const filtered = testimonials.filter(t => t.id != id);
+        
+        if (testimonials.length === filtered.length) {
+            return res.status(404).json({ success: false, message: 'Testimonial not found' });
+        }
+
+        writeData('testimonials.json', filtered);
+        res.json({ success: true, message: 'Testimonial deleted' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to delete testimonial' });
+    }
+});
+
+app.put('/api/testimonials/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, rating, comment, position, image, studentId, alumniId } = req.body;
+        
+        if (!name || !rating || !comment) {
+            return res.status(400).json({ success: false, message: 'Name, rating, and comment are required' });
+        }
+
+        const testimonials = readData('testimonials.json') || [];
+        const index = testimonials.findIndex(t => t.id == id);
+        
+        if (index === -1) {
+            return res.status(404).json({ success: false, message: 'Testimonial not found' });
+        }
+
+        // If studentId is provided, get student photo
+        let photo = image || testimonials[index].image;
+        if (studentId) {
+            const students = readData('students.json') || [];
+            const student = students.find(s => s.id == studentId);
+            if (student && student.photo) {
+                photo = student.photo;
+            }
+        }
+        
+        // If alumniId is provided, get alumni photo
+        if (alumniId) {
+            const alumni = readData('data/alumni.json') || [];
+            const alumnus = alumni.find(a => a.id == alumniId);
+            if (alumnus && alumnus.photo) {
+                photo = alumnus.photo;
+            }
+        }
+
+        testimonials[index] = {
+            ...testimonials[index],
+            name,
+            rating: parseInt(rating),
+            comment,
+            position: position || '',
+            image: photo,
+            studentId: studentId || '',
+            alumniId: alumniId || ''
+        };
+
+        writeData('testimonials.json', testimonials);
+        res.json({ success: true, testimonial: testimonials[index] });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to update testimonial' });
+    }
+});
+
+// --- Carousel API ---
+app.get('/api/carousel', (req, res) => {
+    try {
+        const carousel = readData('carousel.json') || [];
+        res.json({ success: true, carousel });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to fetch carousel' });
+    }
+});
+
+app.post('/api/carousel', uploadCarousel.single('image'), (req, res) => {
+    try {
+        const { caption } = req.body;
+        
+        if (!caption) {
+            return res.status(400).json({ success: false, message: 'Caption is required' });
+        }
+
+        const carousel = readData('carousel.json') || [];
+        
+        const image = req.file ? `/uploads/carousel/${req.file.filename}` : '';
+        
+        const newSlide = {
+            id: Date.now(),
+            caption,
+            image
+        };
+
+        carousel.push(newSlide);
+        writeData('carousel.json', carousel);
+        res.json({ success: true, slide: newSlide });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to add carousel slide' });
+    }
+});
+
+app.put('/api/carousel/:id', uploadCarousel.single('image'), (req, res) => {
+    try {
+        const { id } = req.params;
+        const { caption } = req.body;
+        
+        if (!caption) {
+            return res.status(400).json({ success: false, message: 'Caption is required' });
+        }
+
+        const carousel = readData('carousel.json') || [];
+        const index = carousel.findIndex(s => s.id == id);
+        
+        if (index === -1) {
+            return res.status(404).json({ success: false, message: 'Carousel slide not found' });
+        }
+
+        const image = req.file ? `/uploads/carousel/${req.file.filename}` : carousel[index].image;
+        
+        carousel[index] = {
+            ...carousel[index],
+            caption,
+            image
+        };
+
+        writeData('carousel.json', carousel);
+        res.json({ success: true, slide: carousel[index] });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to update carousel slide' });
+    }
+});
+
+app.delete('/api/carousel/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const carousel = readData('carousel.json') || [];
+        const filtered = carousel.filter(s => s.id != id);
+        
+        if (carousel.length === filtered.length) {
+            return res.status(404).json({ success: false, message: 'Carousel slide not found' });
+        }
+
+        writeData('carousel.json', filtered);
+        res.json({ success: true, message: 'Carousel slide deleted' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to delete carousel slide' });
+    }
+});
+
+// --- Hero Text API ---
+app.get('/api/hero-text', (req, res) => {
+    try {
+        const heroText = readData('hero-text.json') || {
+            heading: 'Welcome to Genius Computer Education',
+            subheading: 'Apna future banayein digital skills ke saath',
+            headingSize: 3,
+            subheadingSize: 1.3,
+            animation: 'none',
+            button1Text: 'View Courses',
+            button2Text: 'Apply Online',
+            headingMobile: 'Welcome to Genius Computer Education',
+            subheadingMobile: 'Apna future banayein digital skills ke saath',
+            headingSizeMobile: 1.2,
+            subheadingSizeMobile: 1,
+            button1TextMobile: 'View Courses',
+            button2TextMobile: 'Apply Online'
+        };
+        res.json({ success: true, heroText });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to fetch hero text' });
+    }
+});
+
+app.post('/api/hero-text', (req, res) => {
+    try {
+        const { heading, subheading, headingSize, subheadingSize, animation, button1Text, button2Text, headingMobile, subheadingMobile, headingSizeMobile, subheadingSizeMobile, button1TextMobile, button2TextMobile } = req.body;
+        
+        const heroText = {
+            heading: heading || 'Welcome to Genius Computer Education',
+            subheading: subheading || 'Apna future banayein digital skills ke saath',
+            headingSize: parseFloat(headingSize) || 3,
+            subheadingSize: parseFloat(subheadingSize) || 1.3,
+            animation: animation || 'none',
+            button1Text: button1Text || 'View Courses',
+            button2Text: button2Text || 'Apply Online',
+            headingMobile: headingMobile || 'Welcome to Genius Computer Education',
+            subheadingMobile: subheadingMobile || 'Apna future banayein digital skills ke saath',
+            headingSizeMobile: parseFloat(headingSizeMobile) || 1.2,
+            subheadingSizeMobile: parseFloat(subheadingSizeMobile) || 1,
+            button1TextMobile: button1TextMobile || 'View Courses',
+            button2TextMobile: button2TextMobile || 'Apply Online'
+        };
+
+        writeData('hero-text.json', heroText);
+        res.json({ success: true, heroText });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to save hero text' });
+    }
+});
+
+// --- Social Media API ---
+app.get('/api/social-media', (req, res) => {
+    try {
+        const socialMedia = readData('social-media.json') || {
+            facebookUrl: 'https://facebook.com',
+            instagramUrl: 'https://instagram.com',
+            whatsappUrl: 'https://whatsapp.com',
+            youtubeUrl: 'https://youtube.com',
+            linkedinUrl: 'https://linkedin.com'
+        };
+        res.json({ success: true, socialMedia });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to fetch social media' });
+    }
+});
+
+app.post('/api/social-media', (req, res) => {
+    try {
+        const { facebookUrl, instagramUrl, whatsappUrl, youtubeUrl, linkedinUrl } = req.body;
+        
+        const socialMedia = {
+            facebookUrl: facebookUrl || 'https://facebook.com',
+            instagramUrl: instagramUrl || 'https://instagram.com',
+            whatsappUrl: whatsappUrl || 'https://whatsapp.com',
+            youtubeUrl: youtubeUrl || 'https://youtube.com',
+            linkedinUrl: linkedinUrl || 'https://linkedin.com'
+        };
+
+        writeData('social-media.json', socialMedia);
+        res.json({ success: true, socialMedia });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to save social media' });
+    }
+});
+
+// --- Section Visibility API ---
+app.get('/api/section-visibility', (req, res) => {
+    try {
+        const sections = readData('section-visibility.json') || {
+            carousel: true,
+            notices: false,
+            courses: true,
+            blog: true,
+            about: true,
+            gallery: true,
+            testimonials: true,
+            contact: true
+        };
+        res.json({ success: true, sections });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to fetch sections' });
+    }
+});
+
+app.post('/api/section-visibility', (req, res) => {
+    try {
+        const sections = req.body || {};
+        writeData('section-visibility.json', sections);
+        res.json({ success: true, sections });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to save sections' });
+    }
+});
+
+// --- Section Texts API ---
+app.get('/api/section-texts', (req, res) => {
+    try {
+        const texts = readData('section-texts.json') || {
+            notices: 'Notice Board',
+            courses: 'Our Courses',
+            blog: 'Blog',
+            about: 'About Us',
+            gallery: 'Our Gallery',
+            testimonials: 'Student Reviews',
+            contact: 'Contact Us'
+        };
+        res.json({ success: true, texts });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to fetch texts' });
+    }
+});
+
+app.post('/api/section-texts', (req, res) => {
+    try {
+        const texts = req.body || {};
+        writeData('section-texts.json', texts);
+        res.json({ success: true, texts });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to save texts' });
+    }
+});
+
+// --- Google My Business Reviews API (Deprecated) ---
+app.get('/api/gmb-reviews', async (req, res) => {
+    res.json({ success: false, message: 'GMB API deprecated. Use manual testimonials instead.' });
+});
+
+app.get('/api/gmb-locations', async (req, res) => {
+    res.json({ success: false, message: 'GMB API deprecated. Use manual testimonials instead.' });
+});
+
+// ==================== ENTRANCE EXAM ENDPOINTS ====================
+
+// --- Entrance Exam Settings (Enable/Disable) ---
+app.get('/api/entrance-settings', (req, res) => {
+    const settings = readData('entrance-settings.json') || { enabled: false, enabledAt: null, enabledBy: null };
+    res.json(settings);
+});
+
+app.post('/api/entrance-settings/toggle', (req, res) => {
+    const settings = readData('entrance-settings.json') || { enabled: false };
+    settings.enabled = !settings.enabled;
+    settings.enabledAt = settings.enabled ? new Date().toISOString() : null;
+    settings.enabledBy = settings.enabled ? (req.body.adminName || 'admin') : null;
+    writeData('entrance-settings.json', settings);
+    res.json({ success: true, settings });
+});
+
+// --- Entrance Exams CRUD ---
+app.get('/api/entrance-exams', (req, res) => {
+    res.json(readData('entrance-exams.json') || []);
+});
+
+app.get('/api/entrance-exams/:id', (req, res) => {
+    const exams = readData('entrance-exams.json') || [];
+    const exam = exams.find(e => e.id == req.params.id);
+    if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
+    res.json(exam);
+});
+
+app.post('/api/entrance-exams', (req, res) => {
+    const exams = readData('entrance-exams.json') || [];
+    const exam = {
+        id: Date.now(),
+        name: req.body.name || 'Untitled Exam',
+        examCode: req.body.examCode || ('ENT-' + Date.now()),
+        course: req.body.course || '',
+        description: req.body.description || '',
+        instructions: req.body.instructions || 'Read all questions carefully. Do not switch tabs during the exam.',
+        totalMarks: parseInt(req.body.totalMarks) || 100,
+        passingMarks: parseInt(req.body.passingMarks) || 0,
+        questionsPerStudent: parseInt(req.body.questionsPerStudent) || 0,
+        randomize: !!req.body.randomize,
+        shifts: req.body.shifts || [],
+        status: req.body.status || 'Draft',
+        createdAt: new Date().toISOString()
+    };
+    exams.push(exam);
+    writeData('entrance-exams.json', exams);
+    res.json({ success: true, exam });
+});
+
+app.put('/api/entrance-exams/:id', (req, res) => {
+    const exams = readData('entrance-exams.json') || [];
+    const idx = exams.findIndex(e => e.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Exam not found' });
+    exams[idx] = { ...exams[idx], ...req.body, id: exams[idx].id };
+    writeData('entrance-exams.json', exams);
+    res.json({ success: true, exam: exams[idx] });
+});
+
+app.delete('/api/entrance-exams/:id', (req, res) => {
+    let exams = readData('entrance-exams.json') || [];
+    exams = exams.filter(e => e.id != req.params.id);
+    writeData('entrance-exams.json', exams);
+    res.json({ success: true });
+});
+
+// --- Entrance Questions ---
+app.get('/api/entrance-questions', (req, res) => {
+    const questions = readData('entrance-questions.json') || [];
+    if (req.query.examId) {
+        return res.json(questions.filter(q => q.examId == req.query.examId));
+    }
+    res.json(questions);
+});
+
+app.post('/api/entrance-questions', (req, res) => {
+    const questions = readData('entrance-questions.json') || [];
+    const question = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        examId: req.body.examId,
+        question: req.body.question,
+        options: req.body.options || [],
+        correctAnswer: parseInt(req.body.correctAnswer),
+        marks: parseInt(req.body.marks) || 1,
+        subject: req.body.subject || '',
+        difficulty: req.body.difficulty || 'Medium',
+        createdAt: new Date().toISOString()
+    };
+    questions.push(question);
+    writeData('entrance-questions.json', questions);
+    res.json({ success: true, question });
+});
+
+app.put('/api/entrance-questions/:id', (req, res) => {
+    const questions = readData('entrance-questions.json') || [];
+    const idx = questions.findIndex(q => q.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Question not found' });
+    questions[idx] = { ...questions[idx], ...req.body, id: questions[idx].id };
+    writeData('entrance-questions.json', questions);
+    res.json({ success: true, question: questions[idx] });
+});
+
+app.post('/api/entrance-questions/bulk-delete', (req, res) => {
+    const { ids } = req.body || {};
+    if (!Array.isArray(ids) || !ids.length) return res.status(400).json({ success: false, message: 'No IDs provided' });
+    let questions = readData('entrance-questions.json') || [];
+    const before = questions.length;
+    const idSet = new Set(ids.map(i => String(i)));
+    questions = questions.filter(q => !idSet.has(String(q.id)));
+    writeData('entrance-questions.json', questions);
+    res.json({ success: true, deleted: before - questions.length });
+});
+
+app.delete('/api/entrance-questions/:id', (req, res) => {
+    let questions = readData('entrance-questions.json') || [];
+    questions = questions.filter(q => q.id != req.params.id);
+    writeData('entrance-questions.json', questions);
+    res.json({ success: true });
+});
+
+// --- Bulk Question Upload (CSV/TSV) ---
+app.post('/api/entrance-questions/bulk-upload', uploadBulk.single('file'), (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+        const examId = req.body.examId;
+        if (!examId) return res.status(400).json({ success: false, message: 'examId is required' });
+
+        const filePath = req.file.path;
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        const content = fs.readFileSync(filePath, 'utf8');
+        const delimiter = ext === '.tsv' ? '\t' : ',';
+
+        // Simple CSV/TSV parser supporting quoted fields with commas
+        const parseLine = (line, delim) => {
+            const out = [];
+            let cur = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                if (ch === '"') {
+                    if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+                    else inQuotes = !inQuotes;
+                } else if (ch === delim && !inQuotes) {
+                    out.push(cur); cur = '';
+                } else { cur += ch; }
+            }
+            out.push(cur);
+            return out.map(s => s.trim());
+        };
+
+        const lines = content.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length < 2) {
+            fs.unlinkSync(filePath);
+            return res.status(400).json({ success: false, message: 'File must contain header row and at least one question' });
+        }
+
+        const header = parseLine(lines[0], delimiter).map(h => h.toLowerCase().trim());
+        const required = ['question', 'option_a', 'option_b', 'correct_answer'];
+        for (const r of required) {
+            if (!header.includes(r)) {
+                fs.unlinkSync(filePath);
+                return res.status(400).json({ success: false, message: `Missing required column: ${r}` });
+            }
+        }
+
+        const questions = readData('entrance-questions.json') || [];
+        const errors = [];
+        let added = 0;
+
+        for (let i = 1; i < lines.length; i++) {
+            const cols = parseLine(lines[i], delimiter);
+            const row = {};
+            header.forEach((h, idx) => row[h] = cols[idx] || '');
+
+            if (!row.question) { errors.push(`Row ${i + 1}: Missing question`); continue; }
+            const options = [row.option_a, row.option_b, row.option_c, row.option_d].filter(o => o);
+            if (options.length < 2) { errors.push(`Row ${i + 1}: Need at least 2 options`); continue; }
+
+            const correctAns = parseInt(row.correct_answer);
+            if (isNaN(correctAns) || correctAns < 1 || correctAns > 4) {
+                errors.push(`Row ${i + 1}: correct_answer must be 1-4`);
+                continue;
+            }
+            if (correctAns > options.length) {
+                errors.push(`Row ${i + 1}: correct_answer ${correctAns} exceeds available options`);
+                continue;
+            }
+
+            questions.push({
+                id: Date.now() + Math.floor(Math.random() * 100000) + i,
+                examId: parseInt(examId),
+                question: row.question,
+                options: options,
+                correctAnswer: correctAns - 1, // Convert 1-4 to 0-3 internally
+                marks: parseInt(row.marks) || 1,
+                subject: row.subject || '',
+                difficulty: row.difficulty || 'Medium',
+                createdAt: new Date().toISOString()
+            });
+            added++;
+        }
+
+        writeData('entrance-questions.json', questions);
+        try { fs.unlinkSync(filePath); } catch (e) {}
+
+        res.json({ success: true, added, errors, total: lines.length - 1 });
+    } catch (err) {
+        console.error('Bulk upload error:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// --- Entrance Registrations ---
+app.get('/api/entrance-registrations', (req, res) => {
+    const regs = readData('entrance-registrations.json') || [];
+    if (req.query.examId) {
+        return res.json(regs.filter(r => r.examId == req.query.examId));
+    }
+    res.json(regs);
+});
+
+app.post('/api/entrance-registrations', (req, res) => {
+    const regs = readData('entrance-registrations.json') || [];
+    const exams = readData('entrance-exams.json') || [];
+    const exam = exams.find(e => e.id == req.body.examId);
+    if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
+
+    // Use manual registration ID as both registration number and password
+    const regNo = req.body.registrationNo;
+    if (!regNo) return res.status(400).json({ success: false, message: 'Registration ID is required' });
+
+    // Check for duplicate registration number
+    if (regs.find(r => r.registrationNo === regNo)) {
+        return res.status(400).json({ success: false, message: 'Registration ID already exists' });
+    }
+
+    const reg = {
+        id: Date.now(),
+        examId: parseInt(req.body.examId),
+        shiftId: req.body.shiftId || null,
+        registrationNo: regNo,
+        loginPassword: regNo, // Same as registration ID
+        studentName: req.body.studentName,
+        fatherName: req.body.fatherName || '',
+        gender: req.body.gender || '',
+        phone: req.body.phone || '',
+        qualification: req.body.qualification || '',
+        course: req.body.course || exam.course,
+        photo: req.body.photo || '',
+        signature: req.body.signature || '',
+        status: req.body.status || 'approved',
+        createdAt: new Date().toISOString()
+    };
+    regs.push(reg);
+    writeData('entrance-registrations.json', regs);
+    res.json({ success: true, registration: reg });
+});
+
+app.put('/api/entrance-registrations/:id', (req, res) => {
+    const regs = readData('entrance-registrations.json') || [];
+    const idx = regs.findIndex(r => r.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Registration not found' });
+    regs[idx] = { ...regs[idx], ...req.body, id: regs[idx].id };
+    writeData('entrance-registrations.json', regs);
+    res.json({ success: true, registration: regs[idx] });
+});
+
+app.delete('/api/entrance-registrations/:id', (req, res) => {
+    let regs = readData('entrance-registrations.json') || [];
+    regs = regs.filter(r => r.id != req.params.id);
+    writeData('entrance-registrations.json', regs);
+    res.json({ success: true });
+});
+
+// Suspend / Unsuspend a student
+app.post('/api/entrance-registrations/:id/toggle-suspend', (req, res) => {
+    const regs = readData('entrance-registrations.json') || [];
+    const idx = regs.findIndex(r => r.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Registration not found' });
+    regs[idx].suspended = !regs[idx].suspended;
+    regs[idx].suspendReason = regs[idx].suspended ? (req.body.reason || 'Suspicious activity') : null;
+    regs[idx].suspendedAt = regs[idx].suspended ? new Date().toISOString() : null;
+    regs[idx].suspendedBy = regs[idx].suspended ? (req.body.adminName || 'admin') : null;
+    writeData('entrance-registrations.json', regs);
+    res.json({ success: true, registration: regs[idx] });
+});
+
+// Bulk shift assignment
+app.post('/api/entrance-registrations/assign-shift', (req, res) => {
+    const { registrationIds, shiftId } = req.body;
+    const regs = readData('entrance-registrations.json') || [];
+    let updated = 0;
+    regs.forEach(r => {
+        if (registrationIds.includes(r.id)) {
+            r.shiftId = shiftId;
+            updated++;
+        }
+    });
+    writeData('entrance-registrations.json', regs);
+    res.json({ success: true, updated });
+});
+
+// --- Entrance Student Login ---
+app.post('/api/entrance/login', (req, res) => {
+    const settings = readData('entrance-settings.json') || { enabled: false };
+    if (!settings.enabled) {
+        return res.status(403).json({ success: false, message: 'Entrance exam is currently disabled' });
+    }
+
+    const { registrationNo, password } = req.body;
+    const regs = readData('entrance-registrations.json') || [];
+    const reg = regs.find(r => r.registrationNo === registrationNo && r.loginPassword === password);
+    if (!reg) return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    if (reg.suspended) return res.status(403).json({ success: false, message: 'Your ID has been suspended. Reason: ' + (reg.suspendReason || 'Suspicious activity') + '. Please contact the admin.' });
+    if (reg.status !== 'approved') return res.status(403).json({ success: false, message: 'Registration not approved' });
+
+    res.json({ success: true, registration: reg });
+});
+
+// --- Get exam details for student (with shift) ---
+app.get('/api/entrance/student-exam/:registrationId', (req, res) => {
+    const regs = readData('entrance-registrations.json') || [];
+    const reg = regs.find(r => r.id == req.params.registrationId);
+    if (!reg) return res.status(404).json({ success: false, message: 'Registration not found' });
+
+    const exams = readData('entrance-exams.json') || [];
+    const exam = exams.find(e => e.id == reg.examId);
+    if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
+
+    const shift = (exam.shifts || []).find(s => s.id === reg.shiftId);
+
+    // Don't expose correct answers
+    res.json({
+        registration: reg,
+        exam: { ...exam, shifts: undefined },
+        shift: shift || null
+    });
+});
+
+// --- Start Exam (calculates remaining time based on shift schedule) ---
+app.post('/api/entrance/start-exam', (req, res) => {
+    const { registrationId } = req.body;
+    const regs = readData('entrance-registrations.json') || [];
+    const reg = regs.find(r => r.id == registrationId);
+    if (!reg) return res.status(404).json({ success: false, message: 'Registration not found' });
+    if (reg.suspended) return res.status(403).json({ success: false, message: 'Your ID has been suspended. Reason: ' + (reg.suspendReason || 'Suspicious activity'), suspended: true });
+
+    const exams = readData('entrance-exams.json') || [];
+    const exam = exams.find(e => e.id == reg.examId);
+    if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
+
+    const shift = (exam.shifts || []).find(s => s.id === reg.shiftId);
+    if (!shift) return res.status(400).json({ success: false, message: 'No shift assigned' });
+
+    const now = new Date();
+    const startTime = new Date(shift.scheduledStart);
+    const endTime = new Date(shift.scheduledEnd);
+
+    if (now < startTime) {
+        return res.status(400).json({
+            success: false,
+            message: 'Exam has not started yet',
+            scheduledStart: shift.scheduledStart
+        });
+    }
+    if (now > endTime) {
+        return res.status(400).json({
+            success: false,
+            message: 'Exam time has ended'
+        });
+    }
+
+    // Check if already attempted
+    const attempts = readData('entrance-attempts.json') || [];
+    let attempt = attempts.find(a => a.registrationId == registrationId);
+
+    // Calculate remaining time (synchronized to shift end time)
+    const remainingSeconds = Math.floor((endTime - now) / 1000);
+
+    if (!attempt) {
+        // Get questions for this exam
+        let questions = (readData('entrance-questions.json') || []).filter(q => q.examId == exam.id);
+        // Always shuffle questions per student for fairness
+        questions = questions.sort(() => Math.random() - 0.5);
+        if (exam.questionsPerStudent && exam.questionsPerStudent > 0 && exam.questionsPerStudent < questions.length) {
+            questions = questions.slice(0, exam.questionsPerStudent);
+        }
+
+        // Shuffle options per question and store the mapping
+        // optionOrder[qid] = [origIdx0, origIdx1, ...] -> position in shuffled array maps to original option index
+        const optionOrder = {};
+        questions.forEach(q => {
+            const indices = (q.options || []).map((_, i) => i);
+            // Fisher-Yates shuffle
+            for (let i = indices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indices[i], indices[j]] = [indices[j], indices[i]];
+            }
+            optionOrder[q.id] = indices;
+        });
+
+        attempt = {
+            id: Date.now(),
+            registrationId: parseInt(registrationId),
+            examId: exam.id,
+            shiftId: shift.id,
+            startedAt: now.toISOString(),
+            endTime: shift.scheduledEnd, // Server-controlled end time
+            questionIds: questions.map(q => q.id),
+            optionOrder: optionOrder,
+            answers: {},
+            submitted: false
+        };
+        attempts.push(attempt);
+        writeData('entrance-attempts.json', attempts);
+    } else if (attempt.submitted) {
+        return res.status(400).json({ success: false, message: 'You have already submitted this exam' });
+    }
+
+    // Get questions with shuffled options (without correct answers)
+    const allQuestions = readData('entrance-questions.json') || [];
+    const optionOrder = attempt.optionOrder || {};
+    const examQuestions = attempt.questionIds.map(qid => {
+        const q = allQuestions.find(qq => qq.id === qid);
+        if (!q) return null;
+        const order = optionOrder[qid] || (q.options || []).map((_, i) => i);
+        const shuffledOptions = order.map(origIdx => (q.options || [])[origIdx]);
+        return {
+            id: q.id,
+            question: q.question,
+            options: shuffledOptions,
+            marks: q.marks
+        };
+    }).filter(Boolean);
+
+    res.json({
+        success: true,
+        attempt: {
+            id: attempt.id,
+            startedAt: attempt.startedAt,
+            endTime: attempt.endTime,
+            answers: attempt.answers
+        },
+        exam: { id: exam.id, name: exam.name, totalMarks: exam.totalMarks, instructions: exam.instructions },
+        questions: examQuestions,
+        remainingSeconds,
+        serverTime: now.toISOString()
+    });
+});
+
+// --- Save Answer (during exam) ---
+app.post('/api/entrance/save-answer', (req, res) => {
+    const { attemptId, questionId, answer } = req.body;
+    const attempts = readData('entrance-attempts.json') || [];
+    const idx = attempts.findIndex(a => a.id == attemptId);
+    if (idx !== -1) {
+        const regs = readData('entrance-registrations.json') || [];
+        const reg = regs.find(r => r.id == attempts[idx].registrationId);
+        if (reg && reg.suspended) {
+            return res.status(403).json({ success: false, message: 'Your ID has been suspended. Reason: ' + (reg.suspendReason || 'Suspicious activity'), suspended: true });
+        }
+    }
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Attempt not found' });
+    if (attempts[idx].submitted) return res.status(400).json({ success: false, message: 'Already submitted' });
+
+    // Validate end time
+    if (new Date() > new Date(attempts[idx].endTime)) {
+        return res.status(400).json({ success: false, message: 'Exam time ended' });
+    }
+
+    if (!attempts[idx].answers) attempts[idx].answers = {};
+    attempts[idx].answers[questionId] = answer;
+    writeData('entrance-attempts.json', attempts);
+    res.json({ success: true });
+});
+
+// --- Submit Exam ---
+app.post('/api/entrance/submit-exam', (req, res) => {
+    const { attemptId } = req.body;
+    const attempts = readData('entrance-attempts.json') || [];
+    const idx = attempts.findIndex(a => a.id == attemptId);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Attempt not found' });
+
+    const attempt = attempts[idx];
+    if (attempt.submitted) return res.status(400).json({ success: false, message: 'Already submitted' });
+
+    const allQuestions = readData('entrance-questions.json') || [];
+    const exams = readData('entrance-exams.json') || [];
+    const exam = exams.find(e => e.id == attempt.examId);
+
+    // Auto-grade (map shuffled answer index back to original option index)
+    let marksObtained = 0;
+    let totalMarks = 0;
+    const optionOrder = attempt.optionOrder || {};
+    attempt.questionIds.forEach(qid => {
+        const q = allQuestions.find(qq => qq.id === qid);
+        if (!q) return;
+        totalMarks += q.marks || 1;
+        const studentAns = attempt.answers ? attempt.answers[qid] : undefined;
+        if (studentAns === undefined) return;
+        // Translate the student's selected (shuffled) index to the original index
+        const order = optionOrder[qid];
+        const originalSelectedIdx = order ? order[parseInt(studentAns)] : parseInt(studentAns);
+        if (originalSelectedIdx === q.correctAnswer) {
+            marksObtained += q.marks || 1;
+        }
+    });
+
+    attempt.submitted = true;
+    attempt.submittedAt = new Date().toISOString();
+    attempt.marksObtained = marksObtained;
+    attempt.totalMarks = totalMarks;
+    attempts[idx] = attempt;
+    writeData('entrance-attempts.json', attempts);
+
+    // Save result
+    const results = readData('entrance-results.json') || [];
+    const regs = readData('entrance-registrations.json') || [];
+    const reg = regs.find(r => r.id == attempt.registrationId);
+
+    const result = {
+        id: Date.now(),
+        attemptId: attempt.id,
+        registrationId: attempt.registrationId,
+        examId: attempt.examId,
+        registrationNo: reg ? reg.registrationNo : '',
+        studentName: reg ? reg.studentName : '',
+        examName: exam ? exam.name : '',
+        marksObtained,
+        totalMarks: totalMarks || (exam ? exam.totalMarks : 0),
+        percentage: totalMarks > 0 ? Math.round((marksObtained / totalMarks) * 100) : 0,
+        submittedAt: attempt.submittedAt,
+        published: false
+    };
+    results.push(result);
+    writeData('entrance-results.json', results);
+
+    res.json({ success: true, message: 'Exam submitted successfully' });
+});
+
+// --- Entrance Results ---
+app.get('/api/entrance-results', (req, res) => {
+    const results = readData('entrance-results.json') || [];
+    if (req.query.examId) {
+        return res.json(results.filter(r => r.examId == req.query.examId));
+    }
+    res.json(results);
+});
+
+// Get result for a specific student (only if published)
+app.get('/api/entrance/my-result/:registrationId', (req, res) => {
+    const results = readData('entrance-results.json') || [];
+    const result = results.find(r => r.registrationId == req.params.registrationId && r.published);
+    if (!result) return res.status(404).json({ success: false, message: 'Result not yet published' });
+    res.json({ success: true, result });
+});
+
+// Publish/Unpublish all results for an exam
+app.post('/api/entrance-results/publish', (req, res) => {
+    const { examId, publish } = req.body;
+    const results = readData('entrance-results.json') || [];
+    let updated = 0;
+    results.forEach(r => {
+        if (r.examId == examId) {
+            r.published = !!publish;
+            updated++;
+        }
+    });
+    writeData('entrance-results.json', results);
+    res.json({ success: true, updated });
+});
+
+// Toggle publish for a single result
+app.post('/api/entrance-results/:id/toggle-publish', (req, res) => {
+    const results = readData('entrance-results.json') || [];
+    const idx = results.findIndex(r => r.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Result not found' });
+    results[idx].published = !results[idx].published;
+    writeData('entrance-results.json', results);
+    res.json({ success: true, result: results[idx] });
+});
+
+// Manually update marks for a result
+app.put('/api/entrance-results/:id', (req, res) => {
+    const { marksObtained } = req.body;
+    if (marksObtained === undefined || isNaN(parseFloat(marksObtained))) {
+        return res.status(400).json({ success: false, message: 'Valid marksObtained required' });
+    }
+    const results = readData('entrance-results.json') || [];
+    const idx = results.findIndex(r => r.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Result not found' });
+    const m = parseFloat(marksObtained);
+    results[idx].marksObtained = m;
+    results[idx].percentage = results[idx].totalMarks > 0 ? Math.round((m / results[idx].totalMarks) * 100 * 100) / 100 : 0;
+    results[idx].manuallyEdited = true;
+    results[idx].lastEditedAt = new Date().toISOString();
+    writeData('entrance-results.json', results);
+    res.json({ success: true, result: results[idx] });
+});
+
+// Delete a result (also clears the attempt so student can retake)
+app.delete('/api/entrance-results/:id', (req, res) => {
+    let results = readData('entrance-results.json') || [];
+    const result = results.find(r => r.id == req.params.id);
+    if (!result) return res.status(404).json({ success: false, message: 'Result not found' });
+    results = results.filter(r => r.id != req.params.id);
+    writeData('entrance-results.json', results);
+    // Also clear the attempt so the student can re-take if shift is still active
+    if (req.query.allowRetake === 'true' || req.body.allowRetake) {
+        let attempts = readData('entrance-attempts.json') || [];
+        attempts = attempts.filter(a => !(a.registrationId == result.registrationId && a.examId == result.examId));
+        writeData('entrance-attempts.json', attempts);
+    }
+    res.json({ success: true });
+});
+
+// Re-evaluate: regrade all submitted attempts for an exam using current correct answers
+app.post('/api/entrance-results/re-evaluate', (req, res) => {
+    const { examId } = req.body;
+    if (!examId) return res.status(400).json({ success: false, message: 'examId required' });
+    const attempts = readData('entrance-attempts.json') || [];
+    const allQuestions = readData('entrance-questions.json') || [];
+    const results = readData('entrance-results.json') || [];
+    let updated = 0;
+    attempts.forEach(attempt => {
+        if (attempt.examId != examId || !attempt.submitted) return;
+        let marksObtained = 0;
+        let totalMarks = 0;
+        const optionOrder = attempt.optionOrder || {};
+        attempt.questionIds.forEach(qid => {
+            const q = allQuestions.find(qq => qq.id === qid);
+            if (!q) return;
+            totalMarks += q.marks || 1;
+            const studentAns = attempt.answers ? attempt.answers[qid] : undefined;
+            if (studentAns === undefined) return;
+            const order = optionOrder[qid];
+            const originalSelectedIdx = order ? order[parseInt(studentAns)] : parseInt(studentAns);
+            if (originalSelectedIdx === q.correctAnswer) marksObtained += q.marks || 1;
+        });
+        attempt.marksObtained = marksObtained;
+        attempt.totalMarks = totalMarks;
+        const ridx = results.findIndex(r => r.attemptId == attempt.id);
+        if (ridx !== -1) {
+            results[ridx].marksObtained = marksObtained;
+            results[ridx].totalMarks = totalMarks;
+            results[ridx].percentage = totalMarks > 0 ? Math.round((marksObtained / totalMarks) * 100 * 100) / 100 : 0;
+            results[ridx].manuallyEdited = false;
+            results[ridx].lastEvaluatedAt = new Date().toISOString();
+            updated++;
+        }
+    });
+    writeData('entrance-attempts.json', attempts);
+    writeData('entrance-results.json', results);
+    res.json({ success: true, updated });
+});
+
+// --- Live Monitoring ---
+app.get('/api/entrance/monitor/:examId', (req, res) => {
+    const attempts = readData('entrance-attempts.json') || [];
+    const regs = readData('entrance-registrations.json') || [];
+    const examAttempts = attempts.filter(a => a.examId == req.params.examId);
+    const enriched = examAttempts.map(a => {
+        const reg = regs.find(r => r.id === a.registrationId);
+        return {
+            ...a,
+            studentName: reg ? reg.studentName : '',
+            registrationNo: reg ? reg.registrationNo : '',
+            shiftId: a.shiftId,
+            suspended: reg ? !!reg.suspended : false,
+            suspendReason: reg ? (reg.suspendReason || '') : ''
+        };
+    });
+    res.json(enriched);
+});
+
+// ==================== END ENTRANCE EXAM ENDPOINTS ====================
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    
+    // Handle CORS errors
+    if (err.message === 'CORS policy: This origin is not allowed') {
+        return res.status(403).json({ error: 'Origin not allowed' });
+    }
+    
+    // Handle rate limit errors
+    if (err.status === 429) {
+        return res.status(429).json({ error: err.message });
+    }
+    
+    // Handle other errors
+    res.status(500).json({ 
+        error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message 
+    });
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ error: 'Route not found' });
 });
 
 app.listen(PORT, '0.0.0.0', () => {

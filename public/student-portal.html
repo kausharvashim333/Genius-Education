@@ -4,20 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Student Portal - Genius Computer Education</title>
-    <link rel="icon" href="/uploads/logo/logo.png">
+    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Pacifico&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+        /* body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; } */
 
         /* Sidebar Layout */
         .portal-layout { display: flex; min-height: calc(100vh - 60px); }
-        .portal-sidebar { width: 260px; background: #fff; border-right: 1px solid #e2e8f0; padding: 20px 0; flex-shrink: 0; }
+        .portal-sidebar { width: 260px; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-right: 1px solid rgba(255, 255, 255, 0.2); padding: 20px 0; flex-shrink: 0; }
         .portal-sidebar-menu { list-style: none; padding: 0; margin: 0; }
         .portal-sidebar-menu li { margin: 0; }
-        .portal-sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: #475569; text-decoration: none; font-weight: 500; font-size: .9rem; transition: all .2s; }
-        .portal-sidebar-menu a:hover { background: #f1f5f9; color: #2563eb; }
-        .portal-sidebar-menu a.active { background: #eff6ff; color: #2563eb; border-right: 3px solid #2563eb; }
+        .portal-sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: rgba(255, 255, 255, 0.8); text-decoration: none; font-weight: 500; font-size: .9rem; transition: all .2s; }
+        .portal-sidebar-menu a:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+        .portal-sidebar-menu a.active { background: rgba(102, 126, 234, 0.3); color: #fff; border-right: 3px solid #667eea; }
         .portal-sidebar-menu a i { width: 20px; text-align: center; }
         
         /* Dropdown Styles */
@@ -28,8 +31,11 @@
             padding: 0;
             margin: 5px 0 0 0;
             display: none;
-            background: #f8fafc;
-            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
             overflow: hidden;
         }
         .portal-sidebar-menu .dropdown.open .dropdown-menu { display: block; }
@@ -37,265 +43,303 @@
         .portal-sidebar-menu .dropdown-menu a {
             padding: 10px 15px 10px 45px;
             font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
         }
-        .portal-sidebar-menu .dropdown-menu a:hover { background: #e2e8f0; }
+        .portal-sidebar-menu .dropdown-menu a:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
         .portal-main-content { flex: 1; padding: 28px 24px; overflow-y: auto; }
         .portal-section { display: none; }
         .portal-section.active { display: block; }
 
         /* Header */
-        .portal-nav { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #fff; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 60px; }
+        .portal-nav { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-bottom: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 60px; }
         .portal-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; }
         .portal-nav .nav-right a { color: #fff; text-decoration: none; font-size: .88rem; margin-left: 16px; opacity: .85; }
         .portal-nav .nav-right a:hover { opacity: 1; }
 
         /* Login Card */
-        .login-wrap { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 60px); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; }
-        .login-card { background: #fff; border-radius: 16px; padding: 40px 36px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
-        .login-card h2 { margin: 0 0 8px; font-size: 26px; font-weight: 700; color: #1e3a8a; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .login-card .sub { text-align: center; margin: 0 0 28px; color: #64748b; font-size: 14px; }
+        /* .login-wrap { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 60px); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; } */
+        /* .login-card { background: #fff; border-radius: 16px; padding: 40px 36px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); } */
+        .login-card h2 { margin: 0 0 8px; font-size: 26px; font-weight: 700; color: #fff; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .login-card .sub { text-align: center; margin: 0 0 28px; color: rgba(255,255,255,0.8); font-size: 14px; }
         .login-card .form-group { margin-bottom: 18px; }
-        .login-card .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #374151; }
-        .login-card .form-group input { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; transition: all 0.3s; }
-        .login-card .form-group input:focus { border-color: #667eea; outline: none; box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1); }
-        .login-card .btn-full { width: 100%; padding: 14px 20px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .login-card .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
-        .login-card .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3); }
-        .login-card .btn-secondary { background: #f1f5f9; color: #475569; margin-top: 12px; }
-        .login-card .btn-secondary:hover { background: #e2e8f0; }
+        .login-card .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #fff; }
+        .login-card .form-group input { width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; font-size: 15px; transition: all 0.3s; color: #fff; }
+        .login-card .form-group input:focus { border-color: #667eea; outline: none; background: rgba(255,255,255,0.15); box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2); }
+        .login-card .form-group input::placeholder { color: rgba(255,255,255,0.6); }
+        .login-card .btn-full { width: 100%; padding: 14px 20px; border: 1px solid rgba(102,126,234,0.5); border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; overflow: hidden; }
+        .login-card .btn-primary { background: rgba(102,126,234,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #fff; }
+        .login-card .btn-primary:hover { background: rgba(102,126,234,0.6); border-color: rgba(102,126,234,0.8); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
+        .login-card .btn-primary::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: left 0.5s ease; }
+        .login-card .btn-primary:hover::before { left: 100%; }
+        .login-card .btn-secondary { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); color: #fff; margin-top: 12px; position: relative; overflow: hidden; }
+        .login-card .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+        .login-card .btn-secondary::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: left 0.5s ease; }
+        .login-card .btn-secondary:hover::before { left: 100%; }
+        .login-card .btn-full::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: left 0.5s ease; }
+        .login-card .btn-full:hover::before { left: 100%; }
         .login-card .otp-step { display: none; animation: fadeIn 0.3s ease; }
-        .login-card .otp-info { background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: #1e40af; line-height: 1.5; }
-        .login-card .error-msg { color: #dc2626; font-size: 13px; margin-top: 8px; text-align: center; min-height: 20px; }
+        .login-card .otp-info { background: rgba(59, 130, 246, 0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.4); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: #fff; line-height: 1.5; }
+        .login-card .error-msg { color: #fca5a5; font-size: 13px; margin-top: 8px; text-align: center; min-height: 20px; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .login-logo { text-align: center; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; }
-        .login-logo img { max-width: 150px; max-height: 100px; object-fit: contain; }
-        .login-tabs { display: flex; gap: 10px; margin-bottom: 24px; }
-        .login-tab { flex: 1; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; font-weight: 600; font-size: 13px; color: #64748b; transition: all 0.3s; }
-        .login-tab.active { border-color: #667eea; background: #f0f9ff; color: #667eea; }
-        .login-tab:hover:not(.active) { border-color: #667eea; color: #667eea; }
+        .login-logo img { max-width: 150px; max-height: 100px; object-fit: contain; border-radius: 12px; }
+        .login-tabs { display: flex; gap: 10px; margin-bottom: 24px; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 10px; }
+        .login-tab { flex: 1; padding: 10px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; text-align: center; cursor: pointer; font-weight: 600; font-size: 13px; color: rgba(255,255,255,0.7); transition: all 0.3s; }
+        .login-tab.active { border-color: rgba(102,126,234,0.6); background: rgba(102,126,234,0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #fff; }
+        .login-tab:hover:not(.active) { border-color: rgba(102,126,234,0.6); color: #fff; background: rgba(255,255,255,0.1); }
         .otp-step { display: none; }
 
         /* Dashboard */
         .dashboard { display: none; padding: 28px 16px 60px; max-width: 900px; margin: 0 auto; }
-        .welcome-banner { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #fff; border-radius: 14px; padding: 24px 28px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px; }
+        .welcome-banner { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; border-radius: 14px; padding: 24px 28px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px; }
         .welcome-banner .avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,.4); }
         .welcome-banner .avatar-icon { width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,.15); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
         .welcome-banner h2 { font-size: 1.3rem; margin-bottom: 4px; }
         .welcome-banner p { font-size: .85rem; opacity: .85; }
         .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-bottom: 24px; }
-        .info-card { background: #fff; border-radius: 12px; padding: 20px 22px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
-        .info-card h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: #64748b; margin-bottom: 14px; font-weight: 700; }
-        .info-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f1f5f9; font-size: .88rem; }
+        .info-card { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 20px 22px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+        .info-card h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: rgba(255, 255, 255, 0.7); margin-bottom: 14px; font-weight: 700; }
+        .info-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-size: .88rem; color: rgba(255, 255, 255, 0.8); }
         .info-row:last-child { border-bottom: none; }
-        .info-row .label { color: #64748b; }
-        .info-row .val { font-weight: 600; text-align: right; }
-        .fee-card { background: #fff; border-radius: 12px; padding: 20px 22px; box-shadow: 0 2px 12px rgba(0,0,0,.06); margin-bottom: 18px; }
-        .fee-card h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: #64748b; margin-bottom: 14px; font-weight: 700; }
-        .fee-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: .9rem; }
+        .info-row .label { color: rgba(255, 255, 255, 0.6); }
+        .info-row .val { font-weight: 600; text-align: right; color: #fff; }
+        .fee-card { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 20px 22px; box-shadow: 0 2px 12px rgba(0,0,0,.06); margin-bottom: 18px; }
+        .fee-card h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: rgba(255, 255, 255, 0.7); margin-bottom: 14px; font-weight: 700; }
+        .fee-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-size: .9rem; color: rgba(255, 255, 255, 0.8); }
         .fee-row:last-child { border-bottom: none; }
-        .fee-badge-paid { color: #16a34a; font-weight: 700; }
-        .fee-badge-due  { color: #d97706; font-weight: 700; }
-        .status-active { display: inline-block; background: #dcfce7; color: #16a34a; padding: 2px 12px; border-radius: 20px; font-size: .78rem; font-weight: 700; }
+        .fee-badge-paid { color: #4ade80; font-weight: 700; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .fee-badge-due  { color: #fbbf24; font-weight: 700; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .status-active { display: inline-block; background: rgba(74, 222, 128, 0.2); color: #4ade80; padding: 2px 12px; border-radius: 20px; font-size: .78rem; font-weight: 700; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .status-badge { display: inline-block; padding: 2px 12px; border-radius: 20px; font-size: .78rem; font-weight: 700; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .status-warning { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .status-inactive { background: rgba(239, 68, 68, 0.2); color: #f87171; }
         .logout-bar { text-align: right; margin-bottom: 16px; }
-        .logout-bar button { background: #fee2e2; border: none; color: #dc2626; padding: 7px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: .85rem; }
+        .logout-bar button { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; padding: 7px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: .85rem; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .logout-bar button:hover { background: rgba(239, 68, 68, 0.3); }
         .pay-history table { width: 100%; border-collapse: collapse; font-size: .84rem; }
-        .pay-history th { background: #1e3a8a; color: #fff; padding: 8px 12px; text-align: left; }
-        .pay-history td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
-        .pay-history tr:nth-child(even) td { background: #f8fafc; }
+        .pay-history th { background: rgba(102, 126, 234, 0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #fff; padding: 8px 12px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .pay-history td { padding: 8px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .pay-history tr:nth-child(even) td { background: rgba(255, 255, 255, 0.05); }
         
         /* Action Buttons */
         .action-buttons { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
-        .action-btn { flex: 1; min-width: 140px; padding: 12px 20px; border: none; border-radius: 8px; font-size: .9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .2s; }
-        .action-btn-primary { background: #2563eb; color: #fff; }
-        .action-btn-primary:hover { background: #1d4ed8; }
-        .action-btn-success { background: #16a34a; color: #fff; }
-        .action-btn-success:hover { background: #15803d; }
-        .action-btn-warning { background: #f59e0b; color: #fff; }
-        .action-btn-warning:hover { background: #d97706; }
+        .action-btn { flex: 1; min-width: 140px; padding: 12px 20px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; font-size: .9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .2s; }
+        .action-btn-primary { background: rgba(37, 99, 235, 0.3); color: #fff; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .action-btn-primary:hover { background: rgba(37, 99, 235, 0.5); }
+        .action-btn-success { background: rgba(22, 163, 74, 0.3); color: #fff; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .action-btn-success:hover { background: rgba(22, 163, 74, 0.5); }
+        .action-btn-warning { background: rgba(245, 158, 11, 0.3); color: #fff; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .action-btn-warning:hover { background: rgba(245, 158, 11, 0.5); }
         
         /* Section Cards */
-        .section-card { background: #fff; border-radius: 12px; padding: 20px 22px; box-shadow: 0 2px 12px rgba(0,0,0,.06); margin-bottom: 18px; }
-        .section-card h3 { font-size: .95rem; color: #1e3a8a; margin-bottom: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .section-card { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 20px 22px; box-shadow: 0 2px 12px rgba(0,0,0,.06); margin-bottom: 18px; }
+        .section-card h3 { font-size: .95rem; color: #fff; margin-bottom: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         
         /* Announcements */
-        .announcement-item { background: #f0f9ff; border-left: 4px solid #2563eb; padding: 12px 16px; margin-bottom: 10px; border-radius: 4px; }
-        .announcement-item .date { font-size: .75rem; color: #64748b; margin-bottom: 4px; }
-        .announcement-item .title { font-weight: 600; color: #1e3a8a; margin-bottom: 4px; }
-        .announcement-item .content { font-size: .85rem; color: #475569; }
-        .no-announcements { text-align: center; color: #999; padding: 20px; }
+        .announcement-item { background: rgba(59, 130, 246, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.3); border-left: 4px solid #3b82f6; padding: 12px 16px; margin-bottom: 10px; border-radius: 8px; }
+        .announcement-item .date { font-size: .75rem; color: rgba(255, 255, 255, 0.6); margin-bottom: 4px; }
+        .announcement-item .title { font-weight: 600; color: #fff; margin-bottom: 4px; }
+        .announcement-item .content { font-size: .85rem; color: rgba(255, 255, 255, 0.8); }
+        .no-announcements { text-align: center; color: rgba(255, 255, 255, 0.6); padding: 20px; }
         
         /* Exam Schedule */
         .exam-schedule-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; margin-top: 12px; }
-        .exam-schedule-item { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(15,23,42,0.06); border: 1px solid #e2e8f0; overflow: hidden; transition: transform .2s, box-shadow .2s; position: relative; }
+        .exam-schedule-item { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; box-shadow: 0 2px 8px rgba(15,23,42,0.06); overflow: hidden; transition: transform .2s, box-shadow .2s; position: relative; }
         .exam-schedule-item:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(15,23,42,0.10); }
         .exam-schedule-item::before { content: ''; position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: linear-gradient(180deg, #667eea, #764ba2); }
-        .exam-schedule-header { padding: 16px 18px 12px 22px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; background: linear-gradient(135deg, #f8fafc, #fff); }
-        .exam-schedule-title { font-weight: 700; font-size: 1.05rem; color: #1e293b; line-height: 1.3; }
-        .exam-schedule-date { background: #eef2ff; color: #4338ca; font-size: .78rem; font-weight: 600; padding: 5px 10px; border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+        .exam-schedule-header { padding: 16px 18px 12px 22px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; background: rgba(255, 255, 255, 0.05); }
+        .exam-schedule-title { font-weight: 700; font-size: 1.05rem; color: #fff; line-height: 1.3; }
+        .exam-schedule-date { background: rgba(238, 242, 255, 0.2); color: #a5b4fc; font-size: .78rem; font-weight: 600; padding: 5px 10px; border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
         .exam-schedule-date::before { content: '\f073'; font-family: 'Font Awesome 6 Free'; font-weight: 900; }
         .exam-schedule-details { padding: 14px 18px 16px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
-        .exam-schedule-detail { font-size: .82rem; color: #475569; display: flex; flex-direction: column; gap: 2px; }
-        .exam-schedule-detail span { font-size: .7rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .4px; }
+        .exam-schedule-detail { font-size: .82rem; color: rgba(255, 255, 255, 0.8); display: flex; flex-direction: column; gap: 2px; }
+        .exam-schedule-detail span { font-size: .7rem; font-weight: 600; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; letter-spacing: .4px; }
         .exam-schedule-status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
-        .exam-status-scheduled { background: #dbeafe; color: #1e40af; }
-        .exam-status-completed { background: #dcfce7; color: #166534; }
-        .exam-status-cancelled { background: #fee2e2; color: #991b1b; }
-        .exam-status-postponed { background: #fef3c7; color: #92400e; }
+        .exam-status-scheduled { background: rgba(59, 130, 246, 0.2); color: #60a5fa; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .exam-status-completed { background: rgba(34, 197, 94, 0.2); color: #4ade80; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .exam-status-cancelled { background: rgba(239, 68, 68, 0.2); color: #f87171; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .exam-status-postponed { background: rgba(251, 191, 36, 0.2); color: #fbbf24; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
         
         /* Attendance */
         .attendance-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 12px; }
         .attendance-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: .75rem; border-radius: 4px; font-weight: 600; }
-        .attendance-present { background: #dcfce7; color: #16a34a; }
-        .attendance-absent { background: #fee2e2; color: #dc2626; }
-        .attendance-holiday { background: #fef3c7; color: #d97706; }
-        .attendance-empty { background: #f1f5f9; color: #94a3b8; }
-        .attendance-legend { display: flex; gap: 12px; margin-top: 12px; font-size: .75rem; }
+        .attendance-present { background: rgba(34, 197, 94, 0.2); color: #4ade80; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .attendance-absent { background: rgba(239, 68, 68, 0.2); color: #f87171; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .attendance-holiday { background: rgba(251, 191, 36, 0.2); color: #fbbf24; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .attendance-empty { background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .attendance-legend { display: flex; gap: 12px; margin-top: 12px; font-size: .75rem; color: rgba(255, 255, 255, 0.7); }
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
         
+        /* Holiday Card with Calligraphy Background */
+        .holiday-card { position: relative; overflow: hidden; }
+        .holiday-calligraphy-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-family: 'Great Vibes', cursive;
+            font-size: 4rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.15);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .holiday-card-content { position: relative; z-index: 1; }
+        
         /* Study Materials */
         .material-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 18px; }
-        .material-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; transition: box-shadow 0.2s, transform 0.2s; position: relative; overflow: hidden; }
+        .material-card { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 18px; transition: box-shadow 0.2s, transform 0.2s; position: relative; overflow: hidden; }
         .material-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); transform: translateY(-2px); }
         .material-card-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 12px; }
         .material-icon-wrap { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 22px; }
-        .material-icon-pdf { background: #fef2f2; color: #dc2626; }
-        .material-icon-video { background: #fef3c7; color: #d97706; }
-        .material-icon-image { background: #ecfdf5; color: #16a34a; }
-        .material-icon-doc { background: #eff6ff; color: #2563eb; }
-        .material-icon-default { background: #f1f5f9; color: #64748b; }
-        .material-title { font-weight: 700; font-size: 15px; color: #1e293b; line-height: 1.3; margin-bottom: 4px; }
-        .material-category { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; background: #f1f5f9; color: #64748b; }
-        .material-difficulty-easy { background: #dcfce7; color: #166534; }
-        .material-difficulty-medium { background: #fef9c3; color: #854d0e; }
-        .material-difficulty-hard { background: #fee2e2; color: #991b1b; }
-        .material-desc { font-size: 13px; color: #64748b; margin-top: 8px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .material-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 14px; border-top: 1px solid #f1f5f9; }
-        .material-meta-left { display: flex; align-items: center; gap: 14px; font-size: 12px; color: #94a3b8; }
+        .material-icon-pdf { background: rgba(239, 68, 68, 0.2); color: #f87171; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .material-icon-video { background: rgba(251, 191, 36, 0.2); color: #fbbf24; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .material-icon-image { background: rgba(34, 197, 94, 0.2); color: #4ade80; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .material-icon-doc { background: rgba(59, 130, 246, 0.2); color: #60a5fa; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .material-icon-default { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .material-title { font-weight: 700; font-size: 15px; color: #fff; line-height: 1.3; margin-bottom: 4px; }
+        .material-category { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); }
+        .material-difficulty-easy { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .material-difficulty-medium { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .material-difficulty-hard { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .material-desc { font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-top: 8px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .material-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .material-meta-left { display: flex; align-items: center; gap: 14px; font-size: 12px; color: rgba(255, 255, 255, 0.6); }
         .material-meta-left span { display: flex; align-items: center; gap: 4px; }
         .material-actions { display: flex; gap: 8px; }
-        .material-btn { padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; gap: 5px; transition: opacity 0.2s; }
+        .material-btn { padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.3); display: flex; align-items: center; gap: 5px; transition: opacity 0.2s; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
         .material-btn:hover { opacity: 0.85; }
-        .material-btn-view { background: #eff6ff; color: #1d4ed8; }
-        .material-btn-download { background: #2563eb; color: #fff; }
+        .material-btn-view { background: rgba(59, 130, 246, 0.2); color: #60a5fa; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .material-btn-download { background: rgba(37, 99, 235, 0.3); color: #fff; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
         .material-search { margin-bottom: 18px; }
-        .material-search input { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #fff; }
+        .material-search input { width: 100%; padding: 10px 14px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; font-size: 14px; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); color: #fff; }
+        .material-search input::placeholder { color: rgba(255, 255, 255, 0.5); }
         .material-search input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
         .material-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
-        .material-tag-chip { padding: 2px 8px; border-radius: 12px; font-size: 11px; background: #f1f5f9; color: #64748b; }
+        .material-tag-chip { padding: 2px 8px; border-radius: 12px; font-size: 11px; background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); }
         
         /* Exam Results */
-        .result-item { background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 10px; }
+        .result-item { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 16px; border-radius: 8px; margin-bottom: 10px; }
         .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .result-title { font-weight: 600; color: #1e293b; }
-        .result-grade { background: #dcfce7; color: #16a34a; padding: 4px 12px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
-        .result-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: .85rem; }
-        .result-detail span { color: #64748b; }
+        .result-title { font-weight: 600; color: #fff; }
+        .result-grade { background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 4px 12px; border-radius: 20px; font-size: .75rem; font-weight: 700; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .result-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: .85rem; color: rgba(255, 255, 255, 0.8); }
+        .result-detail span { color: rgba(255, 255, 255, 0.6); }
         
         /* Password Change Modal */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 10000; align-items: center; justify-content: center; }
         .modal-overlay.active { display: flex; }
-        .modal-box { background: white; padding: 30px; border-radius: 12px; width: 400px; max-width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h3 { margin: 0; color: #1e293b; }
-        .modal-header .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; }
-        .modal-header .close-btn:hover { color: #1e293b; }
+        .modal-box { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 30px; border-radius: 16px; width: 500px; max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); }
+        .modal-box::-webkit-scrollbar { width: 6px; }
+        .modal-box::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px; }
+        .modal-box::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 3px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .modal-header h3 { margin: 0; color: #fff; font-size: 1.2rem; }
+        .modal-header .close-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 32px; height: 32px; border-radius: 8px; font-size: 18px; cursor: pointer; color: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .modal-header .close-btn:hover { background: rgba(255, 255, 255, 0.2); color: #fff; }
         .modal-body .form-group { margin-bottom: 15px; }
-        .modal-body label { display: block; margin-bottom: 5px; color: #64748b; font-weight: 500; font-size: 14px; }
-        .modal-body input { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; }
-        .modal-body input:focus { outline: none; border-color: #667eea; }
-        .modal-footer { margin-top: 20px; text-align: right; }
+        .modal-body label { display: block; margin-bottom: 5px; color: rgba(255, 255, 255, 0.8); font-weight: 500; font-size: 14px; }
+        .modal-body input { width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 6px; font-size: 14px; color: #fff; }
+        .modal-body input:focus { outline: none; border-color: #667eea; background: rgba(0, 0, 0, 0.4); }
+        .modal-body { max-height: calc(85vh - 180px); overflow-y: auto; padding-right: 5px; }
+        .modal-body::-webkit-scrollbar { width: 6px; }
+        .modal-body::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px; }
+        .modal-body::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 3px; }
+        .modal-footer { margin-top: 20px; text-align: right; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.15); padding: 16px 24px; border-radius: 0 0 16px 16px; -webkit-margin-before: auto; }
         .modal-footer .btn { margin-left: 10px; }
-        .alert-box { background: #fef3c7; border: 1px solid #f59e0b; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; color: #92400e; }
+        .alert-box { background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; color: #fbbf24; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 
         /* ============ YouTube Dark Theme Video Library ============ */
         #section-videos { background: #0f0f0f; margin: -28px -24px; padding: 20px 24px; min-height: calc(100vh - 60px); }
         #section-videos h3, #section-videos p, #section-videos label { color: #f1f1f1; }
 
         /* Light Theme */
-        #section-videos.light-theme { background: #ffffff; }
+        #section-videos.light-theme { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); }
         #section-videos.light-theme h3,
         #section-videos.light-theme p,
-        #section-videos.light-theme label { color: #1f2937; }
-        #section-videos.light-theme .yt-chip { background: #f1f5f9; color: #334155; }
-        #section-videos.light-theme .yt-chip:hover { background: #e2e8f0; }
-        #section-videos.light-theme .yt-chip.active { background: #0f0f0f; color: #f1f1f1; }
-        #section-videos.light-theme .yt-search-bar { background: #f8fafc; border-color: #e2e8f0; }
-        #section-videos.light-theme .yt-search-bar input { color: #1f2937; }
-        #section-videos.light-theme .yt-search-bar input::placeholder { color: #94a3b8; }
-        #section-videos.light-theme .yt-search-bar button { background: #f1f5f9; border-color: #e2e8f0; color: #475569; }
-        #section-videos.light-theme .yt-section-title { color: #1f2937; }
-        #section-videos.light-theme .yt-card-title { color: #1f2937; }
+        #section-videos.light-theme label { color: #fff; }
+        #section-videos.light-theme .yt-chip { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme .yt-chip:hover { background: rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme .yt-chip.active { background: rgba(102, 126, 234, 0.3); color: #fff; }
+        #section-videos.light-theme .yt-search-bar { background: rgba(0, 0, 0, 0.3); border-color: rgba(255, 255, 255, 0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        #section-videos.light-theme .yt-search-bar input { color: #fff; }
+        #section-videos.light-theme .yt-search-bar input::placeholder { color: rgba(255, 255, 255, 0.5); }
+        #section-videos.light-theme .yt-search-bar button { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3); color: rgba(255, 255, 255, 0.8); }
+        #section-videos.light-theme .yt-section-title { color: #fff; }
+        #section-videos.light-theme .yt-card-title { color: #fff; }
         #section-videos.light-theme .yt-card-channel,
-        #section-videos.light-theme .yt-card-meta { color: #64748b; }
-        #section-videos.light-theme .yt-card-avatar { background: #f1f5f9; color: #64748b; }
-        #section-videos.light-theme .yt-card-thumb { background: #f1f5f9; }
-        #section-videos.light-theme .yt-chapter-header { border-color: #e2e8f0; }
-        #section-videos.light-theme .yt-chapter-header span { color: #1f2937; }
-        #section-videos.light-theme .yt-chapter-title { color: #1f2937; }
-        #section-videos.light-theme .yt-chapter-count { color: #64748b; }
-        #section-videos.light-theme .yt-chapter-chevron { color: #64748b; }
-        #section-videos.light-theme .yt-video-title-area h1 { color: #1f2937; }
-        #section-videos.light-theme .yt-views-date { color: #64748b; }
-        #section-videos.light-theme .yt-action-btn { background: #f1f5f9; color: #475569; }
-        #section-videos.light-theme .yt-action-btn:hover { background: #e2e8f0; }
-        #section-videos.light-theme .yt-action-btn.active { background: #0f0f0f; color: #f1f1f1; }
-        #section-videos.light-theme .yt-description { background: #f8fafc; }
-        #section-videos.light-theme .yt-description:hover:not(.expanded) { background: #f1f5f9; }
-        #section-videos.light-theme .yt-description .yt-desc-preview { color: #1f2937; }
-        #section-videos.light-theme .yt-desc-toggle { color: #64748b; }
-        #section-videos.light-theme .yt-controls-bar { background: #f8fafc; }
-        #section-videos.light-theme .yt-ctrl-btn { background: #e2e8f0; color: #334155; }
-        #section-videos.light-theme .yt-ctrl-btn:hover { background: #cbd5e1; }
-        #section-videos.light-theme .yt-ctrl-select { background: #e2e8f0; color: #334155; border-color: #cbd5e1; }
-        #section-videos.light-theme .yt-comments { border-color: #e2e8f0; }
-        #section-videos.light-theme .yt-comments-count { color: #1f2937; }
-        #section-videos.light-theme .yt-comments-sort { color: #64748b; }
-        #section-videos.light-theme .yt-comments-sort:hover { color: #1f2937; }
-        #section-videos.light-theme .yt-comment-avatar { background: #f1f5f9; color: #64748b; }
-        #section-videos.light-theme .yt-comment-field input { color: #1f2937; border-color: #e2e8f0; }
-        #section-videos.light-theme .yt-comment-field input:focus { border-color: #1f2937; }
-        #section-videos.light-theme .yt-comment-cancel { color: #475569; }
-        #section-videos.light-theme .yt-comment-cancel:hover { background: #f1f5f9; }
-        #section-videos.light-theme .yt-comment-submit:disabled { background: #e2e8f0; color: #94a3b8; }
-        #section-videos.light-theme .yt-comment-author { color: #1f2937; }
-        #section-videos.light-theme .yt-comment-date { color: #94a3b8; }
-        #section-videos.light-theme .yt-comment-text { color: #334155; }
-        #section-videos.light-theme .yt-comment-reply { border-color: #e2e8f0; }
-        #section-videos.light-theme .yt-sidebar-title { color: #1f2937; }
-        #section-videos.light-theme .yt-sidebar-card:hover { background: #f1f5f9; }
-        #section-videos.light-theme .yt-sidebar-card.now-playing { background: #f1f5f9; }
-        #section-videos.light-theme .yt-sidebar-thumb { background: #f1f5f9; }
-        #section-videos.light-theme .yt-sidebar-vtitle { color: #1f2937; }
+        #section-videos.light-theme .yt-card-meta { color: rgba(255, 255, 255, 0.7); }
+        #section-videos.light-theme .yt-card-avatar { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); }
+        #section-videos.light-theme .yt-card-thumb { background: rgba(0, 0, 0, 0.3); }
+        #section-videos.light-theme .yt-chapter-header { border-color: rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme .yt-chapter-header span { color: #fff; }
+        #section-videos.light-theme .yt-chapter-title { color: #fff; }
+        #section-videos.light-theme .yt-chapter-count { color: rgba(255, 255, 255, 0.7); }
+        #section-videos.light-theme .yt-chapter-chevron { color: rgba(255, 255, 255, 0.7); }
+        #section-videos.light-theme .yt-video-title-area h1 { color: #fff; }
+        #section-videos.light-theme .yt-views-date { color: rgba(255, 255, 255, 0.7); }
+        #section-videos.light-theme .yt-action-btn { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme .yt-action-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme .yt-action-btn.active { background: rgba(102, 126, 234, 0.3); color: #fff; }
+        #section-videos.light-theme .yt-description { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme .yt-description:hover:not(.expanded) { background: rgba(0, 0, 0, 0.4); }
+        #section-videos.light-theme .yt-description .yt-desc-preview { color: rgba(255, 255, 255, 0.8); }
+        #section-videos.light-theme .yt-desc-toggle { color: rgba(255, 255, 255, 0.7); }
+        #section-videos.light-theme .yt-controls-bar { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme .yt-ctrl-btn { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme .yt-ctrl-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme .yt-ctrl-select { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); border-color: rgba(255, 255, 255, 0.3); }
+        #section-videos.light-theme .yt-comments { border-color: rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme .yt-comments-count { color: #fff; }
+        #section-videos.light-theme .yt-comments-sort { color: rgba(255, 255, 255, 0.7); }
+        #section-videos.light-theme .yt-comments-sort:hover { color: #fff; }
+        #section-videos.light-theme .yt-comment-avatar { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.6); }
+        #section-videos.light-theme .yt-comment-field input { color: #fff; border-color: rgba(255, 255, 255, 0.3); background: rgba(0, 0, 0, 0.3); }
+        #section-videos.light-theme .yt-comment-field input:focus { border-color: rgba(102, 126, 234, 0.5); }
+        #section-videos.light-theme .yt-comment-cancel { color: rgba(255, 255, 255, 0.8); }
+        #section-videos.light-theme .yt-comment-cancel:hover { background: rgba(255, 255, 255, 0.1); }
+        #section-videos.light-theme .yt-comment-submit:disabled { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.4); }
+        #section-videos.light-theme .yt-comment-author { color: #fff; }
+        #section-videos.light-theme .yt-comment-date { color: rgba(255, 255, 255, 0.6); }
+        #section-videos.light-theme .yt-comment-text { color: rgba(255, 255, 255, 0.8); }
+        #section-videos.light-theme .yt-comment-reply { border-color: rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme .yt-sidebar-title { color: #fff; }
+        #section-videos.light-theme .yt-sidebar-card:hover { background: rgba(255, 255, 255, 0.1); }
+        #section-videos.light-theme .yt-sidebar-card.now-playing { background: rgba(102, 126, 234, 0.2); }
+        #section-videos.light-theme .yt-sidebar-thumb { background: rgba(0, 0, 0, 0.3); }
+        #section-videos.light-theme .yt-sidebar-vtitle { color: #fff; }
         #section-videos.light-theme .yt-sidebar-vchannel,
-        #section-videos.light-theme .yt-sidebar-vmeta { color: #64748b; }
-        #section-videos.light-theme .yt-mini-player { background: #ffffff; }
+        #section-videos.light-theme .yt-sidebar-vmeta { color: rgba(255, 255, 255, 0.7); }
+        #section-videos.light-theme .yt-mini-player { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); }
         #section-videos.light-theme #bookmarksPanel,
-        #section-videos.light-theme #resourcesPanel { background: #f8fafc; }
-        #section-videos.light-theme #videoStudyScheduleCard { background: #f8fafc; border-color: #e2e8f0; }
+        #section-videos.light-theme #resourcesPanel { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme #videoStudyScheduleCard { background: rgba(0, 0, 0, 0.3); border-color: rgba(255, 255, 255, 0.2); }
         #section-videos.light-theme #ytThemeToggle,
-        #section-videos.light-theme button[onclick*="downloadVideoCourseCertificate"] { background: #f1f5f9; color: #334155; }
-        #section-videos.light-theme #ytBackBtn { color: #64748b; }
-        #section-videos.light-theme #ytBackBtn:hover { color: #1f2937; }
-        #section-videos.light-theme .yt-continue-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; }
-        #section-videos.light-theme .yt-video-info { color: #64748b; }
-        #section-videos.light-theme .yt-video-title { color: #1f2937; }
-        #section-videos.light-theme .yt-sidebar-title label { color: #64748b; }
-        #section-videos.light-theme svg text { fill: #1f2937; }
+        #section-videos.light-theme button[onclick*="downloadVideoCourseCertificate"] { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); }
+        #section-videos.light-theme #ytBackBtn { color: rgba(255, 255, 255, 0.7); }
+        #section-videos.light-theme #ytBackBtn:hover { color: #fff; }
+        #section-videos.light-theme .yt-continue-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); }
+        #section-videos.light-theme .yt-video-info { color: rgba(255, 255, 255, 0.7); }
+        #section-videos.light-theme .yt-video-title { color: #fff; }
+        #section-videos.light-theme .yt-sidebar-title label { color: rgba(255, 255, 255, 0.7); }
+        #section-videos.light-theme svg text { fill: #fff; }
 
         /* Filter Chips */
         .yt-chips { display: flex; gap: 8px; overflow-x: auto; padding: 0 0 12px; scrollbar-width: none; }
         .yt-chips::-webkit-scrollbar { display: none; }
-        .yt-chip { padding: 6px 14px; background: #272727; color: #f1f1f1; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background .2s, color .2s; }
-        .yt-chip:hover { background: #3f3f3f; }
-        .yt-chip.active { background: #f1f1f1; color: #0f0f0f; }
+        .yt-chip { padding: 6px 14px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.8); border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background .2s, color .2s; }
+        .yt-chip:hover { background: rgba(255, 255, 255, 0.2); }
+        .yt-chip.active { background: rgba(102, 126, 234, 0.3); color: #fff; }
 
         /* Search Bar YouTube-style */
-        .yt-search-bar { display: flex; align-items: center; background: #121212; border: 1px solid #303030; border-radius: 40px; overflow: hidden; max-width: 500px; margin-bottom: 16px; }
-        .yt-search-bar input { flex: 1; padding: 8px 16px; background: transparent; border: none; color: #f1f1f1; font-size: 14px; outline: none; }
-        .yt-search-bar input::placeholder { color: #717171; }
-        .yt-search-bar button { padding: 8px 18px; background: #222; border: none; border-left: 1px solid #303030; color: #f1f1f1; cursor: pointer; font-size: 14px; }
-        .yt-search-bar button:hover { background: #333; }
+        .yt-search-bar { display: flex; align-items: center; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 40px; overflow: hidden; max-width: 500px; margin-bottom: 16px; }
+        .yt-search-bar input { flex: 1; padding: 8px 16px; background: transparent; border: none; color: #fff; font-size: 14px; outline: none; }
+        .yt-search-bar input::placeholder { color: rgba(255, 255, 255, 0.5); }
+        .yt-search-bar button { padding: 8px 18px; background: rgba(255, 255, 255, 0.1); border: none; border-left: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.8); cursor: pointer; font-size: 14px; }
+        .yt-search-bar button:hover { background: rgba(255, 255, 255, 0.2); }
 
         /* Continue Watching Section */
         .yt-continue-row { margin-bottom: 28px; }
@@ -371,80 +415,46 @@
 
         /* Action Buttons Row */
         .yt-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .yt-action-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #272727; color: #f1f1f1; border: none; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background .2s; white-space: nowrap; }
-        .yt-action-btn:hover { background: #3f3f3f; }
-        .yt-action-btn.active { background: #f1f1f1; color: #0f0f0f; }
+        .yt-action-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.8); border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background .2s; white-space: nowrap; }
+        .yt-action-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        .yt-action-btn.active { background: rgba(102, 126, 234, 0.3); color: #fff; }
         .yt-action-btn i { font-size: 16px; }
 
         /* Description Box */
-        .yt-description { background: #272727; border-radius: 12px; padding: 12px 14px; margin: 16px 0; cursor: pointer; transition: background .2s; }
-        .yt-description:hover:not(.expanded) { background: #3f3f3f; }
-        .yt-description .yt-desc-preview { font-size: 14px; color: #f1f1f1; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5; }
+        .yt-description { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 12px 14px; margin: 16px 0; cursor: pointer; transition: background .2s; }
+        .yt-description:hover:not(.expanded) { background: rgba(0, 0, 0, 0.4); }
+        .yt-description .yt-desc-preview { font-size: 14px; color: rgba(255, 255, 255, 0.8); display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5; }
         .yt-description.expanded .yt-desc-preview { -webkit-line-clamp: unset; line-clamp: unset; white-space: pre-wrap; }
-        .yt-desc-toggle { color: #aaa; font-size: 13px; font-weight: 500; margin-top: 8px; display: inline-block; }
+        .yt-desc-toggle { color: rgba(255, 255, 255, 0.7); font-size: 13px; font-weight: 500; margin-top: 8px; display: inline-block; }
 
         /* Player Controls Bar */
-        .yt-controls-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #1a1a1a; border-radius: 0 0 12px 12px; flex-wrap: wrap; }
-        .yt-ctrl-btn { padding: 6px 12px; background: #333; color: #f1f1f1; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background .2s; }
-        .yt-ctrl-btn:hover { background: #555; }
-        .yt-ctrl-select { padding: 5px 10px; background: #333; color: #f1f1f1; border: 1px solid #444; border-radius: 6px; font-size: 12px; }
-
-        /* Comments Section */
-        .yt-comments { margin-top: 24px; padding-top: 20px; border-top: 1px solid #272727; }
-        .yt-comments-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-        .yt-comments-count { font-size: 16px; font-weight: 600; color: #f1f1f1; }
-        .yt-comments-sort { font-size: 13px; color: #aaa; cursor: pointer; display: flex; align-items: center; gap: 4px; }
-        .yt-comments-sort:hover { color: #f1f1f1; }
-        .yt-comment-input { display: flex; gap: 12px; margin-bottom: 24px; align-items: flex-start; }
-        .yt-comment-avatar { width: 40px; height: 40px; border-radius: 50%; background: #272727; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 16px; flex-shrink: 0; }
-        .yt-comment-field { flex: 1; }
-        .yt-comment-field input { width: 100%; padding: 8px 0; background: transparent; border: none; border-bottom: 1px solid #333; color: #f1f1f1; font-size: 14px; outline: none; }
-        .yt-comment-field input:focus { border-bottom-color: #f1f1f1; }
-        .yt-comment-field .yt-comment-btns { display: none; justify-content: flex-end; gap: 8px; margin-top: 8px; }
-        .yt-comment-field input:focus ~ .yt-comment-btns,
-        .yt-comment-field .yt-comment-btns.show { display: flex; }
-        .yt-comment-cancel { padding: 8px 14px; background: transparent; color: #f1f1f1; border: none; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; }
-        .yt-comment-cancel:hover { background: #272727; }
-        .yt-comment-submit { padding: 8px 14px; background: #3ea6ff; color: #0f0f0f; border: none; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
-        .yt-comment-submit:hover { background: #65b8ff; }
-        .yt-comment-submit:disabled { background: #272727; color: #717171; cursor: default; }
-        .yt-comment-item { display: flex; gap: 12px; margin-bottom: 16px; }
-        .yt-comment-body { flex: 1; }
-        .yt-comment-author { font-size: 13px; font-weight: 500; color: #f1f1f1; margin-bottom: 2px; }
-        .yt-comment-date { font-size: 12px; color: #aaa; margin-left: 6px; font-weight: 400; }
-        .yt-comment-text { font-size: 14px; color: #f1f1f1; line-height: 1.5; margin-top: 4px; }
-        .yt-comment-reply { margin-left: 52px; padding-left: 12px; border-left: 2px solid #272727; margin-bottom: 12px; }
-        .yt-comment-reply .yt-comment-author { color: #3ea6ff; }
-
-        /* Sidebar Up-Next */
-        .yt-sidebar-title { font-size: 16px; font-weight: 600; color: #f1f1f1; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
-        .yt-sidebar-list { display: flex; flex-direction: column; gap: 8px; }
+        .yt-controls-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 0 0 12px 12px; flex-wrap: wrap; }
         .yt-sidebar-card { display: flex; gap: 8px; cursor: pointer; padding: 4px; border-radius: 8px; transition: background .2s; }
-        .yt-sidebar-card:hover { background: #272727; }
-        .yt-sidebar-card.now-playing { background: #272727; border-left: 3px solid #ff0000; }
-        .yt-sidebar-thumb { width: 168px; height: 94px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #1a1a1a; position: relative; }
+        .yt-sidebar-card:hover { background: rgba(255, 255, 255, 0.1); }
+        .yt-sidebar-card.now-playing { background: rgba(102, 126, 234, 0.2); border-left: 3px solid #ff0000; }
+        .yt-sidebar-thumb { width: 168px; height: 94px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); position: relative; }
         .yt-sidebar-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .yt-sidebar-thumb .yt-duration { position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,.8); color: #fff; font-size: 11px; padding: 1px 5px; border-radius: 3px; }
         .yt-sidebar-thumb .yt-progress-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: rgba(255,255,255,.2); }
         .yt-sidebar-thumb .yt-progress-fill { height: 100%; background: #ff0000; }
         .yt-sidebar-info { flex: 1; min-width: 0; padding: 2px 0; }
-        .yt-sidebar-vtitle { font-size: 13px; font-weight: 500; color: #f1f1f1; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px; }
-        .yt-sidebar-vchannel { font-size: 12px; color: #aaa; }
-        .yt-sidebar-vmeta { font-size: 12px; color: #aaa; }
+        .yt-sidebar-vtitle { font-size: 13px; font-weight: 500; color: #fff; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px; }
+        .yt-sidebar-vchannel { font-size: 12px; color: rgba(255, 255, 255, 0.7); }
+        .yt-sidebar-vmeta { font-size: 12px; color: rgba(255, 255, 255, 0.7); }
 
         /* Mini Player */
-        .yt-mini-player { position: fixed; bottom: 20px; right: 20px; width: 360px; background: #1a1a1a; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.6); z-index: 25000; overflow: hidden; display: none; }
+        .yt-mini-player { position: fixed; bottom: 20px; right: 20px; width: 360px; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.6); z-index: 25000; overflow: hidden; display: none; }
         .yt-mini-player.active { display: block; animation: ytSlideUp .3s ease; }
         .yt-mini-player video { width: 100%; aspect-ratio: 16/9; background: #000; display: block; }
         .yt-mini-player-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; }
-        .yt-mini-player-title { font-size: 12px; color: #f1f1f1; font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .yt-mini-player-btns button { background: none; border: none; color: #aaa; font-size: 16px; cursor: pointer; padding: 4px 6px; }
-        .yt-mini-player-btns button:hover { color: #f1f1f1; }
+        .yt-mini-player-title { font-size: 12px; color: #fff; font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .yt-mini-player-btns button { background: none; border: none; color: rgba(255, 255, 255, 0.7); font-size: 16px; cursor: pointer; padding: 4px 6px; }
+        .yt-mini-player-btns button:hover { color: #fff; }
         @keyframes ytSlideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         /* Misc */
-        .videos-empty { text-align: center; padding: 60px 20px; color: #aaa; }
-        .videos-empty i { font-size: 56px; margin-bottom: 15px; display: block; color: #555; }
+        .videos-empty { text-align: center; padding: 60px 20px; color: rgba(255, 255, 255, 0.7); }
+        .videos-empty i { font-size: 56px; margin-bottom: 15px; display: block; color: rgba(255, 255, 255, 0.5); }
 
         /* Legacy overrides for other sections using old classes */
         .video-player-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 20000; align-items: center; justify-content: center; padding: 20px; }
@@ -465,7 +475,7 @@
 <body>
 
 <nav class="portal-nav">
-    <div class="brand"><img id="portalLogo" src="" alt="Logo" style="max-height:30px;object-fit:contain;margin-right:8px;display:none;"><i class="fas fa-graduation-cap" id="portalDefaultIcon"></i> <span id="portalInstitute">Genius Computer Education</span></div>
+    <div class="brand"><img id="portalLogo" src="" alt="Logo" style="max-height:30px;object-fit:contain;margin-right:8px;display:none;border-radius:10px;"><i class="fas fa-graduation-cap" id="portalDefaultIcon"></i> <span id="portalInstitute">Genius Computer Education</span></div>
     <div class="nav-right">
         <a href="index.html"><i class="fas fa-home"></i> Homepage</a>
         <a href="apply.html"><i class="fas fa-user-graduate"></i> Apply Online</a>
@@ -476,7 +486,7 @@
 <div class="login-wrap" id="loginWrap">
     <div class="login-card">
         <div class="login-logo">
-            <img id="loginLogo" src="/uploads/logo/logo.png" alt="Logo" onerror="this.style.display='none';">
+            <img id="loginLogo" src="/uploads/logo/logo.png" alt="Logo" onerror="this.style.display='none';" style="border-radius: 12px !important;">
         </div>
         <h2><i class="fas fa-user-circle" style="color:#667eea;"></i> Student Portal</h2>
         <p class="sub">Apne profile ki jaankari dekhne ke liye login karein</p>
@@ -536,25 +546,24 @@
 </div>
 
 <!-- Exam Instruction Modal -->
-<div id="examInstructionModal" class="modal-overlay">
-    <div class="modal-box" style="max-width:540px;">
+<div class="modal-overlay" id="examInstructionModal">
+    <div class="modal-box">
         <div class="modal-header">
-            <h3><i class="fas fa-clipboard-check"></i> Exam Instructions</h3>
+            <h3><i class="fas fa-clipboard-list" style="margin-right:10px;color:#60a5fa;"></i>Exam Instructions</h3>
             <button class="close-btn" onclick="closeExamInstructionModal()">&times;</button>
         </div>
         <div class="modal-body">
-            <div id="examInstructionMeta" style="display:flex;flex-direction:column;gap:6px;margin-bottom:15px;font-size:14px;color:#0f172a;"></div>
-            <div id="examInstructionDescription" style="margin-bottom:12px;font-size:13px;color:#475569;"></div>
-            <div style="font-weight:600;color:#0f172a;margin-bottom:6px;">Please read carefully:</div>
-            <ul id="examInstructionList" style="margin:0 0 15px 18px;padding:0;color:#334155;font-size:13px;line-height:1.6;"></ul>
-            <label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;color:#1f2937;">
-                <input type="checkbox" id="examInstructionAccept" style="margin-top:3px;">
-                <span>I have read all the instructions and understand that the exam timer will start immediately.</span>
-            </label>
+            <div id="examInstructionMeta" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;"></div>
+            <div id="examInstructionDescription" style="margin-bottom:20px;"></div>
+            <div id="examInstructionList" style="margin-bottom:24px;"></div>
+            <div style="display:flex;align-items:flex-start;gap:14px;padding:18px;background:rgba(59,130,246,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(59,130,246,0.3);border-radius:12px;">
+                <input type="checkbox" id="examInstructionAccept" style="width:20px;height:20px;cursor:pointer;margin-top:2px;flex-shrink:0;">
+                <span style="font-size:14px;color:rgba(255,255,255,0.9);line-height:1.6;">I have read all the instructions and understand that the <strong style="color:#60a5fa;">exam timer will start immediately</strong> after clicking Start.</span>
+            </div>
         </div>
-        <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;">
-            <button type="button" onclick="closeExamInstructionModal()" style="padding:10px 18px;border:none;border-radius:6px;background:#94a3b8;color:#fff;cursor:pointer;">Cancel</button>
-            <button type="button" id="startExamConfirmBtn" onclick="confirmExamStart()" style="padding:10px 18px;border:none;border-radius:6px;background:#2563eb;color:#fff;cursor:pointer;" disabled>I Accept & Start</button>
+        <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:12px;padding:18px 30px;background:rgba(255,255,255,0.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.2);margin-top:0;">
+            <button type="button" onclick="closeExamInstructionModal()" style="padding:12px 24px;border:1px solid rgba(255,255,255,0.3);border-radius:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;cursor:pointer;font-weight:600;font-size:14px;transition:all 0.2s;">Cancel</button>
+            <button type="button" id="startExamConfirmBtn" onclick="confirmExamStart()" style="padding:12px 28px;border:none;border-radius:10px;background:rgba(102,126,234,0.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(102,126,234,0.6);color:#fff;cursor:pointer;font-weight:700;font-size:14px;opacity:0.5;transition:opacity 0.2s,transform 0.2s;transform:translateY(0);" disabled>Start Exam <i class="fas fa-arrow-right" style="margin-left:8px;"></i></button>
         </div>
     </div>
 </div>
@@ -562,15 +571,15 @@
 <!-- Dashboard -->
 <div class="portal-layout" id="portalLayout" style="display:none;">
     <aside class="portal-sidebar">
-        <div style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; margin-bottom: 10px;">
+        <div style="padding: 20px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 10px;">
             <div style="display: flex; align-items: center; gap: 12px;">
-                <img id="sidebarStudentPhoto" src="" alt="Student" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e0e7ff; display: none;">
-                <div id="sidebarStudentIcon" style="width: 40px; height: 40px; background: #e0e7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #4338ca; font-size: 16px;">
+                <img id="sidebarStudentPhoto" src="" alt="Student" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(102, 126, 234, 0.5); display: none;">
+                <div id="sidebarStudentIcon" style="width: 40px; height: 40px; background: rgba(102, 126, 234, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px;">
                     <i class="fas fa-user"></i>
                 </div>
                 <div>
-                    <div style="font-weight: 600; font-size: 14px; color: #1e293b;" id="sidebarStudentName">Student Name</div>
-                    <div style="font-size: 12px; color: #64748b;" id="sidebarStudentRoll">Roll No</div>
+                    <div style="font-weight: 600; font-size: 14px; color: #fff;" id="sidebarStudentName">Student Name</div>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7);" id="sidebarStudentRoll">Roll No</div>
                 </div>
             </div>
         </div>
@@ -638,7 +647,7 @@
                 <div id="examCalendarSection" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
                     <!-- Exams will be loaded here -->
                 </div>
-                <div id="noExamsMessage" style="display: none; text-align: center; padding: 30px; background: #f8fafc; border-radius: 8px; color: #64748b;">
+                <div id="noExamsMessage" style="display: none; text-align: center; padding: 30px; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: rgba(255, 255, 255, 0.7);">
                     <i class="fas fa-calendar-check" style="font-size: 32px; margin-bottom: 10px;"></i>
                     <p>No upcoming exams scheduled</p>
                 </div>
@@ -650,7 +659,7 @@
                 <div id="holidaysSection" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
                     <!-- Holidays will be loaded here -->
                 </div>
-                <div id="noHolidaysMessage" style="display: none; text-align: center; padding: 30px; background: #f8fafc; border-radius: 8px; color: #64748b;">
+                <div id="noHolidaysMessage" style="display: none; text-align: center; padding: 30px; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: rgba(255, 255, 255, 0.7);">
                     <i class="fas fa-calendar-day" style="font-size: 32px; margin-bottom: 10px;"></i>
                     <p>No upcoming holidays</p>
                 </div>
@@ -729,15 +738,14 @@
                 <h3><i class="fas fa-credit-card"></i> Make Payment</h3>
                 <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
                     <div style="flex:1;min-width:200px;">
-                        <label style="display:block;margin-bottom:5px;font-size:14px;">Amount to Pay (₹)</label>
-                        <input type="number" id="paymentAmount" min="1" placeholder="Enter amount" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label style="display:block;margin-bottom:5px;font-size:14px;color:rgba(255,255,255,0.8);">Amount to Pay (₹)</label>
+                        <input type="number" id="paymentAmount" min="1" placeholder="Enter amount" style="width:100%;height:40px;padding:8px;background:rgba(0,0,0,0.3);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
                     </div>
                     <div style="flex:1;min-width:200px;">
-                        <label style="display:block;margin-bottom:5px;font-size:14px;">Payment Mode</label>
-                        <select id="paymentMode" onchange="handlePaymentModeChange()" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label style="display:block;margin-bottom:5px;font-size:14px;color:rgba(255,255,255,0.8);">Payment Mode</label>
+                        <select id="paymentMode" onchange="handlePaymentModeChange()" style="width:100%;height:40px;padding:8px;background:rgba(0,0,0,0.3);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
                             <option value="">Select Mode</option>
                             <option value="cash">Cash</option>
-                            <option value="online">Online (Razorpay)</option>
                             <option value="upi">UPI</option>
                             <option value="cheque">Cheque</option>
                         </select>
@@ -745,15 +753,19 @@
                     <button onclick="makePayment()" class="action-btn action-btn-primary" style="height:40px;padding:8px 20px;">Pay Now</button>
                 </div>
                 <div id="utrInputContainer" style="display:none;margin-top:15px;">
-                    <label style="display:block;margin-bottom:5px;font-size:14px;">UTR No.</label>
-                    <input type="text" id="utrNo" placeholder="Enter UTR number" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                    <label style="display:block;margin-bottom:5px;font-size:14px;color:rgba(255,255,255,0.8);">UTR No.</label>
+                    <input type="text" id="utrNo" placeholder="Enter UTR number" style="width:100%;height:40px;padding:8px;background:rgba(0,0,0,0.3);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
+                </div>
+                <div id="receiptInputContainer" style="display:none;margin-top:15px;">
+                    <label style="display:block;margin-bottom:5px;font-size:14px;color:rgba(255,255,255,0.8);">Receipt Number</label>
+                    <input type="text" id="receiptNo" placeholder="Enter receipt number" style="width:100%;height:40px;padding:8px;background:rgba(0,0,0,0.3);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
                 </div>
             </div>
             
             <div class="fee-card pay-history">
                 <h3><i class="fas fa-history"></i> Payment History</h3>
                 <table>
-                    <thead><tr><th>Date</th><th>Amount</th><th>Type</th><th>Mode</th><th>Status</th><th>Receipt No.</th></tr></thead>
+                    <thead><tr><th>Date</th><th>Amount</th><th>Type</th><th>Mode</th><th>Status</th><th>UTR / Txn ID</th><th>Student Receipt</th></tr></thead>
                     <tbody id="fPayHistory"></tbody>
                 </table>
             </div>
@@ -968,8 +980,8 @@
 </div>
 
 <!-- Edit Profile Modal -->
-<div id="editProfileModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;align-items:center;justify-content:center;">
-    <div style="background:white;padding:30px;border-radius:10px;max-width:800px;max-height:90vh;overflow-y:auto;width:90%;">
+<div id="editProfileModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:10000;align-items:center;justify-content:center;">
+    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.2);padding:30px;border-radius:16px;width:100%;max-width:500px;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-height:90vh;overflow-y:auto;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
             <h2>Edit Profile</h2>
             <button onclick="closeEditProfileModal()" style="background:none;border:none;font-size:24px;cursor:pointer;">&times;</button>
@@ -979,19 +991,19 @@
             <input type="hidden" id="editStudentId">
             
             <!-- Photo Upload -->
-            <div style="margin-bottom:20px;padding:15px;background:#f8fafc;border-radius:8px;">
-                <h4 style="margin-bottom:10px;">Photo</h4>
+            <div style="margin-bottom:20px;padding:15px;background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:8px;">
+                <h4 style="margin-bottom:10px;color:#fff;">Photo</h4>
                 <div style="display:flex;align-items:center;gap:15px;margin-bottom:15px;">
                     <img id="editPhotoPreview" src="" alt="Current Photo" style="width:80px;height:80px;object-fit:cover;border-radius:50%;display:none;">
                     <input type="file" id="editPhoto" accept="image/*" style="flex:1;">
                 </div>
                 <div id="cropContainer" style="display:none;margin-top:15px;">
-                    <div style="max-height:300px;overflow:hidden;background:#000;border-radius:8px;">
+                    <div style="max-height:300px;overflow:hidden;background:rgba(0,0,0,0.3);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:8px;">
                         <img id="imageToCrop" style="max-width:100%;">
                     </div>
                     <div style="margin-top:10px;display:flex;gap:10px;">
-                        <button type="button" onclick="cropImage()" style="padding:8px 16px;background:#16a34a;color:white;border:none;border-radius:4px;cursor:pointer;">Crop & Apply</button>
-                        <button type="button" onclick="cancelCrop()" style="padding:8px 16px;background:#64748b;color:white;border:none;border-radius:4px;cursor:pointer;">Cancel</button>
+                        <button type="button" onclick="cropImage()" style="padding:8px 16px;background:rgba(22,163,74,0.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(22,163,74,0.5);color:white;border-radius:4px;cursor:pointer;">Crop & Apply</button>
+                        <button type="button" onclick="cancelCrop()" style="padding:8px 16px;background:rgba(100,116,139,0.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(100,116,139,0.5);color:white;border-radius:4px;cursor:pointer;">Cancel</button>
                     </div>
                 </div>
                 <input type="hidden" id="croppedImageData">
@@ -999,19 +1011,19 @@
             
             <!-- Personal Details -->
             <div style="margin-bottom:20px;">
-                <h4 style="margin-bottom:10px;">Personal Details</h4>
+                <h4 style="margin-bottom:10px;color:#fff;">Personal Details</h4>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
                     <div>
-                        <label>Full Name</label>
-                        <input type="text" id="editName" required style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label style="color:#fff;">Full Name</label>
+                        <input type="text" id="editName" required style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                     </div>
                     <div>
-                        <label>Date of Birth</label>
-                        <input type="date" id="editDob" required style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label style="color:#fff;">Date of Birth</label>
+                        <input type="date" id="editDob" required style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                     </div>
                     <div>
-                        <label>Gender</label>
-                        <select id="editGender" required style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label style="color:#fff;">Gender</label>
+                        <select id="editGender" required style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                             <option value="">Select</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
@@ -1019,8 +1031,8 @@
                         </select>
                     </div>
                     <div>
-                        <label>Category</label>
-                        <select id="editCategory" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label style="color:#fff;">Category</label>
+                        <select id="editCategory" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                             <option value="">Select</option>
                             <option value="General">General</option>
                             <option value="OBC">OBC</option>
@@ -1029,76 +1041,76 @@
                         </select>
                     </div>
                     <div>
-                        <label>Mobile</label>
-                        <input type="tel" id="editPhone" required style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label style="color:#fff;">Mobile</label>
+                        <input type="tel" id="editPhone" required style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                     </div>
                     <div>
-                        <label>Email</label>
-                        <input type="email" id="editEmail" required style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label style="color:#fff;">Email</label>
+                        <input type="email" id="editEmail" required style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                     </div>
                     <div>
-                        <label>Aadhar No.</label>
-                        <input type="text" id="editAadhar" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label style="color:#fff;">Aadhar No.</label>
+                        <input type="text" id="editAadhar" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                     </div>
                 </div>
             </div>
             
             <!-- Address -->
             <div style="margin-bottom:20px;">
-                <h4 style="margin-bottom:10px;">Address</h4>
-                <textarea id="editAddress" rows="3" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;"></textarea>
+                <h4 style="margin-bottom:10px;color:#fff;">Address</h4>
+                <textarea id="editAddress" rows="3" style="width:100%;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;"></textarea>
             </div>
             
             <!-- Parent Details -->
             <div style="margin-bottom:20px;">
-                <h4 style="margin-bottom:10px;">Parent Details</h4>
+                <h4 style="margin-bottom:10px;color:#fff;">Parent Details</h4>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
                     <div>
-                        <label>Father's Name</label>
-                        <input type="text" id="editFatherName" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label style="color:#fff;">Father's Name</label>
+                        <input type="text" id="editFatherName" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                     </div>
                     <div>
-                        <label>Father's Mobile</label>
-                        <input type="tel" id="editFatherPhone" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label style="color:#fff;">Father's Mobile</label>
+                        <input type="tel" id="editFatherPhone" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                     </div>
                     <div>
-                        <label>Mother's Name</label>
-                        <input type="text" id="editMotherName" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label style="color:#fff;">Mother's Name</label>
+                        <input type="text" id="editMotherName" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                     </div>
                 </div>
             </div>
             
             <!-- Educational Qualification -->
             <div style="margin-bottom:20px;">
-                <h4 style="margin-bottom:10px;">Educational Qualification</h4>
+                <h4 style="margin-bottom:10px;color:#fff;">Educational Qualification</h4>
                 <div style="margin-bottom:15px;">
-                    <h5>10th Standard</h5>
+                    <h5 style="color:#fff;">10th Standard</h5>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                        <input type="text" id="edit10Board" placeholder="Board" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
-                        <input type="text" id="edit10Year" placeholder="Year" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
-                        <input type="text" id="edit10Percentage" placeholder="Percentage" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <input type="text" id="edit10Board" placeholder="Board" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
+                        <input type="text" id="edit10Year" placeholder="Year" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
+                        <input type="text" id="edit10Percentage" placeholder="Percentage" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                     </div>
                 </div>
                 <div style="margin-bottom:15px;">
-                    <h5>12th Standard</h5>
+                    <h5 style="color:#fff;">12th Standard</h5>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                        <input type="text" id="edit12Board" placeholder="Board" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
-                        <input type="text" id="edit12Stream" placeholder="Stream" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
-                        <input type="text" id="edit12Percentage" placeholder="Percentage" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <input type="text" id="edit12Board" placeholder="Board" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
+                        <input type="text" id="edit12Stream" placeholder="Stream" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
+                        <input type="text" id="edit12Percentage" placeholder="Percentage" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                     </div>
                 </div>
                 <div>
-                    <h5>Graduation</h5>
+                    <h5 style="color:#fff;">Graduation</h5>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                        <input type="text" id="editGradUniversity" placeholder="University" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
-                        <input type="text" id="editGradDegree" placeholder="Degree" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
-                        <input type="text" id="editGradStream" placeholder="Stream" style="width:100%;height:40px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <input type="text" id="editGradUniversity" placeholder="University" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
+                        <input type="text" id="editGradDegree" placeholder="Degree" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
+                        <input type="text" id="editGradStream" placeholder="Stream" style="width:100%;height:40px;padding:8px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;">
                     </div>
                 </div>
 
-            <div style="display:flex;gap:10px;margin-top:20px;">
-                <button type="submit" style="flex:1;padding:12px;background:#3b82f6;color:white;border:none;border-radius:6px;cursor:pointer;">Save Changes</button>
-                <button type="button" onclick="closeEditProfileModal()" style="flex:1;padding:12px;background:#64748b;color:white;border:none;border-radius:6px;cursor:pointer;">Cancel</button>
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+                <button type="button" onclick="closeEditProfileModal()" style="flex:1;padding:12px;background:rgba(100,116,139,0.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(100,116,139,0.5);color:white;border-radius:6px;cursor:pointer;">Cancel</button>
+                <button type="submit" style="flex:1;padding:12px;background:rgba(102,126,234,0.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(102,126,234,0.5);color:white;border-radius:6px;cursor:pointer;">Save Changes</button>
             </div>
         </form>
     </div>
@@ -1322,6 +1334,11 @@ window.addEventListener('load', () => {
         document.getElementById('step1GoogleError').style.display = 'block';
         // Clear the URL parameter
         window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (googleError === 'email_not_registered') {
+        document.getElementById('step1GoogleError').innerHTML = 'Is email se koi student registered nahi hai. <a href="https://geniuscomputereducation.com/apply.html" target="_blank" style="color:#667eea;font-weight:600;">Admission form bharne ke liye yahan click karein</a>.';
+        document.getElementById('step1GoogleError').style.display = 'block';
+        // Clear the URL parameter
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
 });
 
@@ -1348,7 +1365,9 @@ async function requestOTP() {
             document.getElementById('step1').style.display = 'none';
             document.getElementById('step2').style.display = 'block';
         } else {
-            errEl.textContent = data.error || 'OTP send nahi ho saka.';
+            errEl.innerHTML = data.error === 'Is email se koi student registered nahi hai.' 
+                ? 'Is email se koi student registered nahi hai. <a href="https://geniuscomputereducation.com/apply.html" target="_blank" style="color:#667eea;font-weight:600;">Admission form bharne ke liye yahan click karein</a>.'
+                : (data.error || 'OTP send nahi ho saka.');
             errEl.style.display = 'block';
         }
     } catch(e) {
@@ -1587,13 +1606,33 @@ function showDashboard(s) {
     
     const feeInfo = document.getElementById('feeInfo') || document.createElement('div');
     feeInfo.id = 'feeInfo';
-    feeInfo.style.cssText = 'background:#fef3c7;padding:10px;border-radius:8px;margin:10px 0;font-size:14px;';
-    feeInfo.innerHTML = `<strong>Fee Status:</strong> ${feeStatus} (Paid: ₹${paidFee}/${totalFee})`;
+    feeInfo.style.cssText = 'background:rgba(0,0,0,0.3);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:16px;margin:15px 0;width:100%;box-sizing:border-box;';
+    
+    const progressPercent = totalFee > 0 ? Math.min(100, (paidFee / totalFee) * 100) : 0;
+    const progressColor = progressPercent >= 100 ? '#16a34a' : progressPercent >= 40 ? '#0ea5e9' : '#f59e0b';
+    
+    feeInfo.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:14px;font-weight:600;color:#fff;"><i class="fas fa-rupee-sign" style="margin-right:6px;"></i>Fee Status</span>
+            <span style="font-size:13px;font-weight:600;">${feeStatus}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:12px;color:rgba(255,255,255,0.7);">Paid: <strong style="color:#fff;">₹${paidFee}</strong></span>
+            <span style="font-size:12px;color:rgba(255,255,255,0.7);">Total: <strong style="color:#fff;">₹${totalFee}</strong></span>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:6px;height:12px;overflow:hidden;">
+            <div style="background:${progressColor};height:100%;border-radius:6px;transition:width 0.3s ease;width:${progressPercent}%;"></div>
+        </div>
+        <div style="text-align:right;margin-top:4px;font-size:11px;color:rgba(255,255,255,0.6);">${progressPercent.toFixed(0)}% Paid</div>
+    `;
     
     const welcomeBanner = document.getElementById('welcomeBanner');
     if (!document.getElementById('feeInfo')) {
         welcomeBanner.appendChild(feeInfo);
     }
+
+    // Load fresh fee data from server to ensure updated amounts after admin approval
+    loadFees();
     
     // Update photo in welcome banner
     const existingAvatar = welcomeBanner.querySelector('.avatar');
@@ -1679,7 +1718,7 @@ function showDashboard(s) {
     fetch('/api/payments')
         .then(r => r.json())
         .then(data => {
-            const studentPayments = (data.payments || []).filter(p => p.studentId == s.id);
+            const studentPayments = (data.payments || []).filter(p => String(p.studentId) === String(s.id));
             // Sort by date (newest first)
             studentPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
             
@@ -1944,21 +1983,30 @@ async function loadFees() {
         const res = await fetch(`/api/students/${student.id}`);
         const data = await res.json();
         
-        if (data.success && data.student) {
-            const fees = data.student.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0 };
+        // Handle both response formats: direct student object or wrapped in { success, student }
+        const fetchedStudent = data.student || data;
+        
+        if (fetchedStudent && fetchedStudent.id) {
+            const fees = fetchedStudent.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0, payments: [] };
             
             // Update localStorage so profile/dashboard also show fresh data
-            localStorage.setItem('portalStudent', JSON.stringify(data.student));
+            localStorage.setItem('portalStudent', JSON.stringify(fetchedStudent));
             
             // Update Fees section
-            document.getElementById('fTotalFees').textContent = '₹' + (fees.totalFees || 0);
-            document.getElementById('fPaidAmt').textContent = '₹' + (fees.paidAmount || 0);
-            document.getElementById('fDueAmt').textContent = '₹' + (fees.dueAmount || 0);
+            const fTotalFees = document.getElementById('fTotalFees');
+            const fPaidAmt = document.getElementById('fPaidAmt');
+            const fDueAmt = document.getElementById('fDueAmt');
+            if (fTotalFees) fTotalFees.textContent = '₹' + (fees.totalFees || 0);
+            if (fPaidAmt) fPaidAmt.textContent = '₹' + (fees.paidAmount || 0);
+            if (fDueAmt) fDueAmt.textContent = '₹' + (fees.dueAmount || 0);
             
             // Update Profile fee details too
-            document.getElementById('pTotalFees').textContent = '₹' + (fees.totalFees || 0).toLocaleString('en-IN');
-            document.getElementById('pPaidAmt').textContent = '₹' + (fees.paidAmount || 0).toLocaleString('en-IN');
-            document.getElementById('pDueAmt').textContent = '₹' + (fees.dueAmount || 0).toLocaleString('en-IN');
+            const pTotalFees = document.getElementById('pTotalFees');
+            const pPaidAmt = document.getElementById('pPaidAmt');
+            const pDueAmt = document.getElementById('pDueAmt');
+            if (pTotalFees) pTotalFees.textContent = '₹' + (fees.totalFees || 0).toLocaleString('en-IN');
+            if (pPaidAmt) pPaidAmt.textContent = '₹' + (fees.paidAmount || 0).toLocaleString('en-IN');
+            if (pDueAmt) pDueAmt.textContent = '₹' + (fees.dueAmount || 0).toLocaleString('en-IN');
             
             // Update dashboard fee banner too
             const pendingFee = fees.dueAmount || 0;
@@ -1968,26 +2016,78 @@ async function loadFees() {
                 ? `<span style="color:#dc2626;font-weight:600;">Pending: ₹${pendingFee}</span>`
                 : `<span style="color:#16a34a;font-weight:600;">Fully Paid</span>`;
             const feeInfo = document.getElementById('feeInfo');
-            if (feeInfo) feeInfo.innerHTML = `<strong>Fee Status:</strong> ${feeStatus} (Paid: ₹${paidFee}/${totalFee})`;
+            if (feeInfo) {
+                feeInfo.style.cssText = 'background:rgba(0,0,0,0.3);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:16px;margin:15px 0;width:100%;box-sizing:border-box;';
+                const progressPercent = totalFee > 0 ? Math.min(100, (paidFee / totalFee) * 100) : 0;
+                const progressColor = progressPercent >= 100 ? '#16a34a' : progressPercent >= 40 ? '#0ea5e9' : '#f59e0b';
+                feeInfo.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:14px;font-weight:600;color:#fff;"><i class="fas fa-rupee-sign" style="margin-right:6px;"></i>Fee Status</span>
+                        <span style="font-size:13px;font-weight:600;">${feeStatus}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:12px;color:rgba(255,255,255,0.7);">Paid: <strong style="color:#fff;">₹${paidFee}</strong></span>
+                        <span style="font-size:12px;color:rgba(255,255,255,0.7);">Total: <strong style="color:#fff;">₹${totalFee}</strong></span>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.1);border-radius:6px;height:12px;overflow:hidden;">
+                        <div style="background:${progressColor};height:100%;border-radius:6px;transition:width 0.3s ease;width:${progressPercent}%;"></div>
+                    </div>
+                    <div style="text-align:right;margin-top:4px;font-size:11px;color:rgba(255,255,255,0.6);">${progressPercent.toFixed(0)}% Paid</div>
+                `;
+            }
             
             // Load payment history (filtered to this student only)
+            // Combine payments from student.fees.payments (includes admission fee) and payments.json
+            const studentFeePayments = fees.payments || [];
             const payRes = await fetch(`/api/payments`);
             const payData = await payRes.json();
             const tbody = document.getElementById('fPayHistory');
             
-            if (payData.success && payData.payments) {
-                const studentPayments = payData.payments.filter(p => p.studentId == student.id);
-                studentPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
+            if (tbody) {
+                let allPayments = [];
                 
-                if (studentPayments.length > 0) {
-                    tbody.innerHTML = studentPayments.map(p => {
-                        return '<tr><td>' + formatDate(p.date) + '</td><td>₹' + p.amount + '</td><td>' + (p.type || 'Fee') + '</td><td>' + p.mode + '</td><td><span style="padding:4px 8px;border-radius:12px;font-size:12px;font-weight:600;background:' + (p.status === 'approved' ? '#dcfce7' : p.status === 'denied' ? '#fee2e2' : '#fef3c7') + ';color:' + (p.status === 'approved' ? '#16a34a' : p.status === 'denied' ? '#dc2626' : '#d97706') + ';">' + p.status + '</span></td><td>' + (p.utr || p.transactionId || '-') + '</td></tr>';
+                // Add payments from student.fees.payments (includes admission fee)
+                if (studentFeePayments.length > 0) {
+                    allPayments = allPayments.concat(studentFeePayments.map(p => ({
+                        ...p,
+                        status: p.status || 'approved',
+                        utr: p.utr || p.utrNumber || p.transactionId || p.receipt || '-',
+                        utrNo: p.utrNo || p.utrNumber || p.transactionId || p.utr || '-',
+                        studentReceipt: p.studentReceipt || p.receipt || '-'
+                    })));
+                }
+                
+                // Add payments from payments.json
+                if (payData.success && payData.payments) {
+                    const paymentsFromJson = payData.payments.filter(p => String(p.studentId) === String(fetchedStudent.id));
+                    allPayments = allPayments.concat(paymentsFromJson.map(p => ({
+                        ...p,
+                        utr: p.utr || p.transactionId || p.receipt || '-',
+                        utrNo: p.utrNo || p.utr || p.transactionId || '-',
+                        studentReceipt: p.studentReceipt || p.receipt || '-'
+                    })));
+                }
+                
+                // Remove duplicates based on payment id
+                const uniquePayments = [];
+                const paymentIds = new Set();
+                allPayments.forEach(p => {
+                    if (p.id && !paymentIds.has(String(p.id))) {
+                        paymentIds.add(String(p.id));
+                        uniquePayments.push(p);
+                    }
+                });
+                
+                // Sort by date (newest first)
+                uniquePayments.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                if (uniquePayments.length > 0) {
+                    tbody.innerHTML = uniquePayments.map(p => {
+                        return '<tr><td>' + formatDate(p.date) + '</td><td>₹' + p.amount + '</td><td>' + (p.type || 'Fee') + '</td><td>' + p.mode + '</td><td><span style="padding:4px 8px;border-radius:12px;font-size:12px;font-weight:600;background:' + (p.status === 'approved' ? '#dcfce7' : p.status === 'denied' ? '#fee2e2' : '#fef3c7') + ';color:' + (p.status === 'approved' ? '#16a34a' : p.status === 'denied' ? '#dc2626' : '#d97706') + ';">' + p.status + '</span></td><td>' + (p.utrNo || p.transactionId || p.utr || '-') + '</td><td>' + (p.studentReceipt || '-') + '</td></tr>';
                     }).join('');
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#999;">No payment history</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">No payment history</td></tr>';
                 }
-            } else {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#999;">No payment history</td></tr>';
             }
         }
     } catch (e) {
@@ -2136,13 +2236,38 @@ async function loadTakeExam() {
     }
 }
 
-const defaultExamInstructions = [
-    'Ensure a stable and continuous internet connection during the exam.',
-    'Keep your admit card / ID proof handy for verification if asked.',
-    'Do not refresh, close, or navigate away from the exam window once started.',
-    'Each question carries equal marks unless mentioned otherwise.',
-    'Switching tabs or minimizing the browser may auto-submit or invalidate the attempt.'
-];
+const defaultExamGuidelines = {
+    before: {
+        title: 'Before You Begin',
+        icon: 'fa-tasks',
+        color: '#2563eb',
+        items: [
+            'Ensure stable internet connection.',
+            'Close all other browser tabs and applications.',
+            'Keep your admit card / ID ready.'
+        ]
+    },
+    during: {
+        title: 'During the Exam',
+        icon: 'fa-pen-alt',
+        color: '#7c3aed',
+        items: [
+            'Do not refresh, close, or switch tabs.',
+            'Timer runs continuously — manage time wisely.',
+            'Unanswered questions score zero.'
+        ]
+    },
+    rules: {
+        title: 'Important Rules',
+        icon: 'fa-shield-alt',
+        color: '#dc2626',
+        items: [
+            'Tab switching or minimizing may auto-submit.',
+            'Exam auto-submits on timeout.',
+            'Multiple attempts may be restricted.'
+        ]
+    }
+};
 
 function startExam(examId) {
     const exam = availableExamMap[examId];
@@ -2161,34 +2286,97 @@ function openExamInstructionModal(exam) {
     const accept = document.getElementById('examInstructionAccept');
     const confirmBtn = document.getElementById('startExamConfirmBtn');
 
-    const durationText = exam.duration ? `${exam.duration} minutes` : 'Not specified';
-    const marksText = `${exam.totalMarks || '-'} total • Passing ${exam.passingMarks || '-'}`;
-    const attemptsText = `${exam.attemptCount || 0} used / ${exam.maxAttempts || 1} allowed`;
+    const durationText = exam.duration ? `${exam.duration} min` : '—';
+    const marksText = exam.totalMarks || '—';
+    const passingText = exam.passingMarks || '—';
+    const attemptsText = `${exam.attemptCount || 0} / ${exam.maxAttempts || 1}`;
 
-    meta.innerHTML = `
-        <div><strong>Exam:</strong> ${esc(exam.name || 'Exam')}</div>
-        <div><strong>Course:</strong> ${esc(exam.course || 'N/A')}</div>
-        <div><strong>Duration:</strong> ${durationText}</div>
-        <div><strong>Marks:</strong> ${marksText}</div>
-        <div><strong>Attempts:</strong> ${attemptsText}</div>
-        ${exam.startDate ? `<div><strong>Available:</strong> ${formatDate(exam.startDate)} - ${exam.endDate ? formatDate(exam.endDate) : 'Open'}</div>` : ''}
-    `;
+    const metaCards = [
+        { icon: 'fa-book-open', label: 'Exam', value: esc(exam.name || 'Exam') },
+        { icon: 'fa-graduation-cap', label: 'Course', value: esc(exam.course || 'N/A') },
+        { icon: 'fa-clock', label: 'Duration', value: durationText },
+        { icon: 'fa-trophy', label: 'Total Marks', value: marksText },
+        { icon: 'fa-check-circle', label: 'Passing Marks', value: passingText },
+        { icon: 'fa-redo-alt', label: 'Attempts', value: attemptsText }
+    ];
+    if (exam.startDate) {
+        metaCards.push({ icon: 'fa-calendar-alt', label: 'Available', value: `${formatDate(exam.startDate)} – ${exam.endDate ? formatDate(exam.endDate) : 'Open'}` });
+    }
+
+    meta.innerHTML = metaCards.map(c => `
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);border-radius:8px;">
+            <div style="width:28px;height:28px;border-radius:6px;background:rgba(59,130,246,0.2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="fas ${c.icon}" style="color:#60a5fa;font-size:11px;"></i>
+            </div>
+            <div style="min-width:0;flex:1;">
+                <div style="font-size:9px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.3px;font-weight:600;">${c.label}</div>
+                <div style="font-size:12px;color:#fff;font-weight:600;overflow:hidden;text-overflow:ellipsis;">${c.value}</div>
+            </div>
+        </div>
+    `).join('');
 
     desc.innerHTML = exam.description
-        ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;padding:10px 12px;border-radius:6px;">${esc(exam.description)}</div>`
+        ? `<div style="background:rgba(59,130,246,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(59,130,246,0.3);border-left:4px solid #3b82f6;padding:12px 14px;border-radius:10px;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.5;"><i class="fas fa-info-circle" style="margin-right:6px;color:#60a5fa;"></i>${esc(exam.description)}</div>`
         : '';
 
     const rawInstructions = Array.isArray(exam.instructions)
         ? exam.instructions
         : (typeof exam.instructions === 'string' ? exam.instructions.split(/\n|\r/).map(s => s.trim()) : []);
     const cleaned = rawInstructions.filter(Boolean);
-    const items = cleaned.length ? cleaned : defaultExamInstructions;
-    list.innerHTML = items.map(item => `<li>${esc(item)}</li>`).join('');
+
+    if (cleaned.length) {
+        list.innerHTML = `
+            <div style="border:1px solid rgba(255,255,255,0.2);border-radius:10px;overflow:hidden;background:rgba(0,0,0,0.3);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);">
+                <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(59,130,246,0.1);border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <div style="width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,0.3);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;">
+                        <i class="fas fa-clipboard-list" style="color:#60a5fa;font-size:13px;"></i>
+                    </div>
+                    <span style="font-weight:700;color:#fff;font-size:13px;">Exam Guidelines</span>
+                </div>
+                <div style="padding:12px 16px;display:flex;flex-direction:column;gap:6px;">
+                    ${cleaned.map((item, i) => `
+                        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,0.8);">
+                            <i class="fas fa-circle" style="color:#60a5fa;font-size:5px;flex-shrink:0;"></i>
+                            <span>${esc(item)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+    } else {
+        const cats = defaultExamGuidelines;
+        list.innerHTML = Object.values(cats).map(cat => `
+            <div style="border:1px solid rgba(255,255,255,0.2);border-radius:10px;overflow:hidden;background:rgba(0,0,0,0.3);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);">
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(${cat.color},0.1);border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <div style="width:30px;height:30px;border-radius:8px;background:rgba(${cat.color},0.3);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;">
+                        <i class="fas ${cat.icon}" style="color:${cat.color};font-size:12px;"></i>
+                    </div>
+                    <span style="font-weight:700;color:#fff;font-size:13px;">${cat.title}</span>
+                </div>
+                <div style="padding:10px 16px;display:flex;flex-direction:column;gap:5px;">
+                    ${cat.items.map(item => `
+                        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,0.8);">
+                            <i class="fas fa-circle" style="color:${cat.color};font-size:5px;flex-shrink:0;"></i>
+                            <span>${item}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
 
     accept.checked = false;
     confirmBtn.disabled = true;
+    confirmBtn.style.opacity = '0.5';
+    confirmBtn.style.transform = 'translateY(0)';
     accept.onchange = () => {
         confirmBtn.disabled = !accept.checked;
+        confirmBtn.style.opacity = accept.checked ? '1' : '0.5';
+        confirmBtn.style.transform = accept.checked ? 'translateY(-2px)' : 'translateY(0)';
+        if (accept.checked) {
+            confirmBtn.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+        } else {
+            confirmBtn.style.boxShadow = 'none';
+        }
     };
 
     document.getElementById('examInstructionModal').classList.add('active');
@@ -2493,34 +2681,33 @@ async function loadStudentMyAdmitCards() {
             };
             
             section.innerHTML = data.admitCards.map(ac => `
-                <div class="admit-card-preview" style="background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:18px;overflow:hidden;max-width:700px;margin-left:auto;margin-right:auto;">
-                    <div style="display:flex;align-items:center;padding:20px;border-bottom:2px solid #1e3a8a;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;">
-                        <img src="${ac.instituteLogo || '/uploads/logo/logo.png'}" alt="Logo" style="width:60px;height:60px;object-fit:contain;margin-right:16px;background:#fff;border-radius:8px;padding:4px;">
-                        <div>
-                            <h3 style="margin:0;font-size:1.2rem;">${ac.instituteName || 'Genius Computer Education'}</h3>
-                            <p style="margin:4px 0 0;font-size:.9rem;opacity:.9;">Admit Card</p>
+                <div class="admit-card-preview" style="margin-bottom:18px;overflow:hidden;max-width:800px;margin-left:auto;margin-right:auto;">
+                    <div class="admit-card-header">
+                        <img src="${ac.instituteLogo || '/uploads/logo/logo.png'}" alt="Logo" class="admit-card-logo">
+                        <div class="admit-card-title">
+                            <h3>${ac.instituteName || 'Genius Computer Education'}</h3>
+                            <p>Admit Card</p>
                         </div>
                     </div>
-                    <div style="padding:20px;display:flex;gap:20px;">
-                        <div style="text-align:center;">
-                            <img src="${ac.studentPhoto || '/uploads/students/default.png'}" alt="Student" style="width:100px;height:120px;object-fit:cover;border:2px solid #e2e8f0;border-radius:8px;">
-                            <div style="margin-top:8px;font-weight:700;color:#1e293b;">${ac.studentName}</div>
-                            <div style="font-size:11px;color:#64748b;margin-top:4px;">Roll No: ${ac.rollNo || 'N/A'}</div>
-                            <div style="margin-top:6px;display:inline-block;background:#1e3a8a;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">
-                                <i class="fas fa-id-badge" style="margin-right:4px;"></i> Student ID: ${student.rollNo || 'N/A'}
+                    <div class="admit-card-body">
+                        <div class="admit-card-photo-section">
+                            <img src="${ac.studentPhoto || '/uploads/students/default.png'}" alt="Student" class="admit-card-photo">
+                            <div class="admit-card-student-info">
+                                <h4>${ac.studentName}</h4>
+                                <p>Roll No: ${ac.rollNo || 'N/A'}</p>
                             </div>
                         </div>
-                        <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:.88rem;">
-                            <div style="background:#f8fafc;padding:10px 12px;border-radius:6px;"><div style="font-size:.7rem;color:#94a3b8;text-transform:uppercase;">Exam</div><div style="font-weight:600;color:#1e293b;">${ac.examName}</div></div>
-                            <div style="background:#f8fafc;padding:10px 12px;border-radius:6px;"><div style="font-size:.7rem;color:#94a3b8;text-transform:uppercase;">Date</div><div style="font-weight:600;color:#1e293b;">${formatDate(ac.examDate)}</div></div>
-                            <div style="background:#f8fafc;padding:10px 12px;border-radius:6px;"><div style="font-size:.7rem;color:#94a3b8;text-transform:uppercase;">Time</div><div style="font-weight:600;color:#1e293b;">${formatTime(ac.examTime)}</div></div>
-                            <div style="background:#f8fafc;padding:10px 12px;border-radius:6px;"><div style="font-size:.7rem;color:#94a3b8;text-transform:uppercase;">Duration</div><div style="font-weight:600;color:#1e293b;">${ac.duration} mins</div></div>
-                            <div style="background:#f8fafc;padding:10px 12px;border-radius:6px;grid-column:1/-1;"><div style="font-size:.7rem;color:#94a3b8;text-transform:uppercase;">Venue</div><div style="font-weight:600;color:#1e293b;">${ac.venue}</div></div>
-                            <div style="background:#f8fafc;padding:10px 12px;border-radius:6px;grid-column:1/-1;"><div style="font-size:.7rem;color:#94a3b8;text-transform:uppercase;">Total Marks</div><div style="font-weight:600;color:#1e293b;">${ac.totalMarks}</div></div>
+                        <div class="admit-card-exam-info">
+                            <div class="admit-card-row"><span>Exam:</span><strong>${ac.examName}</strong></div>
+                            <div class="admit-card-row"><span>Date:</span><strong>${formatDate(ac.examDate)}</strong></div>
+                            <div class="admit-card-row"><span>Time:</span><strong>${formatTime(ac.examTime)}</strong></div>
+                            <div class="admit-card-row"><span>Duration:</span><strong>${ac.duration} mins</strong></div>
+                            <div class="admit-card-row"><span>Venue:</span><strong>${ac.venue}</strong></div>
+                            <div class="admit-card-row"><span>Total Marks:</span><strong>${ac.totalMarks}</strong></div>
                         </div>
                     </div>
-                    <div style="padding:14px 20px;border-top:1px solid #e2e8f0;display:flex;justify-content:center;gap:10px;">
-                        <button class="action-btn action-btn-primary" onclick="printStudentAdmitCard(${ac.id})"><i class="fas fa-print"></i> Print</button>
+                    <div class="admit-card-footer">
+                        <button class="btn btn-primary" onclick="printStudentAdmitCard(${ac.id})"><i class="fas fa-print"></i> Print</button>
                     </div>
                 </div>
             `).join('');
@@ -2553,7 +2740,7 @@ async function loadQuestionPapers() {
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;">
                 ${data.papers.map(p => `
-                    <div style="background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:18px;border:1px solid #e2e8f0;">
+                    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:18px;border:1px solid #e2e8f0;">
                         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
                             <div style="width:44px;height:44px;background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;">
                                 <i class="fas fa-file-alt"></i>
@@ -2655,7 +2842,7 @@ function buildQuestionPaperHTML(paper, forPrint) {
     .qp-footer { text-align: center; border-top: 1px solid #ccc; margin-top: 30px; padding-top: 10px; font-size: 11px; color: #666; }
     .qp-actions { text-align: center; margin-bottom: 15px; }
     .qp-actions button { padding: 8px 18px; margin: 0 5px; font-size: 14px; cursor: pointer; border: 1px solid #1e3a8a; background: #1e3a8a; color: #fff; border-radius: 4px; }
-    .qp-actions button.secondary { background: #fff; color: #1e3a8a; }
+    .qp-actions button.secondary { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); color: #1e3a8a; }
     @media print {
         .qp-actions { display: none; }
         body { padding: 15px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -2663,7 +2850,7 @@ function buildQuestionPaperHTML(paper, forPrint) {
 </style>
 </head>
 <body>
-    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px;" onerror="this.parentElement.style.display='none'"></div>
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px; border-radius: 12px;" onerror="this.parentElement.style.display='none'"></div>
     <div class="qp-actions">
         <button onclick="window.print()"><i>🖨️</i> Print / Save as PDF</button>
         <button class="secondary" onclick="window.close()">Close</button>
@@ -2865,7 +3052,7 @@ async function viewICard() {
                     const modal = document.createElement('div');
                     modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:10000;';
                     modal.innerHTML = `
-                        <div style="background:white;padding:20px;border-radius:10px;max-width:90%;max-height:90%;overflow:auto;text-align:center;">
+                        <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);padding:20px;border-radius:10px;max-width:90%;max-height:90%;overflow:auto;text-align:center;">
                             <img src="${url}" alt="I-Card" style="max-width:100%;height:auto;">
                             <div style="margin-top:20px;">
                                 <button onclick="window.open('${url}', '_blank')" style="padding:10px 20px;background:#3b82f6;color:white;border:none;border-radius:6px;cursor:pointer;margin-right:10px;"><i class="fas fa-expand"></i> Open Full Size</button>
@@ -3002,9 +3189,9 @@ function printStudentAdmitCard(id) {
             <style>
                 * { margin: 0; padding: 0; box-sizing: border-box; }
                 body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-                .admit-card { max-width: 800px; margin: 0 auto; border: 2px solid #333; background: white; }
+                .admit-card { max-width: 800px; margin: 0 auto; border: 2px solid #333; background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2); }
                 .admit-card-header { display: flex; align-items: center; padding: 20px; border-bottom: 2px solid #333; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-                .admit-card-logo { width: 80px; height: 80px; object-fit: contain; margin-right: 20px; background: white; border-radius: 8px; padding: 5px; }
+                .admit-card-logo { width: 80px; height: 80px; object-fit: contain; margin-right: 20px; background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 5px; }
                 .admit-card-title h3 { font-size: 24px; margin-bottom: 5px; color: white; }
                 .admit-card-title p { font-size: 18px; color: rgba(255,255,255,0.9); margin: 0; }
                 .admit-card-body { padding: 20px; display: flex; gap: 20px; }
@@ -3021,7 +3208,7 @@ function printStudentAdmitCard(id) {
             </style>
         </head>
         <body>
-            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px;" onerror="this.parentElement.style.display='none'"></div>
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px; border-radius: 12px;" onerror="this.parentElement.style.display='none'"></div>
             ${cardElement.innerHTML.replace(/<div class="admit-card-footer">.*?<\/div>/s, '')}
             <div class="admit-card-footer">
                 <p>This is a computer-generated admit card. Signature not required.</p>
@@ -3305,12 +3492,21 @@ async function downloadMaterial(id, url) {
 function handlePaymentModeChange() {
     const mode = document.getElementById('paymentMode').value;
     const utrContainer = document.getElementById('utrInputContainer');
+    const receiptContainer = document.getElementById('receiptInputContainer');
     
     if (mode === 'upi') {
         utrContainer.style.display = 'block';
+        receiptContainer.style.display = 'none';
+        document.getElementById('receiptNo').value = '';
+    } else if (mode === 'cash') {
+        utrContainer.style.display = 'none';
+        receiptContainer.style.display = 'block';
+        document.getElementById('utrNo').value = '';
     } else {
         utrContainer.style.display = 'none';
+        receiptContainer.style.display = 'none';
         document.getElementById('utrNo').value = '';
+        document.getElementById('receiptNo').value = '';
     }
 }
 
@@ -3344,56 +3540,23 @@ async function makePayment() {
             }
         }
         
-        // Handle Online payment with Razorpay
-        if (mode === 'online') {
-            showNotification('Opening Razorpay...', 'info');
-            
-            const options = {
-                key: 'rzp_test_SegAkLM7mtrikV', // Replace with your Razorpay key
-                amount: amount * 100, // Amount in paise
-                currency: 'INR',
-                name: 'Genius Computer Education',
-                description: 'Fee Payment',
-                image: '',
-                handler: async function(response) {
-                    // Payment successful
-                    showNotification('Payment successful!', 'success');
-                    
-                    // Save payment to backend
-                    await savePayment(student.id, amount, 'online', 'Fee Payment', response.razorpay_payment_id);
-                    
-                    document.getElementById('paymentAmount').value = '';
-                    document.getElementById('paymentMode').value = '';
-                    
-                    // Reload student data
-                    const studentRes = await fetch('/api/students/' + student.id);
-                    const studentData = await studentRes.json();
-                    localStorage.setItem('portalStudent', JSON.stringify(studentData));
-                    showDashboard(studentData);
-                },
-                prefill: {
-                    name: student.name,
-                    email: student.email || '',
-                    contact: student.phone || ''
-                },
-                notes: {
-                    studentId: student.id
-                },
-                theme: {
-                    color: '#3b82f6'
-                }
-            };
-            
-            const rzp = new Razorpay(options);
-            rzp.open();
-            return;
-        }
+        // Razorpay removed
         
+        // For cash, require receipt number
+        if (mode === 'cash') {
+            const receiptNo = document.getElementById('receiptNo').value.trim();
+            if (!receiptNo) {
+                showNotification('Please enter the receipt number issued to you', 'error');
+                return;
+            }
+        }
+
         // Handle Cash, UPI, Cheque payments
         showNotification('Processing payment...', 'info');
-        
+
         const utrNo = mode === 'upi' ? document.getElementById('utrNo').value : null;
-        
+        const studentReceipt = mode === 'cash' ? document.getElementById('receiptNo').value.trim() : '';
+
         const res = await fetch(`/api/students/${student.id}/payment`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -3402,6 +3565,7 @@ async function makePayment() {
                 mode: mode,
                 type: 'Fee Payment',
                 utrNo: utrNo,
+                studentReceipt: studentReceipt,
                 status: 'pending'
             })
         });
@@ -3413,13 +3577,20 @@ async function makePayment() {
             document.getElementById('paymentAmount').value = '';
             document.getElementById('paymentMode').value = '';
             document.getElementById('utrNo').value = '';
+            document.getElementById('receiptNo').value = '';
             document.getElementById('utrInputContainer').style.display = 'none';
+            document.getElementById('receiptInputContainer').style.display = 'none';
             
             // Reload student data to update fee details
             const studentRes = await fetch('/api/students/' + student.id);
             const studentData = await studentRes.json();
-            localStorage.setItem('portalStudent', JSON.stringify(studentData));
-            showDashboard(studentData);
+            if (studentData.success && studentData.student) {
+                localStorage.setItem('portalStudent', JSON.stringify(studentData.student));
+                showDashboard(studentData.student);
+            } else {
+                localStorage.setItem('portalStudent', JSON.stringify(studentData));
+                showDashboard(studentData);
+            }
         } else {
             showNotification(data.message || 'Payment failed', 'error');
         }
@@ -3612,24 +3783,39 @@ async function loadHolidays() {
         
         if (data.success && data.holidays && data.holidays.length > 0) {
             const today = new Date();
-            const upcomingHolidays = data.holidays.filter(holiday => new Date(holiday.date) >= today);
+            today.setHours(0, 0, 0, 0);
+            const upcomingHolidays = data.holidays.filter(holiday => {
+                const holidayDate = new Date(holiday.date);
+                holidayDate.setHours(0, 0, 0, 0);
+                return holidayDate >= today;
+            });
             
             if (upcomingHolidays.length > 0) {
-                section.innerHTML = upcomingHolidays.map(holiday => `
-                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                        <div style="display: flex; align-items: center; margin-bottom: 12px;">
-                            <div style="background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 8px; text-align: center; margin-right: 15px;">
-                                <div style="font-size: 24px; font-weight: 700;">${new Date(holiday.date).getDate()}</div>
-                                <div style="font-size: 12px; text-transform: uppercase;">${formatDate(holiday.date)}</div>
+                section.innerHTML = upcomingHolidays.map(holiday => {
+                    const gradient = holiday.type === 'festival' 
+                        ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+                        : holiday.type === 'event'
+                        ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                        : 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+                    
+                    return `
+                    <div class="holiday-card" style="background: ${gradient}; color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <div class="holiday-calligraphy-bg">${holiday.title}</div>
+                        <div class="holiday-card-content">
+                            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                <div style="background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 8px; text-align: center; margin-right: 15px;">
+                                    <div style="font-size: 24px; font-weight: 700;">${new Date(holiday.date).getDate()}</div>
+                                    <div style="font-size: 12px; text-transform: uppercase;">${formatDate(holiday.date)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 16px;">${holiday.title}</div>
+                                    ${holiday.type ? `<div style="font-size: 13px; opacity: 0.9;"><i class="fas fa-tag"></i> ${holiday.type}</div>` : ''}
+                                </div>
                             </div>
-                            <div>
-                                <div style="font-weight: 600; font-size: 16px;">${holiday.title}</div>
-                                ${holiday.type ? `<div style="font-size: 13px; opacity: 0.9;"><i class="fas fa-tag"></i> ${holiday.type}</div>` : ''}
-                            </div>
+                            ${holiday.description ? `<div style="font-size: 13px; opacity: 0.9; margin-top: 8px;">${holiday.description}</div>` : ''}
                         </div>
-                        ${holiday.description ? `<div style="font-size: 13px; opacity: 0.9; margin-top: 8px;">${holiday.description}</div>` : ''}
                     </div>
-                `).join('');
+                `}).join('');
                 noHolidaysMsg.style.display = 'none';
             } else {
                 section.innerHTML = '';
@@ -3764,7 +3950,7 @@ async function startTest(testId) {
             modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;';
             
             modal.innerHTML = `
-                <div style="background: white; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 30px;">
+                <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2); width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 30px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3 style="margin: 0; color: #1e293b;">${currentTest.title}</h3>
                         <div style="display: flex; align-items: center; gap: 15px;">
@@ -3819,7 +4005,7 @@ function renderQuestionOptions(question, index) {
     if (question.type === 'mcq-single') {
         return question.options.map((opt, i) => `
             <div style="margin-bottom: 10px;">
-                <label style="display: flex; align-items: center; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 1px solid #e2e8f0; transition: all 0.2s;">
+                <label style="display: flex; align-items: center; cursor: pointer; padding: 10px; background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2); border-radius: 8px; border: 1px solid #e2e8f0; transition: all 0.2s;">
                     <input type="radio" name="question-${index}" value="${i}" style="margin-right: 10px;">
                     <span>${opt.text}</span>
                 </label>
@@ -3828,13 +4014,13 @@ function renderQuestionOptions(question, index) {
     } else if (question.type === 'true-false') {
         return `
             <div style="margin-bottom: 10px;">
-                <label style="display: flex; align-items: center; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <label style="display: flex; align-items: center; cursor: pointer; padding: 10px; background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2); border-radius: 8px; border: 1px solid #e2e8f0;">
                     <input type="radio" name="question-${index}" value="true" style="margin-right: 10px;">
                     <span>True</span>
                 </label>
             </div>
             <div style="margin-bottom: 10px;">
-                <label style="display: flex; align-items: center; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <label style="display: flex; align-items: center; cursor: pointer; padding: 10px; background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2); border-radius: 8px; border: 1px solid #e2e8f0;">
                     <input type="radio" name="question-${index}" value="false" style="margin-right: 10px;">
                     <span>False</span>
                 </label>
@@ -3881,7 +4067,7 @@ async function submitTest() {
         
         const passed = data.passed;
         resultModal.innerHTML = `
-            <div style="background: white; width: 100%; max-width: 500px; border-radius: 16px; padding: 40px; text-align: center;">
+            <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2); width: 100%; max-width: 500px; border-radius: 16px; padding: 40px; text-align: center;">
                 <div style="width: 80px; height: 80px; background: ${passed ? '#dcfce7' : '#fee2e2'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                     <i class="fas ${passed ? 'fa-check' : 'fa-times'}" style="font-size: 40px; color: ${passed ? '#16a34a' : '#dc2626'};"></i>
                 </div>
@@ -4488,7 +4674,8 @@ function playYTVideo(id, url, title, duration) {
     }
 
     document.getElementById('videoSpeed').value = '1';
-    document.getElementById('videoSubtitles').value = selectedVideo && selectedVideo.subtitleUrl ? 'on' : 'off';
+    const subtitlesEl = document.getElementById('videoSubtitles');
+    if (subtitlesEl) subtitlesEl.value = selectedVideo && selectedVideo.subtitleUrl ? 'on' : 'off';
     video.playbackRate = 1;
 
     const stored = localStorage.getItem('portalStudent');
@@ -4711,6 +4898,11 @@ async function saveVideoProgress(videoId, studentId, currentTime, completed) {
 }
 
 // ============ BATCH 1 FEATURES ============
+// --- Watch Later ---
+function checkWatchLaterStatus() {
+    // Watch later UI not yet implemented
+}
+
 // --- Bookmarks ---
 function formatTime(sec) {
     const m = Math.floor(sec / 60);
@@ -5026,6 +5218,30 @@ function downloadVideoCourseCertificate() {
         window.open('/api/students/' + student.id + '/video-certificate/' + course.id, '_blank');
     });
 }
+
+// Load favicon from settings
+async function loadFavicon() {
+    try {
+        const response = await fetch('/api/settings');
+        const settings = await response.json();
+        if (settings.favicon) {
+            // Remove existing favicon if any
+            const existingFavicon = document.querySelector('link[rel="icon"]');
+            if (existingFavicon) {
+                existingFavicon.remove();
+            }
+            // Add new favicon
+            const link = document.createElement('link');
+            link.rel = 'icon';
+            link.type = 'image/x-icon';
+            link.href = settings.favicon;
+            document.head.appendChild(link);
+        }
+    } catch (err) {
+        console.error('Failed to load favicon:', err);
+    }
+}
+loadFavicon();
 </script>
 
 <!-- Video Player Modal Removed -->

@@ -29,6 +29,30 @@ function formatDate(date) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Load favicon from settings
+    async function loadFavicon() {
+        try {
+            const response = await fetch('/api/settings');
+            const settings = await response.json();
+            if (settings.favicon) {
+                // Remove existing favicon if any
+                const existingFavicon = document.querySelector('link[rel="icon"]');
+                if (existingFavicon) {
+                    existingFavicon.remove();
+                }
+                // Add new favicon
+                const link = document.createElement('link');
+                link.rel = 'icon';
+                link.type = 'image/x-icon';
+                link.href = settings.favicon;
+                document.head.appendChild(link);
+            }
+        } catch (err) {
+            console.error('Failed to load favicon:', err);
+        }
+    }
+    loadFavicon();
+
     // Set current date
     const dateEl = document.getElementById('currentDate');
     if (dateEl) {

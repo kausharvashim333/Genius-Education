@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrance Exam Portal - Genius Computer Education</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #1e3a8a 0%, #6366f1 50%, #8b5cf6 100%);
+    min-height: 100vh;
+    color: #fff;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.glass {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-primary { background: #3b82f6; color: #fff; }
+.btn-primary:hover { background: #2563eb; transform: translateY(-2px); }
+.btn-success { background: #10b981; color: #fff; }
+.btn-danger { background: #ef4444; color: #fff; }
+.btn-light { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+}
+input::placeholder { color: rgba(255,255,255,0.6); }
+label { display: block; margin-bottom: 8px; font-weight: 600; }
+
+/* Disabled Page */
+#disabledPage { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 40px; }
+#disabledPage.active { display: flex; }
+.disabled-card { max-width: 500px; text-align: center; }
+.disabled-card i { font-size: 80px; color: #fbbf24; margin-bottom: 20px; }
+
+/* Login Page */
+#loginPage { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 40px; }
+#loginPage.active { display: flex; }
+.login-card { width: 100%; max-width: 450px; }
+.login-logo { text-align: center; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; }
+.login-logo img { max-width: 150px; max-height: 100px; object-fit: contain; border-radius: 12px; background: rgba(255,255,255,0.95); padding: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.login-card h1 { text-align: center; margin-bottom: 8px; font-size: 28px; }
+.login-card .subtitle { text-align: center; opacity: 0.8; margin-bottom: 30px; font-size: 14px; }
+.login-card .form-group { margin-bottom: 20px; }
+
+/* Dashboard */
+#dashboardPage { display: none; padding: 30px 0; }
+#dashboardPage.active { display: block; }
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px 30px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(15px);
+    border-radius: 12px;
+}
+.header h2 { font-size: 22px; }
+.exam-card {
+    margin-top: 20px;
+    padding: 25px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+}
+.exam-card h3 { margin-bottom: 12px; font-size: 20px; }
+.exam-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+.info-item { padding: 12px; background: rgba(255,255,255,0.08); border-radius: 8px; }
+.info-item label { font-size: 12px; opacity: 0.7; margin-bottom: 4px; }
+.info-item span { font-size: 16px; font-weight: 600; }
+
+/* Instructions Modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+    max-width: 700px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: rgba(40,40,80,0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    padding: 35px;
+}
+.instructions-list { padding-left: 20px; line-height: 1.8; }
+.instructions-list li { margin-bottom: 8px; }
+
+/* Exam Page */
+#examPage { display: none; padding: 20px 0; }
+#examPage.active { display: block; }
+.exam-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(30,30,70,0.95);
+    backdrop-filter: blur(20px);
+    padding: 15px 25px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.timer {
+    font-size: 24px;
+    font-weight: 700;
+    padding: 8px 18px;
+    background: rgba(239,68,68,0.2);
+    border: 2px solid rgba(239,68,68,0.5);
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+}
+.timer.warning { background: rgba(245,158,11,0.3); border-color: rgba(245,158,11,0.6); }
+.timer.danger { background: rgba(239,68,68,0.4); border-color: rgba(239,68,68,0.8); animation: pulse 1s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+.exam-content { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+@media (max-width: 768px) { .exam-content { grid-template-columns: 1fr; } }
+
+.question-block {
+    padding: 25px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+.question-block h4 { margin-bottom: 8px; opacity: 0.7; font-size: 14px; }
+.question-block .q-text { font-size: 18px; margin-bottom: 18px; line-height: 1.6; }
+.option-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.option-item:hover { background: rgba(255,255,255,0.1); }
+.option-item.selected { background: rgba(59,130,246,0.3); border-color: #3b82f6; }
+.option-item input { width: auto; margin-right: 12px; }
+
+.question-nav {
+    position: sticky;
+    top: 90px;
+    height: fit-content;
+    padding: 20px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+}
+.question-nav h4 { margin-bottom: 15px; }
+.nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.nav-btn {
+    aspect-ratio: 1;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.15); }
+.nav-btn.answered { background: rgba(16,185,129,0.4); border-color: #10b981; }
+.nav-btn.current { outline: 2px solid #fbbf24; }
+
+.legend { margin-top: 15px; font-size: 12px; }
+.legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.legend-box { width: 18px; height: 18px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.3); }
+
+/* Result Page */
+#resultPage { display: none; padding: 40px 0; align-items: center; justify-content: center; min-height: 100vh; }
+#resultPage.active { display: flex; }
+.result-card { max-width: 500px; text-align: center; }
+.result-card i { font-size: 80px; color: #10b981; margin-bottom: 20px; }
+.result-card h1 { margin-bottom: 12px; }
+
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 14px 22px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+    z-index: 9999;
+    transform: translateX(120%);
+    transition: transform 0.3s;
+}
+.toast.show { transform: translateX(0); }
+.toast.success { background: #10b981; }
+.toast.error { background: #ef4444; }
+.toast.warning { background: #f59e0b; }
+</style>
+</head>
+<body>
+
+<!-- Disabled Page -->
+<div id="disabledPage" class="active">
+    <div class="glass disabled-card">
+        <i class="fas fa-lock"></i>
+        <h1>Entrance Exam Not Available</h1>
+        <p style="margin: 15px 0; opacity: 0.85;">The entrance examination feature is currently not active. Please check back later or contact the institute.</p>
+        <a href="/" class="btn btn-light" style="text-decoration: none; margin-top: 15px;"><i class="fas fa-home"></i> Back to Home</a>
+    </div>
+</div>
+
+<!-- Login Page -->
+<div id="loginPage">
+    <div class="glass login-card">
+        <div class="login-logo">
+            <img id="loginLogo" src="/uploads/logo/logo.png" alt="Logo" onerror="this.style.display='none';">
+        </div>
+        <h1 id="loginInstituteName">Entrance Exam Portal</h1>
+        <p class="subtitle">Login with your registration credentials</p>
+        <div class="form-group">
+            <label>Registration Number</label>
+            <input type="text" id="regNo" placeholder="ENT-2026-XXXX">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="Enter password">
+        </div>
+        <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="doLogin()">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+        <p style="text-align: center; margin-top: 20px; font-size: 13px; opacity: 0.7;">
+            Don't have credentials? Contact the admin office.
+        </p>
+    </div>
+</div>
+
+<!-- Dashboard Page -->
+<div id="dashboardPage">
+    <div class="container">
+        <div class="header">
+            <div>
+                <h2 id="welcomeName">Welcome</h2>
+                <p style="opacity: 0.7; font-size: 13px;" id="welcomeRegNo"></p>
+            </div>
+            <button class="btn btn-light" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+
+        <div class="glass">
+            <h2 style="margin-bottom: 12px;"><i class="fas fa-clipboard-list" style="color: #fbbf24;"></i> Your Scheduled Exam</h2>
+            <div id="examInfo">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Instructions Modal -->
+<div class="modal-overlay" id="instructionsModal">
+    <div class="modal-box">
+        <h2 style="margin-bottom: 20px;"><i class="fas fa-exclamation-triangle" style="color: #fbbf24;"></i> Exam Instructions</h2>
+        <div id="instructionsText" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; line-height: 1.7;"></div>
+        <h3 style="margin-bottom: 12px;">General Rules:</h3>
+        <ul class="instructions-list">
+            <li>Do not switch tabs or windows during the exam.</li>
+            <li>The timer is synchronized with the server. Time will not pause.</li>
+            <li>If you log in late, you will get only the remaining time.</li>
+            <li>Click "Submit Exam" when you are done. Auto-submit happens when time ends.</li>
+            <li>Once submitted, you cannot retake the exam.</li>
+            <li>Your answers are saved automatically as you select them.</li>
+        </ul>
+        <div style="margin: 20px 0; padding: 12px; background: rgba(59,130,246,0.15); border-radius: 8px;">
+            <label style="display: flex; align-items: center; cursor: pointer;">
+                <input type="checkbox" id="acceptCheck" style="width: auto; margin-right: 10px;" onchange="toggleAcceptBtn()">
+                <span>I have read and agree to follow all the rules</span>
+            </label>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button class="btn btn-light" onclick="closeInstructions()">Cancel</button>
+            <button class="btn btn-primary" id="acceptBtn" disabled onclick="acceptAndStart()">
+                <i class="fas fa-check"></i> Accept & Start Exam
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Exam Page -->
+<div id="examPage">
+    <div class="container">
+        <div class="exam-header">
+            <div>
+                <h3 id="examTitle">Exam</h3>
+                <p style="font-size: 13px; opacity: 0.7;" id="examStudent"></p>
+            </div>
+            <div id="timerDisplay" class="timer">--:--:--</div>
+            <button class="btn btn-success" onclick="confirmSubmit()"><i class="fas fa-paper-plane"></i> Submit Exam</button>
+        </div>
+        <div class="exam-content">
+            <div id="questionsArea"></div>
+            <div class="question-nav">
+                <h4>Questions</h4>
+                <div class="nav-grid" id="navGrid"></div>
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-box" style="background: rgba(16,185,129,0.4);"></div> Answered</div>
+                    <div class="legend-item"><div class="legend-box"></div> Not Answered</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Result Page -->
+<div id="resultPage">
+    <div class="glass result-card">
+        <i class="fas fa-check-circle"></i>
+        <h1>Exam Submitted Successfully</h1>
+        <p style="margin: 15px 0; opacity: 0.85;">Your responses have been recorded. Results will be published by the institute. You will be able to view and download your scorecard once results are published.</p>
+        <button class="btn btn-primary" onclick="goDashboard()" style="margin-top: 15px;">
+            <i class="fas fa-tachometer-alt"></i> Back to Dashboard
+        </button>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+let currentRegistration = null;
+let currentExam = null;
+let currentShift = null;
+let currentAttempt = null;
+let currentQuestions = [];
+let currentAnswers = {};
+let serverTimeOffset = 0;
+let endTime = null;
+let timerInterval = null;
+let dashboardInterval = null;
+
+function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + (type || 'success');
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function showPage(id) {
+    ['disabledPage', 'loginPage', 'dashboardPage', 'examPage', 'resultPage'].forEach(p => {
+        document.getElementById(p).classList.remove('active');
+    });
+    document.getElementById(id).classList.add('active');
+}
+
+async function loadInstituteBranding() {
+    try {
+        const res = await fetch('/api/settings');
+        const settings = await res.json();
+        if (settings.logo) {
+            const img = document.getElementById('loginLogo');
+            if (img) { img.src = settings.logo; img.style.display = 'block'; }
+        }
+        if (settings.name) {
+            const t = document.getElementById('loginInstituteName');
+            if (t) t.textContent = settings.name;
+        }
+    } catch (e) {}
+}
+
+async function checkSettings() {
+    try {
+        const res = await fetch('/api/entrance-settings');
+        const data = await res.json();
+        if (!data.enabled) { showPage('disabledPage'); return false; }
+        return true;
+    } catch (e) { showPage('disabledPage'); return false; }
+}
+
+async function init() {
+    loadInstituteBranding();
+    const enabled = await checkSettings();
+    if (!enabled) return;
+
+    const saved = sessionStorage.getItem('entranceReg');
+    if (saved) {
+        currentRegistration = JSON.parse(saved);
+        showDashboard();
+    } else {
+        showPage('loginPage');
+    }
+}
+
+async function doLogin() {
+    const regNo = document.getElementById('regNo').value.trim();
+    const password = document.getElementById('password').value.trim();
+    if (!regNo || !password) return showToast('Please enter both fields', 'error');
+
+    try {
+        const res = await fetch('/api/entrance/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ registrationNo: regNo, password })
+        });
+        const data = await res.json();
+        if (!data.success) return showToast(data.message || 'Login failed', 'error');
+
+        currentRegistration = data.registration;
+        sessionStorage.setItem('entranceReg', JSON.stringify(data.registration));
+        showToast('Login successful', 'success');
+        showDashboard();
+    } catch (e) { showToast('Login error', 'error'); }
+}
+
+function doLogout() {
+    if (confirm('Are you sure you want to logout?')) {
+        sessionStorage.removeItem('entranceReg');
+        currentRegistration = null;
+        if (dashboardInterval) clearInterval(dashboardInterval);
+        showPage('loginPage');
+    }
+}
+
+async function showDashboard() {
+    showPage('dashboardPage');
+    document.getElementById('welcomeName').textContent = 'Welcome, ' + currentRegistration.studentName;
+    document.getElementById('welcomeRegNo').textContent = 'Reg No: ' + currentRegistration.registrationNo;
+    await loadExamInfo();
+    if (dashboardInterval) clearInterval(dashboardInterval);
+    dashboardInterval = setInterval(loadExamInfo, 15000);
+}
+
+async function loadExamInfo() {
+    try {
+        const res = await fetch('/api/entrance/student-exam/' + currentRegistration.id);
+        const data = await res.json();
+        if (!data.exam) {
+            document.getElementById('examInfo').innerHTML = '<p>No exam assigned yet.</p>';
+            return;
+        }
+        currentExam = data.exam;
+        currentShift = data.shift;
+
+        if (!currentShift) {
+            document.getElementById('examInfo').innerHTML = '<p>You have not been assigned to a shift yet. Please contact the admin.</p>';
+            return;
+        }
+
+        const now = new Date();
+        const startTime = new Date(currentShift.scheduledStart);
+        const examEndTime = new Date(currentShift.scheduledEnd);
+
+        let statusHtml = '';
+        let buttonHtml = '';
+        if (now < startTime) {
+            const diff = Math.floor((startTime - now) / 1000);
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = diff % 60;
+            statusHtml = '<p style="color: #fbbf24; font-weight: 600;"><i class="fas fa-clock"></i> Exam will start in ' + h + 'h ' + m + 'm ' + s + 's</p>';
+            buttonHtml = '<button class="btn btn-light" disabled style="opacity:0.5;"><i class="fas fa-lock"></i> Not Started Yet</button>';
+        } else if (now > examEndTime) {
+            statusHtml = '<p style="color: #ef4444; font-weight: 600;"><i class="fas fa-times-circle"></i> Exam Time Has Ended</p>';
+            buttonHtml = '<button class="btn btn-light" disabled style="opacity:0.5;">Exam Closed</button>';
+        } else {
+            const remaining = Math.floor((examEndTime - now) / 1000);
+            const m = Math.floor(remaining / 60);
+            statusHtml = '<p style="color: #10b981; font-weight: 600;"><i class="fas fa-circle"></i> Exam is LIVE - ' + m + ' minutes remaining</p>';
+            buttonHtml = '<button class="btn btn-primary" onclick="openInstructions()" style="font-size: 16px; padding: 14px 28px;"><i class="fas fa-play"></i> Start Exam</button>';
+        }
+
+        document.getElementById('examInfo').innerHTML =
+            '<div class="exam-card">' +
+            '<h3>' + currentExam.name + '</h3>' +
+            '<p style="opacity:0.8; margin-bottom:10px;">' + (currentExam.description || '') + '</p>' +
+            statusHtml +
+            '<div class="exam-info">' +
+            '<div class="info-item"><label>Shift</label><span>' + currentShift.name + '</span></div>' +
+            '<div class="info-item"><label>Start Time</label><span>' + new Date(currentShift.scheduledStart).toLocaleString() + '</span></div>' +
+            '<div class="info-item"><label>End Time</label><span>' + new Date(currentShift.scheduledEnd).toLocaleString() + '</span></div>' +
+            '<div class="info-item"><label>Duration</label><span>' + (currentShift.duration || '-') + ' min</span></div>' +
+            '<div class="info-item"><label>Total Marks</label><span>' + currentExam.totalMarks + '</span></div>' +
+            '</div>' +
+            '<div style="margin-top: 20px;">' + buttonHtml + '</div>' +
+            '</div>';
+    } catch (e) {
+        console.error(e);
+        document.getElementById('examInfo').innerHTML = '<p>Error loading exam info</p>';
+    }
+}
+
+function openInstructions() {
+    document.getElementById('instructionsText').textContent = currentExam.instructions || 'Please follow all rules carefully.';
+    document.getElementById('acceptCheck').checked = false;
+    document.getElementById('acceptBtn').disabled = true;
+    document.getElementById('instructionsModal').classList.add('active');
+}
+
+function closeInstructions() {
+    document.getElementById('instructionsModal').classList.remove('active');
+}
+
+function toggleAcceptBtn() {
+    document.getElementById('acceptBtn').disabled = !document.getElementById('acceptCheck').checked;
+}
+
+async function acceptAndStart() {
+    closeInstructions();
+    try {
+        const res = await fetch('/api/entrance/start-exam', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ registrationId: currentRegistration.id })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            if (data.suspended) {
+                sessionStorage.removeItem('entranceReg');
+                alert('Your ID has been suspended. Reason: ' + (data.message || 'Suspicious activity') + '\n\nPlease contact the admin.');
+                window.location.reload();
+                return;
+            }
+            return showToast(data.message || 'Cannot start exam', 'error');
+        }
+
+        currentAttempt = data.attempt;
+        currentQuestions = data.questions;
+        currentAnswers = data.attempt.answers || {};
+        endTime = new Date(data.attempt.endTime);
+        serverTimeOffset = new Date(data.serverTime) - new Date();
+
+        if (dashboardInterval) clearInterval(dashboardInterval);
+        showExamPage();
+    } catch (e) { showToast('Error starting exam', 'error'); }
+}
+
+function showExamPage() {
+    showPage('examPage');
+    document.getElementById('examTitle').textContent = currentExam.name;
+    document.getElementById('examStudent').textContent = currentRegistration.studentName + ' | ' + currentRegistration.registrationNo;
+    renderQuestions();
+    renderNav();
+    startTimer();
+
+    // Disable right-click and copy/paste
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('paste', e => e.preventDefault());
+    window.addEventListener('beforeunload', warnReload);
+}
+
+function warnReload(e) {
+    if (currentAttempt && !currentAttempt.submitted) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+}
+
+function renderQuestions() {
+    let html = '';
+    currentQuestions.forEach((q, idx) => {
+        html += '<div class="question-block" id="qb-' + idx + '">';
+        html += '<h4>Question ' + (idx + 1) + ' of ' + currentQuestions.length + ' &bull; ' + (q.marks || 1) + ' marks</h4>';
+        html += '<div class="q-text">' + escapeHtml(q.question) + '</div>';
+        (q.options || []).forEach((opt, oidx) => {
+            const checked = currentAnswers[q.id] == oidx ? 'checked' : '';
+            const selectedClass = currentAnswers[q.id] == oidx ? 'selected' : '';
+            html += '<label class="option-item ' + selectedClass + '" onclick="selectOption(' + q.id + ', ' + oidx + ', ' + idx + ')">';
+            html += '<input type="radio" name="q' + q.id + '" value="' + oidx + '" ' + checked + '> ';
+            html += escapeHtml(opt);
+            html += '</label>';
+        });
+        html += '</div>';
+    });
+    document.getElementById('questionsArea').innerHTML = html;
+}
+
+function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+
+function renderNav() {
+    let html = '';
+    currentQuestions.forEach((q, idx) => {
+        const cls = currentAnswers[q.id] !== undefined ? 'answered' : '';
+        html += '<button class="nav-btn ' + cls + '" onclick="scrollToQ(' + idx + ')">' + (idx + 1) + '</button>';
+    });
+    document.getElementById('navGrid').innerHTML = html;
+}
+
+function scrollToQ(idx) {
+    const el = document.getElementById('qb-' + idx);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function selectOption(qid, oidx, qIndex) {
+    currentAnswers[qid] = oidx;
+    // Update UI
+    const block = document.getElementById('qb-' + qIndex);
+    block.querySelectorAll('.option-item').forEach((el, i) => {
+        el.classList.toggle('selected', i === oidx);
+    });
+    block.querySelectorAll('input[type=radio]').forEach((el, i) => {
+        el.checked = i === oidx;
+    });
+    renderNav();
+
+    // Save to server
+    try {
+        const res = await fetch('/api/entrance/save-answer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ attemptId: currentAttempt.id, questionId: qid, answer: oidx })
+        });
+        const data = await res.json();
+        if (!data.success && data.suspended) {
+            sessionStorage.removeItem('entranceReg');
+            alert('Your ID has been suspended. Reason: ' + (data.message || 'Suspicious activity') + '\n\nPlease contact the admin.');
+            window.location.reload();
+            return;
+        }
+    } catch (e) { console.error('Save error', e); }
+}
+
+function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+    const now = new Date(new Date().getTime() + serverTimeOffset);
+    const diff = Math.floor((endTime - now) / 1000);
+    const display = document.getElementById('timerDisplay');
+
+    if (diff <= 0) {
+        display.textContent = '00:00:00';
+        clearInterval(timerInterval);
+        autoSubmit();
+        return;
+    }
+
+    const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+    const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+    const s = String(diff % 60).padStart(2, '0');
+    display.textContent = h + ':' + m + ':' + s;
+
+    display.classList.toggle('warning', diff < 300 && diff >= 60);
+    display.classList.toggle('danger', diff < 60);
+}
+
+function confirmSubmit() {
+    const answered = Object.keys(currentAnswers).length;
+    const total = currentQuestions.length;
+    if (confirm('You have answered ' + answered + ' out of ' + total + ' questions.\n\nAre you sure you want to submit the exam? This action cannot be undone.')) {
+        submitExam(false);
+    }
+}
+
+async function autoSubmit() {
+    showToast('Time up! Submitting your exam...', 'warning');
+    submitExam(true);
+}
+
+async function submitExam(auto) {
+    try {
+        const res = await fetch('/api/entrance/submit-exam', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ attemptId: currentAttempt.id })
+        });
+        const data = await res.json();
+        if (data.success) {
+            currentAttempt.submitted = true;
+            window.removeEventListener('beforeunload', warnReload);
+            showPage('resultPage');
+        } else {
+            showToast(data.message || 'Submit failed', 'error');
+        }
+    } catch (e) { showToast('Submit error', 'error'); }
+}
+
+function goDashboard() {
+    showDashboard();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

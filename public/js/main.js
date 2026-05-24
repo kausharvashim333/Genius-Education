@@ -28,13 +28,15 @@ function formatDate(date) {
 document.addEventListener('DOMContentLoaded', () => {
     triggerHeroAnimation();
     loadCarousel();
-    loadCourses();
+    loadTestimonials();
     loadNotices();
     loadGallery();
     loadBlogs();
     loadSettings();
     loadAbout();
     loadAnnouncementsTicker();
+    loadCourses();
+    loadTestimonials();
     document.getElementById('contactForm').addEventListener('submit', handleContactSubmit);
     
     // Hamburger menu toggle
@@ -44,6 +46,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hamburger && navMenu) {
         hamburger.addEventListener('click', () => {
             navMenu.classList.toggle('active');
+        });
+        
+        // Close menu when clicking on a link
+        navMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+            });
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!navMenu.contains(e.target) && !hamburger.contains(e.target)) {
+                navMenu.classList.remove('active');
+            }
         });
     }
 });
@@ -174,12 +190,16 @@ async function loadCourses() {
         // Get site logo from settings
         const settingsRes = await fetch('/api/settings').then(r => r.json()).catch(() => ({}));
         const siteLogo = settingsRes.logo || '';
-        const logoImg = siteLogo ? `<img src="${siteLogo}" alt="Logo" style="width:14px;height:14px;object-fit:contain;margin-right:4px;">` : '<i class="fas fa-graduation-cap"></i>';
+        const logoImg = siteLogo ? `<img src="${siteLogo}" alt="Logo" style="width:14px;height:14px;object-fit:contain;margin-right:4px;border-radius:3px;">` : '<i class="fas fa-graduation-cap"></i>';
         
         container.innerHTML = courses.map(course => {
             const emoji = getCourseEmoji(course.name);
-            const priceFormatted = parseInt(course.price).toLocaleString('en-IN');
+            const fee = course.fee || course.price || 0;
+            const feeType = course.feeType || 'Per Program';
+            const priceFormatted = parseInt(fee).toLocaleString('en-IN');
             const eligibility = course.eligibility || '';
+            // Truncate description for preview
+            const shortDesc = course.description.substring(0, 100) + (course.description.length > 100 ? '...' : '');
             return `
             <div class="course-card">
                 <div class="course-card-header">
@@ -191,16 +211,21 @@ async function loadCourses() {
                         <span class="meta-tag"><i class="fas fa-clock"></i> ${course.duration}</span>
                         ${eligibility ? `<span class="meta-tag">${logoImg} ${eligibility}</span>` : ''}
                     </div>
-                    <div class="price">₹${priceFormatted}</div>
+                    <p class="course-preview">${shortDesc}</p>
+                    <div class="price">₹${priceFormatted} <span style="font-size:0.85em;color:#94a3b8;">(${feeType})</span></div>
                     <div class="course-card-actions">
-                        <button class="btn-view" onclick="viewCourseDetail(${course.id})"><i class="fas fa-eye"></i> View Details</button>
+                        <button class="btn-view" onclick="openCourseModal(${course.id})"><i class="fas fa-eye"></i> View Details</button>
                         <a href="apply.html?course=${encodeURIComponent(course.name)}" class="btn-enroll"><i class="fas fa-user-graduate"></i> Enroll Now</a>
                     </div>
                 </div>
-            </div>`;
+            </div>
+            `;
         }).join('');
         window._coursesData = courses;
-    } catch (err) { console.error('Error loading courses:', err); }
+    } catch (err) {
+        console.error('Error loading courses:', err);
+        document.getElementById('coursesContainer').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:30px;">Unable to load courses.</p>';
+    }
 }
 
 async function viewCourseDetail(id) {
@@ -211,34 +236,50 @@ async function viewCourseDetail(id) {
     const eligibility = course.eligibility || '';
     const desc = course.description || 'Description available nahi hai.';
     
-    // Get site logo from settings
-    const settingsRes = await fetch('/api/settings').then(r => r.json()).catch(() => ({}));
-    const siteLogo = settingsRes.logo || '';
-    const logoImg = siteLogo ? `<img src="${siteLogo}" alt="Logo" style="width:16px;height:16px;object-fit:contain;margin-right:4px;">` : '<i class="fas fa-graduation-cap"></i>';
+    // Open modal instead of navigating
+    openCourseModal(id);
+}
+
+function openCourseModal(id) {
+    const course = (window._coursesData || []).find(c => c.id === id);
+    if (!course) return;
+
+    const emoji = getCourseEmoji(course.name);
+    const fee = course.fee || course.price || 0;
+    const feeType = course.feeType || 'Per Program';
+    const priceFormatted = parseInt(fee).toLocaleString('en-IN');
+    const eligibility = course.eligibility || '';
+    const desc = course.description || 'Description available nahi hai.';
+
+    const modalContent = document.getElementById('courseModalContent');
+    modalContent.innerHTML = `
+        <div class="course-modal-header">
+            <span class="course-emoji" style="font-size: 3rem;">${emoji}</span>
+            <h2>${course.name}</h2>
+        </div>
+        <div class="course-modal-body">
+            <div class="course-meta">
+                <span class="meta-tag"><i class="fas fa-clock"></i> ${course.duration}</span>
+                ${eligibility ? `<span class="meta-tag"><i class="fas fa-graduation-cap"></i> ${eligibility}</span>` : ''}
+            </div>
+            <div class="price" style="font-size: 1.5rem; margin: 20px 0;">₹${priceFormatted} <span style="font-size: 0.85em; color: #94a3b8;">(${feeType})</span></div>
+            <div class="course-description">
+                <h4>Course Description</h4>
+                <p style="white-space: pre-wrap; line-height: 1.6;">${desc}</p>
+            </div>
+            <div style="margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="apply.html?course=${encodeURIComponent(course.name)}" class="btn btn-primary" style="flex: 1; min-width: 200px;">
+                    <i class="fas fa-user-graduate"></i> Enroll Now
+                </a>
+            </div>
+        </div>
+    `;
     
-    const overlay = document.createElement('div');
-    overlay.className = 'course-detail-overlay';
-    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-    overlay.innerHTML = `
-        <div class="course-detail-box">
-            <div class="course-detail-header">
-                <span class="course-emoji">${emoji}</span>
-                <h2>${course.name}</h2>
-            </div>
-            <div class="course-detail-body">
-                <div class="detail-meta">
-                    <span><i class="fas fa-clock"></i> ${course.duration}</span>
-                    <span><i class="fas fa-rupee-sign"></i> ₹${priceFormatted}</span>
-                    ${eligibility ? `<span>${logoImg} ${eligibility}</span>` : ''}
-                </div>
-                <div class="detail-desc">${desc}</div>
-                <div class="detail-actions">
-                    <a href="apply.html?course=${encodeURIComponent(course.name)}" class="btn-enroll"><i class="fas fa-user-graduate"></i> Enroll Now</a>
-                    <button class="btn-close-detail" onclick="this.closest('.course-detail-overlay').remove()">Close</button>
-                </div>
-            </div>
-        </div>`;
-    document.body.appendChild(overlay);
+    document.getElementById('courseDetailModal').classList.add('active');
+}
+
+function closeCourseModal() {
+    document.getElementById('courseDetailModal').classList.remove('active');
 }
 
 async function loadGallery() {
@@ -247,14 +288,226 @@ async function loadGallery() {
         const gallery = await res.json();
         const container = document.getElementById('galleryContainer');
         if (container) {
-            container.innerHTML = gallery.map(item => `
-                <div class="gallery-item">
-                    <img src="${item.image}" alt="${item.title}">
-                    <p>${item.title}</p>
-                </div>
-            `).join('');
+            window.galleryData = gallery;
+            renderGallery('all');
         }
+        setupGalleryFilters();
     } catch (err) { console.error('Error loading gallery:', err); }
+}
+
+function renderGallery(filter) {
+    console.log('renderGallery called with filter:', filter);
+    const container = document.getElementById('galleryContainer');
+    container.classList.remove('masonry-grid');
+    container.classList.remove('gallery-carousel-container');
+
+    // Clear existing interval
+    if (galleryCarouselInterval) {
+        console.log('Clearing existing interval in renderGallery');
+        clearInterval(galleryCarouselInterval);
+        galleryCarouselInterval = null;
+    }
+
+    // Show carousel for all filters
+    let galleryItems;
+    if (filter === 'all') {
+        galleryItems = window.galleryData;
+    } else {
+        galleryItems = window.galleryData.filter(item => (item.category || 'all') === filter);
+    }
+
+    const carouselItems = galleryItems.map(item => `
+        <div class="carousel-item" data-category="${item.category || 'all'}" onclick="openLightbox('${item.image}', '${item.title.replace(/'/g, "\\'")}')">
+            <img src="${item.image}" alt="${item.title}">
+            <div class="gallery-overlay">
+                <p>${item.title}</p>
+                <span class="gallery-category-badge">${item.category || 'General'}</span>
+            </div>
+        </div>
+    `).join('');
+
+    console.log('Carousel items generated:', carouselItems.length > 0 ? 'yes' : 'no', 'Length:', carouselItems.length);
+    container.innerHTML = `
+        <div class="gallery-carousel" id="galleryCarousel">
+            <div class="carousel-track" id="galleryCarouselTrack">
+                ${carouselItems}
+            </div>
+            <button class="carousel-btn prev-btn" onclick="slideGallery(-1)"><i class="fas fa-chevron-left"></i></button>
+            <button class="carousel-btn next-btn" onclick="slideGallery(1)"><i class="fas fa-chevron-right"></i></button>
+            <div class="carousel-dots" id="galleryCarouselDots"></div>
+        </div>
+    `;
+    console.log('Carousel HTML injected');
+    // Use setTimeout with longer delay to ensure DOM is fully updated
+    setTimeout(() => setupGalleryCarousel(), 200);
+}
+
+function setupGalleryFilters() {
+    const filterBtns = document.querySelectorAll('.gallery-filter-btn');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            filterBtns.forEach(b => {
+                b.classList.remove('active');
+                b.style.background = 'rgba(255,255,255,0.1)';
+            });
+            this.classList.add('active');
+            this.style.background = 'rgba(59,130,246,0.85)';
+            renderGallery(filter);
+        });
+    });
+}
+
+let galleryCarouselIndex = 0;
+let galleryCarouselInterval;
+
+function setupGalleryCarousel() {
+    const track = document.getElementById('galleryCarouselTrack');
+    console.log('Looking for galleryCarouselTrack element...');
+    if (!track) {
+        console.log('Gallery carousel track not found');
+        return;
+    }
+    console.log('Gallery carousel track found');
+    console.log('Track innerHTML length:', track.innerHTML.length);
+    console.log('Track innerHTML:', track.innerHTML.substring(0, 200));
+
+    const items = track.querySelectorAll('.carousel-item');
+    console.log('Found', items.length, 'carousel items');
+    if (items.length === 0) {
+        console.log('No carousel items found');
+        return;
+    }
+
+    console.log('Setting up carousel with', items.length, 'items');
+    galleryCarouselIndex = 0;
+
+    // Set initial active class
+    items.forEach((item, index) => {
+        item.classList.remove('active');
+        if (index === 0) {
+            item.classList.add('active');
+        }
+    });
+
+    updateCarousel();
+
+    // Create dots
+    const dotsContainer = document.getElementById('galleryCarouselDots');
+    if (dotsContainer) {
+        dotsContainer.innerHTML = '';
+        items.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'carousel-dot' + (index === 0 ? ' active' : '');
+            dot.onclick = () => {
+                galleryCarouselIndex = index;
+                updateCarousel();
+                resetAutoSlide();
+            };
+            dotsContainer.appendChild(dot);
+        });
+    }
+
+    // Auto-slide every 4 seconds
+    resetAutoSlide();
+    console.log('Auto-slide interval set');
+}
+
+function updateCarousel() {
+    const track = document.getElementById('galleryCarouselTrack');
+    const items = track.querySelectorAll('.carousel-item');
+    const dots = document.querySelectorAll('.carousel-dot');
+
+    if (items.length === 0) return;
+
+    // Update active card
+    items.forEach((item, index) => {
+        item.classList.remove('active');
+        if (index === galleryCarouselIndex) {
+            item.classList.add('active');
+        }
+    });
+
+    // Update dots
+    dots.forEach((dot, index) => {
+        dot.classList.remove('active');
+        if (index === galleryCarouselIndex) {
+            dot.classList.add('active');
+        }
+    });
+
+    // Calculate transform to center the active card (showing 3 cards: 2 side + 1 center)
+    const activeCardWidth = 650;
+    const inactiveCardWidth = 280;
+    const margin = 15;
+
+    let offset = 0;
+    for (let i = 0; i < galleryCarouselIndex; i++) {
+        offset += inactiveCardWidth + (margin * 2);
+    }
+
+    // Center the active card
+    const containerWidth = track.parentElement.offsetWidth;
+    const centerOffset = (containerWidth - activeCardWidth) / 2;
+    offset -= centerOffset;
+
+    track.style.transform = `translateX(${-offset}px)`;
+}
+
+function slideGallery(direction) {
+    console.log('Sliding gallery:', direction);
+    const track = document.getElementById('galleryCarouselTrack');
+    if (!track) return;
+
+    const items = track.querySelectorAll('.carousel-item');
+    if (items.length === 0) return;
+
+    galleryCarouselIndex += direction;
+    if (galleryCarouselIndex < 0) {
+        galleryCarouselIndex = items.length - 1;
+    } else if (galleryCarouselIndex >= items.length) {
+        galleryCarouselIndex = 0;
+    }
+
+    console.log('New index:', galleryCarouselIndex);
+    updateCarousel();
+    resetAutoSlide();
+}
+
+function resetAutoSlide() {
+    console.log('Resetting auto-slide');
+    if (galleryCarouselInterval) {
+        console.log('Clearing existing interval');
+        clearInterval(galleryCarouselInterval);
+    }
+    galleryCarouselInterval = setInterval(() => {
+        console.log('Auto-slide triggered');
+        slideGallery(1);
+    }, 4000);
+    console.log('New interval set:', galleryCarouselInterval);
+}
+
+function openLightbox(imageUrl, title) {
+    const lightbox = document.createElement('div');
+    lightbox.id = 'galleryLightbox';
+    lightbox.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;justify-content:center;align-items:center;z-index:9999;cursor:pointer;';
+    lightbox.innerHTML = `
+        <div style="position:relative;max-width:90%;max-height:90%;">
+            <img src="${imageUrl}" alt="${title}" style="max-width:100%;max-height:90vh;object-fit:contain;border-radius:10px;">
+            <button onclick="closeLightbox(event)" style="position:absolute;top:-40px;right:0;background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:24px;cursor:pointer;">×</button>
+            <p style="color:#fff;text-align:center;margin-top:10px;font-size:18px;">${title}</p>
+        </div>
+    `;
+    lightbox.onclick = function(e) {
+        if (e.target === lightbox) closeLightbox(e);
+    };
+    document.body.appendChild(lightbox);
+}
+
+function closeLightbox(e) {
+    if (e) e.stopPropagation();
+    const lightbox = document.getElementById('galleryLightbox');
+    if (lightbox) lightbox.remove();
 }
 
 async function loadSettings() {
@@ -481,7 +734,7 @@ async function loadBlogs() {
             const publishedBlogs = data.blogs.filter(b => b.published);
             if (publishedBlogs.length > 0) {
                 container.innerHTML = publishedBlogs.map(blog => `
-                    <div class="blog-card">
+                    <div class="blog-card" onclick="viewBlogDetail(${blog.id})">
                         <div class="blog-header">
                             <span class="blog-category">${blog.category}</span>
                             <span class="blog-date">${formatDate(blog.createdAt)}</span>
@@ -490,6 +743,7 @@ async function loadBlogs() {
                         <div class="blog-content">${blog.content.substring(0, 150)}${blog.content.length > 150 ? '...' : ''}</div>
                         <div class="blog-footer">
                             <span class="blog-author"><i class="fas fa-user"></i> ${blog.author}</span>
+                            <button class="btn-read-more" onclick="event.stopPropagation(); viewBlogDetail(${blog.id})">Read More</button>
                         </div>
                     </div>
                 `).join('');
@@ -502,7 +756,517 @@ async function loadBlogs() {
             container.innerHTML = '';
             empty.style.display = 'block';
         }
-    } catch (err) {
-        console.error('Error loading blogs:', err);
+    } catch (e) {
+        console.error('Error loading blogs:', e);
     }
 }
+
+function viewBlogDetail(id) {
+    fetch('/api/blogs')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.blogs) {
+                const blog = data.blogs.find(b => b.id === id);
+                if (blog) {
+                    const modal = document.createElement('div');
+                    modal.id = 'blogDetailModal';
+                    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+                    modal.innerHTML = `
+                        <div class="blog-detail-content" style="background:rgba(0,0,0,0.4);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;max-width:800px;width:100%;max-height:90vh;overflow-y:auto;padding:30px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid rgba(255,255,255,0.2);">
+                                <span class="blog-category" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:600;">${blog.category}</span>
+                                <span style="color:rgba(255,255,255,0.7);font-size:14px;">${formatDate(blog.createdAt)}</span>
+                            </div>
+                            <h2 style="color:#fff;font-size:28px;margin:0 0 20px 0;font-weight:600;">${blog.title}</h2>
+                            <div style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin-bottom:20px;">${blog.content}</div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:20px;border-top:1px solid rgba(255,255,255,0.2);">
+                                <span style="color:rgba(255,255,255,0.7);font-size:14px;"><i class="fas fa-user" style="margin-right:6px;"></i> ${blog.author}</span>
+                                <button onclick="document.getElementById('blogDetailModal').remove()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s;">Close</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                    
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) modal.remove();
+                    });
+                }
+            }
+        })
+        .catch(e => console.error('Error loading blog detail:', e));
+}
+
+function toggleReadMore(id) {
+    // Show testimonial in modal
+    const cards = document.querySelectorAll(`.testimonial-card[data-id="${id}"]`);
+    if (cards.length === 0) return;
+    
+    const card = cards[0];
+    const name = card.querySelector('.testimonial-name').textContent;
+    const position = card.querySelector('.testimonial-position')?.textContent || '';
+    const comment = card.querySelector('.testimonial-comment').getAttribute('data-full');
+    const imageSrc = card.querySelector('.testimonial-avatar').src;
+    const rating = card.querySelector('.testimonial-rating').innerHTML;
+    const date = card.querySelector('.testimonial-date').textContent;
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'testimonial-modal';
+    modal.innerHTML = `
+        <div class="testimonial-modal-content">
+            <button class="testimonial-modal-close" onclick="this.closest('.testimonial-modal').remove()">&times;</button>
+            <div class="testimonial-modal-header">
+                <img src="${imageSrc}" alt="${name}" class="testimonial-modal-avatar">
+                <div>
+                    <h4 class="testimonial-modal-name">${name}</h4>
+                    ${position ? `<p class="testimonial-modal-position">${position}</p>` : ''}
+                    <div class="testimonial-modal-rating">${rating}</div>
+                </div>
+            </div>
+            <p class="testimonial-modal-comment">${comment}</p>
+            <p class="testimonial-modal-date">${date}</p>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close modal on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function closeOnEscape(e) {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', closeOnEscape);
+        }
+    });
+}
+
+let currentTestimonialSlide = 0;
+let testimonialSlideInterval;
+let testimonialsData = [];
+
+async function loadTestimonials() {
+    try {
+        const res = await fetch('/api/testimonials');
+        const data = await res.json();
+        const container = document.getElementById('testimonialsContainer');
+        const dotsContainer = document.getElementById('carouselDots');
+        
+        if (data.success && data.testimonials && data.testimonials.length > 0) {
+            testimonialsData = data.testimonials;
+            
+            // Create testimonials HTML
+            const testimonialsHTML = testimonialsData.map(testimonial => {
+                const stars = Array(5).fill(0).map((_, i) => 
+                    `<span class="star ${i < testimonial.rating ? '' : 'empty'}">★</span>`
+                ).join('');
+                
+                const formattedDate = testimonial.date ? new Date(testimonial.date).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                }) : '';
+                
+                const imageSrc = testimonial.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=667eea&color=fff&size=100`;
+                
+                // Truncate long comments
+                const maxChars = 150;
+                const isLongComment = testimonial.comment.length > maxChars;
+                const words = testimonial.comment.split(' ');
+                const shortComment = isLongComment ? words.slice(0, 15).join(' ') + '...' : testimonial.comment;
+                
+                return `
+                    <div class="testimonial-card" data-id="${testimonial.id}">
+                        <div class="testimonial-header">
+                            <img src="${imageSrc}" alt="${testimonial.name}" class="testimonial-avatar" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=667eea&color=fff&size=100'">
+                            <div>
+                                <h4 class="testimonial-name">${testimonial.name}</h4>
+                                ${testimonial.position ? `<p class="testimonial-position">${testimonial.position}</p>` : ''}
+                                <div class="testimonial-rating">${stars}</div>
+                            </div>
+                        </div>
+                        <p class="testimonial-comment" data-full="${testimonial.comment}" data-short="${shortComment}">${shortComment}</p>
+                        ${isLongComment ? `<button class="read-more-btn" onclick="toggleReadMore(${testimonial.id})">Read More</button>` : ''}
+                        <p class="testimonial-date">${formattedDate}</p>
+                    </div>
+                `;
+            }).join('');
+            
+            // Check if mobile view for card stack
+            const isMobile = window.innerWidth <= 769;
+            
+            if (isMobile) {
+                // Student names horizontal scroll for mobile with photos and ratings
+                const studentNamesHTML = testimonialsData.map(testimonial => {
+                    const stars = Array(5).fill(0).map((_, i) => 
+                        `<span class="star ${i < testimonial.rating ? '' : 'empty'}">★</span>`
+                    ).join('');
+                    
+                    const imageSrc = testimonial.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=667eea&color=fff&size=50`;
+                    
+                    return `<div class="student-name-item" data-id="${testimonial.id}">
+                        <img src="${imageSrc}" alt="${testimonial.name}" class="student-avatar">
+                        <div class="student-info">
+                            <span class="student-name">${testimonial.name}</span>
+                            <span class="student-rating">${stars}</span>
+                        </div>
+                    </div>`;
+                }).join('');
+                
+                container.innerHTML = studentNamesHTML;
+                initMobileStudentNames(container, testimonialsData);
+            } else {
+                // Carousel for desktop
+                container.innerHTML = testimonialsHTML + testimonialsHTML + testimonialsHTML;
+                currentTestimonialSlide = testimonialsData.length;
+                initTestimonialCarousel();
+            }
+        } else {
+            container.innerHTML = '<p style="text-align:center;color:#94a3b8;padding:30px;">No testimonials available.</p>';
+        }
+    } catch (err) {
+        console.error('Error loading testimonials:', err);
+        document.getElementById('testimonialsContainer').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:30px;">Unable to load testimonials.</p>';
+    }
+}
+
+function initCardStack(container) {
+    // Swipe animation for mobile with dots
+    const cards = Array.from(container.children);
+    let currentIndex = 0;
+    let autoSlideInterval;
+    
+    // Create dots container
+    const dotsContainer = document.createElement('div');
+    dotsContainer.className = 'carousel-dots';
+    container.parentElement.appendChild(dotsContainer);
+    
+    // Create dots
+    cards.forEach((_, index) => {
+        const dot = document.createElement('div');
+        dot.className = 'carousel-dot' + (index === 0 ? ' active' : '');
+        dot.addEventListener('click', () => {
+            goToSlide(index);
+            resetAutoSlide();
+        });
+        dotsContainer.appendChild(dot);
+    });
+    
+    const dots = Array.from(dotsContainer.children);
+    
+    function updateDots() {
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentIndex);
+        });
+    }
+    
+    function goToSlide(index) {
+        currentIndex = index;
+        updateCards();
+        updateDots();
+    }
+    
+    function updateCards(direction = null) {
+        cards.forEach((card, index) => {
+            card.classList.remove('active', 'swipe-left', 'swipe-right');
+            
+            if (index === currentIndex) {
+                card.classList.add('active');
+            }
+        });
+    }
+    
+    function nextSlide() {
+        currentIndex++;
+        if (currentIndex >= cards.length) {
+            currentIndex = 0;
+        }
+        updateCards();
+        updateDots();
+    }
+    
+    function prevSlide() {
+        currentIndex--;
+        if (currentIndex < 0) {
+            currentIndex = cards.length - 1;
+        }
+        updateCards();
+        updateDots();
+    }
+    
+    function startAutoSlide() {
+        if (autoSlideInterval) clearInterval(autoSlideInterval);
+        autoSlideInterval = setInterval(nextSlide, 5000);
+    }
+    
+    function resetAutoSlide() {
+        if (autoSlideInterval) clearInterval(autoSlideInterval);
+        startAutoSlide();
+    }
+    
+    // Touch swipe handling
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    container.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    container.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+    
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchStartX - touchEndX;
+        
+        if (Math.abs(diff) > swipeThreshold) {
+            if (diff > 0) {
+                nextSlide();
+            } else {
+                prevSlide();
+            }
+            resetAutoSlide();
+        }
+    }
+    
+    // Initialize
+    updateCards();
+    updateDots();
+    startAutoSlide();
+}
+
+function initMobileStudentNames(container, testimonialsData) {
+    const nameItems = Array.from(container.children);
+    let autoScrollInterval;
+    
+    // Click handler for student names
+    nameItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const id = parseInt(item.getAttribute('data-id'));
+            const testimonial = testimonialsData.find(t => t.id === id);
+            if (testimonial) {
+                showTestimonialModal(testimonial);
+            }
+        });
+    });
+    
+    // Auto-scroll functionality
+    function autoScroll() {
+        const scrollAmount = 200;
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        
+        if (container.scrollLeft >= maxScroll) {
+            container.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+            container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+    }
+    
+    function startAutoScroll() {
+        if (autoScrollInterval) clearInterval(autoScrollInterval);
+        autoScrollInterval = setInterval(autoScroll, 3000);
+    }
+    
+    function resetAutoScroll() {
+        if (autoScrollInterval) clearInterval(autoScrollInterval);
+        startAutoScroll();
+    }
+    
+    // Pause auto-scroll on user interaction
+    container.addEventListener('touchstart', () => {
+        if (autoScrollInterval) clearInterval(autoScrollInterval);
+    }, { passive: true });
+    
+    container.addEventListener('touchend', () => {
+        startAutoScroll();
+    }, { passive: true });
+    
+    // Start auto-scroll
+    startAutoScroll();
+}
+
+function showTestimonialModal(testimonial) {
+    const stars = Array(5).fill(0).map((_, i) => 
+        `<span class="star ${i < testimonial.rating ? '' : 'empty'}">★</span>`
+    ).join('');
+    
+    const formattedDate = testimonial.date ? new Date(testimonial.date).toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    }) : '';
+    
+    const imageSrc = testimonial.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=667eea&color=fff&size=100`;
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'testimonial-modal';
+    modal.innerHTML = `
+        <div class="testimonial-modal-content">
+            <button class="testimonial-modal-close" onclick="this.closest('.testimonial-modal').remove()">&times;</button>
+            <div class="testimonial-modal-header">
+                <img src="${imageSrc}" alt="${testimonial.name}" class="testimonial-modal-avatar">
+                <div>
+                    <h4 class="testimonial-modal-name">${testimonial.name}</h4>
+                    ${testimonial.position ? `<p class="testimonial-modal-position">${testimonial.position}</p>` : ''}
+                    <div class="testimonial-modal-rating">${stars}</div>
+                </div>
+            </div>
+            <p class="testimonial-modal-comment">${testimonial.comment}</p>
+            <p class="testimonial-modal-date">${formattedDate}</p>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close modal on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function closeOnEscape(e) {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', closeOnEscape);
+        }
+    });
+}
+
+function initTestimonialCarousel() {
+    // Existing carousel logic for desktop
+    if (testimonialSlideInterval) clearInterval(testimonialSlideInterval);
+    
+    const container = document.getElementById('testimonialsContainer');
+    const sideCardWidth = 280;
+    const activeCardWidth = 650;
+    const gap = 30;
+    
+    function updateCarousel() {
+        const cards = container.querySelectorAll('.testimonial-card');
+        const totalCards = cards.length;
+        
+        // Calculate the offset to center the active card
+        let offset = 0;
+        cards.forEach((card, index) => {
+            const isActive = (index % testimonialsData.length) === (currentTestimonialSlide % testimonialsData.length);
+            const cardWidth = isActive ? activeCardWidth : sideCardWidth;
+            if (index < currentTestimonialSlide) {
+                offset -= cardWidth + gap;
+            }
+        });
+        
+        const carouselWidth = container.parentElement.offsetWidth;
+        const centerOffset = (carouselWidth / 2) - (activeCardWidth / 2);
+        offset += centerOffset;
+        
+        container.style.transform = `translateX(${offset}px)`;
+        updateCardStyles();
+    }
+    
+    function updateCardStyles() {
+        const cards = container.querySelectorAll('.testimonial-card');
+        cards.forEach((card, index) => {
+            card.classList.remove('active', 'prev', 'next');
+            
+            const realIndex = index % testimonialsData.length;
+            const activeIndex = currentTestimonialSlide % testimonialsData.length;
+            
+            if (realIndex === activeIndex) {
+                card.classList.add('active');
+            } else if (realIndex === (activeIndex - 1 + testimonialsData.length) % testimonialsData.length) {
+                card.classList.add('prev');
+            } else if (realIndex === (activeIndex + 1) % testimonialsData.length) {
+                card.classList.add('next');
+            }
+        });
+    }
+    
+    function nextSlide() {
+        currentTestimonialSlide++;
+        if (currentTestimonialSlide >= testimonialsData.length * 2) {
+            currentTestimonialSlide = testimonialsData.length;
+        }
+        updateCarousel();
+    }
+    
+    function prevSlide() {
+        currentTestimonialSlide--;
+        if (currentTestimonialSlide < testimonialsData.length) {
+            currentTestimonialSlide = testimonialsData.length * 2 - 1;
+        }
+        updateCarousel();
+    }
+    
+    // Auto-slide
+    testimonialSlideInterval = setInterval(nextSlide, 5000);
+    
+    // Button handlers
+    const prevBtn = document.getElementById('prevTestimonial');
+    const nextBtn = document.getElementById('nextTestimonial');
+    
+    if (prevBtn) prevBtn.onclick = prevSlide;
+    if (nextBtn) nextBtn.onclick = nextSlide;
+    
+    updateCarousel();
+}
+
+function toggleReadMore(id) {
+    // Show testimonial in modal
+    const cards = document.querySelectorAll(`.testimonial-card[data-id="${id}"]`);
+    if (cards.length === 0) return;
+    
+    const card = cards[0];
+    const name = card.querySelector('.testimonial-name').textContent;
+    const position = card.querySelector('.testimonial-position')?.textContent || '';
+    const comment = card.querySelector('.testimonial-comment').getAttribute('data-full');
+    const imageSrc = card.querySelector('.testimonial-avatar').src;
+    const rating = card.querySelector('.testimonial-rating').innerHTML;
+    const date = card.querySelector('.testimonial-date').textContent;
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'testimonial-modal';
+    modal.innerHTML = `
+        <div class="testimonial-modal-content">
+            <button class="testimonial-modal-close" onclick="this.closest('.testimonial-modal').remove()">&times;</button>
+            <div class="testimonial-modal-header">
+                <img src="${imageSrc}" alt="${name}" class="testimonial-modal-avatar">
+                <div>
+                    <h4 class="testimonial-modal-name">${name}</h4>
+                    ${position ? `<p class="testimonial-modal-position">${position}</p>` : ''}
+                    <div class="testimonial-modal-rating">${rating}</div>
+                </div>
+            </div>
+            <p class="testimonial-modal-comment">${comment}</p>
+            <p class="testimonial-modal-date">${date}</p>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close modal on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function closeOnEscape(e) {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', closeOnEscape);
+        }
+    });
+}
+

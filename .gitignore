@@ -1,10 +1,54 @@
+# Dependencies
 node_modules/
+
+# Environment variables
 .env
-*.log
-.DS_Store
-backups/
+.env.local
+.env.production
+
+# Database files
 data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads
 uploads/
-exam-grades.json
-exam-results.json
-check.js
+*.pdf
+*.jpg
+*.jpeg
+*.png
+*.gif
+
+# Backups
+backups/
+*.backup
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
+build/
+
+# Service account keys
+*.json
+!package.json
+!package-lock.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

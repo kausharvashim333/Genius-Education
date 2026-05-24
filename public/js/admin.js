@@ -1,32 +1,81 @@
 let currentPage = 'dashboard';
 let galleryImageFile = null;
+let galleryEditId = null;
 let carouselImageFile = null;
+
+// Helper function to get admin session headers
+function getAdminHeaders() {
+    const sessionToken = localStorage.getItem('adminSessionToken');
+    const headers = { 'Content-Type': 'application/json' };
+    if (sessionToken) {
+        headers['X-Admin-Session'] = sessionToken;
+    }
+    return headers;
+}
+
+// Helper function to check if session is valid
+async function checkAdminSession() {
+    const sessionToken = localStorage.getItem('adminSessionToken');
+    if (!sessionToken) return false;
+    
+    try {
+        const res = await fetch('/api/admin/verify-session', {
+            headers: { 'X-Admin-Session': sessionToken }
+        });
+        const data = await res.json();
+        return data.valid;
+    } catch (err) {
+        console.error('Session check error:', err);
+        return false;
+    }
+}
+
+// Session timeout warning
+let sessionTimeoutWarningShown = false;
+function checkSessionTimeout() {
+    const expiresAt = parseInt(localStorage.getItem('adminSessionExpires') || '0');
+    const now = Date.now();
+    const timeLeft = expiresAt - now;
+    
+    if (timeLeft < 5 * 60 * 1000 && !sessionTimeoutWarningShown && timeLeft > 0) {
+        // Show warning when less than 5 minutes remaining
+        showNotification('Your session will expire in less than 5 minutes. Please save your work.', 'warning');
+        sessionTimeoutWarningShown = true;
+    }
+    
+    if (timeLeft <= 0) {
+        // Session expired
+        localStorage.removeItem('adminSession');
+        localStorage.removeItem('adminSessionToken');
+        localStorage.removeItem('adminSessionExpires');
+        showNotification('Your session has expired. Please login again.', 'error');
+        document.getElementById('loginSection').classList.remove('hidden');
+        document.getElementById('dashboardSection').classList.add('hidden');
+        sessionTimeoutWarningShown = false;
+    }
+}
+
+// Check session every minute
+setInterval(checkSessionTimeout, 60 * 1000);
 
 // Global formatDate function for DD-MMM-YYYY format (with month name)
 function formatDate(date) {
-    if (!date) return '';
-    try {
-        let d = new Date(date);
-        // If date is in DD/MM/YYYY format, parse it correctly
-        if (typeof date === 'string' && date.includes('/')) {
-            const parts = date.split('/');
-            if (parts.length === 3) {
-                // Check if it's DD/MM/YYYY format
-                const day = parseInt(parts[0]);
-                const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
-                const year = parseInt(parts[2]);
-                if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-                    d = new Date(year, month, day);
-                }
-            }
-        }
-        if (isNaN(d)) return date;
-        const day = String(d.getDate()).padStart(2, '0');
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const month = monthNames[d.getMonth()];
-        const year = String(d.getFullYear());
-        return `${day}-${month}-${year}`;
-    } catch { return date; }
+    if (!date) return '-';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '-';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
+}
+
+// Global formatTime function for HH:MM AM/PM format
+function formatTime(time) {
+    if (!time) return 'N/A';
+    const [h, m] = time.split(':');
+    if (!h) return time;
+    const hr = parseInt(h);
+    const ampm = hr >= 12 ? 'PM' : 'AM';
+    const h12 = hr % 12 || 12;
+    return `${h12}:${m || '00'} ${ampm}`;
 }
 
 // Global formatDateTime function for DD-MMM-YYYY HH:MM format
@@ -84,71 +133,22 @@ async function loadAdmitCards() {
         const noAdmitCards = document.getElementById('noAdmitCards');
         
         if (data.success && data.admitCards && data.admitCards.length > 0) {
-            const formatTime = (t) => {
-                if (!t) return 'N/A';
-                const [h, m] = t.split(':');
-                if (!h) return t;
-                const hr = parseInt(h);
-                const ampm = hr >= 12 ? 'PM' : 'AM';
-                const h12 = hr % 12 || 12;
-                return `${h12}:${m || '00'} ${ampm}`;
-            };
-            
             grid.innerHTML = data.admitCards.map(ac => {
                 const student = studentsMap[ac.studentId];
                 const studentIdDisplay = student && student.rollNo ? student.rollNo : (ac.rollNo || 'N/A');
-                return `<div class="admit-card-preview">
-                    <div class="admit-card-header">
-                        <img src="${ac.instituteLogo || '/uploads/logo/logo.png'}" alt="Logo" class="admit-card-logo">
-                        <div class="admit-card-title">
-                            <h3>${ac.instituteName || 'Genius Computer Education'}</h3>
-                            <p>Admit Card</p>
-                        </div>
+                return `<div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:16px;display:flex;align-items:center;gap:16px;box-shadow:0 8px 32px rgba(0,0,0,0.1);transition:all 0.3s;">
+                    <img src="${ac.studentPhoto || '/uploads/students/default.png'}" alt="Student" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:2px solid rgba(102,126,234,0.5);">
+                    <div style="flex:1;">
+                        <div style="font-weight:600;color:#fff;font-size:15px;text-shadow:0 2px 4px rgba(0,0,0,0.2);">${ac.studentName}</div>
+                        <div style="font-size:13px;color:rgba(255,255,255,0.8);margin-top:4px;">Roll No: ${ac.rollNo || 'N/A'}</div>
+                        <div style="font-size:13px;color:rgba(255,255,255,0.8);">Exam: ${ac.examName}</div>
                     </div>
-                    <div class="admit-card-body">
-                        <div class="admit-card-photo-section">
-                            <img src="${ac.studentPhoto || '/uploads/students/default.png'}" alt="Student" class="admit-card-photo">
-                            <div class="admit-card-student-info">
-                                <h4>${ac.studentName}</h4>
-                                <div style="font-size:11px;color:#64748b;margin-top:4px;">Roll No: ${ac.rollNo || 'N/A'}</div>
-                                <div style="display:inline-block;background:#1e3a8a;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-top:6px;">
-                                    <i class="fas fa-id-badge" style="margin-right:4px;"></i> Student ID: ${studentIdDisplay}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="admit-card-exam-info">
-                            <div class="admit-card-row">
-                                <span>Exam:</span>
-                                <strong>${ac.examName}</strong>
-                            </div>
-                            <div class="admit-card-row">
-                                <span>Date:</span>
-                                <strong>${formatDate(ac.examDate)}</strong>
-                            </div>
-                            <div class="admit-card-row">
-                                <span>Time:</span>
-                                <strong>${formatTime(ac.examTime)}</strong>
-                            </div>
-                            <div class="admit-card-row">
-                                <span>Duration:</span>
-                                <strong>${ac.duration} mins</strong>
-                            </div>
-                            <div class="admit-card-row">
-                                <span>Venue:</span>
-                                <strong>${ac.venue}</strong>
-                            </div>
-                            <div class="admit-card-row">
-                                <span>Total Marks:</span>
-                                <strong>${ac.totalMarks}</strong>
-                            </div>
-                        </div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-primary" onclick="viewAdmitCard(${ac.id})" style="padding:10px 20px;font-size:13px;background:rgba(102,126,234,0.6);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(102,126,234,0.8);border-radius:8px;color:#fff;font-weight:600;cursor:pointer;transition:all 0.3s;"><i class="fas fa-eye"></i> View</button>
+                        <button class="btn btn-secondary" onclick="printAdmitCard(${ac.id})" style="padding:10px 20px;font-size:13px;background:rgba(255,255,255,0.15);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-weight:600;cursor:pointer;transition:all 0.3s;"><i class="fas fa-print"></i> Print</button>
+                        <button class="btn btn-danger" onclick="deleteAdmitCard(${ac.id})" style="padding:10px 20px;font-size:13px;background:rgba(239,68,68,0.5);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(239,68,68,0.7);border-radius:8px;color:#fff;font-weight:600;cursor:pointer;transition:all 0.3s;"><i class="fas fa-trash"></i> Delete</button>
                     </div>
-                    <div class="admit-card-footer">
-                        <button class="btn btn-primary" onclick="printAdmitCard(${ac.id})"><i class="fas fa-print"></i> Print</button>
-                        <button class="btn btn-danger" onclick="deleteAdmitCard(${ac.id})"><i class="fas fa-trash"></i> Delete</button>
-                    </div>
-                </div>
-            `;
+                </div>`;
         }).join('');
             noAdmitCards.style.display = 'none';
         } else {
@@ -174,6 +174,61 @@ async function deleteAdmitCard(id) {
     } catch (e) {
         console.error('Error deleting admit card:', e);
         showNotification('Error deleting admit card', 'error');
+    }
+}
+
+async function viewAdmitCard(id) {
+    try {
+        const res = await fetch('/api/admit-cards/' + id);
+        const data = await res.json();
+        if (data.success && data.admitCard) {
+            const ac = data.admitCard;
+            const modal = document.createElement('div');
+            modal.id = 'admitCardModal';
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+            modal.innerHTML = `
+                <div class="admit-card-preview" style="background:rgba(0,0,0,0.3);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.1);max-width:800px;width:100%;margin:0;max-height:90vh;overflow-y:auto;padding:24px;">
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.2);">
+                        <img src="${ac.instituteLogo || '/uploads/logo/logo.png'}" alt="Logo" style="width:60px;height:60px;border-radius:8px;">
+                        <div style="color:#fff;">
+                            <h3 style="font-size:20px;margin:0 0 4px 0;font-weight:600;">${ac.instituteName || 'Genius Computer Education'}</h3>
+                            <p style="font-size:14px;margin:0;opacity:0.9;">Admit Card</p>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px;">
+                        <img src="${ac.studentPhoto || '/uploads/students/default.png'}" alt="Student" style="width:100px;height:100px;object-fit:cover;border:3px solid rgba(102,126,234,0.5);border-radius:8px;">
+                        <div style="color:#fff;">
+                            <h4 style="font-size:18px;margin:0 0 8px 0;font-weight:600;">${ac.studentName}</h4>
+                            <p style="font-size:14px;margin:0;opacity:0.8;">Roll No: ${ac.rollNo || 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;">
+                        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-left:4px solid rgba(102,126,234,0.5);border-radius:8px;padding:12px 16px;"><span style="color:rgba(255,255,255,0.7);font-size:13px;display:block;margin-bottom:4px;">Exam</span><strong style="color:#fff;font-size:15px;font-weight:600;">${ac.examName}</strong></div>
+                        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-left:4px solid rgba(102,126,234,0.5);border-radius:8px;padding:12px 16px;"><span style="color:rgba(255,255,255,0.7);font-size:13px;display:block;margin-bottom:4px;">Date</span><strong style="color:#fff;font-size:15px;font-weight:600;">${formatDate(ac.examDate)}</strong></div>
+                        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-left:4px solid rgba(102,126,234,0.5);border-radius:8px;padding:12px 16px;"><span style="color:rgba(255,255,255,0.7);font-size:13px;display:block;margin-bottom:4px;">Time</span><strong style="color:#fff;font-size:15px;font-weight:600;">${formatTime(ac.examTime)}</strong></div>
+                        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-left:4px solid rgba(102,126,234,0.5);border-radius:8px;padding:12px 16px;"><span style="color:rgba(255,255,255,0.7);font-size:13px;display:block;margin-bottom:4px;">Duration</span><strong style="color:#fff;font-size:15px;font-weight:600;">${ac.duration} mins</strong></div>
+                        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-left:4px solid rgba(102,126,234,0.5);border-radius:8px;padding:12px 16px;"><span style="color:rgba(255,255,255,0.7);font-size:13px;display:block;margin-bottom:4px;">Venue</span><strong style="color:#fff;font-size:15px;font-weight:600;">${ac.venue}</strong></div>
+                        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-left:4px solid rgba(102,126,234,0.5);border-radius:8px;padding:12px 16px;"><span style="color:rgba(255,255,255,0.7);font-size:13px;display:block;margin-bottom:4px;">Total Marks</span><strong style="color:#fff;font-size:15px;font-weight:600;">${ac.totalMarks}</strong></div>
+                    </div>
+                    <div style="display:flex;justify-content:center;padding-top:20px;border-top:1px solid rgba(255,255,255,0.2);">
+                        <button id="closeAdmitCardModal" class="btn btn-secondary" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:8px;padding:10px 32px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s;">Close</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
+            
+            document.getElementById('closeAdmitCardModal').addEventListener('click', () => {
+                modal.remove();
+            });
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        } else {
+            showNotification('Error loading admit card', 'error');
+        }
+    } catch (e) {
+        console.error('Error viewing admit card:', e);
+        showNotification('Error viewing admit card', 'error');
     }
 }
 
@@ -213,7 +268,7 @@ function printAdmitCard(id) {
             </style>
         </head>
         <body>
-            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px;" onerror="this.parentElement.style.display='none'"></div>
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px; border-radius: 12px;" onerror="this.parentElement.style.display='none'"></div>
             ${cardElement.innerHTML.replace(/<div class="admit-card-footer">.*?<\/div>/s, '')}
             <div class="admit-card-footer">
                 <p>This is a computer-generated admit card. Signature not required.</p>
@@ -291,6 +346,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     } catch (err) { console.error(err); }
 
+    // Load students and alumni lists for testimonials
+    loadStudentsList();
+    loadAlumniList();
+
     // Login
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
@@ -300,20 +359,34 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('Login form submitted');
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const totpToken = document.getElementById('totpToken').value;
             console.log('Attempting login with username:', username);
             try {
+                // Get reCAPTCHA token
+                const recaptchaToken = await grecaptcha.execute('6LfDe_gsAAAAALle5tiQY_6WnVgp-wrRrhwlqk9t', {action: 'verify_admin_credentials'});
+                
                 const res = await fetch('/api/admin/verify-credentials', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ username, password, totpToken, recaptchaToken })
                 });
                 const data = await res.json();
                 console.log('Login response:', data);
                 if (data.success) {
                     localStorage.setItem('adminSession', 'active');
+                    localStorage.setItem('adminSessionToken', data.sessionToken);
+                    localStorage.setItem('adminSessionExpires', data.expiresAt);
                     showDashboard();
+                } else if (data.requireTOTP) {
+                    // Show TOTP input field
+                    document.getElementById('totpSection').style.display = 'block';
+                    document.getElementById('totpToken').focus();
+                    showNotification(data.message || 'TOTP code required', 'warning');
                 } else {
                     showNotification(data.message || 'Invalid credentials!', 'error');
+                    if (data.remainingAttempts !== undefined) {
+                        showNotification(`Remaining attempts: ${data.remainingAttempts}`, 'warning');
+                    }
                 }
             } catch (err) { 
                 console.error('Login error:', err);
@@ -325,8 +398,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Logout
-    document.getElementById('logoutBtn').addEventListener('click', function() {
+    document.getElementById('logoutBtn').addEventListener('click', async function() {
+        const sessionToken = localStorage.getItem('adminSessionToken');
+        if (sessionToken) {
+            try {
+                await fetch('/api/admin/logout', {
+                    method: 'POST',
+                    headers: { 'X-Admin-Session': sessionToken }
+                });
+            } catch (err) {
+                console.error('Logout error:', err);
+            }
+        }
         localStorage.removeItem('adminSession');
+        localStorage.removeItem('adminSessionToken');
+        localStorage.removeItem('adminSessionExpires');
         document.getElementById('loginSection').classList.remove('hidden');
         document.getElementById('dashboardSection').classList.add('hidden');
     });
@@ -351,70 +437,75 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Navigation
+    function loadPage(page) {
+        document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+        document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+        
+        // Save current page to localStorage
+        localStorage.setItem('currentAdminPage', page);
+        
+        const pageEl = document.getElementById('page-' + page);
+        if (pageEl) {
+            pageEl.classList.remove('hidden');
+            const link = document.querySelector(`.sidebar-menu a[data-page="${page}"]`);
+            if (link) link.classList.add('active');
+            
+            const pageLoaders = {
+                'dashboard': loadDashboard,
+                'enquiries': loadEnquiries,
+                'students': loadStudentsTable,
+                'courses': loadCoursesTable,
+                'batches': loadBatchesTable,
+                'faculty': loadFacultyTable,
+                'fees': loadFeesTable,
+                'certificates': loadCertificatesTable,
+                'payments': loadPaymentsTable,
+                'testimonials': loadTestimonialsTable,
+                'hero-section': () => { loadCarouselAdmin(); loadHeroText(); },
+                'gallery': loadGalleryTable,
+                'social': loadSocialMedia,
+                'homepage-sections': () => { loadSectionVisibility(); loadSectionTexts(); setupHomepageSectionsTabs(); },
+                'settings': loadSettings,
+                'helpdesk': loadTicketsTable,
+                'backup': loadBackupsList,
+                'roles': loadRolesTable,
+                'about': loadAbout,
+                'study-materials': loadStudyMaterialsTable,
+                'videos': () => { loadVideosTable(); loadChaptersTable(); },
+                'video-comments': loadAdminVideoComments,
+                'video-analytics': loadVideoAnalytics,
+                'assignments': loadAssignmentsTable,
+                'exam-results': loadExamResultsTable,
+                'announcements': loadAnnouncementsTable,
+                'tests': loadTestsTable,
+                'blog': loadBlogTable,
+                'alumni': loadAlumniTable,
+                'attendance': loadAttendancePage,
+                'holidays': loadHolidaysTable,
+                'exam-calendar': loadExamCalendarTable,
+                'question-bank': loadQuestionBankTable,
+                'exam-schedule': loadExamScheduleTable,
+                'exam-registration': loadExamRegistrationTable,
+                'admit-cards': loadAdmitCards,
+                'online-exam': loadOnlineExamTable,
+                'online-exam-results': loadOnlineExamResults,
+                'manual-grading': typeof loadPendingGrading === 'function' ? loadPendingGrading : null,
+                'exam-analytics': typeof loadAnalyticsPage === 'function' ? loadAnalyticsPage : null,
+                're-evaluation': loadReEvaluationTable,
+                'exam-reports': loadExamReportsTable
+            };
+            const loader = pageLoaders[page];
+            if (typeof loader === 'function') {
+                try { loader(); } catch (err) { console.error('Loader error for ' + page + ':', err); }
+            }
+        }
+    }
+
     document.querySelectorAll('.sidebar-menu a[data-page]').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const page = this.dataset.page;
-            
-            // Update active state
-            document.querySelectorAll('.sidebar-menu a').forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Show page
-            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-            document.getElementById('page-' + page).classList.remove('hidden');
-            document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1);
-            
-            // Save current page to localStorage
-            localStorage.setItem('currentAdminPage', page);
-            
-            // Load page data
-            if (page === 'dashboard') loadDashboard();
-            if (page === 'courses') loadCoursesTable();
-            if (page === 'enquiries') loadEnquiriesTable();
-            if (page === 'faculty') loadFacultyTable();
-            if (page === 'gallery') loadGalleryTable();
-            if (page === 'payments') loadPaymentsTable();
-            if (page === 'certificates') loadCertificatesTable();
-            if (page === 'exam-results') loadExamResultsTable();
-            if (page === 'faculty') loadFacultyTable();
-            if (page === 'notices') loadNoticesTable();
-            if (page === 'students') loadStudentsTable();
-            if (page === 'gallery') loadGalleryTable();
-            if (page === 'carousel') loadCarouselAdmin();
-            if (page === 'about') loadAbout();
-            if (page === 'settings') loadSettings();
-            if (page === 'batches') loadBatchesTable();
-            if (page === 'study-materials') loadStudyMaterialsTable();
-            if (page === 'attendance') loadAttendancePage();
-            if (page === 'exam-calendar') loadExamCalendarTable();
-            if (page === 'holidays') loadHolidaysTable();
-            if (page === 'blog') loadBlogTable();
-            if (page === 'announcements') loadAnnouncementsTable();
-            if (page === 'tests') loadTestsTable();
-            if (page === 'fees') loadFeesTable();
-            if (page === 'payments') loadPaymentsTable();
-            if (page === 'notifications') loadNotificationsTable();
-            if (page === 'exam-management') loadExamManagementTable();
-            if (page === 'question-bank') loadQuestionBankTable();
-            if (page === 'exam-schedule') loadExamScheduleTable();
-            if (page === 'exam-registration') loadExamRegistrationTable();
-            if (page === 'admit-cards') loadAdmitCards();
-            if (page === 'online-exam') loadOnlineExamTable();
-            if (page === 'exam-grading') loadExamGradingTable();
-            if (page === 'exam-reports') loadExamReportsTable();
-            if (page === 'online-exam-results') loadOnlineExamResults();
-            if (page === 'manual-grading') loadPendingGrading();
-            if (page === 'exam-analytics') loadAnalyticsPage();
-            if (page === 're-evaluation') loadReEvaluationTable();
-            if (page === 'videos') { loadVideosTable(); loadChaptersTable(); }
-            if (page === 'video-comments') loadAdminVideoComments();
-            if (page === 'video-analytics') loadVideoAnalytics();
-            if (page === 'assignments') loadAssignmentsTable();
-            if (page === 'alumni') loadAlumniTable();
-            if (page === 'helpdesk') loadTicketsTable();
-            if (page === 'backup') loadBackupsList();
-            if (page === 'roles') loadRolesTable();
+            loadPage(page);
         });
     });
 
@@ -423,6 +514,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         toggle.addEventListener('click', function(e) {
             e.preventDefault();
             const dropdown = this.closest('.dropdown');
+            
+            // Close all other dropdowns
+            document.querySelectorAll('.dropdown').forEach(d => {
+                if (d !== dropdown) {
+                    d.classList.remove('open');
+                }
+            });
+            
             dropdown.classList.toggle('open');
         });
     });
@@ -512,10 +611,70 @@ document.addEventListener('DOMContentLoaded', async function() {
         } catch (err) { showNotification('Signature upload failed!', 'error'); }
     });
 
+    // Favicon file upload
+    document.getElementById('faviconFile').addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('favicon', file);
+        try {
+            const res = await fetch('/api/favicon', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                loadFaviconPreview();
+                showNotification('Favicon uploaded!', 'success');
+            } else {
+                showNotification(data.message || 'Favicon upload failed!', 'error');
+            }
+        } catch (err) { showNotification('Favicon upload failed!', 'error'); }
+    });
+
+    // Popup image file upload
+    document.getElementById('popupImageFile').addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('popupImage', file);
+        try {
+            const res = await fetch('/api/popup-image', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                loadPopupImagePreview();
+                showNotification('Popup image uploaded!', 'success');
+            } else {
+                showNotification(data.message || 'Popup image upload failed!', 'error');
+            }
+        } catch (err) { showNotification('Popup image upload failed!', 'error'); }
+    });
+
     // Check if already logged in
     if (localStorage.getItem('adminSession') === 'active') {
         showDashboard();
     }
+
+    // Load favicon from settings
+    async function loadFavicon() {
+        try {
+            const response = await fetch('/api/settings');
+            const settings = await response.json();
+            if (settings.favicon) {
+                // Remove existing favicon if any
+                const existingFavicon = document.querySelector('link[rel="icon"]');
+                if (existingFavicon) {
+                    existingFavicon.remove();
+                }
+                // Add new favicon
+                const link = document.createElement('link');
+                link.rel = 'icon';
+                link.type = 'image/x-icon';
+                link.href = settings.favicon;
+                document.head.appendChild(link);
+            }
+        } catch (err) {
+            console.error('Failed to load favicon:', err);
+        }
+    }
+    loadFavicon();
 
     // Add event listeners for admin admission form validation
     const phoneInput = document.getElementById('sPhone');
@@ -549,18 +708,26 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             const btn = this.querySelector('[type="submit"]');
             btn.disabled = true;
-            btn.textContent = 'Processing...';
+            const originalBtnHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
             try {
                 // Validation
                 const phone = document.getElementById('sPhone').value;
-                if (phone.length !== 10 || !/^[6-9]/.test(phone)) { showNotification('Valid 10-digit mobile number chahiye (6-9 se shuru ho)!', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-user-graduate"></i> Complete Admission & Generate Slip'; return; }
+                if (phone.length !== 10 || !/^[6-9]/.test(phone)) { showNotification('Valid 10-digit mobile number chahiye (6-9 se shuru ho)!', 'error'); btn.disabled = false; btn.innerHTML = originalBtnHtml; return; }
                 const aadhar = document.getElementById('sAadhar').value;
-                if (aadhar && aadhar.length !== 12) { showNotification('Aadhar number 12 digits ka hona chahiye!', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-user-graduate"></i> Complete Admission & Generate Slip'; return; }
+                if (aadhar && aadhar.length !== 12) { showNotification('Aadhar number 12 digits ka hona chahiye!', 'error'); btn.disabled = false; btn.innerHTML = originalBtnHtml; return; }
                 const pincode = document.getElementById('sPincode').value;
-                if (pincode && pincode.length !== 6) { showNotification('PIN code 6 digits ka hona chahiye!', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-user-graduate"></i> Complete Admission & Generate Slip'; return; }
-                if (!document.getElementById('decl1').checked || !document.getElementById('decl2').checked || !document.getElementById('decl3').checked) {
-                    showNotification('Declaration ke sabhi boxes check karna zaroori hai!', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-user-graduate"></i> Complete Admission & Generate Slip'; return;
+                if (pincode && pincode.length !== 6) { showNotification('PIN code 6 digits ka hona chahiye!', 'error'); btn.disabled = false; btn.innerHTML = originalBtnHtml; return; }
+                for (let i = 1; i <= 10; i++) {
+                    const dec = document.getElementById('decl' + i);
+                    if (dec && !dec.checked) {
+                        showNotification('Declaration ke sabhi boxes check karna zaroori hai!', 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtnHtml;
+                        return;
+                    }
                 }
+
                 const formData = new FormData();
                 formData.append('name', document.getElementById('sName').value);
                 formData.append('dob', document.getElementById('sDob').value);
@@ -568,37 +735,119 @@ document.addEventListener('DOMContentLoaded', async function() {
                 formData.append('category', document.getElementById('sCategory').value);
                 formData.append('bloodGroup', document.getElementById('sBloodGroup').value);
                 formData.append('fatherName', document.getElementById('sFatherName').value);
+                formData.append('fatherOccupation', document.getElementById('sFatherOcc').value);
+                formData.append('fatherPhone', document.getElementById('sFatherPhone').value);
                 formData.append('motherName', document.getElementById('sMotherName').value);
+                formData.append('familyIncome', document.getElementById('sFamilyIncome').value);
                 formData.append('phone', document.getElementById('sPhone').value);
+                formData.append('whatsapp', document.getElementById('sWhatsapp').value);
                 formData.append('email', document.getElementById('sEmail').value);
                 formData.append('aadhar', document.getElementById('sAadhar').value);
-                formData.append('address', document.getElementById('sAddress').value);
-                formData.append('city', document.getElementById('sCity').value);
-                formData.append('state', document.getElementById('sState').value);
-                formData.append('pincode', document.getElementById('sPincode').value);
+                formData.append('address', [
+                    document.getElementById('sStreet').value,
+                    document.getElementById('sCity').value,
+                    document.getElementById('sTehsil').value,
+                    document.getElementById('sDistrict').value,
+                    document.getElementById('sState').value,
+                    document.getElementById('sPincode').value
+                ].filter(Boolean).join(', '));
+                formData.append('reference', document.getElementById('sReference').value);
                 formData.append('course', document.getElementById('sCourse').value);
-                formData.append('batch', document.getElementById('sBatch').value);
-                formData.append('fees', document.getElementById('sFees').value);
-                formData.append('photo', studentPhotoFile);
-                formData.append('sign', studentSignFile);
+                const batchSel = document.getElementById('sBatch');
+                formData.append('batch', batchSel.value);
+                formData.append('batchId', batchSel.options[batchSel.selectedIndex]?.dataset?.batchId || '');
+
+                const totalFees = parseInt(document.getElementById('sTotalFees').value) || 0;
+                const amountPaid = parseInt(document.getElementById('sPayNow').value) || 0;
+                const pendingFees = Math.max(0, totalFees - amountPaid);
+                const paymentType = document.querySelector('input[name="sPayType"]:checked')?.value || 'partial';
+                const paymentMode = document.getElementById('sPayMode').value || 'Cash';
+
+                formData.append('totalFees', totalFees.toString());
+                formData.append('paymentType', paymentType);
+                formData.append('paymentMode', paymentMode);
+                formData.append('amountPaid', amountPaid.toString());
+                formData.append('pendingFees', pendingFees.toString());
+                formData.append('transactionId', document.getElementById('sTransactionId')?.value || '');
+                formData.append('sendEmail', document.getElementById('sSendEmail')?.checked ? 'true' : 'false');
+
+                const qualification = {
+                    tenth: {
+                        board: document.getElementById('s10Board')?.value || '',
+                        school: document.getElementById('s10School')?.value || '',
+                        year: document.getElementById('s10Year')?.value || '',
+                        roll: document.getElementById('s10Roll')?.value || '',
+                        total: document.getElementById('s10Total')?.value || '',
+                        obtained: document.getElementById('s10Obtained')?.value || '',
+                        percentage: document.getElementById('pct10')?.textContent || '',
+                        division: document.getElementById('div10')?.textContent || ''
+                    }
+                };
+
+                const isTyping = (document.getElementById('sCourse').value || '').toUpperCase().includes('TYPING');
+                const isPGDCA = (document.getElementById('sCourse').value || '').toUpperCase().includes('PGDCA');
+
+                if (!isTyping && document.getElementById('qualificationSection')?.style.display !== 'none') {
+                    qualification.twelfth = {
+                        board: document.getElementById('s12Board')?.value || '',
+                        stream: document.getElementById('s12Stream')?.value || '',
+                        school: document.getElementById('s12School')?.value || '',
+                        year: document.getElementById('s12Year')?.value || '',
+                        roll: document.getElementById('s12Roll')?.value || '',
+                        total: document.getElementById('s12Total')?.value || '',
+                        obtained: document.getElementById('s12Obtained')?.value || '',
+                        percentage: document.getElementById('pct12')?.textContent || '',
+                        division: document.getElementById('div12')?.textContent || ''
+                    };
+                }
+
+                if (isPGDCA) {
+                    const isCGPA = document.querySelector('input[name="gradMarksType"]:checked')?.value === 'cgpa';
+                    qualification.graduation = {
+                        university: document.getElementById('sGradUniv')?.value || '',
+                        college: document.getElementById('sGradCollege')?.value || '',
+                        degree: document.getElementById('sGradDegree')?.value || '',
+                        stream: document.getElementById('sGradStream')?.value || '',
+                        year: document.getElementById('sGradYear')?.value || '',
+                        enroll: document.getElementById('sGradEnroll')?.value || '',
+                        marksType: isCGPA ? 'cgpa' : 'percentage',
+                        total: isCGPA ? '' : (document.getElementById('sGradTotal')?.value || ''),
+                        obtained: isCGPA ? '' : (document.getElementById('sGradObtained')?.value || ''),
+                        percentage: isCGPA ? (document.getElementById('sGradCGPAPct')?.value || '') : (document.getElementById('pctGrad')?.textContent || ''),
+                        cgpa: isCGPA ? (document.getElementById('sGradCGPA')?.value || '') : '',
+                        division: isCGPA ? (document.getElementById('sGradCGPADiv')?.value || '') : (document.getElementById('divGrad')?.textContent || '')
+                    };
+                }
+
+                formData.append('qualification', JSON.stringify(qualification));
+
+                const photo = document.getElementById('sPhoto')?.files?.[0];
+                const signature = document.getElementById('sSignature')?.files?.[0];
+                if (photo) formData.append('photo', photo);
+                if (signature) formData.append('signature', signature);
+                ['sAadharDoc', 's10thMarksheet', 's12thMarksheet', 'sGradMarksheet'].forEach(id => {
+                    const f = document.getElementById(id)?.files?.[0];
+                    if (f) formData.append('documents', f);
+                });
 
                 const res = await fetch('/api/students', { method: 'POST', body: formData });
                 const data = await res.json();
+                console.log('Server response:', data);
                 if (data.success) {
-                    closeModal('admissionModal');
-                    studentPhotoFile = null;
-                    studentSignFile = null;
                     loadStudentsTable();
                     loadDashboard();
+                    showStudentsPage();
                     showNotification('Admission successful!', 'success');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-user-graduate"></i> Complete Admission & Generate Slip';
                 } else {
                     showNotification(data.message || 'Admission failed!', 'error');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-user-graduate"></i> Complete Admission & Generate Slip';
                 }
-            } catch (err) { showNotification('Error submitting form!', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-user-graduate"></i> Complete Admission & Generate Slip'; }
+            } catch (err) {
+                console.error('Error submitting admin admission form:', err);
+                showNotification('Error submitting form!', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+            }
         });
     }
 });
@@ -662,7 +911,27 @@ async function loadDashboard() {
             }
         }
 
-        const totalRevenue = payments.filter(p => p.status === 'approved').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        // Calculate revenue from payments.json and students' fee payments, deduplicating by payment ID
+        const paymentIds = new Set();
+        let totalRevenue = 0;
+
+        // Add from payments.json
+        payments.filter(p => p.status === 'approved').forEach(p => {
+            paymentIds.add(p.id);
+            totalRevenue += parseFloat(p.amount) || 0;
+        });
+
+        // Add from students' fee payments (only those not already in payments.json)
+        students.forEach(s => {
+            if (s.fees && s.fees.payments) {
+                s.fees.payments.forEach(p => {
+                    if (!paymentIds.has(p.id)) {
+                        totalRevenue += parseFloat(p.amount) || 0;
+                    }
+                });
+            }
+        });
+
         document.getElementById('totalRevenue').textContent = '₹' + totalRevenue.toLocaleString('en-IN');
 
         const totalDues = students.reduce((sum, s) => sum + (s.fees && s.fees.dueAmount ? parseFloat(s.fees.dueAmount) : 0), 0);
@@ -769,7 +1038,8 @@ async function loadCoursesTable() {
             html += '<tr data-id="' + c.id + '">';
             html += '<td>' + c.name + '</td>';
             html += '<td>' + c.duration + '</td>';
-            html += '<td>' + c.price + '</td>';
+            html += '<td>₹' + (c.fee || c.price || 0) + '</td>';
+            html += '<td>' + (c.feeType || 'Per Program') + '</td>';
             html += '<td>' + (c.eligibility || '—') + '</td>';
             html += '<td>';
             html += '<button class="action-btn reorder-btn" onclick="moveCourseUp(' + c.id + ')" ' + (index === 0 ? 'disabled' : '') + ' title="Move Up">';
@@ -838,7 +1108,8 @@ async function editCourse(id) {
             document.getElementById('courseId').value = course.id;
             document.getElementById('courseName').value = course.name;
             document.getElementById('courseDuration').value = course.duration;
-            document.getElementById('coursePrice').value = course.price;
+            document.getElementById('courseFee').value = course.fee || course.price || 0;
+            document.getElementById('courseFeeType').value = course.feeType || 'Per Program';
             document.getElementById('courseDesc').value = course.description || '';
             document.getElementById('courseEligibility').value = course.eligibility || '';
             document.getElementById('courseModalTitle').textContent = 'Edit Course';
@@ -853,7 +1124,8 @@ document.getElementById('courseForm').addEventListener('submit', async function(
     const data = {
         name: document.getElementById('courseName').value,
         duration: document.getElementById('courseDuration').value,
-        price: parseInt(document.getElementById('coursePrice').value),
+        fee: parseInt(document.getElementById('courseFee').value),
+        feeType: document.getElementById('courseFeeType').value,
         eligibility: document.getElementById('courseEligibility').value,
         description: document.getElementById('courseDesc').value
     };
@@ -883,7 +1155,7 @@ async function aiWriteCourseDesc() {
     const courseName = document.getElementById('courseName').value.trim();
     if (!courseName) { showNotification('Pehle Course Name likhein!', 'error'); return; }
     const duration = document.getElementById('courseDuration').value.trim();
-    const price = document.getElementById('coursePrice').value;
+    const fee = document.getElementById('courseFee').value;
     const btn = document.getElementById('aiWriteBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Writing...';
@@ -891,7 +1163,7 @@ async function aiWriteCourseDesc() {
         const res = await fetch('/api/ai/course-description', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ courseName, duration, price })
+            body: JSON.stringify({ courseName, duration, fee })
         });
         const data = await res.json();
         if (data.success) {
@@ -1065,6 +1337,428 @@ async function deleteSelectedEnquiries() {
     }
 }
 
+// ===== Testimonials =====
+let studentsList = [];
+let alumniList = [];
+
+async function loadStudentsList() {
+    try {
+        const res = await fetch('/api/students');
+        const result = await res.json();
+        studentsList = result.students || [];
+    } catch (err) {
+        console.error('Error loading students:', err);
+        studentsList = [];
+    }
+}
+
+async function loadAlumniList() {
+    try {
+        const res = await fetch('/api/alumni');
+        const result = await res.json();
+        alumniList = result.alumni || [];
+    } catch (err) {
+        console.error('Error loading alumni:', err);
+        alumniList = [];
+    }
+}
+
+function openAddTestimonialModal() {
+    document.getElementById('editingTestimonialId').value = '';
+    document.getElementById('testimonialModalTitle').innerHTML = '<i class="fas fa-star" style="color:#667eea;margin-right:8px;"></i> Add Testimonial';
+    document.getElementById('saveTestimonialBtn').innerHTML = '<i class="fas fa-save"></i> Save Testimonial';
+    
+    document.getElementById('testimonialName').value = '';
+    document.getElementById('testimonialPosition').value = '';
+    document.getElementById('testimonialRating').value = '';
+    document.getElementById('testimonialComment').value = '';
+    document.getElementById('testimonialImage').value = '';
+    document.getElementById('testimonialStudent').value = '';
+    document.getElementById('testimonialAlumni').value = '';
+    document.getElementById('testimonialPersonType').value = '';
+    document.getElementById('testimonialPhotoUpload').value = '';
+    document.getElementById('testimonialPhotoPreview').style.display = 'none';
+    testimonialUploadedPhoto = null;
+    
+    document.getElementById('testimonialStudentSection').style.display = 'none';
+    document.getElementById('testimonialAlumniSection').style.display = 'none';
+    
+    // Populate student dropdown
+    const studentSelect = document.getElementById('testimonialStudent');
+    studentSelect.innerHTML = '<option value="">Select a student (auto-fills name and photo)</option>';
+    studentsList.forEach(student => {
+        studentSelect.innerHTML += `<option value="${student.id}" data-name="${student.name}" data-photo="${student.photo || ''}">${student.name} (Roll: ${student.rollNo})</option>`;
+    });
+    
+    // Populate alumni dropdown
+    const alumniSelect = document.getElementById('testimonialAlumni');
+    alumniSelect.innerHTML = '<option value="">Select an alumni (auto-fills name and photo)</option>';
+    alumniList.forEach(alumnus => {
+        alumniSelect.innerHTML += `<option value="${alumnus.id}" data-name="${alumnus.name}" data-photo="${alumnus.photo || ''}" data-position="${alumnus.designation || 'Alumni'}">${alumnus.name} (${alumnus.course || 'N/A'}, Batch: ${alumnus.batch || 'N/A'})</option>`;
+    });
+    
+    document.getElementById('testimonialModal').classList.add('active');
+}
+
+async function editTestimonial(id) {
+    try {
+        const res = await fetch('/api/testimonials');
+        const result = await res.json();
+        const testimonials = result.testimonials || [];
+        const testimonial = testimonials.find(t => t.id == id);
+        
+        if (!testimonial) {
+            showNotification('Testimonial not found!', 'error');
+            return;
+        }
+        
+        document.getElementById('editingTestimonialId').value = testimonial.id;
+        document.getElementById('testimonialModalTitle').innerHTML = '<i class="fas fa-edit" style="color:#667eea;margin-right:8px;"></i> Edit Testimonial';
+        document.getElementById('saveTestimonialBtn').innerHTML = '<i class="fas fa-save"></i> Update Testimonial';
+        
+        document.getElementById('testimonialName').value = testimonial.name;
+        document.getElementById('testimonialPosition').value = testimonial.position || '';
+        document.getElementById('testimonialRating').value = testimonial.rating;
+        document.getElementById('testimonialComment').value = testimonial.comment;
+        document.getElementById('testimonialImage').value = testimonial.image || '';
+        
+        document.getElementById('testimonialStudent').value = testimonial.studentId || '';
+        document.getElementById('testimonialAlumni').value = testimonial.alumniId || '';
+        
+        // Set person type based on studentId or alumniId
+        if (testimonial.studentId) {
+            document.getElementById('testimonialPersonType').value = 'student';
+            document.getElementById('testimonialStudentSection').style.display = 'block';
+            document.getElementById('testimonialAlumniSection').style.display = 'none';
+        } else if (testimonial.alumniId) {
+            document.getElementById('testimonialPersonType').value = 'alumni';
+            document.getElementById('testimonialStudentSection').style.display = 'none';
+            document.getElementById('testimonialAlumniSection').style.display = 'block';
+        } else {
+            document.getElementById('testimonialPersonType').value = 'manual';
+            document.getElementById('testimonialStudentSection').style.display = 'none';
+            document.getElementById('testimonialAlumniSection').style.display = 'none';
+        }
+        
+        document.getElementById('testimonialPhotoUpload').value = '';
+        if (testimonial.image) {
+            document.getElementById('testimonialPreviewImg').src = testimonial.image;
+            document.getElementById('testimonialPhotoPreview').style.display = 'flex';
+        } else {
+            document.getElementById('testimonialPhotoPreview').style.display = 'none';
+        }
+        testimonialUploadedPhoto = null;
+        
+        // Populate student dropdown
+        const studentSelect = document.getElementById('testimonialStudent');
+        studentSelect.innerHTML = '<option value="">Select a student (auto-fills name and photo)</option>';
+        studentsList.forEach(student => {
+            studentSelect.innerHTML += `<option value="${student.id}" data-name="${student.name}" data-photo="${student.photo || ''}" ${student.id == testimonial.studentId ? 'selected' : ''}>${student.name} (Roll: ${student.rollNo})</option>`;
+        });
+        
+        // Populate alumni dropdown
+        const alumniSelect = document.getElementById('testimonialAlumni');
+        alumniSelect.innerHTML = '<option value="">Select an alumni (auto-fills name and photo)</option>';
+        alumniList.forEach(alumnus => {
+            alumniSelect.innerHTML += `<option value="${alumnus.id}" data-name="${alumnus.name}" data-photo="${alumnus.photo || ''}" data-position="${alumnus.designation || 'Alumni'}" ${alumnus.id == testimonial.alumniId ? 'selected' : ''}>${alumnus.name} (${alumnus.course || 'N/A'}, Batch: ${alumnus.batch || 'N/A'})</option>`;
+        });
+        
+        document.getElementById('testimonialModal').classList.add('active');
+    } catch (err) {
+        console.error('Error loading testimonial:', err);
+        showNotification('Error loading testimonial!', 'error');
+    }
+}
+
+function handleTestimonialPersonTypeChange() {
+    const type = document.getElementById('testimonialPersonType').value;
+    document.getElementById('testimonialStudentSection').style.display = type === 'student' ? 'block' : 'none';
+    document.getElementById('testimonialAlumniSection').style.display = type === 'alumni' ? 'block' : 'none';
+    
+    // Clear selections when type changes
+    document.getElementById('testimonialStudent').value = '';
+    document.getElementById('testimonialAlumni').value = '';
+}
+
+function handleTestimonialStudentChange() {
+    const studentSelect = document.getElementById('testimonialStudent');
+    const selectedOption = studentSelect.options[studentSelect.selectedIndex];
+    
+    if (selectedOption.value) {
+        document.getElementById('testimonialName').value = selectedOption.dataset.name || '';
+        document.getElementById('testimonialPosition').value = 'Student';
+        document.getElementById('testimonialImage').value = selectedOption.dataset.photo || '';
+    }
+}
+
+function handleTestimonialAlumniChange() {
+    const alumniSelect = document.getElementById('testimonialAlumni');
+    const selectedOption = alumniSelect.options[alumniSelect.selectedIndex];
+    
+    if (selectedOption.value) {
+        document.getElementById('testimonialName').value = selectedOption.dataset.name || '';
+        document.getElementById('testimonialPosition').value = selectedOption.dataset.position || 'Alumni';
+        document.getElementById('testimonialImage').value = selectedOption.dataset.photo || '';
+    }
+}
+
+let testimonialUploadedPhoto = null;
+
+// Setup dropzone click handler
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        const dropzone = document.getElementById('testimonialPhotoDropzone');
+        if (dropzone) {
+            dropzone.addEventListener('click', function() {
+                document.getElementById('testimonialPhotoUpload').click();
+            });
+            
+            // Drag and drop handlers
+            dropzone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                dropzone.style.borderColor = 'rgba(102, 126, 234, 0.8)';
+                dropzone.style.background = 'rgba(102, 126, 234, 0.1)';
+            });
+            
+            dropzone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                dropzone.style.borderColor = 'rgba(255,255,255,0.3)';
+                dropzone.style.background = 'rgba(255,255,255,0.05)';
+            });
+            
+            dropzone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dropzone.style.borderColor = 'rgba(255,255,255,0.3)';
+                dropzone.style.background = 'rgba(255,255,255,0.05)';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    document.getElementById('testimonialPhotoUpload').files = files;
+                    handleTestimonialPhotoUpload();
+                }
+            });
+        }
+    }, 100);
+});
+
+function handleTestimonialPhotoUpload() {
+    const fileInput = document.getElementById('testimonialPhotoUpload');
+    const file = fileInput.files[0];
+    
+    if (file) {
+        // Check file size (max 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            showNotification('Image size too large. Maximum size is 5MB.', 'error');
+            fileInput.value = '';
+            return;
+        }
+        
+        // Check if file is HEIC format
+        const isHEIC = file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic');
+        
+        if (isHEIC) {
+            // HEIC not supported directly, need to convert
+            showNotification('HEIC format not supported. Please use JPG or PNG.', 'error');
+            fileInput.value = '';
+            return;
+        }
+        
+        // Compress and convert image
+        compressImage(file, 800, 800, 0.7).then(compressedDataUrl => {
+            testimonialUploadedPhoto = compressedDataUrl;
+            document.getElementById('testimonialImage').value = compressedDataUrl;
+            document.getElementById('testimonialPreviewImg').src = compressedDataUrl;
+            document.getElementById('testimonialPhotoPreview').style.display = 'flex';
+        }).catch(err => {
+            console.error('Error compressing image:', err);
+            // Fallback to original if compression fails
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                testimonialUploadedPhoto = e.target.result;
+                document.getElementById('testimonialImage').value = testimonialUploadedPhoto;
+                document.getElementById('testimonialPreviewImg').src = testimonialUploadedPhoto;
+                document.getElementById('testimonialPhotoPreview').style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+}
+
+function compressImage(file, maxWidth, maxHeight, quality) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                // Calculate new dimensions
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                if (height > maxHeight) {
+                    width = (width * maxHeight) / height;
+                    height = maxHeight;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Convert to JPEG with compression
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                resolve(dataUrl);
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+function clearTestimonialPhoto() {
+    document.getElementById('testimonialPhotoUpload').value = '';
+    document.getElementById('testimonialImage').value = '';
+    testimonialUploadedPhoto = null;
+    document.getElementById('testimonialPhotoPreview').style.display = 'none';
+}
+
+async function saveTestimonial() {
+    const editingId = document.getElementById('editingTestimonialId').value;
+    const personType = document.getElementById('testimonialPersonType').value;
+    const studentId = document.getElementById('testimonialStudent').value;
+    const alumniId = document.getElementById('testimonialAlumni').value;
+    const name = document.getElementById('testimonialName').value;
+    const position = document.getElementById('testimonialPosition').value;
+    const rating = document.getElementById('testimonialRating').value;
+    const comment = document.getElementById('testimonialComment').value;
+    const image = document.getElementById('testimonialImage').value;
+
+    if (!name || !rating || !comment) {
+        showNotification('Name, rating, and comment are required!', 'error');
+        return;
+    }
+
+    try {
+        const url = editingId ? `/api/testimonials/${editingId}` : '/api/testimonials';
+        const method = editingId ? 'PUT' : 'POST';
+        
+        const res = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, position, rating, comment, image, studentId, alumniId })
+        });
+        const result = await res.json();
+        if (result.success) {
+            closeModal('testimonialModal');
+            loadTestimonialsTable();
+            showNotification(editingId ? 'Testimonial updated successfully!' : 'Testimonial added successfully!', 'success');
+        } else {
+            showNotification(result.message || 'Error saving testimonial!', 'error');
+        }
+    } catch (err) {
+        console.error('Error saving testimonial:', err);
+        showNotification('Error saving testimonial!', 'error');
+    }
+}
+
+async function loadTestimonialsTable() {
+    try {
+        const res = await fetch('/api/testimonials');
+        const result = await res.json();
+        const testimonials = result.testimonials || [];
+        const tbody = document.querySelector('#testimonialsTable tbody');
+        
+        if (testimonials.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">No testimonials found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = testimonials.map(t => `
+            <tr>
+                <td><input type="checkbox" class="testimonial-checkbox" data-id="${t.id}"></td>
+                <td>${t.name}</td>
+                <td>${t.position || '-'}</td>
+                <td>${'⭐'.repeat(t.rating)}</td>
+                <td>${t.comment.substring(0, 100)}${t.comment.length > 100 ? '...' : ''}</td>
+                <td>${new Date(t.date).toLocaleDateString()}</td>
+                <td>
+                    <button class="btn btn-primary" onclick="editTestimonial(${t.id})" style="padding:6px 12px;font-size:12px;margin-right:5px;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger" onclick="deleteTestimonial(${t.id})" style="padding:6px 12px;font-size:12px;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        console.error('Error loading testimonials:', err);
+        showNotification('Error loading testimonials!', 'error');
+    }
+}
+
+async function deleteTestimonial(id) {
+    if (!confirm('Delete this testimonial?')) return;
+    try {
+        const res = await fetch(`/api/testimonials/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (result.success) {
+            loadTestimonialsTable();
+            showNotification('Testimonial deleted!', 'success');
+        } else {
+            showNotification(result.message || 'Error deleting testimonial!', 'error');
+        }
+    } catch (err) {
+        console.error('Error deleting testimonial:', err);
+        showNotification('Error deleting testimonial!', 'error');
+    }
+}
+
+function toggleAllTestimonialCheckboxes() {
+    const selectAll = document.getElementById('selectAllTestimonials');
+    const checkboxes = document.querySelectorAll('.testimonial-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+}
+
+async function deleteSelectedTestimonials() {
+    const checkboxes = document.querySelectorAll('.testimonial-checkbox:checked');
+    if (checkboxes.length === 0) {
+        showNotification('Select testimonials to delete!', 'error');
+        return;
+    }
+
+    if (!confirm(`Delete ${checkboxes.length} selected testimonial(s)?`)) return;
+
+    const testimonialIds = Array.from(checkboxes).map(cb => cb.dataset.id);
+    let deletedCount = 0;
+
+    for (const id of testimonialIds) {
+        try {
+            const res = await fetch(`/api/testimonials/${id}`, { method: 'DELETE' });
+            if ((await res.json()).success) deletedCount++;
+        } catch (e) {
+            console.error('Error deleting testimonial:', e);
+        }
+    }
+
+    if (deletedCount === testimonialIds.length) {
+        showNotification(`${deletedCount} testimonial(s) deleted successfully!`, 'success');
+    } else {
+        showNotification(`${deletedCount}/${testimonialIds.length} testimonial(s) deleted`, 'warning');
+    }
+
+    document.getElementById('selectAllTestimonials').checked = false;
+    loadTestimonialsTable();
+}
+
 // ===== Faculty =====
 function openFacultyModal() {
     document.getElementById('facultyForm').reset();
@@ -1099,6 +1793,27 @@ async function deleteFaculty(id) {
     } catch (err) { showNotification('Error!', 'error'); }
 }
 
+async function toggleFacultyAdmissionAccess(id, currentState) {
+    const newState = !currentState;
+    try {
+        const res = await fetch(`/api/faculty/${id}/admission-access`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ canSubmitAdmission: newState })
+        });
+        const data = await res.json();
+        if (data.success) {
+            loadFacultyTable();
+            showNotification(`Admission access ${newState ? 'enabled' : 'disabled'} for ${data.faculty.name}`, 'success');
+        } else {
+            showNotification(data.message || 'Failed to toggle access', 'error');
+        }
+    } catch (err) {
+        console.error('Toggle error:', err);
+        showNotification('Error toggling access!', 'error');
+    }
+}
+
 async function loadFacultyTable() {
     try {
         const faculty = await fetch('/api/faculty').then(r => r.json());
@@ -1119,6 +1834,12 @@ async function loadFacultyTable() {
             html += '<td>' + f.subject + '</td>';
             html += '<td>' + f.experience + '</td>';
             html += '<td>' + (f.role || 'Faculty') + '</td>';
+            html += '<td>';
+            const canSubmit = f.canSubmitAdmission === true;
+            html += '<button class="action-btn ' + (canSubmit ? 'success-btn' : 'warning-btn') + '" onclick="toggleFacultyAdmissionAccess(' + f.id + ', ' + canSubmit + ')" title="Toggle admission access">';
+            html += canSubmit ? '<i class="fas fa-check-circle"></i> Enabled' : '<i class="fas fa-times-circle"></i> Disabled';
+            html += '</button>';
+            html += '</td>';
             html += '<td>';
             html += '<button class="action-btn delete-btn" onclick="deleteFaculty(' + f.id + ')"><i class="fas fa-trash"></i></button>';
             html += '</td>';
@@ -1179,12 +1900,22 @@ async function loadGalleryTable() {
         const tbody = document.querySelector('#galleryTable tbody');
         let html = '';
         gallery.forEach(item => {
+            const categoryColors = {
+                events: '#3b82f6',
+                campus: '#16a34a',
+                students: '#f59e0b',
+                awards: '#8b5cf6',
+                facilities: '#06b6d4'
+            };
+            const categoryColor = categoryColors[item.category] || '#64748b';
             html += '<tr>';
             html += '<td><input type="checkbox" class="gallery-checkbox" data-id="' + item.id + '"></td>';
             html += '<td><img src="' + item.image + '" alt="' + item.title + '" style="width:100px;height:60px;object-fit:cover;"></td>';
             html += '<td>' + item.title + '</td>';
+            html += '<td><span style="background:' + categoryColor + ';color:#fff;padding:4px 10px;border-radius:12px;font-size:12px;text-transform:capitalize;">' + (item.category || 'General') + '</span></td>';
             html += '<td>';
-            html += '<button class="btn" onclick="deleteGalleryItem(\'' + item.id + '\')"><i class="fas fa-trash"></i></button>';
+            html += '<button class="btn" onclick="editGalleryItem(' + item.id + ')"><i class="fas fa-edit"></i></button>';
+            html += '<button class="btn delete-btn" onclick="deleteGalleryItem(\'' + item.id + '\')"><i class="fas fa-trash"></i></button>';
             html += '</td>';
             html += '</tr>';
         });
@@ -1237,34 +1968,87 @@ async function deleteSelectedGalleryItems() {
 function openGalleryModal() {
     document.getElementById('galleryForm').reset();
     galleryImageFile = null;
+    galleryEditId = null;
     document.getElementById('galleryPreviewImg').style.display = 'none';
     document.getElementById('galleryPlaceholder').style.display = 'block';
     document.getElementById('galleryFile').value = '';
+    document.getElementById('galleryModal').querySelector('h3').textContent = 'Add Gallery Item';
     document.getElementById('galleryModal').classList.add('active');
+}
+
+async function editGalleryItem(id) {
+    try {
+        const gallery = await fetch('/api/gallery').then(r => r.json());
+        const item = gallery.find(g => g.id == id);
+        if (!item) {
+            showNotification('Gallery item not found!', 'error');
+            return;
+        }
+
+        document.getElementById('galleryTitle').value = item.title;
+        document.getElementById('galleryCategory').value = item.category || '';
+        galleryEditId = id;
+        galleryImageFile = null;
+
+        document.getElementById('galleryPreviewImg').src = item.image;
+        document.getElementById('galleryPreviewImg').style.display = 'block';
+        document.getElementById('galleryPlaceholder').style.display = 'none';
+        document.getElementById('galleryFile').value = '';
+
+        document.getElementById('galleryModal').querySelector('h3').textContent = 'Edit Gallery Item';
+        document.getElementById('galleryModal').classList.add('active');
+    } catch (err) {
+        showNotification('Error loading gallery item!', 'error');
+        console.error(err);
+    }
 }
 
 async function saveGalleryItem() {
     const title = document.getElementById('galleryTitle').value.trim();
+    const category = document.getElementById('galleryCategory').value;
     if (!title) { showNotification('Please enter a title!', 'error'); return; }
-    if (!galleryImageFile) { showNotification('Please select an image!', 'error'); return; }
-
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('image', galleryImageFile);
+    if (!category) { showNotification('Please select a category!', 'error'); return; }
 
     try {
-        const res = await fetch('/api/gallery', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (data.success) {
-            closeModal('galleryModal');
-            galleryImageFile = null;
-            loadGalleryTable();
-            loadDashboard();
-            showNotification('Gallery item added!', 'success');
+        let res, data;
+        if (galleryEditId) {
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', category);
+            if (galleryImageFile) {
+                formData.append('image', galleryImageFile);
+            }
+            res = await fetch('/api/gallery/' + galleryEditId, { method: 'PUT', body: formData });
+            data = await res.json();
+            if (data.success) {
+                closeModal('galleryModal');
+                loadGalleryTable();
+                loadDashboard();
+                showNotification('Gallery item updated!', 'success');
+            } else {
+                showNotification(data.message || 'Update failed!', 'error');
+            }
         } else {
-            showNotification(data.message || 'Upload failed!', 'error');
+            if (!galleryImageFile) { showNotification('Please select an image!', 'error'); return; }
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', category);
+            formData.append('image', galleryImageFile);
+            res = await fetch('/api/gallery', { method: 'POST', body: formData });
+            data = await res.json();
+            if (data.success) {
+                closeModal('galleryModal');
+                loadGalleryTable();
+                loadDashboard();
+                showNotification('Gallery item added!', 'success');
+            } else {
+                showNotification(data.message || 'Upload failed!', 'error');
+            }
         }
-    } catch (err) { showNotification('Error uploading image!', 'error'); }
+    } catch (err) {
+        console.error('Error saving gallery item:', err);
+        showNotification('Error saving gallery item!', 'error');
+    }
 }
 
 async function deleteGalleryItem(id) {
@@ -1697,7 +2481,17 @@ function openTestModal() {
     questionCounter = 0;
     loadCoursesForTest();
     loadBatchesForTest();
+    handleTestTargetChange();
     document.getElementById('testModal').classList.add('active');
+}
+
+function handleTestTargetChange() {
+    const target = document.getElementById('testTarget').value;
+    const courseSection = document.getElementById('testCourseSection');
+    const batchSection = document.getElementById('testBatchSection');
+
+    courseSection.style.display = target === 'course' ? 'block' : 'none';
+    batchSection.style.display = target === 'batch' ? 'block' : 'none';
 }
 
 async function loadCoursesForTest() {
@@ -1718,28 +2512,28 @@ function addQuestionField() {
     const container = document.getElementById('testQuestionsContainer');
     const questionId = questionCounter++;
     let html = '';
-    html += '<div class="question-field" id="question-' + questionId + '" style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0;">';
-    html += '<div style="display: flex; justify-content: space-between; margin-bottom: 10px;">';
-    html += '<h5 style="margin: 0;">Question ' + (questionId + 1) + '</h5>';
-    html += '<button type="button" class="btn" onclick="removeQuestion(' + questionId + ')" style="padding: 4px 8px; font-size: 12px;"><i class="fas fa-times"></i></button>';
+    html += '<div class="question-field" id="question-' + questionId + '" style="background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; margin-bottom: 15px; padding: 18px;">';
+    html += '<div style="display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center;">';
+    html += '<h5 style="margin: 0; color: #fff; font-size: 16px; font-weight: 600;">Question ' + (questionId + 1) + '</h5>';
+    html += '<button type="button" class="btn" onclick="removeQuestion(' + questionId + ')" style="padding: 6px 12px; font-size: 12px; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color: #fff; border-radius: 6px;"><i class="fas fa-times"></i></button>';
     html += '</div>';
-    html += '<div class="form-group"><label>Question *</label><input type="text" class="question-text" placeholder="Enter question..." required></div>';
-    html += '<div class="form-group"><label>Question Type</label>';
-    html += '<select class="question-type" onchange="updateQuestionOptions(' + questionId + ', this.value)">';
+    html += '<div style="margin-bottom: 12px;"><label style="font-weight: 600; color: #fff; margin-bottom: 6px; display: block;">Question *</label><input type="text" class="question-text" placeholder="Enter question..." required style="width: 100%; height: 45px; padding: 0 12px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 14px; color: #fff;"></div>';
+    html += '<div style="margin-bottom: 12px;"><label style="font-weight: 600; color: #fff; margin-bottom: 6px; display: block;">Question Type</label>';
+    html += '<select class="question-type" onchange="updateQuestionOptions(' + questionId + ', this.value)" style="width: 100%; height: 45px; padding: 0 12px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 14px; color: #fff;">';
     html += '<option value="mcq-single">Multiple Choice (Single)</option>';
     html += '<option value="mcq-multiple">Multiple Choice (Multiple)</option>';
     html += '<option value="true-false">True/False</option>';
     html += '<option value="short-answer">Short Answer</option>';
     html += '</select>';
     html += '</div>';
-    html += '<div class="form-group"><label>Marks</label><input type="number" class="question-marks" value="1" min="1"></div>';
+    html += '<div style="margin-bottom: 12px;"><label style="font-weight: 600; color: #fff; margin-bottom: 6px; display: block;">Marks</label><input type="number" class="question-marks" value="1" min="1" style="width: 100%; height: 45px; padding: 0 12px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 14px; color: #fff;"></div>';
     html += '<div class="question-options" id="options-' + questionId + '">';
-    html += '<div class="form-group"><label>Option A</label><input type="text" class="option-text" placeholder="Option A"></div>';
-    html += '<div class="form-group"><label>Option B</label><input type="text" class="option-text" placeholder="Option B"></div>';
-    html += '<div class="form-group"><label>Option C</label><input type="text" class="option-text" placeholder="Option C"></div>';
-    html += '<div class="form-group"><label>Option D</label><input type="text" class="option-text" placeholder="Option D"></div>';
-    html += '<div class="form-group"><label>Correct Answer</label>';
-    html += '<select class="correct-answer">';
+    html += '<div style="margin-bottom: 10px;"><label style="font-weight: 600; color: #fff; margin-bottom: 6px; display: block;">Option A</label><input type="text" class="option-text" placeholder="Option A" style="width: 100%; height: 40px; padding: 0 12px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 14px; color: #fff;"></div>';
+    html += '<div style="margin-bottom: 10px;"><label style="font-weight: 600; color: #fff; margin-bottom: 6px; display: block;">Option B</label><input type="text" class="option-text" placeholder="Option B" style="width: 100%; height: 40px; padding: 0 12px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 14px; color: #fff;"></div>';
+    html += '<div style="margin-bottom: 10px;"><label style="font-weight: 600; color: #fff; margin-bottom: 6px; display: block;">Option C</label><input type="text" class="option-text" placeholder="Option C" style="width: 100%; height: 40px; padding: 0 12px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 14px; color: #fff;"></div>';
+    html += '<div style="margin-bottom: 10px;"><label style="font-weight: 600; color: #fff; margin-bottom: 6px; display: block;">Option D</label><input type="text" class="option-text" placeholder="Option D" style="width: 100%; height: 40px; padding: 0 12px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 14px; color: #fff;"></div>';
+    html += '<div style="margin-bottom: 10px;"><label style="font-weight: 600; color: #fff; margin-bottom: 6px; display: block;">Correct Answer</label>';
+    html += '<select class="correct-answer" style="width: 100%; height: 40px; padding: 0 12px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 14px; color: #fff;">';
     html += '<option value="0">Option A</option>';
     html += '<option value="1">Option B</option>';
     html += '<option value="2">Option C</option>';
@@ -1888,6 +2682,7 @@ async function loadFeesTable() {
                 html += '<td style="color:' + (fees.dueAmount > 0 ? '#dc2626' : '#16a34a') + ';">₹' + (fees.dueAmount || 0) + '</td>';
                 html += '<td>';
                 html += '<button class="btn btn-primary" onclick="openFeeModal(\'' + s.id + '\')" style="padding:4px 8px;font-size:12px;">Add Payment</button>';
+                html += '<button class="btn btn-info" onclick="viewStudentPaymentHistory(\'' + s.id + '\')" style="padding:4px 8px;font-size:12px;margin-left:5px;">View History</button>';
                 html += '</td>';
                 html += '</tr>';
             });
@@ -1895,44 +2690,6 @@ async function loadFeesTable() {
         }
     } catch (e) {
         console.error('Error loading fees:', e);
-    }
-}
-
-async function loadPaymentsTable() {
-    try {
-        const res = await fetch('/api/payments');
-        const data = await res.json();
-        const tbody = document.getElementById('paymentsTable').querySelector('tbody');
-        
-        if (data.success && data.payments) {
-            let html = '';
-            data.payments.forEach(p => {
-                const utr = p.utr || p.transactionId || p.utrNo || '-';
-                html += '<tr>';
-                html += '<td><strong>' + p.studentName + '</strong></td>';
-                html += '<td>₹' + p.amount + '</td>';
-                html += '<td>' + p.mode + '</td>';
-                html += '<td>' + formatDate(p.date) + '</td>';
-                html += '<td>' + utr + '</td>';
-                html += '<td>';
-                html += '<span style="padding:4px 8px;border-radius:12px;font-size:12px;font-weight:600;background:' + (p.status === 'approved' ? '#dcfce7' : p.status === 'denied' ? '#fee2e2' : '#fef3c7') + ';color:' + (p.status === 'approved' ? '#16a34a' : p.status === 'denied' ? '#dc2626' : '#d97706') + ';">';
-                html += p.status;
-                html += '</span>';
-                html += '</td>';
-                html += '<td>';
-                if (p.status === 'pending') {
-                    html += '<button class="btn btn-success" onclick="approvePayment(\'' + p.id + '\')" style="padding:4px 8px;font-size:12px;">Approve</button>';
-                    html += '<button class="btn" onclick="denyPayment(\'' + p.id + '\')" style="padding:4px 8px;font-size:12px;background:#fee2e2;color:#dc2626;">Deny</button>';
-                } else {
-                    html += '-';
-                }
-                html += '</td>';
-                html += '</tr>';
-            });
-            tbody.innerHTML = html;
-        }
-    } catch (e) {
-        console.error('Error loading payments:', e);
     }
 }
 
@@ -2018,20 +2775,142 @@ async function saveFee() {
     }
 }
 
-async function approvePayment(paymentId) {
+async function viewStudentPaymentHistory(studentId) {
     try {
-        await fetch('/api/payments/' + paymentId + '/approve', { method: 'POST' });
-        loadPaymentsTable();
-        showNotification('Payment approved!', 'success');
-    } catch (e) { showNotification('Error approving payment!', 'error'); }
+        const res = await fetch('/api/students/' + studentId);
+        const data = await res.json();
+        
+        // Handle both response formats: direct student object or wrapped in { success, student }
+        const student = data.student || data;
+        
+        if (student && student.id) {
+            const fees = student.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0, payments: [] };
+            
+            // Combine payments from student.fees.payments and payments.json
+            const studentFeePayments = fees.payments || [];
+            const payRes = await fetch('/api/payments');
+            const payData = await payRes.json();
+            
+            let allPayments = [];
+            
+            // Add payments from student.fees.payments (includes admission fee)
+            if (studentFeePayments.length > 0) {
+                allPayments = allPayments.concat(studentFeePayments.map(p => ({
+                    ...p,
+                    status: p.status || 'approved',
+                    utr: p.utr || p.utrNumber || p.transactionId || p.receipt || '-',
+                    utrNo: p.utrNo || p.utrNumber || p.transactionId || p.utr || '-',
+                    studentReceipt: p.studentReceipt || p.receipt || '-'
+                })));
+            }
+            
+            // Add payments from payments.json
+            if (payData.success && payData.payments) {
+                const paymentsFromJson = payData.payments.filter(p => String(p.studentId) === String(student.id));
+                allPayments = allPayments.concat(paymentsFromJson.map(p => ({
+                    ...p,
+                    utr: p.utr || p.transactionId || p.receipt || '-',
+                    utrNo: p.utrNo || p.utr || p.transactionId || '-',
+                    studentReceipt: p.studentReceipt || p.receipt || '-'
+                })));
+            }
+            
+            // Remove duplicates based on payment id
+            const uniquePayments = [];
+            const paymentIds = new Set();
+            allPayments.forEach(p => {
+                if (p.id && !paymentIds.has(String(p.id))) {
+                    paymentIds.add(String(p.id));
+                    uniquePayments.push(p);
+                }
+            });
+            
+            // Sort by date (newest first)
+            uniquePayments.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Generate payment history HTML
+            let historyHtml = '<div style="margin-bottom:20px;">';
+            historyHtml += '<h4 style="margin:0 0 10px 0;color:#0ea5e9;font-weight:600;">' + student.name + ' (' + student.rollNo + ')</h4>';
+            historyHtml += '<div style="display:flex;gap:20px;margin-bottom:15px;">';
+            historyHtml += '<span><strong>Total Fees:</strong> ₹' + (fees.totalFees || 0) + '</span>';
+            historyHtml += '<span style="color:#16a34a;"><strong>Paid:</strong> ₹' + (fees.paidAmount || 0) + '</span>';
+            historyHtml += '<span style="color:' + (fees.dueAmount > 0 ? '#dc2626' : '#16a34a') + ';"><strong>Due:</strong> ₹' + (fees.dueAmount || 0) + '</span>';
+            historyHtml += '</div>';
+            historyHtml += '</div>';
+            
+            if (uniquePayments.length > 0) {
+                historyHtml += '<table style="width:100%;border-collapse:collapse;">';
+                historyHtml += '<thead><tr style="background:#f1f5f9;">';
+                historyHtml += '<th style="padding:10px;text-align:left;border:1px solid #e2e8f0;">Date</th>';
+                historyHtml += '<th style="padding:10px;text-align:left;border:1px solid #e2e8f0;">Amount</th>';
+                historyHtml += '<th style="padding:10px;text-align:left;border:1px solid #e2e8f0;">Type</th>';
+                historyHtml += '<th style="padding:10px;text-align:left;border:1px solid #e2e8f0;">Mode</th>';
+                historyHtml += '<th style="padding:10px;text-align:left;border:1px solid #e2e8f0;">Status</th>';
+                historyHtml += '<th style="padding:10px;text-align:left;border:1px solid #e2e8f0;">UTR / Txn ID</th>';
+                historyHtml += '<th style="padding:10px;text-align:left;border:1px solid #e2e8f0;">Student Receipt</th>';
+                historyHtml += '</tr></thead>';
+                historyHtml += '<tbody>';
+                
+                uniquePayments.forEach(p => {
+                    const statusBadge = p.status === 'approved'
+                        ? '<span style="background:#dcfce7;color:#16a34a;padding:4px 8px;border-radius:12px;font-size:12px;font-weight:600;">Approved</span>'
+                        : p.status === 'denied'
+                        ? '<span style="background:#fee2e2;color:#dc2626;padding:4px 8px;border-radius:12px;font-size:12px;font-weight:600;">Denied</span>'
+                        : '<span style="background:#fef3c7;color:#d97706;padding:4px 8px;border-radius:12px;font-size:12px;font-weight:600;">Pending</span>';
+                    
+                    historyHtml += '<tr>';
+                    historyHtml += '<td style="padding:10px;border:1px solid #e2e8f0;">' + formatDate(p.date) + '</td>';
+                    historyHtml += '<td style="padding:10px;border:1px solid #e2e8f0;"><strong>₹' + p.amount + '</strong></td>';
+                    historyHtml += '<td style="padding:10px;border:1px solid #e2e8f0;">' + (p.type || 'Fee') + '</td>';
+                    historyHtml += '<td style="padding:10px;border:1px solid #e2e8f0;">' + p.mode + '</td>';
+                    historyHtml += '<td style="padding:10px;border:1px solid #e2e8f0;">' + statusBadge + '</td>';
+                    historyHtml += '<td style="padding:10px;border:1px solid #e2e8f0;"><code style="font-size:12px;">' + (p.utrNo || p.transactionId || p.utr || '-') + '</code></td>';
+                    historyHtml += '<td style="padding:10px;border:1px solid #e2e8f0;"><code style="font-size:12px;color:#0ea5e9;font-weight:600;">' + (p.studentReceipt || '-') + '</code></td>';
+                    historyHtml += '</tr>';
+                });
+                
+                historyHtml += '</tbody></table>';
+            } else {
+                historyHtml += '<p style="text-align:center;padding:20px;color:#64748b;">No payment history found</p>';
+            }
+            
+            // Show in a modal
+            const modalHtml = `
+                <div id="paymentHistoryModal" class="modal active" style="display:flex;">
+                    <div class="modal-content" style="max-width:800px;max-height:80vh;overflow-y:auto;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                            <h3 style="margin:0;">Payment History</h3>
+                            <button onclick="closePaymentHistoryModal()" style="background:none;border:none;font-size:24px;cursor:pointer;">&times;</button>
+                        </div>
+                        ${historyHtml}
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal if present
+            const existingModal = document.getElementById('paymentHistoryModal');
+            if (existingModal) existingModal.remove();
+            
+            // Add new modal
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        } else {
+            showNotification('Student not found!', 'error');
+        }
+    } catch (e) {
+        console.error('Error loading payment history:', e);
+        showNotification('Error loading payment history!', 'error');
+    }
 }
 
-async function denyPayment(paymentId) {
-    try {
-        await fetch('/api/payments/' + paymentId + '/deny', { method: 'POST' });
-        loadPaymentsTable();
-        showNotification('Payment denied!', 'success');
-    } catch (e) { showNotification('Error denying payment!', 'error'); }
+function closePaymentHistoryModal() {
+    const modal = document.getElementById('paymentHistoryModal');
+    if (modal) modal.remove();
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 // ===== Attendance =====
@@ -2040,6 +2919,18 @@ async function loadAttendancePage() {
         const courses = await fetch('/api/courses').then(r => r.json());
         const courseSelect = document.getElementById('attendanceCourse');
         courseSelect.innerHTML = '<option value="">Select Course</option>' + courses.map(c => '<option>' + c.name + '</option>').join('');
+        
+        // Add onchange event to load batches when course is selected
+        courseSelect.onchange = async function() {
+            const course = courseSelect.value;
+            const batchSelect = document.getElementById('attendanceBatch');
+            if (course) {
+                const batches = await fetch('/api/batches?course=' + encodeURIComponent(course)).then(r => r.json());
+                batchSelect.innerHTML = '<option value="">All Batches</option>' + batches.map(b => '<option value="' + b.name + '">' + b.name + '</option>').join('');
+            } else {
+                batchSelect.innerHTML = '<option value="">All Batches</option>';
+            }
+        };
         
         document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
         
@@ -2064,8 +2955,9 @@ async function loadHolidaysForDate() {
         const res = await fetch('/api/holidays/by-date/' + date);
         const data = await res.json();
         
+        const holidayDiv = document.getElementById('holidayInfo');
+        
         if (data.success && data.holiday) {
-            const holidayDiv = document.getElementById('holidayInfo');
             const holiday = data.holiday;
             
             let html = '';
@@ -4291,20 +5183,65 @@ async function loadRolesTable() {
 }
 
 async function openRoleModal() {
-    document.getElementById('roleModalTitle').textContent = 'Add Role';
+    document.getElementById('roleModalTitleText').textContent = 'Add Role';
     document.getElementById('roleId').value = '';
     document.getElementById('roleName').value = '';
     document.getElementById('roleDescription').value = '';
+    document.getElementById('permissionSearch').value = '';
     
     const permissionsRes = await fetch('/api/permissions');
     const permissions = await permissionsRes.json();
     
-    const permissionsList = document.getElementById('permissionsList');
-    permissionsList.innerHTML = permissions.map(p => {
-        return '<label style="display:block;margin-bottom:5px;"><input type="checkbox" class="permission-checkbox" value="' + p.id + '"> ' + p.name + '</label>';
-    }).join('');
+    renderPermissionsList(permissions);
     
     document.getElementById('roleModal').classList.add('active');
+}
+
+function renderPermissionsList(permissions) {
+    const permissionsList = document.getElementById('permissionsList');
+    const searchTerm = document.getElementById('permissionSearch').value.toLowerCase();
+    
+    const filteredPermissions = permissions.filter(p => 
+        p.name.toLowerCase().includes(searchTerm) || 
+        (p.module && p.module.toLowerCase().includes(searchTerm))
+    );
+    
+    // Group by module if available
+    const grouped = {};
+    filteredPermissions.forEach(p => {
+        const module = p.module || 'Other';
+        if (!grouped[module]) grouped[module] = [];
+        grouped[module].push(p);
+    });
+    
+    let html = '';
+    for (const module in grouped) {
+        html += '<div style="margin-bottom:15px;">';
+        html += '<div style="font-weight:600;color:#fff;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.2);font-size:13px;text-shadow:0 1px 2px rgba(0,0,0,0.2);">' + module + '</div>';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">';
+        grouped[module].forEach(p => {
+            html += '<label style="display:flex;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;cursor:pointer;transition:all 0.2s;backdrop-filter:blur(5px);">';
+            html += '<input type="checkbox" class="permission-checkbox" value="' + p.id + '" style="margin-right:10px;width:16px;height:16px;accent-color:#6366f1;">';
+            html += '<span style="font-size:13px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.2);">' + p.name + '</span>';
+            html += '</label>';
+        });
+        html += '</div></div>';
+    }
+    
+    permissionsList.innerHTML = html;
+}
+
+function filterPermissions() {
+    const permissionsRes = fetch('/api/permissions').then(r => r.json());
+    permissionsRes.then(permissions => renderPermissionsList(permissions));
+}
+
+function selectAllPermissions() {
+    document.querySelectorAll('.permission-checkbox').forEach(cb => cb.checked = true);
+}
+
+function deselectAllPermissions() {
+    document.querySelectorAll('.permission-checkbox').forEach(cb => cb.checked = false);
 }
 
 async function saveRole() {
@@ -4347,19 +5284,27 @@ async function editRole(id) {
         const res = await fetch('/api/roles/' + id);
         const role = await res.json();
         
-        document.getElementById('roleModalTitle').textContent = 'Edit Role';
+        document.getElementById('roleModalTitleText').textContent = 'Edit Role';
         document.getElementById('roleId').value = role.id;
         document.getElementById('roleName').value = role.name;
         document.getElementById('roleDescription').value = role.description || '';
+        document.getElementById('permissionSearch').value = '';
         
         const permissionsRes = await fetch('/api/permissions');
         const permissions = await permissionsRes.json();
         
-        const permissionsList = document.getElementById('permissionsList');
-        permissionsList.innerHTML = permissions.map(p => {
-            const checked = role.permissions.includes(p.id) || role.permissions.includes('all') ? 'checked' : '';
-            return '<label style="display:block;margin-bottom:5px;"><input type="checkbox" class="permission-checkbox" value="' + p.id + '" ' + checked + '> ' + p.name + '</label>';
-        }).join('');
+        renderPermissionsList(permissions);
+        
+        // Check the permissions that are already assigned to this role
+        setTimeout(() => {
+            document.querySelectorAll('.permission-checkbox').forEach(cb => {
+                if (role.permissions && role.permissions.includes(cb.value)) {
+                    cb.checked = true;
+                } else {
+                    cb.checked = false;
+                }
+            });
+        }, 100);
         
         document.getElementById('roleModal').classList.add('active');
     } catch (e) {
@@ -4609,78 +5554,91 @@ async function deleteSelectedCertificates() {
 async function loadPaymentsTable() {
     try {
         const res = await fetch('/api/payments');
-        
+
         if (!res.ok) {
             throw new Error('HTTP error! status: ' + res.status);
         }
-        
+
         const data = await res.json();
         const tbody = document.querySelector('#paymentsTable tbody');
-        
+
         if (data.success && data.payments && data.payments.length > 0) {
-            tbody.innerHTML = data.payments.map(p => {
-                const statusBadge = p.status === 'pending' 
-                    ? '<span style="color:#f59e0b;font-weight:600;">Pending</span>'
-                    : p.status === 'approved'
-                    ? '<span style="color:#16a34a;font-weight:600;">Approved</span>'
-                    : p.status === 'denied'
-                    ? '<span style="color:#dc2626;font-weight:600;">Denied</span>'
-                    : '<span style="color:#64748b;font-weight:600;">Unknown</span>';
-                
-                const actions = p.status === 'pending' 
-                    ? '<button class="btn" onclick="approvePayment(\'' + p.id + '\')" style="padding:6px 12px;margin-right:5px;">Approve</button><button class="btn" onclick="denyPayment(\'' + p.id + '\')" style="padding:6px 12px;background:#fee2e2;color:#dc2626;">Deny</button>'
+            // Sort by id descending (latest first)
+            const payments = [...data.payments].sort((a, b) => (b.id || 0) - (a.id || 0));
+
+            tbody.innerHTML = payments.map(p => {
+                const status = (p.status || 'pending').toLowerCase();
+                const statusBadge = status === 'pending'
+                    ? '<span style="background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;">Pending</span>'
+                    : status === 'approved'
+                    ? '<span style="background:#dcfce7;color:#16a34a;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;">Approved</span>'
+                    : status === 'denied'
+                    ? '<span style="background:#fee2e2;color:#dc2626;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;">Denied</span>'
+                    : '<span style="background:#e2e8f0;color:#64748b;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;">' + (p.status || 'Unknown') + '</span>';
+
+                const actions = status === 'pending'
+                    ? '<button class="action-btn edit-btn" onclick="approvePayment(\'' + p.id + '\')" style="background:#16a34a;color:#fff;margin-right:5px;"><i class="fas fa-check"></i> Approve</button><button class="action-btn delete-btn" onclick="denyPayment(\'' + p.id + '\')"><i class="fas fa-times"></i> Deny</button>'
                     : '<span style="color:#64748b;font-size:13px;">Processed</span>';
-                
+
+                const txnId = p.utrNo || p.transactionId || '—';
+                const studentReceipt = p.studentReceipt || (String(p.mode || '').toLowerCase() === 'cash' ? p.transactionId : '') || '—';
+                const modeDisplay = (p.mode || '—').toString().toUpperCase();
+
                 let html = '';
                 html += '<tr>';
-                html += '<td>' + p.date + '</td>';
-                html += '<td>' + p.studentName + '</td>';
-                html += '<td>&#8377;' + p.amount + '</td>';
-                html += '<td>' + p.mode + '</td>';
+                html += '<td>' + (p.studentName || '—') + '</td>';
+                html += '<td><strong>&#8377;' + (p.amount || 0).toLocaleString('en-IN') + '</strong></td>';
+                html += '<td>' + modeDisplay + '</td>';
+                html += '<td>' + (p.date || '—') + '</td>';
+                html += '<td><code style="font-size:12px;">' + txnId + '</code></td>';
+                html += '<td><code style="font-size:12px;color:#0ea5e9;font-weight:600;">' + studentReceipt + '</code></td>';
                 html += '<td>' + statusBadge + '</td>';
                 html += '<td>' + actions + '</td>';
                 html += '</tr>';
                 return html;
             }).join('');
         } else {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#64748b;">No payments found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#64748b;">No payments found</td></tr>';
         }
     } catch (err) {
         console.error('Error loading payments:', err);
         const tbody = document.querySelector('#paymentsTable tbody');
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#dc2626;">Error loading payments</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#dc2626;">Error loading payments</td></tr>';
     }
 }
 
 async function approvePayment(paymentId) {
+    if (!confirm('Are you sure you want to approve this payment?')) return;
     try {
         const res = await fetch('/api/payments/' + paymentId + '/approve', { method: 'POST' });
         const data = await res.json();
-        
+
         if (data.success) {
-            alert('Payment approved successfully!');
+            showNotification('Payment approved successfully!', 'success');
             loadPaymentsTable();
+            loadDashboard && loadDashboard();
         } else {
-            alert('Error approving payment: ' + (data.message || 'Unknown error'));
+            showNotification('Error: ' + (data.message || 'Unknown error'), 'error');
         }
     } catch (err) {
         console.error('Error approving payment:', err);
-        alert('Error approving payment');
+        showNotification('Error approving payment', 'error');
     }
 }
 
 async function denyPayment(paymentId) {
     if (!confirm('Are you sure you want to deny this payment?')) return;
-    
+
     try {
         const res = await fetch('/api/payments/' + paymentId + '/deny', { method: 'POST' });
         const data = await res.json();
-        
+
         if (data.success) {
-            alert('Payment denied!');
+            showNotification('Payment denied!', 'success');
             loadPaymentsTable();
+            loadDashboard && loadDashboard();
         } else {
-            alert('Error denying payment: ' + (data.message || 'Unknown error'));
+            showNotification('Error: ' + (data.message || 'Unknown error'), 'error');
         }
     } catch (err) {
         console.error('Error denying payment:', err);
@@ -5326,7 +6284,7 @@ function printSheetPreview() {
             </style>
         </head>
         <body onload="window.print(); window.close();">
-            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px;" onerror="this.parentElement.style.display='none'"></div>
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px; border-radius: 12px;" onerror="this.parentElement.style.display='none'"></div>
             ${previewContent}
         </body>
         </html>
@@ -5721,7 +6679,7 @@ function printExamSchedule() {
     printContent += '.status-completed{background:#e8f5e9;padding:3px 8px;border-radius:4px;}';
     printContent += '.status-cancelled{background:#ffebee;padding:3px 8px;border-radius:4px;}';
     printContent += '.status-postponed{background:#fff3e0;padding:3px 8px;border-radius:4px;}';
-    printContent += '.watermark { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04; }</style></head><body><div class="watermark"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px;" onerror="this.parentElement.style.display=\'none\'"></div>';
+    printContent += '.watermark { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04; }</style></head><body><div class="watermark"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px; border-radius: 12px;" onerror="this.parentElement.style.display=\'none\'"></div>';
     printContent += '<h1>Exam Schedule</h1>';
     printContent += '<table><thead><tr><th>Exam</th><th>Course</th><th>Batch</th><th>Date</th><th>Time</th><th>Duration</th><th>Total Marks</th><th>Venue</th><th>Status</th></tr></thead><tbody>';
     
@@ -7214,53 +8172,48 @@ async function viewCertificate(id) {
 }
 
 async function loadBatchesForCourse(courseName) {
-    const data = await fetch('/api/batches/seats').then(r => r.json());
-    const sel = document.getElementById('sBatch');
-    sel.innerHTML = '<option value="">-- Select Batch --</option>';
-    if (data.length === 0) {
-        sel.innerHTML += '<option disabled>No batches available</option>';
-        return;
+    console.log('Loading all batches');
+    try {
+        const data = await fetch('/api/batches/seats').then(r => r.json());
+        console.log('All batches:', data);
+        const sel = document.getElementById('sBatch');
+        if (!sel) {
+            console.error('sBatch element not found');
+            return;
+        }
+        sel.innerHTML = '<option value="">-- Select Batch --</option>';
+        
+        // Show all batches for all courses
+        if (data.length === 0) {
+            sel.innerHTML += '<option disabled>No batches available</option>';
+            return;
+        }
+        
+        data.forEach(b => {
+            const available = b.available > 0 ? b.available + ' seats' : 'FULL';
+            const opt = document.createElement('option');
+            opt.value = b.name; opt.dataset.batchId = b.id;
+            opt.textContent = b.name + ' (' + (b.timing || '') + ') - ' + available;
+            if (b.available === 0) opt.disabled = true;
+            sel.appendChild(opt);
+        });
+        console.log('Batches populated in dropdown');
+    } catch (e) {
+        console.error('Error loading batches:', e);
     }
-    data.forEach(b => {
-        const available = b.available > 0 ? '(' + b.available + ' seats available)' : '(FULL)';
-        const opt = document.createElement('option');
-        opt.value = b.name; opt.dataset.batchId = b.id;
-        opt.textContent = b.name + ' — ' + (b.timing || '') + ' ' + available;
-        if (b.available === 0) opt.disabled = true;
-        sel.appendChild(opt);
-    });
-    sel.addEventListener('change', function() {
+    
+    // Remove existing event listener to avoid duplicates
+    const newSel = document.getElementById('sBatch');
+    const clonedSel = newSel.cloneNode(true);
+    newSel.parentNode.replaceChild(clonedSel, newSel);
+    
+    clonedSel.addEventListener('change', function() {
         const selected = this.options[this.selectedIndex];
         document.getElementById('sBatchId') && (document.getElementById('sBatchId').value = selected?.dataset?.batchId || '');
     });
 }
 
-// ===== Razorpay =====
-async function initiateRazorpay() {
-    const amount = parseInt(document.getElementById('sPayNow').value.replace(/[^0-9]/g, ''));
-    if (!amount) { showNotification('Pehle payment amount calculate karo!', 'error'); return; }
-    try {
-        const res = await fetch('/api/payment/create-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount }) });
-        const data = await res.json();
-        if (!data.success) { showNotification(data.error || 'Order create failed. Razorpay keys check karein Settings mein.', 'error'); return; }
-        const options = {
-            key: data.key, amount: data.order.amount, currency: 'INR',
-            name: document.getElementById('adminSiteName')?.textContent || 'Genius Education',
-            description: 'Admission Fee — ' + (document.getElementById('sCourse')?.value || ''),
-            order_id: data.order.id,
-            handler: function(response) {
-                document.getElementById('sTransactionId').value = response.razorpay_payment_id;
-                document.getElementById('razorpayStatus').style.display = 'block';
-                document.getElementById('razorpayBtn').textContent = '✅ Payment Done';
-                document.getElementById('razorpayBtn').disabled = true;
-                showNotification('Payment successful! ₹' + (amount) + ' received.', 'success');
-            },
-            prefill: { name: document.getElementById('sName')?.value || '', email: document.getElementById('sEmail')?.value || '', contact: document.getElementById('sPhone')?.value || '' },
-            theme: { color: '#2563eb' }
-        };
-        new Razorpay(options).open();
-    } catch(e) { showNotification('Payment gateway error: ' + e.message, 'error'); }
-}
+// ===== Razorpay (Removed) =====
 
 // ===== Document helpers =====
 function showSingleDoc(input, labelId) {
@@ -7343,7 +8296,9 @@ function load12Subjects() {
 }
 
 function onCourseChange() {
-    const val = document.getElementById('sCourse').value.toUpperCase();
+    const courseName = document.getElementById('sCourse').value;
+    console.log('onCourseChange called, course:', courseName);
+    const val = courseName.toUpperCase();
     const isDCA    = val.includes('DCA') && !val.includes('PGDCA');
     const isBCA    = val.includes('BCA') && !val.includes('PGDCA');
     const isPGDCA  = val.includes('PGDCA');
@@ -7363,12 +8318,8 @@ function onCourseChange() {
     };
     const key = isPGDCA ? 'PGDCA' : isBCA ? 'BCA' : 'DCA';
     msg.style.display = 'block'; msg.className = 'eligibility-msg'; msg.innerHTML = msgs[key];
-    if (document.getElementById('marks12Body').querySelectorAll('tr').length === 0) load12Subjects();
-    if (isPGDCA && document.getElementById('marksGradBody').querySelectorAll('tr').length === 0)
-        GRAD_DEFAULT.forEach(([n, m]) => buildSubjectRow('marksGradBody', n, m, ''));
     const gradMkGroup = document.getElementById('sGradMarksheetGroup');
     if (gradMkGroup) gradMkGroup.style.display = isPGDCA ? 'block' : 'none';
-    const courseName = document.getElementById('sCourse').value;
     if (courseName) loadBatchesForCourse(courseName);
 }
 
@@ -7396,6 +8347,38 @@ function calcCGPAPercentage() {
     document.getElementById('sGradCGPADiv').value = d ? d.text : '';
 }
 
+function calc12Pct() {
+    const total = parseFloat(document.getElementById('s12Total').value) || 0;
+    const obtained = parseFloat(document.getElementById('s12Obtained').value) || 0;
+    if (total > 0) {
+        const pct = ((obtained / total) * 100).toFixed(2);
+        document.getElementById('pct12').textContent = pct + '%';
+        const d = getDivision(parseFloat(pct));
+        document.getElementById('div12').textContent = d ? d.text : '—';
+        document.getElementById('div12').className = 'div-badge ' + (d ? d.cls : '');
+    } else {
+        document.getElementById('pct12').textContent = '—';
+        document.getElementById('div12').textContent = '—';
+        document.getElementById('div12').className = 'div-badge';
+    }
+}
+
+function calcGradPct() {
+    const total = parseFloat(document.getElementById('sGradTotal').value) || 0;
+    const obtained = parseFloat(document.getElementById('sGradObtained').value) || 0;
+    if (total > 0) {
+        const pct = ((obtained / total) * 100).toFixed(2);
+        document.getElementById('pctGrad').textContent = pct + '%';
+        const d = getDivision(parseFloat(pct));
+        document.getElementById('divGrad').textContent = d ? d.text : '—';
+        document.getElementById('divGrad').className = 'div-badge ' + (d ? d.cls : '');
+    } else {
+        document.getElementById('pctGrad').textContent = '—';
+        document.getElementById('divGrad').textContent = '—';
+        document.getElementById('divGrad').className = 'div-badge';
+    }
+}
+
 function getQualificationData() {
     const val = (document.getElementById('sCourse')?.value || '').toUpperCase();
     const isPGDCA = val.includes('PGDCA');
@@ -7407,6 +8390,8 @@ function getQualificationData() {
             school: document.getElementById('s12School').value,
             year: document.getElementById('s12Year').value,
             roll: document.getElementById('s12Roll').value,
+            total: document.getElementById('s12Total').value,
+            obtained: document.getElementById('s12Obtained').value,
             percentage: document.getElementById('pct12').textContent,
             division: document.getElementById('div12').textContent
         };
@@ -7421,6 +8406,8 @@ function getQualificationData() {
             year: document.getElementById('sGradYear').value,
             enroll: document.getElementById('sGradEnroll').value,
             marksType: isCGPA ? 'cgpa' : 'percentage',
+            total: isCGPA ? '' : document.getElementById('sGradTotal').value,
+            obtained: isCGPA ? '' : document.getElementById('sGradObtained').value,
             percentage: isCGPA ? document.getElementById('sGradCGPAPct').value : document.getElementById('pctGrad').textContent,
             cgpa: isCGPA ? document.getElementById('sGradCGPA').value : '',
             division: isCGPA ? document.getElementById('sGradCGPADiv').value : document.getElementById('divGrad').textContent
@@ -7551,29 +8538,33 @@ async function deleteSelectedStudents() {
     }
 }
 
-function showAdmissionForm() {
+async function showAdmissionForm() {
     document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
     document.getElementById('page-admission').classList.remove('hidden');
-    document.getElementById('pageTitle').textContent = 'New Admission';
     document.getElementById('admissionForm').reset();
-    document.getElementById('sAdmDate').value = new Date().toISOString().split('T')[0];
-    document.getElementById('sPhotoPreview').style.display = 'none';
-    document.getElementById('sPhotoPlaceholder').style.display = 'block';
-    document.getElementById('sSignaturePreview').style.display = 'none';
-    document.getElementById('sSignaturePlaceholder').style.display = 'block';
-    document.getElementById('sDocsList').textContent = 'Click to upload (multiple allowed)';
+    const admDateEl = document.getElementById('sAdmDate');
+    if (admDateEl) admDateEl.value = new Date().toISOString().split('T')[0];
+    const photoPreview = document.getElementById('sPhotoPreview');
+    const photoPlaceholder = document.getElementById('sPhotoPlaceholder');
+    if (photoPreview) photoPreview.style.display = 'none';
+    if (photoPlaceholder) photoPlaceholder.style.display = 'block';
+    const sigPreview = document.getElementById('sSignaturePreview');
+    const sigPlaceholder = document.getElementById('sSignaturePlaceholder');
+    if (sigPreview) sigPreview.style.display = 'none';
+    if (sigPlaceholder) sigPlaceholder.style.display = 'block';
+    const docsList = document.getElementById('sDocsList');
+    if (docsList) docsList.textContent = 'Click to upload (multiple allowed)';
     ['sAadharDocName','s10thMarksheetName','s12thMarksheetName','sGradMarksheetName'].forEach(id => {
         const el = document.getElementById(id); if (el) el.textContent = 'Click to upload';
     });
-    ['sGradMarksheetGroup','sRazorpayGroup','sTransactionGroup'].forEach(id => {
+    ['sGradMarksheetGroup','sTransactionGroup'].forEach(id => {
         const el = document.getElementById(id); if (el) el.style.display = 'none';
     });
-    const rzBtn = document.getElementById('razorpayBtn'); const rzStat = document.getElementById('razorpayStatus');
-    if (rzBtn) { rzBtn.disabled = false; rzBtn.innerHTML = '<i class="fas fa-lock"></i> Pay Now via Razorpay'; }
-    if (rzStat) rzStat.style.display = 'none';
-    document.getElementById('sPayNow').value = '';
-    document.getElementById('sPendingFees').value = '';
-    loadCoursesForAdmission();
+    const payNowEl = document.getElementById('sPayNow');
+    const pendingFeesEl = document.getElementById('sPendingFees');
+    if (payNowEl) payNowEl.value = '';
+    if (pendingFeesEl) pendingFeesEl.value = '';
+    await loadCoursesForAdmission();
 }
 
 function showStudentsPage() {
@@ -7581,48 +8572,101 @@ function showStudentsPage() {
     document.querySelector('[data-page="students"]').classList.add('active');
     document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
     document.getElementById('page-students').classList.remove('hidden');
-    document.getElementById('pageTitle').textContent = 'Students';
     loadStudentsTable();
 }
 
 async function loadCoursesForAdmission() {
     try {
         const courses = await fetch('/api/courses').then(r => r.json());
+        console.log('Courses loaded:', courses);
         const sel = document.getElementById('sCourse');
+        if (!sel) {
+            console.error('sCourse element not found');
+            return;
+        }
         sel.innerHTML = '<option value="">-- Select Course --</option>' +
-            courses.map(c => '<option value="' + c.name + '" data-fees="' + c.price + '">' + c.name + ' (&#8377;' + c.price + ')</option>').join('');
+            courses.map(c => '<option value="' + c.name + '" data-fees="' + c.fee + '">' + c.name + ' (&#8377;' + c.fee + ')</option>').join('');
         sel.onchange = function() {
             const opt = sel.options[sel.selectedIndex];
             if (opt.dataset.fees) { document.getElementById('sTotalFees').value = opt.dataset.fees; calculatePayment(); }
+            onCourseChange();
         };
-    } catch (e) {}
+        console.log('Courses populated in dropdown');
+    } catch (e) {
+        console.error('Error loading courses for admission:', e);
+    }
 }
 
 function calculatePayment() {
     const total = parseInt(document.getElementById('sTotalFees').value) || 0;
     const isPartial = document.querySelector('input[name="sPayType"]:checked')?.value === 'partial';
     const payNow = isPartial ? Math.round(total * 0.4) : total;
-    const pending = total - payNow;
-    document.getElementById('sPayNow').value = '&#8377; ' + payNow.toLocaleString('en-IN');
-    document.getElementById('sPendingFees').value = '&#8377; ' + pending.toLocaleString('en-IN');
-    document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
-    const checked = document.querySelector('input[name="sPayType"]:checked');
-    if (checked) checked.closest('.radio-card').classList.add('selected');
+    document.getElementById('sPayNow').value = payNow;
+    // sPendingFees element doesn't exist in admin admission form
+    if (document.getElementById('sPendingFees')) {
+        document.getElementById('sPendingFees').value = total - payNow;
+    }
+    updatePaymentPercentage();
+}
+
+function calculatePaymentFromAmount() {
+    const total = parseInt(document.getElementById('sTotalFees').value) || 0;
+    const payNow = parseInt(document.getElementById('sPayNow').value) || 0;
+    if (document.getElementById('sPendingFees')) {
+        document.getElementById('sPendingFees').value = total - payNow;
+    }
+    updatePaymentPercentage();
+}
+
+function updatePaymentPercentage() {
+    const total = parseInt(document.getElementById('sTotalFees').value) || 0;
+    const payNow = parseInt(document.getElementById('sPayNow').value) || 0;
+    const percentageEl = document.getElementById('paymentPercentage');
+    const partialPayLabel = document.querySelector('#partialPayCard small');
+    if (total > 0) {
+        const percentage = Math.round((payNow / total) * 100);
+        if (percentageEl) percentageEl.textContent = `You are paying: ${percentage}% of total fees`;
+        if (partialPayLabel) partialPayLabel.textContent = `(${percentage}%)`;
+    }
 }
 
 function toggleTransactionId() {
     const mode = document.getElementById('sPayMode').value;
     const isUPI = mode === 'UPI';
-    const isOnline = mode === 'Online';
     const notCash = mode !== 'Cash';
     document.getElementById('sTransactionGroup').style.display = notCash ? 'block' : 'none';
-    const rg = document.getElementById('sRazorpayGroup');
-    if (rg) rg.style.display = isOnline ? 'block' : 'none';
-    if (!isOnline) {
-        const rzBtn = document.getElementById('razorpayBtn');
-        const rzStatus = document.getElementById('razorpayStatus');
-        if (rzBtn) { rzBtn.disabled = false; rzBtn.innerHTML = '<i class="fas fa-lock"></i> Pay Now via Razorpay'; }
-        if (rzStatus) rzStatus.style.display = 'none';
+    document.getElementById('sReceiptGroup').style.display = mode === 'Cash' ? 'block' : 'none';
+}
+
+function selectPaymentMode(mode) {
+    document.querySelectorAll('.payment-mode-btn').forEach(btn => {
+        btn.style.background = 'rgba(255,255,255,0.1)';
+        btn.style.color = '#fff';
+        btn.style.border = '1px solid rgba(255,255,255,0.3)';
+    });
+    const selectedBtn = document.querySelector(`[data-mode="${mode}"]`);
+    if (selectedBtn) {
+        selectedBtn.style.background = 'rgba(59,130,246,0.5)';
+        selectedBtn.style.color = '#fff';
+        selectedBtn.style.border = '1px solid rgba(59,130,246,0.6)';
+    }
+
+    document.getElementById('upiSection').style.display = mode === 'upi' ? 'block' : 'none';
+    document.getElementById('cashSection').style.display = mode === 'cash' ? 'block' : 'none';
+    document.getElementById('sPayMode').value = mode;
+}
+
+function calculatePaymentPercentage() {
+    const total = parseInt(document.getElementById('sTotalFees').value) || 0;
+    const payNow = parseInt(document.getElementById('sPayNow').value) || 0;
+    const percentageDisplay = document.getElementById('paymentPercentageDisplay');
+    
+    if (total > 0 && payNow > 0) {
+        const percentage = Math.round((payNow / total) * 100);
+        percentageDisplay.style.display = 'block';
+        document.getElementById('paymentPercentage').textContent = percentage + '%';
+    } else {
+        percentageDisplay.style.display = 'none';
     }
 }
 
@@ -7654,7 +8698,7 @@ async function checkAdminDuplicateMobile() {
     
     if (phone.length === 10 && /^[6-9]/.test(phone)) {
         try {
-            const res = await fetch('/api/students/check-mobile?phone=' + phone);
+            const res = await fetch('/api/check-mobile?phone=' + phone);
             const data = await res.json();
             if (data.exists) {
                 errorMsg.textContent = '⚠️ This mobile number is already registered!';
@@ -7685,7 +8729,7 @@ async function checkAdminDuplicateEmail() {
     }
     
     try {
-        const res = await fetch('/api/students/check-email?email=' + encodeURIComponent(email));
+        const res = await fetch('/api/check-email?email=' + encodeURIComponent(email));
         const data = await res.json();
         
         if (data.exists) {
@@ -7717,7 +8761,7 @@ async function checkAdminDuplicateAadhar() {
     }
     
     try {
-        const res = await fetch('/api/students/check-aadhar?aadhar=' + aadhar);
+        const res = await fetch('/api/check-aadhar?aadhar=' + aadhar);
         const data = await res.json();
         
         if (data.exists) {
@@ -7832,7 +8876,7 @@ function printAdminApplication() {
     html += '        body { font-family: \'Times New Roman\', serif; margin: 0; padding: 30px; background: white; }\n';
     html += '    </style>\n';
     html += '</head>\n';
-    html += '    <body><div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px;" onerror="this.parentElement.style.display=\'none\'"></div>' + content + '</body>\n';
+    html += '    <body><div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px; border-radius: 12px;" onerror="this.parentElement.style.display=\'none\'"></div>' + content + '</body>\n';
     html += '</html>';
     printWindow.document.write(html);
     printWindow.document.close();
@@ -7909,7 +8953,7 @@ async function openStudentProfile(id) {
         
         html += '<!-- Personal Details -->';
         html += '<div style="margin:20px 0;">';
-        html += '<h4 style="margin:0 0 12px;color:#2563eb;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">Personal Information</h4>';
+        html += '<h4 style="margin:0 0 12px;color:#60a5fa;border-bottom:2px solid rgba(255,255,255,0.2);padding-bottom:8px;">Personal Information</h4>';
         html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">';
         html += '<div><strong>Father\'s Name:</strong> ' + (s.fatherName || '-') + '</div>';
         html += '<div><strong>Mother\'s Name:</strong> ' + (s.motherName || '-') + '</div>';
@@ -7924,9 +8968,9 @@ async function openStudentProfile(id) {
         
         html += '<!-- Educational Qualification -->';
         html += '<div style="margin:20px 0;">';
-        html += '<h4 style="margin:0 0 12px;color:#2563eb;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">Educational Qualification</h4>';
+        html += '<h4 style="margin:0 0 12px;color:#60a5fa;border-bottom:2px solid rgba(255,255,255,0.2);padding-bottom:8px;">Educational Qualification</h4>';
         if (qual && qual.tenth) {
-            html += '<div style="background:#f8fafc;padding:12px;border-radius:6px;margin-bottom:10px;">';
+            html += '<div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);padding:12px;border-radius:6px;margin-bottom:10px;">';
             html += '<strong>10th Standard:</strong>';
             html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px;">';
             html += '<div>Board: ' + (qual.tenth.board || '-') + '</div>';
@@ -7940,9 +8984,9 @@ async function openStudentProfile(id) {
             html += '</div>';
             html += '</div>';
         }
-        
+
         if (qual && qual.twelfth) {
-            html += '<div style="background:#f8fafc;padding:12px;border-radius:6px;margin-bottom:10px;">';
+            html += '<div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);padding:12px;border-radius:6px;margin-bottom:10px;">';
             html += '<strong>12th Standard:</strong>';
             html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px;">';
             html += '<div>Board: ' + (qual.twelfth.board || '-') + '</div>';
@@ -7955,9 +8999,9 @@ async function openStudentProfile(id) {
             html += '</div>';
             html += '</div>';
         }
-        
+
         if (qual && qual.graduation) {
-            html += '<div style="background:#f8fafc;padding:12px;border-radius:6px;margin-bottom:10px;">';
+            html += '<div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);padding:12px;border-radius:6px;margin-bottom:10px;">';
             html += '<strong>Graduation:</strong>';
             html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px;">';
             html += '<div>University: ' + (qual.graduation.university || '-') + '</div>';
@@ -7978,12 +9022,12 @@ async function openStudentProfile(id) {
             html += '<div style="margin:14px 0;"><strong>Documents:</strong> ' + s.documents.map(d => '<a href="' + d + '" target="_blank" style="margin-left:10px;"><i class="fas fa-file"></i> View</a>').join('') + '</div>';
         }
         
-        html += '<h4 style="margin:18px 0 10px;color:#2563eb;">Payment History</h4>';
+        html += '<h4 style="margin:18px 0 10px;color:#60a5fa;border-bottom:2px solid rgba(255,255,255,0.2);padding-bottom:8px;">Payment History</h4>';
         html += '<div class="data-table">';
         html += '<table><thead><tr><th>Date</th><th>Amount</th><th>Type</th><th>Mode</th><th>Txn ID</th><th>Receipt</th></tr></thead>';
         html += '<tbody>' + (payRows || '<tr><td colspan="6" style="text-align:center;">No payments</td></tr>') + '</tbody></table></div>';
-        
-        html += '<h4 style="margin:18px 0 10px;color:#2563eb;">Notifications</h4>';
+
+        html += '<h4 style="margin:18px 0 10px;color:#60a5fa;border-bottom:2px solid rgba(255,255,255,0.2);padding-bottom:8px;">Notifications</h4>';
         html += '<div class="data-table">';
         html += '<table><thead><tr><th>Date</th><th>Message</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>';
         html += '<tbody>' + (notifRows || '<tr><td colspan="5" style="text-align:center;">No notifications</td></tr>') + '</tbody></table></div>';
@@ -8034,6 +9078,46 @@ async function sendStudentSlip(id) {
         if (data.success) showNotification('Email sent!', 'success');
         else showNotification(data.message || 'Email bhejne mein error!', 'error');
     } catch (err) { showNotification('Email error!', 'error'); }
+}
+
+function printStudentSlip(id) {
+    const modalContent = document.querySelector('#studentProfileModal .modal-content');
+    if (!modalContent) {
+        showNotification('Error: Modal content not found!', 'error');
+        return;
+    }
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Student Slip</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                .profile-header { display: flex; gap: 20px; align-items: flex-start; padding: 20px; background: #f8fafc; border-radius: 10px; margin-bottom: 16px; }
+                .profile-photo { width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid #2563eb; }
+                .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+                .profile-meta h2 { margin: 0 0 8px; font-size: 1.25rem; }
+                .profile-meta p { margin: 4px 0; font-size: 0.9rem; }
+                .profile-fees { display: flex; gap: 14px; margin-bottom: 14px; }
+                .fee-box { flex: 1; min-width: 140px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 18px; text-align: center; }
+                .fee-box-label { font-size: 0.8rem; color: #64748b; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; }
+                .fee-box-amt { font-size: 1.35rem; font-weight: 700; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th, td { padding: 10px; border: 1px solid #e2e8f0; text-align: left; }
+                th { background: #f8fafc; }
+                h4 { color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; }
+                @media print { body { -webkit-print-color-adjust: exact; } }
+            </style>
+        </head>
+        <body>
+            ${modalContent.innerHTML}
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.onload = function() {
+        printWindow.print();
+    };
 }
 
 async function generateICard(id) {
@@ -8328,7 +9412,7 @@ async function generateICard(id) {
         html += '    <div class="icard">\n';
         html += '        <div class="keyboard-bg"></div>\n';
         html += '        <div class="icard-header">\n';
-        html += '            <img src="' + (settings.logo || '') + '" alt="Logo" class="icard-logo">\n';
+        html += '            <img src="' + (settings.logo || '') + '" alt="Logo" class="icard-logo" style="border-radius:8px;">\n';
         html += '            <div class="icard-institute">' + (settings.name || 'Institute Name') + '</div>\n';
         html += '        </div>\n';
         html += '        <div class="icard-body">\n';
@@ -8369,6 +9453,43 @@ async function printStudentForm(id) {
         // Parse qualification
         const qual = typeof s.qualification === 'string' ? JSON.parse(s.qualification) : s.qualification;
         
+        // Title Case helper
+        function toTitleCase(str) {
+            if (!str || typeof str !== 'string') return str;
+            const smallWords = /^(a|an|and|as|at|but|by|en|for|if|in|of|on|or|the|to|vs?\.?|via)$/i;
+            return str.replace(/\w\S*/g, (txt, i) => {
+                if (i > 0 && smallWords.test(txt)) return txt.toLowerCase();
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            });
+        }
+        
+        // Generate Application ID and token
+        const year = new Date().getFullYear();
+        const serial = String(s.id || s.rollNo || Date.now()).slice(-5).padStart(5, '0');
+        const appId = 'GCE-' + year + '-' + serial;
+        const todayStr = formatDate(new Date());
+        const place = settings.address || 'Batauli, Surguja (C.G.)';
+        const nowIso = new Date().toISOString();
+        
+        // Tamper token
+        const raw = 'gce|' + appId + '|' + nowIso;
+        let hash = 0;
+        for (let i = 0; i < raw.length; i++) {
+            const chr = raw.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash |= 0;
+        }
+        const token = ('00000000' + Math.abs(hash).toString(16)).slice(-8).toUpperCase();
+        
+        // Fetch QR code
+        let qrDataUrl = '';
+        try {
+            const verifyUrl = window.location.origin + '/verify-application?appId=' + encodeURIComponent(appId);
+            const qrRes = await fetch('/api/qr?text=' + encodeURIComponent(verifyUrl) + '&size=100');
+            const qrData = await qrRes.json();
+            if (qrData.success) qrDataUrl = qrData.dataUrl;
+        } catch (e) { }
+        
         const printWindow = window.open('', '_blank');
         let html = '';
         html += '<!DOCTYPE html>\n';
@@ -8381,16 +9502,12 @@ async function printStudentForm(id) {
         html += '            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }\n';
         html += '        }\n';
         html += '        body { font-family: \'Times New Roman\', serif; margin: 0; padding: 30px; background: white; position: relative; }\n';
-        html += '        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.05; z-index: 0; pointer-events: none; }\n';
-        html += '        .watermark img { width: 600px; height: auto; }\n';
+        html += '        .watermark-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-repeat: repeat; background-size: 200px 200px; opacity: 0.06; z-index: 0; pointer-events: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }\n';
         html += '        .header { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 4px solid #1e40af; padding-bottom: 20px; position: relative; z-index: 1; }\n';
-        html += '        .header-left { flex: 1; }\n';
-        html += '        .logo-name { display: flex; align-items: center; gap: 20px; margin-bottom: 10px; }\n';
-        html += '        .logo-name img { max-height: 120px; max-width: 120px; object-fit: contain; }\n';
-        html += '        .logo-name .text-center { flex: 1; text-align: center; }\n';
-        html += '        .logo-name h1 { margin: 0; color: #1e40af; font-size: 38px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }\n';
-        html += '        .logo-name .subtitle { margin: 3px 0 0; color: #3b82f6; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }\n';
-        html += '        .logo-name .contact-info { margin: 2px 0 0; color: #3b82f6; font-size: 15px; font-weight: 500; letter-spacing: 1px; }\n';
+        html += '        .header-left { flex: 1; text-align: center; }\n';
+        html += '        .header h1 { margin: 0; color: #1e40af; font-size: 38px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }\n';
+        html += '        .header .subtitle { margin: 3px 0 0; color: #3b82f6; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }\n';
+        html += '        .header .contact-info { margin: 2px 0 0; color: #3b82f6; font-size: 15px; font-weight: 500; letter-spacing: 1px; }\n';
         html += '        .personal-section { display: flex; gap: 20px; margin-top: 0; }\n';
         html += '        .personal-table { flex: 1; border-collapse: collapse; border: 2px solid #1e40af; }\n';
         html += '        .personal-table td { padding: 12px 18px; border: 1px solid #1e40af; }\n';
@@ -8402,9 +9519,6 @@ async function printStudentForm(id) {
         html += '        .photo-box img { width: 100%; height: 100%; object-fit: contain; }\n';
         html += '        .sig-box { width: 120px; height: 40px; border: 3px solid #1e40af; border-radius: 6px; overflow: hidden; background: #f8fafc; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }\n';
         html += '        .sig-box img { width: 100%; height: 100%; object-fit: contain; }\n';
-        html += '        .title { text-align: center; margin: 25px 0; }\n';
-        html += '        .title h2 { margin: 0; color: #1e40af; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }\n';
-        html += '        .title .divider { width: 250px; height: 4px; background: linear-gradient(90deg, #1e40af, #3b82f6); margin: 18px auto; }\n';
         html += '        .app-info { background: #eff6ff; padding: 15px; margin-bottom: 20px; border-left: 5px solid #1e40af; border-radius: 4px; }\n';
         html += '        .app-info table { width: 100%; border-collapse: collapse; }\n';
         html += '        .app-info td { padding: 8px; }\n';
@@ -8415,28 +9529,26 @@ async function printStudentForm(id) {
         html += '        .data-table .value { color: #0f172a; font-weight: 500; }\n';
         html += '        .data-table tr:nth-child(even) { background: #f0f9ff; }\n';
         html += '        .data-table .sub-header { background: #dbeafe; font-weight: 700; color: #1e40af; font-size: 15px; }\n';
-        html += '        .section { margin-bottom: 25px; }\n';
-        html += '        .signatures { margin-top: 45px; padding-top: 20px; }\n';
-        html += '        .signatures .flex { display: flex; justify-content: space-between; }\n';
-        html += '        .signatures .line { border-top: 3px solid #1e40af; width: 250px; margin-top: 65px; padding-top: 12px; font-weight: 700; color: #1e40af; font-size: 14px; text-align: center; }\n';
+        html += '        .section { margin-bottom: 25px; page-break-inside: avoid; }\n';
+        html += '        .signatures { margin-top: 45px; padding-top: 20px; page-break-inside: avoid; }\n';
+        html += '        .signatures .flex { display: flex; justify-content: space-between; align-items: flex-start; }\n';
+        html += '        .sig-block { text-align: center; width: 280px; }\n';
+        html += '        .sig-box-dashed { border: 2px dashed #94a3b8; height: 70px; width: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #f8fafc; }\n';
+        html += '        .sig-label { margin-top: 8px; font-weight: 700; color: #1e40af; font-size: 14px; }\n';
+        html += '        .sig-meta { font-size: 12px; color: #64748b; margin-top: 4px; }\n';
         html += '        .footer { margin-top: 35px; padding-top: 18px; border-top: 2px solid #1e40af; text-align: center; font-size: 13px; color: #64748b; }\n';
         html += '        .footer p { margin: 6px 0; }\n';
         html += '        .generated-date { font-size: 12px; }\n';
         html += '    </style>\n';
         html += '</head>\n';
         html += '<body>\n';
-        html += '    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src=\"/uploads/logo/logo.png\" style=\"max-width: 300px; max-height: 300px;\" onerror=\"this.parentElement.style.display=\'none\'\"></div>\n';
+        html += '    <div class="watermark-bg" style="background-image: url(\'' + (settings.logo || '') + '\');"></div>\n';
         html += '    <div class="header">\n';
         html += '        <div class="header-left">\n';
-        html += '            <div class="logo-name">\n';
-        html += '                <img src="' + (settings.logo || '') + '" alt="Logo">\n';
-        html += '                <div class="text-center">\n';
-        html += '                    <h1>' + (settings.name || 'Institute Name') + '</h1>\n';
-        html += '                    <p class="subtitle">Admission Application Form</p>\n';
-        html += '                    <p class="contact-info">' + (settings.address || 'Institute Address') + '</p>\n';
-        html += '                    <p class="contact-info">Phone: ' + (settings.phone || 'XXXXXXXXXX') + ' | Email: ' + (settings.email || 'contact@institute.com') + '</p>\n';
-        html += '                </div>\n';
-        html += '            </div>\n';
+        html += '            <h1>' + (settings.name || 'Institute Name') + '</h1>\n';
+        html += '            <p class="subtitle">Admission Application Form</p>\n';
+        html += '            <p class="contact-info">' + (settings.address || 'Institute Address') + '</p>\n';
+        html += '            <p class="contact-info">Phone: ' + (settings.phone || 'XXXXXXXXXX') + ' | Email: ' + (settings.email || 'contact@institute.com') + '</p>\n';
         html += '        </div>\n';
         html += '    </div>\n';
         html += '    \n';
@@ -8444,9 +9556,18 @@ async function printStudentForm(id) {
         html += '        <table>\n';
         html += '            <tr>\n';
         html += '                <td style="font-weight: 700; color: #1e40af; width: 15%;">Application ID:</td>\n';
-        html += '                <td style="font-weight: 600; color: #0f172a;">' + s.id + '</td>\n';
+        html += '                <td style="font-weight: 600; color: #0f172a;">' + appId + '</td>\n';
         html += '                <td style="font-weight: 700; color: #1e40af; width: 10%;">Date:</td>\n';
-        html += '                <td style="font-weight: 600; color: #0f172a;">' + s.admissionDate + '</td>\n';
+        html += '                <td style="font-weight: 600; color: #0f172a;">' + todayStr + '</td>\n';
+        html += '                <td style="width: 90px; vertical-align: middle;" rowspan="2">\n';
+        html += '                    <img src="' + qrDataUrl + '" alt="Verify" style="width: 80px; height: 80px; display: block; border: 2px solid #1e40af; border-radius: 6px; background: #fff;" onerror="this.style.display=\'none\'">\n';
+        html += '                </td>\n';
+        html += '            </tr>\n';
+        html += '            <tr>\n';
+        html += '                <td style="font-weight: 700; color: #1e40af; width: 15%;">Roll No:</td>\n';
+        html += '                <td style="font-weight: 600; color: #0f172a;">' + (s.rollNo || '-') + '</td>\n';
+        html += '                <td style="font-weight: 700; color: #1e40af; width: 10%;">Place:</td>\n';
+        html += '                <td style="font-weight: 600; color: #0f172a;">' + place + '</td>\n';
         html += '            </tr>\n';
         html += '        </table>\n';
         html += '    </div>\n';
@@ -8455,11 +9576,11 @@ async function printStudentForm(id) {
         html += '        <h3 class="section-title">1. Personal Information</h3>\n';
         html += '        <div class="personal-section">\n';
         html += '            <table class="personal-table">\n';
-        html += '                <tr><td class="label">Full Name</td><td class="value">' + s.name + '</td><td class="label">Father\'s Name</td><td class="value">' + s.fatherName + '</td></tr>\n';
-        html += '                <tr><td class="label">Mother\'s Name</td><td class="value">' + s.motherName + '</td><td class="label">Date of Birth</td><td class="value">' + s.dob + '</td></tr>\n';
-        html += '                <tr><td class="label">Gender</td><td class="value">' + s.gender + '</td><td class="label">Category</td><td class="value">' + s.category + '</td></tr>\n';
-        html += '                <tr><td class="label">Mobile Number</td><td class="value">' + s.phone + '</td><td class="label">Email Address</td><td class="value">' + s.email + '</td></tr>\n';
-        html += '                <tr><td class="label">Aadhar Number</td><td class="value">' + s.aadhar + '</td><td class="label">Annual Income</td><td class="value">' + s.familyIncome + '</td></tr>\n';
+        html += '                <tr><td class="label">Full Name</td><td class="value">' + (toTitleCase(s.name) || '-') + '</td><td class="label">Father\'s Name</td><td class="value">' + (toTitleCase(s.fatherName) || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Mother\'s Name</td><td class="value">' + (toTitleCase(s.motherName) || '-') + '</td><td class="label">Date of Birth</td><td class="value">' + (s.dob || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Gender</td><td class="value">' + (s.gender || '-') + '</td><td class="label">Category</td><td class="value">' + (s.category || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Mobile Number</td><td class="value">' + (s.phone || '-') + '</td><td class="label">Email Address</td><td class="value">' + (s.email || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Aadhar Number</td><td class="value">' + (s.aadhar || '-') + '</td><td class="label">Annual Income</td><td class="value">' + (s.familyIncome || '-') + '</td></tr>\n';
         html += '            </table>\n';
         html += '            <div class="photo-sig-right">\n';
         html += '                <div class="photo-box">\n';
@@ -8475,8 +9596,8 @@ async function printStudentForm(id) {
         html += '    <div class="section">\n';
         html += '        <h3 class="section-title">2. Course Information</h3>\n';
         html += '        <table class="data-table">\n';
-        html += '            <tr><td class="label">Course Name</td><td class="value">' + s.course + '</td><td class="label">Batch</td><td class="value">' + s.batch + '</td></tr>\n';
-        html += '            <tr><td class="label">Roll Number</td><td class="value">' + s.rollNo + '</td><td class="label">Admission Date</td><td class="value">' + s.admissionDate + '</td></tr>\n';
+        html += '            <tr><td class="label">Course Name</td><td class="value">' + (toTitleCase(s.course) || '-') + '</td><td class="label">Batch</td><td class="value">' + (toTitleCase(s.batch) || '-') + '</td></tr>\n';
+        html += '            <tr><td class="label">Roll Number</td><td class="value">' + (s.rollNo || '-') + '</td><td class="label">Admission Date</td><td class="value">' + (s.admissionDate || '-') + '</td></tr>\n';
         html += '        </table>\n';
         html += '    </div>\n';
         html += '    \n';
@@ -8485,30 +9606,30 @@ async function printStudentForm(id) {
         if (qual && qual.tenth) {
             html += '        <table class="data-table" style="margin-bottom: 10px;">\n';
             html += '            <tr class="sub-header"><td colspan="4">10th Standard</td></tr>\n';
-            html += '            <tr><td class="label">Board</td><td class="value">' + qual.tenth.board + '</td><td class="label">School</td><td class="value">' + qual.tenth.school + '</td></tr>\n';
-            html += '            <tr><td class="label">Year</td><td class="value">' + qual.tenth.year + '</td><td class="label">Roll No</td><td class="value">' + qual.tenth.roll + '</td></tr>\n';
-            html += '            <tr><td class="label">Total Marks</td><td class="value">' + qual.tenth.total + '</td><td class="label">Obtained Marks</td><td class="value">' + qual.tenth.obtained + '</td></tr>\n';
-            html += '            <tr><td class="label">Percentage</td><td class="value">' + qual.tenth.percentage + '</td><td class="label">Division</td><td class="value">' + qual.tenth.division + '</td></tr>\n';
+            html += '            <tr><td class="label">Board</td><td class="value">' + (toTitleCase(qual.tenth.board) || '-') + '</td><td class="label">School</td><td class="value">' + (toTitleCase(qual.tenth.school) || '-') + '</td></tr>\n';
+            html += '            <tr><td class="label">Year</td><td class="value">' + (qual.tenth.year || '-') + '</td><td class="label">Roll No</td><td class="value">' + (qual.tenth.roll || '-') + '</td></tr>\n';
+            html += '            <tr><td class="label">Total Marks</td><td class="value">' + (qual.tenth.total || '-') + '</td><td class="label">Obtained Marks</td><td class="value">' + (qual.tenth.obtained || '-') + '</td></tr>\n';
+            html += '            <tr><td class="label">Percentage</td><td class="value">' + (qual.tenth.percentage || '-') + '</td><td class="label">Division</td><td class="value">' + (qual.tenth.division || '-') + '</td></tr>\n';
             html += '        </table>\n';
         }
         
         if (qual && qual.twelfth) {
             html += '        <table class="data-table" style="margin-bottom: 10px;">\n';
             html += '            <tr class="sub-header"><td colspan="4">12th Standard</td></tr>\n';
-            html += '            <tr><td class="label">Board</td><td class="value">' + qual.twelfth.board + '</td><td class="label">School</td><td class="value">' + qual.twelfth.school + '</td></tr>\n';
-            html += '            <tr><td class="label">Stream</td><td class="value">' + qual.twelfth.stream + '</td><td class="label">Year</td><td class="value">' + qual.twelfth.year + '</td></tr>\n';
-            html += '            <tr><td class="label">Roll No</td><td class="value">' + qual.twelfth.roll + '</td><td class="label">Percentage</td><td class="value">' + qual.twelfth.percentage + '</td></tr>\n';
-            html += '            <tr><td class="label">Division</td><td class="value">' + qual.twelfth.division + '</td><td class="value"></td><td class="value"></td></tr>\n';
+            html += '            <tr><td class="label">Board</td><td class="value">' + (toTitleCase(qual.twelfth.board) || '-') + '</td><td class="label">School</td><td class="value">' + (toTitleCase(qual.twelfth.school) || '-') + '</td></tr>\n';
+            html += '            <tr><td class="label">Stream</td><td class="value">' + (toTitleCase(qual.twelfth.stream) || '-') + '</td><td class="label">Year</td><td class="value">' + (qual.twelfth.year || '-') + '</td></tr>\n';
+            html += '            <tr><td class="label">Roll No</td><td class="value">' + (qual.twelfth.roll || '-') + '</td><td class="label">Percentage</td><td class="value">' + (qual.twelfth.percentage || '-') + '</td></tr>\n';
+            html += '            <tr><td class="label">Division</td><td class="value">' + (qual.twelfth.division || '-') + '</td><td class="value"></td><td class="value"></td></tr>\n';
             html += '        </table>\n';
         }
         
         if (qual && qual.graduation) {
             html += '        <table class="data-table">\n';
             html += '            <tr class="sub-header"><td colspan="4">Graduation</td></tr>\n';
-            html += '            <tr><td class="label">University</td><td class="value">' + qual.graduation.university + '</td><td class="label">College</td><td class="value">' + qual.graduation.college + '</td></tr>\n';
-            html += '            <tr><td class="label">Degree</td><td class="value">' + qual.graduation.degree + '</td><td class="label">Stream</td><td class="value">' + qual.graduation.stream + '</td></tr>\n';
-            html += '            <tr><td class="label">Year</td><td class="value">' + qual.graduation.year + '</td><td class="label">Enrollment No</td><td class="value">' + qual.graduation.enroll + '</td></tr>\n';
-            html += '            <tr><td class="label">Percentage</td><td class="value">' + qual.graduation.percentage + '</td><td class="label">Division</td><td class="value">' + qual.graduation.division + '</td></tr>\n';
+            html += '            <tr><td class="label">University</td><td class="value">' + (toTitleCase(qual.graduation.university) || '-') + '</td><td class="label">College</td><td class="value">' + (toTitleCase(qual.graduation.college) || '-') + '</td></tr>\n';
+            html += '            <tr><td class="label">Degree</td><td class="value">' + (toTitleCase(qual.graduation.degree) || '-') + '</td><td class="label">Stream</td><td class="value">' + (toTitleCase(qual.graduation.stream) || '-') + '</td></tr>\n';
+            html += '            <tr><td class="label">Year</td><td class="value">' + (qual.graduation.year || '-') + '</td><td class="label">Enrollment No</td><td class="value">' + (qual.graduation.enroll || '-') + '</td></tr>\n';
+            html += '            <tr><td class="label">Percentage</td><td class="value">' + (qual.graduation.percentage || '-') + '</td><td class="label">Division</td><td class="value">' + (qual.graduation.division || '-') + '</td></tr>\n';
             html += '        </table>\n';
         }
         html += '    </div>\n';
@@ -8522,34 +9643,52 @@ async function printStudentForm(id) {
         html += '    </div>\n';
         html += '    \n';
         html += '    <div class="section">\n';
-        html += '        <h3 class="section-title">5. Declaration</h3>\n';
-        html += '        <div style="background: #f8fafc; padding: 15px; border: 2px solid #1e40af; margin-top: 0;">\n';
-        html += '            <ol style="margin: 0; padding-left: 20px; line-height: 1.8; color: #0f172a;">\n';
-        html += '                <li>Maine jo bhi jaankari di hai wo bilkul sahi aur sacchi hai.</li>\n';
-        html += '                <li>Main institute ke sabhi niyam aur kanoon manne ko taiyaar hun.</li>\n';
-        html += '                <li>Mujhe pata hai ki ek baar jama ki gayi fees refundable nahi hogi.</li>\n';
-        html += '                <li>Main minimum 75% attendance rakhne ka pran karta hun.</li>\n';
-        html += '                <li>Main class mein shant aur vyavasthit rahunga/karungi.</li>\n';
-        html += '                <li>Main institute ki property (computer, furniture, etc.) ka dhyan se isthapana karunga/karungi.</li>\n';
-        html += '                <li>Main kisi bhi tarah ka ragging, badtameezi ya ghatna mein hissa nahi lunga/lungi.</li>\n';
-        html += '                <li>Main teachers aur staff ka samman karunga/karungi.</li>\n';
-        html += '                <li>Main assignments aur projects ko samay par submit karunga/karungi.</li>\n';
-        html += '                <li>Main exam ke niyam ka paalan karunga/karungi aur nakal nahi karunga/karungi.</li>\n';
+        html += '        <h3 class="section-title">5. Declaration &amp; Undertaking (घोषणा एवं प्रतिज्ञा पत्र)</h3>\n';
+        html += '        <div style="background: #f8fafc; padding: 18px; border: 2px solid #1e40af; margin-top: 0;">\n';
+        html += '            <p style="margin: 0 0 12px 0; font-weight: 600; color: #1e40af; font-size: 13px;">I, the undersigned, hereby declare and solemnly affirm that (मैं नीचे हस्ताक्षर कर्ता, घोषणा एवं शपथपूर्वक पुष्टि करता/करती हूं कि):</p>\n';
+        html += '            <ol style="margin: 0; padding-left: 22px; line-height: 1.8; color: #0f172a; font-size: 13px;">\n';
+        html += '                <li>All information furnished in this application is true, complete and correct to the best of my knowledge. (इस आवेदन में दी गई सभी जानकारी मेरी जानकारी में सही, पूर्ण और सत्य है।)</li>\n';
+        html += '                <li>I have read and understood all the rules, regulations and disciplinary norms of the institute and agree to abide by them. (मैंने संस्थान के सभी नियम, विनियम और अनुशासनात्मक मानदंडों को पढ़ लिया है और उनका पालन करने के लिए सहमत हूं।)</li>\n';
+        html += '                <li>I understand that the admission fee once paid is non-refundable under any circumstances. (मुझे पता है कि एक बार जमा की गई फीस किसी भी स्थिति में वापस नहीं की जाएगी।)</li>\n';
+        html += '                <li>I undertake to maintain a minimum of 75% attendance throughout the course duration. (मैं पाठ्यक्रम की अवधि के दौरान न्यूनतम 75% उपस्थिति बनाए रखने का वचन देता/देती हूं।)</li>\n';
+        html += '                <li>I will maintain decorum and discipline during classes and within institute premises. (मैं कक्षाओं और संस्थान परिसर के भीतर शालीनता और अनुशासन बनाए रखूंगा/रखूंगी।)</li>\n';
+        html += '                <li>I will take proper care of institute property including computers, furniture and equipment; and shall be liable for any damage caused by negligence. (मैं संस्थान की संपत्ति का उचित ध्यान रखूंगा/रखूंगी और लापरवाही से हुए किसी भी नुकसान के लिए उत्तरदायी होऊंगा/होऊंगी।)</li>\n';
+        html += '                <li>I will not engage in or support ragging, misconduct, indiscipline or any unlawful activity. (मैं रैगिंग, दुर्व्यवहार, अनुशासनहीनता या किसी भी गैरकानूनी गतिविधि में भाग नहीं लूंगा/लूंगी।)</li>\n';
+        html += '                <li>I will respect all faculty members, staff and fellow students at all times. (मैं हमेशा सभी संकाय सदस्यों, कर्मचारियों और सहपाठियों का सम्मान करूंगा/करूंगी।)</li>\n';
+        html += '                <li>I will submit all assignments, projects and practical work within the stipulated deadlines. (मैं निर्धारित समय सीमा के भीतर सभी असाइनमेंट, प्रोजेक्ट और प्रैक्टिकल कार्य जमा करूंगा/करूंगी।)</li>\n';
+        html += '                <li>I will strictly follow all examination rules and will not resort to unfair means or cheating. (मैं सभी परीक्षा नियमों का कड़ाई से पालन करूंगा/करूंगी और किसी भी अनुचित साधन या नकल का सहारा नहीं लूंगा/लूंगी।)</li>\n';
         html += '            </ol>\n';
+        html += '            <p style="margin: 12px 0 0 0; font-weight: 700; color: #dc2626; font-size: 13px;">I understand that any false statement or concealment of facts may lead to cancellation of my admission and legal action. (मुझे पता है कि कोई भी झूठा बयान या तथ्यों को छिपाने पर मेरा प्रवेश रद्द किया जा सकता है और कानूनी कार्रवाई की जा सकती है।)</p>\n';
         html += '        </div>\n';
         html += '    </div>\n';
         html += '    \n';
         html += '    <div class="signatures">\n';
         html += '        <div class="flex">\n';
-        html += '            <div class="line">Student Signature</div>\n';
-        html += '            <div class="line">Institute Seal & Signature</div>\n';
+        html += '            <div class="sig-block">\n';
+        html += '                <div class="sig-box-dashed"><span style="color: #94a3b8; font-size: 12px;">Student Signature</span></div>\n';
+        html += '                <div class="sig-label">Student Signature</div>\n';
+        html += '                <div class="sig-meta">Date: ' + todayStr + '</div>\n';
+        html += '                <div class="sig-meta">Place: ' + place + '</div>\n';
+        html += '            </div>\n';
+        html += '            <div class="sig-block">\n';
+        html += '                <div class="sig-box-dashed"><span style="color: #94a3b8; font-size: 12px;">Parent / Guardian Signature</span></div>\n';
+        html += '                <div class="sig-label">Parent / Guardian Signature</div>\n';
+        html += '                <div class="sig-meta">Date: ' + todayStr + '</div>\n';
+        html += '                <div class="sig-meta">Place: ' + place + '</div>\n';
+        html += '            </div>\n';
+        html += '            <div class="sig-block">\n';
+        html += '                <div class="sig-box-dashed"><span style="color: #94a3b8; font-size: 12px;">Authorized Signature &amp; Official Seal</span></div>\n';
+        html += '                <div class="sig-label">Authorized Signature &amp; Official Seal</div>\n';
+        html += '                <div class="sig-meta">Date: ' + todayStr + '</div>\n';
+        html += '                <div class="sig-meta">Place: ' + place + '</div>\n';
+        html += '            </div>\n';
         html += '        </div>\n';
         html += '    </div>\n';
         html += '    \n';
         html += '    <div class="footer">\n';
         html += '        <p style="font-weight: 600;">This is a computer-generated admission application form.</p>\n';
         html += '        <p>For any queries, please contact the institute administration.</p>\n';
-        html += '        <p class="generated-date">Generated on: ' + formatDate(new Date()) + '</p>\n';
+        html += '        <p class="generated-date">Generated on: ' + formatDate(new Date()) + ' | Token: ' + token + '</p>\n';
         html += '    </div>\n';
         html += '    \n';
         html += '    <script>\n';
@@ -8581,7 +9720,10 @@ async function loadCarouselAdmin() {
             html += '<img src="' + item.image + '" alt="' + (item.caption || 'Slide') + '">';
             html += '<div class="carousel-admin-info">';
             html += '<p>' + (item.caption || '<em style="color:#999">No caption</em>') + '</p>';
+            html += '<div style="display:flex; gap:8px; margin-top:8px;">';
+            html += '<button class="action-btn edit-btn" onclick="editCarouselItem(' + item.id + ')"><i class="fas fa-edit"></i> Edit</button>';
             html += '<button class="action-btn delete-btn" onclick="deleteCarouselItem(' + item.id + ')"><i class="fas fa-trash"></i> Delete</button>';
+            html += '</div>';
             html += '</div>';
             html += '</div>';
             return html;
@@ -8589,32 +9731,88 @@ async function loadCarouselAdmin() {
     } catch (err) { showNotification('Error loading carousel!', 'error'); }
 }
 
-function openCarouselModal() {
+function openCarouselModal(editMode = false, itemId = null) {
     document.getElementById('carouselCaption').value = '';
     document.getElementById('carouselFile').value = '';
     document.getElementById('carouselPreviewImg').style.display = 'none';
     document.getElementById('carouselPlaceholder').style.display = 'block';
     carouselImageFile = null;
     document.getElementById('carouselModal').classList.add('active');
+    document.getElementById('carouselModal').dataset.editMode = editMode || 'false';
+    document.getElementById('carouselModal').dataset.itemId = itemId || '';
+    
+    // Update modal title and button text based on mode
+    const titleEl = document.getElementById('carouselModalTitle');
+    const saveBtnEl = document.getElementById('carouselSaveBtn');
+    
+    if (editMode && itemId) {
+        titleEl.textContent = 'Edit Carousel Image';
+        saveBtnEl.textContent = 'Update Carousel';
+        loadCarouselItemForEdit(itemId);
+    } else {
+        titleEl.textContent = 'Add Carousel Image';
+        saveBtnEl.textContent = 'Add to Carousel';
+    }
+}
+
+async function loadCarouselItemForEdit(id) {
+    try {
+        const res = await fetch('/api/carousel');
+        const data = await res.json();
+        if (data.success && data.carousel) {
+            const item = data.carousel.find(i => i.id == id);
+            if (item) {
+                document.getElementById('carouselCaption').value = item.caption || '';
+                document.getElementById('carouselPreviewImg').src = item.image;
+                document.getElementById('carouselPreviewImg').style.display = 'block';
+                document.getElementById('carouselPlaceholder').style.display = 'none';
+            } else {
+                showNotification('Carousel item not found!', 'error');
+            }
+        }
+    } catch (err) { 
+        console.error('Error loading carousel item:', err);
+        showNotification('Error loading carousel item!', 'error'); 
+    }
+}
+
+async function editCarouselItem(id) {
+    openCarouselModal(true, id);
 }
 
 async function saveCarouselItem() {
-    if (!carouselImageFile) { showNotification('Pehle image select karo!', 'error'); return; }
+    const editMode = document.getElementById('carouselModal').dataset.editMode === 'true';
+    const itemId = document.getElementById('carouselModal').dataset.itemId;
+    const caption = document.getElementById('carouselCaption').value;
+    
+    if (!caption) { showNotification('Caption is required!', 'error'); return; }
+    
     const formData = new FormData();
-    formData.append('image', carouselImageFile);
-    formData.append('caption', document.getElementById('carouselCaption').value);
+    if (carouselImageFile) {
+        formData.append('image', carouselImageFile);
+    }
+    formData.append('caption', caption);
+    
     try {
-        const res = await fetch('/api/carousel', { method: 'POST', body: formData });
+        let url = '/api/carousel';
+        let method = 'POST';
+        
+        if (editMode && itemId) {
+            url = '/api/carousel/' + itemId;
+            method = 'PUT';
+        }
+        
+        const res = await fetch(url, { method, body: formData });
         const data = await res.json();
         if (data.success) {
             closeModal('carouselModal');
             carouselImageFile = null;
             loadCarouselAdmin();
-            showNotification('Carousel image added!', 'success');
+            showNotification(editMode ? 'Carousel updated!' : 'Carousel added!', 'success');
         } else {
-            showNotification(data.message || 'Upload failed!', 'error');
+            showNotification(data.message || 'Operation failed!', 'error');
         }
-    } catch (err) { showNotification('Error uploading image!', 'error'); }
+    } catch (err) { showNotification('Error saving carousel!', 'error'); }
 }
 
 async function deleteCarouselItem(id) {
@@ -8624,6 +9822,302 @@ async function deleteCarouselItem(id) {
         loadCarouselAdmin();
         showNotification('Deleted!', 'success');
     } catch (err) { showNotification('Error!', 'error'); }
+}
+
+// ===== Hero Text Management =====
+async function loadHeroText() {
+    try {
+        const res = await fetch('/api/hero-text');
+        const data = await res.json();
+        if (data.success && data.heroText) {
+            // Desktop fields
+            document.getElementById('heroHeading').value = data.heroText.heading || '';
+            document.getElementById('heroSubheading').value = data.heroText.subheading || '';
+            document.getElementById('heroHeadingSize').value = data.heroText.headingSize || 3;
+            document.getElementById('heroSubheadingSize').value = data.heroText.subheadingSize || 1.3;
+            document.getElementById('heroAnimation').value = data.heroText.animation || 'none';
+            document.getElementById('heroButton1Text').value = data.heroText.button1Text || 'View Courses';
+            document.getElementById('heroButton2Text').value = data.heroText.button2Text || 'Apply Online';
+            
+            // Mobile fields
+            document.getElementById('heroHeadingMobile').value = data.heroText.headingMobile || '';
+            document.getElementById('heroSubheadingMobile').value = data.heroText.subheadingMobile || '';
+            document.getElementById('heroHeadingSizeMobile').value = data.heroText.headingSizeMobile || 1.2;
+            document.getElementById('heroSubheadingSizeMobile').value = data.heroText.subheadingSizeMobile || 1;
+            document.getElementById('heroButton1TextMobile').value = data.heroText.button1TextMobile || 'View Courses';
+            document.getElementById('heroButton2TextMobile').value = data.heroText.button2TextMobile || 'Apply Online';
+            
+            // Setup hero tab switching
+            setupHeroTabs();
+            // Setup hero section tab switching
+            setupHeroSectionTabs();
+        }
+    } catch (err) {
+        console.error('Error loading hero text:', err);
+        showNotification('Error loading hero text!', 'error');
+    }
+}
+
+function setupHeroTabs() {
+    const heroTabs = document.querySelectorAll('[data-hero-tab]');
+    heroTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.dataset.heroTab;
+
+            // Remove active class from all tabs
+            heroTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            // Hide all tab contents
+            document.querySelectorAll('.hero-tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Show selected tab content
+            document.getElementById('hero-tab-' + tabName).style.display = 'block';
+        });
+    });
+}
+
+function setupHeroSectionTabs() {
+    const heroSectionTabs = document.querySelectorAll('[data-hero-section-tab]');
+    heroSectionTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.dataset.heroSectionTab;
+
+            // Remove active class from all tabs
+            heroSectionTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            // Hide all tab contents
+            document.querySelectorAll('.hero-section-tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Show selected tab content
+            document.getElementById('hero-section-tab-' + tabName).style.display = 'block';
+        });
+    });
+}
+
+function setupHomepageSectionsTabs() {
+    const homepageSectionTabs = document.querySelectorAll('[data-homepage-section-tab]');
+    homepageSectionTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.dataset.homepageSectionTab;
+
+            // Remove active class from all tabs
+            homepageSectionTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            // Hide all tab contents
+            document.querySelectorAll('.homepage-section-tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Show selected tab content
+            document.getElementById('homepage-section-tab-' + tabName).style.display = 'block';
+        });
+    });
+}
+
+// ===== Enquiries Management =====
+async function loadEnquiries() {
+    try {
+        const res = await fetch('/api/enquiries');
+        const result = await res.json();
+        const enquiries = Array.isArray(result) ? result : (result.enquiries || []);
+        
+        const enqTbody = document.querySelector('#enquiriesTable tbody');
+        if (!enqTbody) return;
+        
+        if (enquiries.length > 0) {
+            enqTbody.innerHTML = enquiries.map(e => {
+                const statusBadge = e.replied
+                    ? '<span class="enq-badge enq-badge-replied">Replied</span>'
+                    : '<span class="enq-badge enq-badge-pending">Pending</span>';
+                const safeMsg = (e.message || '-').replace(/"/g, '&quot;');
+                return `<tr>
+                    <td><input type="checkbox" class="enquiry-checkbox" data-id="${e.id}"></td>
+                    <td style="font-weight:600;">${e.name || '-'}</td>
+                    <td style="font-size:13px;">${e.email || '-'}</td>
+                    <td style="font-size:13px;">${e.phone || '-'}</td>
+                    <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;" title="${safeMsg}">${e.message || '-'}</td>
+                    <td style="font-size:13px;">${e.date || '-'}</td>
+                    <td>${statusBadge}</td>
+                    <td><button class="action-btn edit-btn" onclick="openEnquiryReply(${e.id})" title="Reply" style="padding:5px 10px;font-size:12px;"><i class="fas fa-reply"></i> ${e.replied ? 'View' : 'Reply'}</button></td>
+                </tr>`;
+            }).join('');
+        } else {
+            enqTbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:20px;">No enquiries yet</td></tr>';
+        }
+    } catch (err) {
+        console.error('Error loading enquiries:', err);
+    }
+}
+
+// ===== Social Media Management =====
+async function loadSocialMedia() {
+    try {
+        const res = await fetch('/api/social-media');
+        const data = await res.json();
+        if (data.success && data.socialMedia) {
+            document.getElementById('facebookUrl').value = data.socialMedia.facebookUrl || '';
+            document.getElementById('instagramUrl').value = data.socialMedia.instagramUrl || '';
+            document.getElementById('whatsappUrl').value = data.socialMedia.whatsappUrl || '';
+            document.getElementById('youtubeUrl').value = data.socialMedia.youtubeUrl || '';
+            document.getElementById('linkedinUrl').value = data.socialMedia.linkedinUrl || '';
+        }
+    } catch (err) {
+        console.error('Error loading social media:', err);
+        showNotification('Error loading social media!', 'error');
+    }
+}
+
+async function saveSocialMedia() {
+    const socialMedia = {
+        facebookUrl: document.getElementById('facebookUrl').value,
+        instagramUrl: document.getElementById('instagramUrl').value,
+        whatsappUrl: document.getElementById('whatsappUrl').value,
+        youtubeUrl: document.getElementById('youtubeUrl').value,
+        linkedinUrl: document.getElementById('linkedinUrl').value
+    };
+    
+    try {
+        const res = await fetch('/api/social-media', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(socialMedia)
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Social media saved!', 'success');
+        } else {
+            showNotification(data.message || 'Save failed!', 'error');
+        }
+    } catch (err) {
+        console.error('Error saving social media:', err);
+        showNotification('Error saving social media!', 'error');
+    }
+}
+
+// ===== Section Visibility Management =====
+async function loadSectionVisibility() {
+    try {
+        const res = await fetch('/api/section-visibility');
+        const data = await res.json();
+        if (data.success && data.sections) {
+            const sections = data.sections;
+            ['carousel','notices','courses','blog','about','gallery','testimonials','contact'].forEach(key => {
+                const el = document.getElementById('section-' + key);
+                if (el) el.checked = sections[key] !== false;
+            });
+        }
+    } catch (err) {
+        console.error('Error loading section visibility:', err);
+    }
+}
+
+async function saveSectionVisibility() {
+    const sections = {};
+    ['carousel','notices','courses','blog','about','gallery','testimonials','contact'].forEach(key => {
+        const el = document.getElementById('section-' + key);
+        if (el) sections[key] = el.checked;
+    });
+    
+    try {
+        const res = await fetch('/api/section-visibility', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sections)
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Section visibility saved!', 'success');
+        } else {
+            showNotification(data.message || 'Save failed!', 'error');
+        }
+    } catch (err) {
+        console.error('Error saving section visibility:', err);
+        showNotification('Error saving section visibility!', 'error');
+    }
+}
+
+// ===== Section Texts Management =====
+const SECTION_TEXT_KEYS = ['notices','courses','blog','about','gallery','testimonials','contact'];
+
+async function loadSectionTexts() {
+    try {
+        const res = await fetch('/api/section-texts');
+        const data = await res.json();
+        if (data.success && data.texts) {
+            SECTION_TEXT_KEYS.forEach(key => {
+                const el = document.getElementById('text-' + key);
+                if (el) el.value = data.texts[key] || '';
+            });
+        }
+    } catch (err) {
+        console.error('Error loading section texts:', err);
+    }
+}
+
+async function saveSectionTexts() {
+    const texts = {};
+    SECTION_TEXT_KEYS.forEach(key => {
+        const el = document.getElementById('text-' + key);
+        if (el) texts[key] = el.value;
+    });
+    
+    try {
+        const res = await fetch('/api/section-texts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(texts)
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Section texts saved!', 'success');
+        } else {
+            showNotification(data.message || 'Save failed!', 'error');
+        }
+    } catch (err) {
+        console.error('Error saving section texts:', err);
+        showNotification('Error saving section texts!', 'error');
+    }
+}
+
+async function saveHeroText() {
+    const heroText = {
+        // Desktop fields
+        heading: document.getElementById('heroHeading').value,
+        subheading: document.getElementById('heroSubheading').value,
+        headingSize: parseFloat(document.getElementById('heroHeadingSize').value),
+        subheadingSize: parseFloat(document.getElementById('heroSubheadingSize').value),
+        animation: document.getElementById('heroAnimation').value,
+        button1Text: document.getElementById('heroButton1Text').value,
+        button2Text: document.getElementById('heroButton2Text').value,
+        // Mobile fields
+        headingMobile: document.getElementById('heroHeadingMobile').value,
+        subheadingMobile: document.getElementById('heroSubheadingMobile').value,
+        headingSizeMobile: parseFloat(document.getElementById('heroHeadingSizeMobile').value),
+        subheadingSizeMobile: parseFloat(document.getElementById('heroSubheadingSizeMobile').value),
+        button1TextMobile: document.getElementById('heroButton1TextMobile').value,
+        button2TextMobile: document.getElementById('heroButton2TextMobile').value
+    };
+    
+    try {
+        const res = await fetch('/api/hero-text', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(heroText)
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Hero text saved!', 'success');
+        } else {
+            showNotification(data.message || 'Save failed!', 'error');
+        }
+    } catch (err) { showNotification('Error saving hero text!', 'error'); }
 }
 
 // ===== About =====
@@ -8770,10 +10264,33 @@ async function loadSettings() {
     try {
         const s = await fetch('/api/settings').then(r => r.json());
         document.getElementById('settingName').value = s.name || 'Genius Computer Education';
-        document.getElementById('settingPhone').value = s.phone || '';
+        // Handle phone as array or string
+        if (s.phone) {
+            if (Array.isArray(s.phone)) {
+                setPhoneNumbers(s.phone);
+            } else {
+                setPhoneNumbers([s.phone]);
+            }
+        } else {
+            setPhoneNumbers([]);
+        }
         document.getElementById('settingEmail').value = s.email || '';
         document.getElementById('settingAddress').value = s.address || '';
         document.getElementById('rightClickPrevention').checked = s.rightClickPrevention || false;
+        
+        // Load popup settings
+        if (s.popup) {
+            document.getElementById('popupEnabled').checked = s.popup.enabled || false;
+            document.getElementById('popupTitle').value = s.popup.title || '';
+            document.getElementById('popupDescription').value = s.popup.description || '';
+            setPopupButtons(s.popup.buttons || []);
+        } else {
+            document.getElementById('popupEnabled').checked = false;
+            document.getElementById('popupTitle').value = '';
+            document.getElementById('popupDescription').value = '';
+            setPopupButtons([]);
+        }
+        
         if (s.logo) {
             const img = document.getElementById('logoPreviewImg');
             img.src = s.logo;
@@ -8788,15 +10305,20 @@ async function loadSettings() {
             document.getElementById('signaturePlaceholder').style.display = 'none';
             document.getElementById('removeSignatureBtn').style.display = 'inline-block';
         }
+        if (s.favicon) {
+            const img = document.getElementById('faviconPreviewImg');
+            img.src = s.favicon;
+            img.style.display = 'block';
+            document.getElementById('faviconPlaceholder').style.display = 'none';
+            document.getElementById('removeFaviconBtn').style.display = 'inline-block';
+        }
+        // Load popup image preview
+        loadPopupImagePreview();
         if (s.smtp) {
             document.getElementById('smtpUser').value = s.smtp.user || '';
             document.getElementById('smtpPass').value = s.smtp.pass || '';
             document.getElementById('smtpHost').value = s.smtp.host || 'smtp.gmail.com';
             document.getElementById('smtpPort').value = s.smtp.port || '587';
-        }
-        if (s.razorpay) {
-            document.getElementById('razorpayKeyId').value = s.razorpay.keyId || '';
-            document.getElementById('razorpayKeySecret').value = s.razorpay.keySecret || '';
         }
     } catch (err) { console.error(err); }
     
@@ -8884,29 +10406,208 @@ async function removeSignature() {
     } catch (err) { showNotification('Error!', 'error'); }
 }
 
+async function loadFaviconPreview() {
+    try {
+        const settings = await fetch('/api/settings').then(r => r.json());
+        const previewImg = document.getElementById('faviconPreviewImg');
+        const placeholder = document.getElementById('faviconPlaceholder');
+        const removeBtn = document.getElementById('removeFaviconBtn');
+        if (settings.favicon) {
+            previewImg.src = settings.favicon;
+            previewImg.style.display = 'block';
+            placeholder.style.display = 'none';
+            removeBtn.style.display = 'inline-block';
+        } else {
+            previewImg.style.display = 'none';
+            placeholder.style.display = 'block';
+            removeBtn.style.display = 'none';
+        }
+    } catch (err) { console.error(err); }
+}
+
+async function removeFavicon() {
+    if (!confirm('Remove favicon?')) return;
+    try {
+        await fetch('/api/favicon', { method: 'DELETE' });
+        loadFaviconPreview();
+        showNotification('Favicon removed!', 'success');
+    } catch (err) { showNotification('Error!', 'error'); }
+}
+
+// Phone numbers management
+function addPhoneNumber() {
+    const container = document.getElementById('phoneNumbersContainer');
+    const div = document.createElement('div');
+    div.className = 'phone-number-item';
+    div.style.display = 'flex';
+    div.style.gap = '10px';
+    div.style.marginBottom = '10px';
+    div.innerHTML = `
+        <input type="tel" class="phone-number-input" placeholder="+91 98765 43210" style="flex: 1; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
+        <button type="button" class="btn btn-danger" onclick="removePhoneNumber(this)" style="padding: 8px 12px;"><i class="fas fa-trash"></i></button>
+    `;
+    container.appendChild(div);
+}
+
+function removePhoneNumber(button) {
+    const container = document.getElementById('phoneNumbersContainer');
+    if (container.children.length > 1) {
+        button.parentElement.remove();
+    } else {
+        showNotification('At least one phone number is required', 'error');
+    }
+}
+
+function getPhoneNumbers() {
+    const inputs = document.querySelectorAll('.phone-number-input');
+    const phoneNumbers = [];
+    inputs.forEach(input => {
+        if (input.value.trim()) {
+            phoneNumbers.push(input.value.trim());
+        }
+    });
+    return phoneNumbers;
+}
+
+function setPhoneNumbers(phoneNumbers) {
+    const container = document.getElementById('phoneNumbersContainer');
+    container.innerHTML = '';
+    if (phoneNumbers && phoneNumbers.length > 0) {
+        phoneNumbers.forEach(phone => {
+            const div = document.createElement('div');
+            div.className = 'phone-number-item';
+            div.style.display = 'flex';
+            div.style.gap = '10px';
+            div.style.marginBottom = '10px';
+            div.innerHTML = `
+                <input type="tel" class="phone-number-input" value="${phone}" placeholder="+91 98765 43210" style="flex: 1; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                <button type="button" class="btn btn-danger" onclick="removePhoneNumber(this)" style="padding: 8px 12px;"><i class="fas fa-trash"></i></button>
+            `;
+            container.appendChild(div);
+        });
+    } else {
+        // Add one empty input by default
+        addPhoneNumber();
+    }
+}
+
+// Popup modal management
+function addPopupButton() {
+    const container = document.getElementById('popupButtonsContainer');
+    const div = document.createElement('div');
+    div.className = 'popup-button-item';
+    div.style.display = 'flex';
+    div.style.gap = '10px';
+    div.style.marginBottom = '10px';
+    div.style.flexWrap = 'wrap';
+    div.innerHTML = `
+        <input type="text" class="popup-button-text" placeholder="Button Text" style="flex: 1; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; min-width: 150px;">
+        <input type="text" class="popup-button-link" placeholder="Button Link (e.g., #contact)" style="flex: 1; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; min-width: 150px;">
+        <select class="popup-button-style" style="padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
+            <option value="btn-primary">Primary</option>
+            <option value="btn-secondary">Secondary</option>
+            <option value="btn-success">Success</option>
+        </select>
+        <button type="button" class="btn btn-danger" onclick="removePopupButton(this)" style="padding: 8px 12px;"><i class="fas fa-trash"></i></button>
+    `;
+    container.appendChild(div);
+}
+
+function removePopupButton(button) {
+    button.parentElement.remove();
+}
+
+function getPopupButtons() {
+    const buttons = [];
+    const items = document.querySelectorAll('.popup-button-item');
+    items.forEach(item => {
+        const text = item.querySelector('.popup-button-text').value.trim();
+        const link = item.querySelector('.popup-button-link').value.trim();
+        const style = item.querySelector('.popup-button-style').value;
+        if (text) {
+            buttons.push({ text, link, style });
+        }
+    });
+    return buttons;
+}
+
+function setPopupButtons(buttons) {
+    const container = document.getElementById('popupButtonsContainer');
+    container.innerHTML = '';
+    if (buttons && buttons.length > 0) {
+        buttons.forEach(btn => {
+            const div = document.createElement('div');
+            div.className = 'popup-button-item';
+            div.style.display = 'flex';
+            div.style.gap = '10px';
+            div.style.marginBottom = '10px';
+            div.style.flexWrap = 'wrap';
+            div.innerHTML = `
+                <input type="text" class="popup-button-text" value="${btn.text || ''}" placeholder="Button Text" style="flex: 1; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; min-width: 150px;">
+                <input type="text" class="popup-button-link" value="${btn.link || ''}" placeholder="Button Link (e.g., #contact)" style="flex: 1; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; min-width: 150px;">
+                <select class="popup-button-style" style="padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <option value="btn-primary" ${btn.style === 'btn-primary' ? 'selected' : ''}>Primary</option>
+                    <option value="btn-secondary" ${btn.style === 'btn-secondary' ? 'selected' : ''}>Secondary</option>
+                    <option value="btn-success" ${btn.style === 'btn-success' ? 'selected' : ''}>Success</option>
+                </select>
+                <button type="button" class="btn btn-danger" onclick="removePopupButton(this)" style="padding: 8px 12px;"><i class="fas fa-trash"></i></button>
+            `;
+            container.appendChild(div);
+        });
+    }
+}
+
+async function removePopupImage() {
+    if (!confirm('Remove popup image?')) return;
+    try {
+        await fetch('/api/popup-image', { method: 'DELETE' });
+        loadPopupImagePreview();
+        showNotification('Popup image removed!', 'success');
+    } catch (err) { showNotification('Error!', 'error'); }
+}
+
+async function loadPopupImagePreview() {
+    try {
+        const settings = await fetch('/api/settings').then(r => r.json());
+        const previewImg = document.getElementById('popupImagePreviewImg');
+        const placeholder = document.getElementById('popupImagePlaceholder');
+        const removeBtn = document.getElementById('removePopupImageBtn');
+        if (settings.popup && settings.popup.image) {
+            previewImg.src = settings.popup.image;
+            previewImg.style.display = 'block';
+            placeholder.style.display = 'none';
+            removeBtn.style.display = 'inline-block';
+        } else {
+            previewImg.style.display = 'none';
+            placeholder.style.display = 'block';
+            removeBtn.style.display = 'none';
+        }
+    } catch (err) { console.error(err); }
+}
+
 document.getElementById('settingsForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+    // Get current settings to preserve popup image
+    const currentSettings = await fetch('/api/settings').then(r => r.json());
     const data = {
         name: document.getElementById('settingName').value,
-        phone: document.getElementById('settingPhone').value,
+        phone: getPhoneNumbers(),
         email: document.getElementById('settingEmail').value,
         address: document.getElementById('settingAddress').value,
-        rightClickPrevention: document.getElementById('rightClickPrevention').checked
+        rightClickPrevention: document.getElementById('rightClickPrevention').checked,
+        popup: {
+            enabled: document.getElementById('popupEnabled').checked,
+            title: document.getElementById('popupTitle').value,
+            description: document.getElementById('popupDescription').value,
+            buttons: getPopupButtons(),
+            image: currentSettings.popup && currentSettings.popup.image ? currentSettings.popup.image : ''
+        }
     };
     try {
         await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
         loadAdminLogo();
         showNotification('Settings saved!', 'success');
     } catch (err) { showNotification('Error saving settings!', 'error'); }
-});
-
-document.getElementById('razorpaySettingsForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const data = { razorpayKeyId: document.getElementById('razorpayKeyId').value.trim(), razorpayKeySecret: document.getElementById('razorpayKeySecret').value.trim() };
-    try {
-        await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        showNotification('Razorpay settings saved!', 'success');
-    } catch (err) { showNotification('Error!', 'error'); }
 });
 
 document.getElementById('smtpForm').addEventListener('submit', async function(e) {
@@ -9181,29 +10882,77 @@ async function viewResult(gradeId) {
         
         const modal = document.createElement('div');
         modal.id = 'view-result-modal';
-        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:9999;';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;justify-content:center;align-items:center;z-index:9999;';
         modal.innerHTML = `
-            <div style="max-width:1200px;width:95%;height:92vh;display:flex;flex-direction:column;background:#fff;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.2);overflow:hidden;">
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:15px 20px;background:#f1f5f9;border-bottom:1px solid #e2e8f0;flex-shrink:0;">
+            <style>
+                #view-result-modal .vr-modal-content * { color: inherit; }
+                #view-result-modal #vr-tab-content { color: #fff; }
+                #view-result-modal #vr-tab-content h1,
+                #view-result-modal #vr-tab-content h2,
+                #view-result-modal #vr-tab-content h3,
+                #view-result-modal #vr-tab-content h4,
+                #view-result-modal #vr-tab-content p,
+                #view-result-modal #vr-tab-content div,
+                #view-result-modal #vr-tab-content span,
+                #view-result-modal #vr-tab-content td,
+                #view-result-modal #vr-tab-content th,
+                #view-result-modal #vr-tab-content li { color: #fff !important; }
+                #view-result-modal #vr-tab-content [style*="color:#3b82f6"],
+                #view-result-modal #vr-tab-content [style*="color: #3b82f6"] { color: #93c5fd !important; }
+                #view-result-modal #vr-tab-content [style*="color:#22c55e"],
+                #view-result-modal #vr-tab-content [style*="color: #22c55e"] { color: #86efac !important; }
+                #view-result-modal #vr-tab-content [style*="color:#ef4444"],
+                #view-result-modal #vr-tab-content [style*="color: #ef4444"] { color: #fca5a5 !important; }
+                #view-result-modal #vr-tab-content [style*="color:#f59e0b"],
+                #view-result-modal #vr-tab-content [style*="color: #f59e0b"] { color: #fcd34d !important; }
+                #view-result-modal #vr-tab-content [style*="color:#64748b"],
+                #view-result-modal #vr-tab-content [style*="color: #64748b"] { color: rgba(255,255,255,0.65) !important; }
+                #view-result-modal #vr-tab-content [style*="color:#1e293b"],
+                #view-result-modal #vr-tab-content [style*="color: #1e293b"] { color: #fff !important; }
+                #view-result-modal #vr-tab-content [style*="background:#dbeafe"],
+                #view-result-modal #vr-tab-content [style*="background: #dbeafe"] { background: rgba(59,130,246,0.18) !important; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.15); }
+                #view-result-modal #vr-tab-content [style*="background:#dcfce7"],
+                #view-result-modal #vr-tab-content [style*="background: #dcfce7"] { background: rgba(34,197,94,0.18) !important; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.15); }
+                #view-result-modal #vr-tab-content [style*="background:#fee2e2"],
+                #view-result-modal #vr-tab-content [style*="background: #fee2e2"] { background: rgba(239,68,68,0.18) !important; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.15); }
+                #view-result-modal #vr-tab-content [style*="background:#fef3c7"],
+                #view-result-modal #vr-tab-content [style*="background: #fef3c7"] { background: rgba(245,158,11,0.18) !important; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.15); }
+                #view-result-modal #vr-tab-content [style*="background:#f8fafc"],
+                #view-result-modal #vr-tab-content [style*="background: #f8fafc"],
+                #view-result-modal #vr-tab-content [style*="background:#f1f5f9"],
+                #view-result-modal #vr-tab-content [style*="background: #f1f5f9"],
+                #view-result-modal #vr-tab-content [style*="background:#fff"],
+                #view-result-modal #vr-tab-content [style*="background: #fff"] { background: rgba(255,255,255,0.08) !important; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.15); }
+                #view-result-modal #vr-tab-content table { background: rgba(255,255,255,0.05); border-radius:8px; overflow:hidden; }
+                #view-result-modal #vr-tab-content table th { background: rgba(255,255,255,0.12) !important; color:#fff !important; }
+                #view-result-modal #vr-tab-content table td,
+                #view-result-modal #vr-tab-content table th { border-color: rgba(255,255,255,0.15) !important; }
+                #view-result-modal #vr-tab-content::-webkit-scrollbar { width: 8px; }
+                #view-result-modal #vr-tab-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+                #view-result-modal #vr-tab-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius:4px; }
+                #view-result-modal .vr-tab-btn:hover { color: #fff !important; }
+            </style>
+            <div class="vr-modal-content" style="max-width:1200px;width:95%;height:92vh;display:flex;flex-direction:column;background:rgba(255,255,255,0.1);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.2);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.4);overflow:hidden;color:#fff;">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:1px solid rgba(255,255,255,0.15);flex-shrink:0;">
                     <div style="display:flex;align-items:center;gap:12px;">
-                        ${settings.logo ? `<img src="${settings.logo}" alt="Logo" style="height:40px;">` : ''}
+                        ${settings.logo ? `<img src="${settings.logo}" alt="Logo" style="height:40px;border-radius:8px;">` : ''}
                         <div>
-                            <h3 style="margin:0;font-size:16px;color:#1e293b;">${settings.name || 'Institute'}</h3>
-                            <div style="font-size:12px;color:#64748b;"><strong>${grade.studentName}</strong> • ${grade.course} • ${grade.examName}</div>
+                            <h3 style="margin:0;font-size:16px;color:#fff;font-weight:700;">${settings.name || 'Institute'}</h3>
+                            <div style="font-size:12px;color:rgba(255,255,255,0.8);"><strong style="color:#fff;">${grade.studentName}</strong> • ${grade.course} • ${grade.examName}</div>
                         </div>
                     </div>
-                    <button id="vr-close-x" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:6px;cursor:pointer;">✕ Close</button>
+                    <button id="vr-close-x" style="padding:7px 14px;background:rgba(239,68,68,0.85);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:10px;cursor:pointer;font-weight:600;backdrop-filter:blur(8px);">✕ Close</button>
                 </div>
-                <div style="display:flex;gap:4px;padding:0 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0;">
-                    <button class="vr-tab-btn active" data-tab="report" style="padding:12px 18px;background:none;border:none;border-bottom:3px solid #3b82f6;cursor:pointer;font-weight:600;color:#3b82f6;">📄 Report</button>
-                    <button class="vr-tab-btn" data-tab="stats" style="padding:12px 18px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;color:#64748b;">📊 Statistics</button>
-                    <button class="vr-tab-btn" data-tab="history" style="padding:12px 18px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;color:#64748b;">👤 Student History</button>
-                    <button class="vr-tab-btn" data-tab="answers" style="padding:12px 18px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;color:#64748b;">📝 Answer Review</button>
+                <div style="display:flex;gap:4px;padding:0 22px;border-bottom:1px solid rgba(255,255,255,0.15);flex-shrink:0;">
+                    <button class="vr-tab-btn active" data-tab="report" style="padding:12px 18px;background:none;border:none;border-bottom:3px solid #60a5fa;cursor:pointer;font-weight:700;color:#60a5fa;">📄 Report</button>
+                    <button class="vr-tab-btn" data-tab="stats" style="padding:12px 18px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;color:rgba(255,255,255,0.75);font-weight:600;">📊 Statistics</button>
+                    <button class="vr-tab-btn" data-tab="history" style="padding:12px 18px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;color:rgba(255,255,255,0.75);font-weight:600;">👤 Student History</button>
+                    <button class="vr-tab-btn" data-tab="answers" style="padding:12px 18px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;color:rgba(255,255,255,0.75);font-weight:600;">📝 Answer Review</button>
                 </div>
-                <div id="vr-tab-content" style="flex:1;overflow-y:auto;padding:20px;background:#fff;"></div>
-                <div style="padding:12px 20px;background:#f1f5f9;border-top:1px solid #e2e8f0;flex-shrink:0;display:flex;justify-content:flex-end;gap:8px;">
-                    <button id="vr-print-btn" style="padding:8px 16px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;"><i class="fas fa-print"></i> Print / PDF</button>
-                    <button id="vr-close-btn" style="padding:8px 16px;background:#64748b;color:#fff;border:none;border-radius:6px;cursor:pointer;">Close</button>
+                <div id="vr-tab-content" style="flex:1;overflow-y:auto;padding:20px;color:#fff;"></div>
+                <div style="padding:12px 22px;border-top:1px solid rgba(255,255,255,0.15);flex-shrink:0;display:flex;justify-content:flex-end;gap:8px;">
+                    <button id="vr-print-btn" style="padding:8px 16px;background:rgba(59,130,246,0.85);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:10px;cursor:pointer;font-weight:600;backdrop-filter:blur(8px);"><i class="fas fa-print"></i> Print / PDF</button>
+                    <button id="vr-close-btn" style="padding:8px 16px;background:rgba(100,116,139,0.85);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:10px;cursor:pointer;font-weight:600;backdrop-filter:blur(8px);">Close</button>
                 </div>
             </div>
         `;
@@ -9275,7 +11024,7 @@ function _vrReportHtml(grade, settings, student) {
     return `
         <div id="vr-printable" style="max-width:800px;margin:0 auto;padding:30px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;">
             <div style="text-align:center;border-bottom:2px solid #1e293b;padding-bottom:20px;margin-bottom:25px;">
-                ${settings.logo ? `<img src="${settings.logo}" style="height:70px;margin-bottom:10px;">` : ''}
+                ${settings.logo ? `<img src="${settings.logo}" style="height:70px;margin-bottom:10px;border-radius:12px;">` : ''}
                 <h2 style="margin:0;color:#1e293b;">${settings.name || 'Institute'}</h2>
                 ${settings.address ? `<div style="color:#64748b;font-size:13px;margin-top:4px;">${settings.address}</div>` : ''}
                 <h3 style="margin:15px 0 0;color:#3b82f6;letter-spacing:2px;">EXAM RESULT REPORT</h3>
@@ -9467,9 +11216,9 @@ function _vrAnswersHtml(exam, attempt) {
     
     return `
         <div style="max-width:1000px;margin:0 auto;">
-            <div style="display:flex;gap:10px;margin-bottom:20px;padding:15px;background:#f8fafc;border-radius:8px;position:sticky;top:-20px;z-index:10;">
-                <input id="vr-q-search" type="text" placeholder="🔍 Search question text..." style="flex:1;padding:8px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:14px;">
-                <select id="vr-q-filter" style="padding:8px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:14px;">
+            <div style="display:flex;gap:10px;margin-bottom:20px;padding:15px;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;position:sticky;top:-20px;z-index:10;">
+                <input id="vr-q-search" type="text" placeholder="🔍 Search question text..." style="flex:1;padding:8px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;">
+                <select id="vr-q-filter" style="padding:8px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;">
                     <option value="all">All Questions</option>
                     <option value="correct">✓ Correct Only</option>
                     <option value="incorrect">✗ Incorrect Only</option>
@@ -9528,7 +11277,7 @@ function _vrPrintReport() {
             body{font-family:Arial,sans-serif;margin:0;padding:20px;background:#fff;}
             .grade-badge{display:inline-block;padding:2px 8px;background:#dbeafe;border-radius:4px;font-weight:600;}
             @media print{@page{size:A4;margin:15mm;}body{padding:0;}}
-        </style></head><body><div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px;" onerror="this.parentElement.style.display='none'"></div>${html}
+        </style></head><body><div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px; border-radius: 12px;" onerror="this.parentElement.style.display='none'"></div>${html}
         <script>window.onload=function(){setTimeout(function(){window.print();},300);};</script>
         </body></html>
     `);
@@ -10092,3 +11841,1159 @@ async function saveHotspots() {
         showNotification('Failed to save hotspots', 'error');
     }
 }
+
+// ===== Excel Export Functions =====
+
+async function exportStudentsToExcel() {
+    try {
+        const students = await fetch('/api/students').then(r => r.json());
+        if (!students || students.length === 0) {
+            showNotification('No students to export!', 'error');
+            return;
+        }
+
+        const data = students.map(s => {
+            const q = typeof s.qualification === 'string' ? JSON.parse(s.qualification || '{}') : (s.qualification || {});
+            return {
+                'Roll No': s.rollNo || '',
+                'Name': s.name || '',
+                'Date of Birth': s.dob || '',
+                'Gender': s.gender || '',
+                'Category': s.category || '',
+                'Blood Group': s.bloodGroup || '',
+                'Phone': s.phone || '',
+                'WhatsApp': s.whatsapp || '',
+                'Email': s.email || '',
+                'Aadhar': s.aadhar || '',
+                'Address': s.address || '',
+                'Reference': s.reference || '',
+                "Father's Name": s.fatherName || '',
+                "Father's Occupation": s.fatherOccupation || '',
+                "Father's Phone": s.fatherPhone || '',
+                "Mother's Name": s.motherName || '',
+                'Family Income': s.familyIncome || '',
+                '10th Board': (q.tenth && q.tenth.board) || '',
+                '10th School': (q.tenth && q.tenth.school) || '',
+                '10th Year': (q.tenth && q.tenth.year) || '',
+                '10th Roll No': (q.tenth && q.tenth.rollNo) || '',
+                '10th Total Marks': (q.tenth && q.tenth.totalMarks) || '',
+                '10th Obtained': (q.tenth && q.tenth.obtainedMarks) || '',
+                '10th Percentage': (q.tenth && q.tenth.percentage) || '',
+                '10th Division': (q.tenth && q.tenth.division) || '',
+                '12th Board': (q.twelfth && q.twelfth.board) || '',
+                '12th School': (q.twelfth && q.twelfth.school) || '',
+                '12th Stream': (q.twelfth && q.twelfth.stream) || '',
+                '12th Year': (q.twelfth && q.twelfth.year) || '',
+                '12th Roll No': (q.twelfth && q.twelfth.rollNo) || '',
+                '12th Percentage': (q.twelfth && q.twelfth.percentage) || '',
+                '12th Division': (q.twelfth && q.twelfth.division) || '',
+                'Grad University': (q.graduation && q.graduation.university) || '',
+                'Grad College': (q.graduation && q.graduation.college) || '',
+                'Grad Degree': (q.graduation && q.graduation.degree) || '',
+                'Grad Stream': (q.graduation && q.graduation.stream) || '',
+                'Grad Year': (q.graduation && q.graduation.year) || '',
+                'Grad Enrollment': (q.graduation && q.graduation.enrollmentNo) || '',
+                'Grad Percentage': (q.graduation && q.graduation.percentage) || '',
+                'Grad Division': (q.graduation && q.graduation.division) || '',
+                'Course': s.course || '',
+                'Batch': s.batch || '',
+                'Admission Date': s.admissionDate || '',
+                'Status': s.status || '',
+                'Total Fees': s.fees ? s.fees.totalFees : 0,
+                'Paid Amount': s.fees ? s.fees.paidAmount : 0,
+                'Due Amount': s.fees ? s.fees.dueAmount : 0
+            };
+        });
+
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Students');
+        XLSX.writeFile(wb, 'Students_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Students exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting students!', 'error');
+    }
+}
+
+async function exportCoursesToExcel() {
+    try {
+        const courses = await fetch('/api/courses').then(r => r.json());
+        if (!courses || courses.length === 0) {
+            showNotification('No courses to export!', 'error');
+            return;
+        }
+        const data = courses.map(c => ({
+            'Course Name': c.name || '',
+            'Duration': c.duration || '',
+            'Price (₹)': c.price || 0,
+            'Eligibility': c.eligibility || '',
+            'Description': c.description || '',
+            'Syllabus': c.syllabus || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Courses');
+        XLSX.writeFile(wb, 'Courses_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Courses exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting courses!', 'error');
+    }
+}
+
+async function exportBatchesToExcel() {
+    try {
+        const batches = await fetch('/api/batches').then(r => r.json());
+        if (!batches || batches.length === 0) {
+            showNotification('No batches to export!', 'error');
+            return;
+        }
+        const data = batches.map((b, i) => ({
+            '#': i + 1,
+            'Batch Name': b.name || '',
+            'Timing': b.timing || '',
+            'Start Date': b.startDate || '',
+            'Total Seats': b.totalSeats || 0,
+            'Enrolled': b.enrolled || 0,
+            'Available': (b.totalSeats || 0) - (b.enrolled || 0)
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Batches');
+        XLSX.writeFile(wb, 'Batches_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Batches exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting batches!', 'error');
+    }
+}
+
+async function exportEnquiriesToExcel() {
+    try {
+        const enquiries = await fetch('/api/enquiries').then(r => r.json());
+        if (!enquiries || enquiries.length === 0) {
+            showNotification('No enquiries to export!', 'error');
+            return;
+        }
+        const data = enquiries.map(e => ({
+            'Name': e.name || '',
+            'Email': e.email || '',
+            'Phone': e.phone || '',
+            'Course': e.course || '',
+            'Message': e.message || '',
+            'Date': e.date || '',
+            'Status': e.replied ? 'Replied' : 'Pending'
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Enquiries');
+        XLSX.writeFile(wb, 'Enquiries_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Enquiries exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting enquiries!', 'error');
+    }
+}
+
+async function exportFacultyToExcel() {
+    try {
+        const faculty = await fetch('/api/faculty').then(r => r.json());
+        if (!faculty || faculty.length === 0) {
+            showNotification('No faculty to export!', 'error');
+            return;
+        }
+        const data = faculty.map(f => ({
+            'Name': f.name || '',
+            'Email': f.email || '',
+            'Phone': f.phone || '',
+            'Subject': f.subject || '',
+            'Experience': f.experience || '',
+            'Qualification': f.qualification || '',
+            'Role': f.role || 'Faculty'
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Faculty');
+        XLSX.writeFile(wb, 'Faculty_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Faculty exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting faculty!', 'error');
+    }
+}
+
+async function exportFeesToExcel() {
+    try {
+        const students = await fetch('/api/students').then(r => r.json());
+        if (!students || students.length === 0) {
+            showNotification('No fee data to export!', 'error');
+            return;
+        }
+        const data = students.map(s => ({
+            'Roll No': s.rollNo || '',
+            'Student Name': s.name || '',
+            'Course': s.course || '',
+            'Batch': s.batch || '',
+            'Total Fees': s.fees ? s.fees.totalFees : 0,
+            'Paid Amount': s.fees ? s.fees.paidAmount : 0,
+            'Due Amount': s.fees ? s.fees.dueAmount : 0,
+            'Status': s.fees && s.fees.dueAmount > 0 ? 'Pending' : 'Fully Paid'
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Fees');
+        XLSX.writeFile(wb, 'Fees_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Fees exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting fees!', 'error');
+    }
+}
+
+async function exportPaymentsToExcel() {
+    try {
+        const res = await fetch('/api/payments').then(r => r.json());
+        const payments = res.payments || [];
+        if (!payments || payments.length === 0) {
+            showNotification('No payments to export!', 'error');
+            return;
+        }
+        const data = payments.map(p => ({
+            'Student Name': p.studentName || '',
+            'Amount': p.amount || 0,
+            'Mode': p.mode || '',
+            'Date': p.date || '',
+            'UTR/Txn ID': p.transactionId || p.utrNo || '',
+            'Receipt': p.receipt || '',
+            'Type': p.type || '',
+            'Status': p.status || 'approved'
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Payments');
+        XLSX.writeFile(wb, 'Payments_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Payments exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting payments!', 'error');
+    }
+}
+
+async function exportCertificatesToExcel() {
+    try {
+        const res = await fetch('/api/certificates').then(r => r.json());
+        const certificates = res.certificates || [];
+        if (!certificates || certificates.length === 0) {
+            showNotification('No certificates to export!', 'error');
+            return;
+        }
+        const data = certificates.map(c => ({
+            'Student Name': c.studentName || '',
+            'Certificate Type': c.certificateType || '',
+            'Template': c.template || '',
+            'Certificate No': c.certificateNumber || '',
+            'Issue Date': c.issueDate || '',
+            'Grade': c.grade || '',
+            'Remarks': c.remarks || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Certificates');
+        XLSX.writeFile(wb, 'Certificates_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Certificates exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting certificates!', 'error');
+    }
+}
+
+async function exportGalleryToExcel() {
+    try {
+        const gallery = await fetch('/api/gallery').then(r => r.json());
+        if (!gallery || gallery.length === 0) {
+            showNotification('No gallery items to export!', 'error');
+            return;
+        }
+        const data = gallery.map(g => ({
+            'Title': g.title || '',
+            'Category': g.category || '',
+            'Description': g.description || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Gallery');
+        XLSX.writeFile(wb, 'Gallery_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Gallery exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting gallery!', 'error');
+    }
+}
+
+async function exportAnnouncementsToExcel() {
+    try {
+        const res = await fetch('/api/announcements').then(r => r.json());
+        const announcements = res.announcements || res || [];
+        if (!announcements || announcements.length === 0) {
+            showNotification('No announcements to export!', 'error');
+            return;
+        }
+        const data = announcements.map(a => ({
+            'Title': a.title || '',
+            'Category': a.category || '',
+            'Priority': a.priority || '',
+            'Target': a.target || '',
+            'Expiry': a.expiry || '',
+            'Read Count': a.readCount || 0
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Announcements');
+        XLSX.writeFile(wb, 'Announcements_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Announcements exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting announcements!', 'error');
+    }
+}
+
+async function exportTestsToExcel() {
+    try {
+        const res = await fetch('/api/tests').then(r => r.json());
+        const tests = res.tests || res || [];
+        if (!tests || tests.length === 0) {
+            showNotification('No tests to export!', 'error');
+            return;
+        }
+        const data = tests.map(t => ({
+            'Test Name': t.name || t.testName || '',
+            'Course': t.course || '',
+            'Date': t.date || '',
+            'Total Marks': t.totalMarks || '',
+            'Status': t.status || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Tests');
+        XLSX.writeFile(wb, 'Tests_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Tests exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting tests!', 'error');
+    }
+}
+
+async function exportQuestionsToExcel() {
+    try {
+        const res = await fetch('/api/questions').then(r => r.json());
+        const questions = res.questions || res || [];
+        if (!questions || questions.length === 0) {
+            showNotification('No questions to export!', 'error');
+            return;
+        }
+        const data = questions.map(q => ({
+            'Question': q.question || q.text || '',
+            'Type': q.type || '',
+            'Course': q.courseName || q.course || '',
+            'Options': Array.isArray(q.options)
+                ? q.options.map(o => (typeof o === 'object' ? (o.text || '') : o)).join(' | ')
+                : (q.options || ''),
+            'Correct Answer': q.correctAnswer || q.answer || '',
+            'Marks': q.marks || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Question Bank');
+        XLSX.writeFile(wb, 'QuestionBank_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Question bank exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting question bank!', 'error');
+    }
+}
+
+async function exportExamScheduleToExcel() {
+    try {
+        const res = await fetch('/api/exam-schedules').then(r => r.json());
+        const schedules = res.schedules || res || [];
+        if (!schedules || schedules.length === 0) {
+            showNotification('No exam schedules to export!', 'error');
+            return;
+        }
+        const data = schedules.map(s => ({
+            'Exam': s.exam || s.examName || '',
+            'Course': s.course || '',
+            'Batch': s.batch || '',
+            'Date': s.date || '',
+            'Time': s.time || '',
+            'Duration': s.duration || '',
+            'Total Marks': s.totalMarks || '',
+            'Venue': s.venue || '',
+            'Status': s.status || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Exam Schedule');
+        XLSX.writeFile(wb, 'ExamSchedule_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Exam schedule exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting exam schedule!', 'error');
+    }
+}
+
+async function exportExamRegistrationToExcel() {
+    try {
+        const res = await fetch('/api/exam-registrations').then(r => r.json());
+        const registrations = res.registrations || res || [];
+        if (!registrations || registrations.length === 0) {
+            showNotification('No exam registrations to export!', 'error');
+            return;
+        }
+        const data = registrations.map(r => ({
+            'Student': r.studentName || '',
+            'Exam': r.exam || r.examName || '',
+            'Course': r.course || '',
+            'Student ID': r.studentId || r.rollNo || '',
+            'Status': r.status || '',
+            'Fee Status': r.feeStatus || '',
+            'Registration Date': r.registrationDate || r.date || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Exam Registrations');
+        XLSX.writeFile(wb, 'ExamRegistrations_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Exam registrations exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting exam registrations!', 'error');
+    }
+}
+
+async function exportAdmitCardsToExcel() {
+    try {
+        const res = await fetch('/api/admit-cards').then(r => r.json());
+        const admitCards = res.admitCards || res || [];
+        if (!admitCards || admitCards.length === 0) {
+            showNotification('No admit cards to export!', 'error');
+            return;
+        }
+        const data = admitCards.map(a => ({
+            'Student': a.studentName || '',
+            'Exam': a.exam || a.examName || '',
+            'Course': a.course || '',
+            'Roll No': a.rollNo || '',
+            'Issue Date': a.issueDate || '',
+            'Status': a.status || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Admit Cards');
+        XLSX.writeFile(wb, 'AdmitCards_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Admit cards exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting admit cards!', 'error');
+    }
+}
+
+async function exportOnlineExamsToExcel() {
+    try {
+        const res = await fetch('/api/online-exams').then(r => r.json());
+        const exams = res.exams || res || [];
+        if (!exams || exams.length === 0) {
+            showNotification('No online exams to export!', 'error');
+            return;
+        }
+        const data = exams.map(e => ({
+            'Exam Name': e.name || e.examName || '',
+            'Course': e.course || '',
+            'Questions': Array.isArray(e.questions) ? e.questions.length : (e.questions || e.totalQuestions || ''),
+            'Total Marks': e.totalMarks || '',
+            'Passing Marks': e.passingMarks || '',
+            'Duration': e.duration || '',
+            'Start Date': e.startDate || '',
+            'End Date': e.endDate || '',
+            'Status': e.status || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Online Exams');
+        XLSX.writeFile(wb, 'OnlineExams_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Online exams exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting online exams!', 'error');
+    }
+}
+
+async function exportExamReportsToExcel() {
+    try {
+        const res = await fetch('/api/exam-reports').then(r => r.json());
+        const reports = res.reports || res || [];
+        if (!reports || reports.length === 0) {
+            showNotification('No exam reports to export!', 'error');
+            return;
+        }
+        const data = reports.map(r => ({
+            'Student': r.studentName || '',
+            'Exam': r.exam || r.examName || '',
+            'Course': r.course || '',
+            'Marks': r.marks || '',
+            'Grade': r.grade || '',
+            'Date': r.date || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Exam Reports');
+        XLSX.writeFile(wb, 'ExamReports_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Exam reports exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting exam reports!', 'error');
+    }
+}
+
+async function exportAttendanceToExcel() {
+    try {
+        const res = await fetch('/api/attendance').then(r => r.json());
+        const attendance = res.attendance || res || [];
+        if (!attendance || attendance.length === 0) {
+            showNotification('No attendance records to export!', 'error');
+            return;
+        }
+        const data = attendance.map(a => ({
+            'Roll No': a.rollNo || '',
+            'Name': a.studentName || a.name || '',
+            'Course': a.course || '',
+            'Batch': a.batch || '',
+            'Date': a.date || '',
+            'Status': a.status || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+        XLSX.writeFile(wb, 'Attendance_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Attendance exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting attendance!', 'error');
+    }
+}
+
+async function exportExamCalendarToExcel() {
+    try {
+        const res = await fetch('/api/exam-calendar').then(r => r.json());
+        const events = res.examCalendar || res.events || res || [];
+        if (!events || events.length === 0) {
+            showNotification('No exam calendar events to export!', 'error');
+            return;
+        }
+        const data = events.map(e => ({
+            'Date': e.date || '',
+            'Time': e.time || '',
+            'Exam Title': e.title || e.examTitle || '',
+            'Course': e.course || '',
+            'Batch': e.batch || '',
+            'Description': e.description || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Exam Calendar');
+        XLSX.writeFile(wb, 'ExamCalendar_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Exam calendar exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting exam calendar!', 'error');
+    }
+}
+
+async function exportHolidaysToExcel() {
+    try {
+        const res = await fetch('/api/holidays').then(r => r.json());
+        const holidays = res.holidays || res || [];
+        if (!holidays || holidays.length === 0) {
+            showNotification('No holidays to export!', 'error');
+            return;
+        }
+        const data = holidays.map(h => ({
+            'Date': h.date || '',
+            'Title': h.title || '',
+            'Type': h.type || '',
+            'Description': h.description || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Holidays');
+        XLSX.writeFile(wb, 'Holidays_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Holidays exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting holidays!', 'error');
+    }
+}
+
+async function exportBlogToExcel() {
+    try {
+        const res = await fetch('/api/blogs').then(r => r.json());
+        const posts = res.blogs || res.posts || res || [];
+        if (!posts || posts.length === 0) {
+            showNotification('No blog posts to export!', 'error');
+            return;
+        }
+        const data = posts.map(p => ({
+            'Title': p.title || '',
+            'Category': p.category || '',
+            'Author': p.author || '',
+            'Date': p.date || '',
+            'Status': p.status || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Blog');
+        XLSX.writeFile(wb, 'Blog_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Blog exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting blog!', 'error');
+    }
+}
+
+async function exportStudyMaterialsToExcel() {
+    try {
+        const res = await fetch('/api/study-materials').then(r => r.json());
+        const materials = res.materials || res || [];
+        if (!materials || materials.length === 0) {
+            showNotification('No study materials to export!', 'error');
+            return;
+        }
+        const data = materials.map(m => ({
+            'Title': m.title || '',
+            'Course': m.course || '',
+            'Category': m.category || '',
+            'Type': m.type || '',
+            'Author': m.author || '',
+            'Views': m.views || 0,
+            'Downloads': m.downloads || 0
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Study Materials');
+        XLSX.writeFile(wb, 'StudyMaterials_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Study materials exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting study materials!', 'error');
+    }
+}
+
+async function exportVideosToExcel() {
+    try {
+        const res = await fetch('/api/videos').then(r => r.json());
+        const videos = res.videos || res || [];
+        if (!videos || videos.length === 0) {
+            showNotification('No videos to export!', 'error');
+            return;
+        }
+        const data = videos.map(v => ({
+            'Title': v.title || '',
+            'Course': v.course || '',
+            'Chapter': v.chapter || '',
+            'Duration': v.duration || '',
+            'Views': v.views || 0,
+            'Status': v.status || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Videos');
+        XLSX.writeFile(wb, 'Videos_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Videos exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting videos!', 'error');
+    }
+}
+
+async function exportVideoCommentsToExcel() {
+    try {
+        const res = await fetch('/api/admin/video-comments').then(r => r.json());
+        const comments = res.comments || res || [];
+        if (!comments || comments.length === 0) {
+            showNotification('No video comments to export!', 'error');
+            return;
+        }
+        const data = comments.map(c => ({
+            'Video': c.videoTitle || '',
+            'Student': c.studentName || '',
+            'Comment': c.comment || c.text || '',
+            'Date': c.date || '',
+            'Status': c.status || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Video Comments');
+        XLSX.writeFile(wb, 'VideoComments_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Video comments exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting video comments!', 'error');
+    }
+}
+
+async function exportAssignmentsToExcel() {
+    try {
+        const res = await fetch('/api/assignments').then(r => r.json());
+        const assignments = res.assignments || res || [];
+        if (!assignments || assignments.length === 0) {
+            showNotification('No assignments to export!', 'error');
+            return;
+        }
+        const data = assignments.map(a => ({
+            'Title': a.title || '',
+            'Course': a.course || '',
+            'Target': a.target || '',
+            'Due Date': a.dueDate || '',
+            'Max Marks': a.maxMarks || '',
+            'Submissions': a.submissions || 0,
+            'Created': a.created || a.date || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Assignments');
+        XLSX.writeFile(wb, 'Assignments_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Assignments exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting assignments!', 'error');
+    }
+}
+
+async function exportAlumniToExcel() {
+    try {
+        const res = await fetch('/api/alumni').then(r => r.json());
+        const alumni = res.alumni || res || [];
+        if (!alumni || alumni.length === 0) {
+            showNotification('No alumni to export!', 'error');
+            return;
+        }
+        const data = alumni.map(a => ({
+            'Name': a.name || '',
+            'Course': a.course || '',
+            'Batch': a.batch || '',
+            'Grad Year': a.gradYear || a.passYear || '',
+            'Company': a.company || '',
+            'Designation': a.designation || '',
+            'Verified': a.verified ? 'Yes' : 'No'
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Alumni');
+        XLSX.writeFile(wb, 'Alumni_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Alumni exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting alumni!', 'error');
+    }
+}
+
+async function exportHelpdeskToExcel() {
+    try {
+        const res = await fetch('/api/tickets').then(r => r.json());
+        const tickets = res.tickets || res || [];
+        if (!tickets || tickets.length === 0) {
+            showNotification('No tickets to export!', 'error');
+            return;
+        }
+        const data = tickets.map(t => ({
+            'Subject': t.subject || '',
+            'Student': t.studentName || '',
+            'Category': t.category || '',
+            'Priority': t.priority || '',
+            'Status': t.status || '',
+            'Created': t.created || t.date || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Helpdesk');
+        XLSX.writeFile(wb, 'Helpdesk_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Helpdesk tickets exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting helpdesk tickets!', 'error');
+    }
+}
+
+async function exportBackupsToExcel() {
+    try {
+        const res = await fetch('/api/backup/list').then(r => r.json());
+        const backups = res.backups || res || [];
+        if (!backups || backups.length === 0) {
+            showNotification('No backups to export!', 'error');
+            return;
+        }
+        const data = backups.map(b => ({
+            'Filename': b.filename || b.name || '',
+            'Size': b.size || '',
+            'Created': b.created || b.date || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Backups');
+        XLSX.writeFile(wb, 'Backups_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Backups exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting backups!', 'error');
+    }
+}
+
+async function exportRolesToExcel() {
+    try {
+        const res = await fetch('/api/roles').then(r => r.json());
+        const roles = res.roles || res || [];
+        if (!roles || roles.length === 0) {
+            showNotification('No roles to export!', 'error');
+            return;
+        }
+        const data = roles.map(r => ({
+            'Name': r.name || '',
+            'Description': r.description || '',
+            'Permissions': Array.isArray(r.permissions) ? r.permissions.join(', ') : (r.permissions || '')
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Roles');
+        XLSX.writeFile(wb, 'Roles_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Roles exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting roles!', 'error');
+    }
+}
+
+async function exportExamResultsToExcel() {
+    try {
+        const res = await fetch('/api/exam-results').then(r => r.json());
+        const results = res.results || res || [];
+        if (!results || results.length === 0) {
+            showNotification('No exam results to export!', 'error');
+            return;
+        }
+        const data = results.map(r => ({
+            'Student': r.studentName || '',
+            'Exam': r.exam || r.examName || '',
+            'Course': r.course || '',
+            'Marks': r.marks || '',
+            'Grade': r.grade || '',
+            'Date': r.date || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Exam Results');
+        XLSX.writeFile(wb, 'ExamResults_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Exam results exported successfully!', 'success');
+    } catch (err) {
+        console.error('Export error:', err);
+        showNotification('Error exporting exam results!', 'error');
+    }
+}
+
+// ===== Generic Table Search (auto-attaches to every admin table) =====
+(function () {
+    const STYLE_ID = 'admin-table-search-style';
+    if (!document.getElementById(STYLE_ID)) {
+        const style = document.createElement('style');
+        style.id = STYLE_ID;
+        style.textContent = `
+            .table-search-wrap {
+                margin: 0 0 12px 0;
+                position: relative;
+                max-width: 360px;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            }
+            .table-search-wrap input {
+                width: 100%;
+                padding: 8px 12px 8px 36px;
+                border: none;
+                border-radius: 12px;
+                font-size: 14px;
+                outline: none;
+                background: transparent;
+                color: #fff;
+                transition: all .15s;
+            }
+            .table-search-wrap input::placeholder {
+                color: rgba(255, 255, 255, 0.6);
+            }
+            .table-search-wrap input:focus {
+                background: rgba(255, 255, 255, 0.15);
+            }
+            .table-search-wrap i.search-ico {
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: rgba(255, 255, 255, 0.6);
+                pointer-events: none;
+                font-size: 14px;
+            }
+            .table-search-wrap .search-count {
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 12px;
+                pointer-events: none;
+            }
+            .table-search-wrap .clear-btn {
+                position: absolute;
+                right: 8px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: rgba(255, 255, 255, 0.2);
+                border: none;
+                color: rgba(255, 255, 255, 0.8);
+                cursor: pointer;
+                padding: 4px;
+                display: none;
+                border-radius: 6px;
+            }
+            .table-search-wrap .clear-btn:hover { 
+                background: rgba(255, 255, 255, 0.3);
+                color: #fff;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // TOTP Functions
+    async function checkTOTPStatus() {
+        try {
+            const res = await fetch('/api/admin/totp-status');
+            const data = await res.json();
+            updateTOTPUI(data.configured);
+        } catch (err) {
+            console.error('Error checking TOTP status:', err);
+        }
+    }
+
+    function updateTOTPUI(isConfigured) {
+        const notConfigured = document.getElementById('totpNotConfigured');
+        const configuredEl = document.getElementById('totpConfigured');
+        
+        if (isConfigured) {
+            notConfigured.style.display = 'none';
+            configuredEl.style.display = 'block';
+        } else {
+            notConfigured.style.display = 'block';
+            configuredEl.style.display = 'none';
+        }
+    }
+
+    async function setupTOTP() {
+        document.getElementById('totpSetupSection').style.display = 'block';
+        document.getElementById('totpLoading').style.display = 'block';
+        document.getElementById('qrCodeContainer').style.display = 'none';
+        document.getElementById('totpVerifySection').style.display = 'none';
+        
+        try {
+            const res = await fetch('/api/admin/generate-totp-secret', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                document.getElementById('qrCodeImage').src = data.qrCode;
+                document.getElementById('qrCodeContainer').style.display = 'block';
+                document.getElementById('totpVerifySection').style.display = 'block';
+                showNotification('QR code generated. Scan with your authenticator app.', 'success');
+            } else {
+                showNotification(data.message || 'Failed to generate TOTP secret', 'error');
+                cancelTOTPSetup();
+            }
+        } catch (err) {
+            console.error('Error setting up TOTP:', err);
+            showNotification('Error setting up 2FA', 'error');
+            cancelTOTPSetup();
+        } finally {
+            document.getElementById('totpLoading').style.display = 'none';
+        }
+    }
+
+    async function verifyTOTPSetup() {
+        const token = document.getElementById('setupTotpToken').value.trim();
+        
+        if (!token || token.length !== 6) {
+            showNotification('Please enter a valid 6-digit code', 'error');
+            return;
+        }
+        
+        try {
+            const res = await fetch('/api/admin/verify-totp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                showNotification('2FA enabled successfully!', 'success');
+                cancelTOTPSetup();
+                checkTOTPStatus();
+            } else {
+                showNotification(data.message || 'Invalid TOTP code', 'error');
+            }
+        } catch (err) {
+            console.error('Error verifying TOTP:', err);
+            showNotification('Error verifying TOTP code', 'error');
+        }
+    }
+
+    function cancelTOTPSetup() {
+        document.getElementById('totpSetupSection').style.display = 'none';
+        document.getElementById('setupTotpToken').value = '';
+    }
+
+    async function disableTOTP() {
+        if (!confirm('Are you sure you want to disable 2FA? This will make your admin account less secure.')) {
+            return;
+        }
+        
+        // Note: This requires a server endpoint to disable TOTP
+        // For now, we'll just show a message
+        showNotification('To disable 2FA, please restart the server to clear the TOTP secret.', 'warning');
+    }
+
+    // Check TOTP status when security tab is opened
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listener for security tab
+        const securityTab = document.querySelector('.settings-tab[data-tab="security"]');
+        if (securityTab) {
+            securityTab.addEventListener('click', function() {
+                checkTOTPStatus();
+            });
+        }
+    });
+
+    function applyFilter(table, query) {
+        const q = (query || '').trim().toLowerCase();
+        const tbody = table.tBodies[0];
+        if (!tbody) return { visible: 0, total: 0 };
+        const rows = tbody.querySelectorAll('tr');
+        let visible = 0;
+        rows.forEach(tr => {
+            // Skip empty-state rows (single cell with colspan)
+            const onlyCell = tr.children.length === 1 && tr.children[0].hasAttribute('colspan');
+            if (onlyCell) {
+                tr.style.display = q ? 'none' : '';
+                return;
+            }
+            if (!q) {
+                tr.style.display = '';
+                visible++;
+                return;
+            }
+            const text = (tr.textContent || '').toLowerCase();
+            if (text.includes(q)) {
+                tr.style.display = '';
+                visible++;
+            } else {
+                tr.style.display = 'none';
+            }
+        });
+        return { visible, total: rows.length };
+    }
+
+    function attachSearchToTable(table) {
+        if (!table || table.dataset.searchAttached === '1') return;
+        if (!table.id) return; // require id
+
+        // Find the page-content wrapper (the section with the header buttons)
+        const pageContent = table.closest('.page-content');
+        if (!pageContent) return;
+
+        // Check if search already exists in this page-content
+        if (pageContent.querySelector('.table-search-wrap')) return;
+
+        // Look for either .form-page-header or .page-toolbar
+        const header = pageContent.querySelector('.form-page-header') || pageContent.querySelector('.page-toolbar');
+        if (!header) return;
+
+        const search = document.createElement('div');
+        search.className = 'table-search-wrap';
+        search.style.marginLeft = 'auto';
+        search.style.marginBottom = '0';
+        search.innerHTML = `
+            <i class="fas fa-search search-ico"></i>
+            <input type="text" placeholder="Search..." aria-label="Search table">
+            <button type="button" class="clear-btn" title="Clear"><i class="fas fa-times"></i></button>
+            <span class="search-count"></span>
+        `;
+        header.appendChild(search);
+
+        const input = search.querySelector('input');
+        const clearBtn = search.querySelector('.clear-btn');
+        const countEl = search.querySelector('.search-count');
+
+        const update = () => {
+            const q = input.value;
+            const { visible, total } = applyFilter(table, q);
+            if (q) {
+                clearBtn.style.display = 'block';
+                countEl.style.display = 'none';
+                countEl.textContent = `${visible}/${total}`;
+                countEl.style.display = 'block';
+                clearBtn.style.right = (countEl.offsetWidth + 12) + 'px';
+            } else {
+                clearBtn.style.display = 'none';
+                countEl.textContent = '';
+            }
+        };
+
+        input.addEventListener('input', update);
+        clearBtn.addEventListener('click', () => { input.value = ''; update(); input.focus(); });
+
+        // Re-apply filter when tbody contents change (data reloads)
+        const tbody = table.tBodies[0];
+        if (tbody && 'MutationObserver' in window) {
+            const mo = new MutationObserver(() => {
+                if (input.value) update();
+            });
+            mo.observe(tbody, { childList: true, subtree: false });
+        }
+
+        table.dataset.searchAttached = '1';
+    }
+
+    function scanAndAttach() {
+        document.querySelectorAll('table').forEach(t => {
+            // Only data tables (skip nested/inline small tables without thead+tbody)
+            if (!t.tHead || !t.tBodies[0]) return;
+            // Skip dashboard "recent" mini tables to keep dashboard clean
+            const id = (t.id || '').toLowerCase();
+            if (id.startsWith('dash') || id.startsWith('recent')) return;
+            // Require an id (so each table is identifiable)
+            if (!t.id) return;
+            attachSearchToTable(t);
+        });
+    }
+
+    // Run after initial load and whenever new content is rendered
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', scanAndAttach);
+    } else {
+        scanAndAttach();
+    }
+
+    // Watch for tables added later (e.g. when navigating to admin pages)
+    const bodyObserver = new MutationObserver(() => scanAndAttach());
+    bodyObserver.observe(document.body, { childList: true, subtree: true });
+})();

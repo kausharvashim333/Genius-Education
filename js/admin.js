@@ -278,7 +278,8 @@ function editCourse(id) {
         document.getElementById('courseId').value = course.id;
         document.getElementById('courseName').value = course.name;
         document.getElementById('courseDuration').value = course.duration;
-        document.getElementById('coursePrice').value = course.price;
+        document.getElementById('courseFee').value = course.fee || course.price || 0;
+        document.getElementById('courseFeeType').value = course.feeType || 'Per Program';
         document.getElementById('courseDesc').value = course.description || '';
         document.getElementById('courseModalTitle').textContent = 'Edit Course';
         document.getElementById('courseModal').classList.add('active');
@@ -292,20 +293,21 @@ function closeModal(modalId) {
 // Course Form
 document.getElementById('courseForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
+
     const id = document.getElementById('courseId').value;
     const name = document.getElementById('courseName').value;
     const duration = document.getElementById('courseDuration').value;
-    const price = document.getElementById('coursePrice').value;
+    const fee = document.getElementById('courseFee').value;
+    const feeType = document.getElementById('courseFeeType').value;
     const description = document.getElementById('courseDesc').value;
-    
+
     let courses = JSON.parse(localStorage.getItem('courses')) || [];
-    
+
     if (id) {
         // Edit existing
         const index = courses.findIndex(c => c.id == id);
         if (index !== -1) {
-            courses[index] = { id: parseInt(id), name, duration, price, description };
+            courses[index] = { id: parseInt(id), name, duration, fee, feeType, description };
         }
     } else {
         // Add new
@@ -313,17 +315,17 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
             id: Date.now(),
             name,
             duration,
-            price: parseInt(price),
+            fee,
+            feeType,
             description
         };
         courses.push(newCourse);
     }
-    
+
     localStorage.setItem('courses', JSON.stringify(courses));
-    closeModal('courseModal');
     loadCoursesTable();
-    loadDashboard();
-    alert('Course saved successfully!');
+    closeModal('courseModal');
+    showNotification('Course saved successfully!', 'success');
 });
 
 function deleteCourse(id) {

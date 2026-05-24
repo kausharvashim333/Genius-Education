@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Genius Computer Education</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            color: #333;
+            text-align: center;
+        }
+        #instructions {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div>Genius Computer Education Desktop App</div>
+        <div id="instructions">Please start the server first by running: npm start</div>
+        <button onclick="checkServer()">Check Server & Load</button>
+    </div>
+    <script>
+        const http = require('http');
+        const serverPort = 3000;
+        
+        function checkServer() {
+            const options = {
+                hostname: 'localhost',
+                port: serverPort,
+                path: '/',
+                method: 'GET'
+            };
+            
+            const req = http.request(options, (res) => {
+                console.log('[App] Server is ready!');
+                loadWebsite();
+            });
+            
+            req.on('error', (err) => {
+                console.log('[App] Server not ready:', err.message);
+                document.getElementById('instructions').textContent = 'Server not running. Please run: npm start';
+            });
+            
+            req.end();
+        }
+        
+        function loadWebsite() {
+            const iframe = document.createElement('iframe');
+            iframe.src = `http://localhost:${serverPort}/`;
+            document.body.appendChild(iframe);
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        // Auto-check server on load
+        setTimeout(checkServer, 1000);
+    </script>
+</body>
+</html>
