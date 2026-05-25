@@ -345,13 +345,19 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
         <div id="instructionsText" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; line-height: 1.7;"></div>
         <h3 style="margin-bottom: 12px;">General Rules:</h3>
         <ul class="instructions-list">
-            <li>Do not switch tabs or windows during the exam.</li>
+            <li>The exam will run in <strong>fullscreen mode</strong>. Do not exit fullscreen.</li>
+            <li><strong>Do not switch tabs or windows</strong> — this will be detected and recorded.</li>
+            <li>Right-click, copy, paste, and keyboard shortcuts are <strong>disabled</strong>.</li>
+            <li>Developer tools (F12, Ctrl+Shift+I) are blocked and tracked.</li>
             <li>The timer is synchronized with the server. Time will not pause.</li>
             <li>If you log in late, you will get only the remaining time.</li>
-            <li>Click "Submit Exam" when you are done. Auto-submit happens when time ends.</li>
-            <li>Once submitted, you cannot retake the exam.</li>
             <li>Your answers are saved automatically as you select them.</li>
+            <li>Click "Submit Exam" when done. Auto-submit happens when time ends.</li>
+            <li>Once submitted, you cannot retake the exam.</li>
         </ul>
+        <div style="margin-top: 14px; padding: 12px; background: #fef2f2; border-left: 4px solid var(--danger); border-radius: 6px; color: #7f1d1d;">
+            <strong><i class="fas fa-exclamation-triangle"></i> Warning:</strong> After <strong>3 security violations</strong> (tab switch, fullscreen exit, dev tools, etc.) your registration will be <strong>auto-suspended</strong> and you cannot continue the exam.
+        </div>
         <div style="margin: 20px 0; padding: 12px; background: rgba(59,130,246,0.15); border-radius: 8px;">
             <label style="display: flex; align-items: center; cursor: pointer;">
                 <input type="checkbox" id="acceptCheck" style="width: auto; margin-right: 10px;" onchange="toggleAcceptBtn()">
@@ -622,12 +628,115 @@ function showExamPage() {
     renderQuestions();
     renderNav();
     startTimer();
+    enableSecurity();
+    requestFullscreen();
+}
 
-    // Disable right-click and copy/paste
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('copy', e => e.preventDefault());
-    document.addEventListener('paste', e => e.preventDefault());
+// =============== SECURITY / ANTI-CHEAT ===============
+let securityEnabled = false;
+let lastViolationAt = 0;
+
+function enableSecurity() {
+    if (securityEnabled) return;
+    securityEnabled = true;
+    document.addEventListener('contextmenu', blockEvent);
+    document.addEventListener('copy', blockEvent);
+    document.addEventListener('cut', blockEvent);
+    document.addEventListener('paste', blockEvent);
+    document.addEventListener('selectstart', blockSelect);
+    document.addEventListener('dragstart', blockEvent);
+    document.addEventListener('keydown', blockShortcuts, true);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('blur', onWindowBlur);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
     window.addEventListener('beforeunload', warnReload);
+}
+
+function blockEvent(e) { e.preventDefault(); return false; }
+function blockSelect(e) {
+    // Allow selection inside option labels (radio inputs) but not text
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    e.preventDefault();
+    return false;
+}
+
+function blockShortcuts(e) {
+    const k = (e.key || '').toLowerCase();
+    // F12 - DevTools
+    if (e.key === 'F12') { e.preventDefault(); reportViolation('devtools_shortcut', 'F12 pressed'); return false; }
+    // Ctrl+Shift+I/J/C - DevTools
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i','j','c'].includes(k)) {
+        e.preventDefault(); reportViolation('devtools_shortcut', 'Ctrl+Shift+' + k.toUpperCase()); return false;
+    }
+    // Ctrl+U - View source
+    if ((e.ctrlKey || e.metaKey) && k === 'u') { e.preventDefault(); reportViolation('view_source', 'Ctrl+U'); return false; }
+    // Ctrl+S / Ctrl+P / Ctrl+A / Ctrl+C / Ctrl+V / Ctrl+X
+    if ((e.ctrlKey || e.metaKey) && ['s','p','a','c','v','x'].includes(k)) {
+        e.preventDefault(); return false;
+    }
+    // PrintScreen
+    if (e.key === 'PrintScreen') { e.preventDefault(); reportViolation('print_screen', 'PrintScreen pressed'); return false; }
+    // Alt+Tab (can't fully block but record)
+    if (e.altKey && k === 'tab') { reportViolation('alt_tab', 'Alt+Tab attempted'); }
+    // Windows key
+    if (e.key === 'Meta' || e.key === 'OS') { e.preventDefault(); return false; }
+}
+
+function onVisibilityChange() {
+    if (document.hidden && currentAttempt && !currentAttempt.submitted) {
+        reportViolation('tab_switch', 'Tab/window hidden');
+    }
+}
+
+function onWindowBlur() {
+    if (currentAttempt && !currentAttempt.submitted && !document.hidden) {
+        reportViolation('window_blur', 'Window lost focus');
+    }
+}
+
+function onFullscreenChange() {
+    const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+    if (!isFs && currentAttempt && !currentAttempt.submitted) {
+        reportViolation('fullscreen_exit', 'Exited fullscreen');
+        // Try re-entering after a brief delay
+        setTimeout(() => requestFullscreen(), 800);
+    }
+}
+
+function requestFullscreen() {
+    const el = document.documentElement;
+    try {
+        if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    } catch (e) {}
+}
+
+async function reportViolation(type, detail) {
+    if (!currentAttempt || currentAttempt.submitted) return;
+    // Throttle - don't spam server (1 per second max)
+    const now = Date.now();
+    if (now - lastViolationAt < 1000) return;
+    lastViolationAt = now;
+    try {
+        const res = await fetch('/api/entrance/report-violation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ attemptId: currentAttempt.id, type, detail })
+        });
+        const data = await res.json();
+        if (data.suspended) {
+            currentAttempt.submitted = true;
+            sessionStorage.removeItem('entranceReg');
+            alert('⚠️ Your exam has been suspended due to multiple security violations.\n\nPlease contact the admin office.');
+            window.location.reload();
+            return;
+        }
+        if (data.violationCount) {
+            const remaining = data.maxViolations - data.violationCount;
+            showToast(`⚠️ Security warning! ${data.violationCount}/${data.maxViolations} violations. ${remaining} remaining before suspension.`, 'warning');
+        }
+    } catch (e) { console.error('Violation report failed', e); }
 }
 
 function warnReload(e) {

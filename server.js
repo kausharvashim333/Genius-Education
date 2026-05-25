@@ -9596,6 +9596,42 @@ app.post('/api/entrance/save-answer', (req, res) => {
     res.json({ success: true });
 });
 
+// --- Report Security Violation (tab switch, fullscreen exit, etc.) ---
+app.post('/api/entrance/report-violation', (req, res) => {
+    const { attemptId, type, detail } = req.body;
+    const attempts = readData('entrance-attempts.json') || [];
+    const aIdx = attempts.findIndex(a => a.id == attemptId);
+    if (aIdx === -1) return res.status(404).json({ success: false, message: 'Attempt not found' });
+    if (attempts[aIdx].submitted) return res.json({ success: true, ignored: true });
+
+    // Track violations on the attempt
+    if (!attempts[aIdx].violations) attempts[aIdx].violations = [];
+    attempts[aIdx].violations.push({
+        type: type || 'unknown',
+        detail: detail || '',
+        time: new Date().toISOString()
+    });
+    const violationCount = attempts[aIdx].violations.length;
+    writeData('entrance-attempts.json', attempts);
+
+    // Auto-suspend after 3 violations
+    const MAX_VIOLATIONS = 3;
+    let suspended = false;
+    if (violationCount >= MAX_VIOLATIONS) {
+        const regs = readData('entrance-registrations.json') || [];
+        const rIdx = regs.findIndex(r => r.id == attempts[aIdx].registrationId);
+        if (rIdx !== -1 && !regs[rIdx].suspended) {
+            regs[rIdx].suspended = true;
+            regs[rIdx].suspendReason = `Auto-suspended: ${violationCount} security violations (last: ${type})`;
+            regs[rIdx].suspendedAt = new Date().toISOString();
+            regs[rIdx].suspendedBy = 'system';
+            writeData('entrance-registrations.json', regs);
+            suspended = true;
+        }
+    }
+    res.json({ success: true, violationCount, maxViolations: MAX_VIOLATIONS, suspended });
+});
+
 // --- Submit Exam ---
 app.post('/api/entrance/submit-exam', (req, res) => {
     const { attemptId } = req.body;
