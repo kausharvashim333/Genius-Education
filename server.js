@@ -314,7 +314,7 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
         name: 'google-student',
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: 'http://localhost:3000/auth/google/callback'
+        callbackURL: (process.env.BASE_URL || 'http://localhost:3000') + '/auth/google/callback'
     },
     (accessToken, refreshToken, profile, done) => {
         const students = readData('students.json') || [];
@@ -347,7 +347,7 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
         name: 'google-faculty',
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: 'http://localhost:3000/auth/google/faculty/callback'
+        callbackURL: (process.env.BASE_URL || 'http://localhost:3000') + '/auth/google/faculty/callback'
     },
     (accessToken, refreshToken, profile, done) => {
         const faculty = readData('faculty.json') || [];
