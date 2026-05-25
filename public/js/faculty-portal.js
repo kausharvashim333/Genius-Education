@@ -447,16 +447,20 @@ async function loadCourses() {
         const courses = await fetch('/api/courses').then(r => r.json());
         const coursesList = document.getElementById('coursesList');
         
-        if (courses.length === 0) {
-            coursesList.innerHTML = '<p>No courses found.</p>';
+        if (!courses.length) {
+            coursesList.innerHTML = '<p style="color:rgba(255,255,255,0.7);text-align:center;padding:40px;">No courses found.</p>';
             return;
         }
         
-        coursesList.innerHTML = courses.map(course => `
-            <div style="padding:15px;background:#f8fafc;border-radius:8px;margin-bottom:10px;">
-                <h4 style="margin:0;">${course.name}</h4>
+        coursesList.innerHTML = '<div class="courses-grid">' + courses.map(course => `
+            <div class="course-card-glass">
+                <div class="course-card-icon"><i class="fas fa-book-open"></i></div>
+                <h4 class="course-card-title">${course.name || 'Untitled Course'}</h4>
+                ${course.duration ? `<div class="course-card-meta"><i class="fas fa-clock"></i> ${course.duration}</div>` : ''}
+                ${course.fees ? `<div class="course-card-meta"><i class="fas fa-rupee-sign"></i> ${course.fees}</div>` : ''}
+                ${course.description ? `<p class="course-card-desc">${course.description}</p>` : ''}
             </div>
-        `).join('');
+        `).join('') + '</div>';
     } catch (e) {
         console.error('Error loading courses:', e);
     }
