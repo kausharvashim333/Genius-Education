@@ -8564,7 +8564,13 @@ app.put('/api/about', (req, res) => {
 
 // --- Settings ---
 app.get('/api/settings', (req, res) => {
-    res.json(readData('settings.json') || {});
+    const settings = readData('settings.json') || {};
+    // If not admin, hide sensitive fields
+    if (!req.session || !req.session.isAdmin) {
+        const { adminEmail, smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure, ...publicSettings } = settings;
+        return res.json(publicSettings);
+    }
+    res.json(settings);
 });
 
 app.put('/api/settings', (req, res) => {

@@ -10275,6 +10275,7 @@ async function loadSettings() {
             setPhoneNumbers([]);
         }
         document.getElementById('settingEmail').value = s.email || '';
+        document.getElementById('settingAdminEmail').value = s.adminEmail || '';
         document.getElementById('settingAddress').value = s.address || '';
         document.getElementById('rightClickPrevention').checked = s.rightClickPrevention || false;
         
@@ -10593,6 +10594,7 @@ document.getElementById('settingsForm').addEventListener('submit', async functio
         name: document.getElementById('settingName').value,
         phone: getPhoneNumbers(),
         email: document.getElementById('settingEmail').value,
+        adminEmail: document.getElementById('settingAdminEmail').value,
         address: document.getElementById('settingAddress').value,
         rightClickPrevention: document.getElementById('rightClickPrevention').checked,
         popup: {
