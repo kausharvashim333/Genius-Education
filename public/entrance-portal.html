@@ -360,6 +360,7 @@ let currentShift = null;
 let currentAttempt = null;
 let currentQuestions = [];
 let currentAnswers = {};
+let currentQuestionIndex = 0;
 let serverTimeOffset = 0;
 let endTime = null;
 let timerInterval = null;
@@ -552,6 +553,7 @@ async function acceptAndStart() {
         currentAttempt = data.attempt;
         currentQuestions = data.questions;
         currentAnswers = data.attempt.answers || {};
+        currentQuestionIndex = 0;
         endTime = new Date(data.attempt.endTime);
         serverTimeOffset = new Date(data.serverTime) - new Date();
 
@@ -583,22 +585,53 @@ function warnReload(e) {
 }
 
 function renderQuestions() {
+    if (!currentQuestions.length) {
+        document.getElementById('questionsArea').innerHTML = '';
+        return;
+    }
+    if (currentQuestionIndex < 0) currentQuestionIndex = 0;
+    if (currentQuestionIndex >= currentQuestions.length) currentQuestionIndex = currentQuestions.length - 1;
+    const idx = currentQuestionIndex;
+    const q = currentQuestions[idx];
     let html = '';
-    currentQuestions.forEach((q, idx) => {
-        html += '<div class="question-block" id="qb-' + idx + '">';
-        html += '<h4>Question ' + (idx + 1) + ' of ' + currentQuestions.length + ' &bull; ' + (q.marks || 1) + ' marks</h4>';
-        html += '<div class="q-text">' + escapeHtml(q.question) + '</div>';
-        (q.options || []).forEach((opt, oidx) => {
-            const checked = currentAnswers[q.id] == oidx ? 'checked' : '';
-            const selectedClass = currentAnswers[q.id] == oidx ? 'selected' : '';
-            html += '<label class="option-item ' + selectedClass + '" onclick="selectOption(' + q.id + ', ' + oidx + ', ' + idx + ')">';
-            html += '<input type="radio" name="q' + q.id + '" value="' + oidx + '" ' + checked + '> ';
-            html += escapeHtml(opt);
-            html += '</label>';
-        });
-        html += '</div>';
+    html += '<div class="question-block" id="qb-' + idx + '">';
+    html += '<h4>Question ' + (idx + 1) + ' of ' + currentQuestions.length + ' &bull; ' + (q.marks || 1) + ' marks</h4>';
+    html += '<div class="q-text">' + escapeHtml(q.question) + '</div>';
+    (q.options || []).forEach((opt, oidx) => {
+        const checked = currentAnswers[q.id] == oidx ? 'checked' : '';
+        const selectedClass = currentAnswers[q.id] == oidx ? 'selected' : '';
+        html += '<label class="option-item ' + selectedClass + '" onclick="selectOption(' + q.id + ', ' + oidx + ', ' + idx + ')">';
+        html += '<input type="radio" name="q' + q.id + '" value="' + oidx + '" ' + checked + '> ';
+        html += escapeHtml(opt);
+        html += '</label>';
     });
+    html += '</div>';
+    // Prev/Next navigation
+    html += '<div style="display:flex;justify-content:space-between;gap:10px;margin-top:20px;">';
+    html += '<button class="btn" onclick="prevQuestion()" ' + (idx === 0 ? 'disabled' : '') + ' style="padding:10px 20px;' + (idx === 0 ? 'opacity:0.5;cursor:not-allowed;' : '') + '"><i class="fas fa-arrow-left"></i> Previous</button>';
+    if (idx === currentQuestions.length - 1) {
+        html += '<button class="btn btn-success" onclick="confirmSubmit()" style="padding:10px 20px;"><i class="fas fa-paper-plane"></i> Submit Exam</button>';
+    } else {
+        html += '<button class="btn btn-primary" onclick="nextQuestion()" style="padding:10px 20px;">Next <i class="fas fa-arrow-right"></i></button>';
+    }
+    html += '</div>';
     document.getElementById('questionsArea').innerHTML = html;
+}
+
+function prevQuestion() {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuestions();
+        renderNav();
+    }
+}
+
+function nextQuestion() {
+    if (currentQuestionIndex < currentQuestions.length - 1) {
+        currentQuestionIndex++;
+        renderQuestions();
+        renderNav();
+    }
 }
 
 function escapeHtml(s) {
@@ -616,8 +649,9 @@ function renderNav() {
 }
 
 function scrollToQ(idx) {
-    const el = document.getElementById('qb-' + idx);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    currentQuestionIndex = idx;
+    renderQuestions();
+    renderNav();
 }
 
 async function selectOption(qid, oidx, qIndex) {
