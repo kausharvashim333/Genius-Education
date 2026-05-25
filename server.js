@@ -109,6 +109,9 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Trust first proxy (nginx) — required for correct client IP behind reverse proxy
+app.set('trust proxy', 1);
+
 // Security headers with Helmet
 app.use(helmet({
     contentSecurityPolicy: false, // Disable CSP for now as it may break inline scripts
@@ -118,7 +121,7 @@ app.use(helmet({
 // Rate limiting for API endpoints
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    max: 2000, // Limit each IP to 2000 requests per windowMs
     message: 'Too many requests from this IP, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,
