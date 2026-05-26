@@ -10,12 +10,219 @@
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
     <style>
-        /* Quill editor styling overrides for admin blog modal */
+        /* ===== Blog Modal — Glassmorphism ===== */
+        #blogModal {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        #blogModal .modal-content {
+            background: rgba(30, 41, 59, 0.55) !important;
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px !important;
+            box-shadow:
+                0 25px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Soft gradient glow accent */
+        #blogModal .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -80px;
+            right: -80px;
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.35) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        #blogModal .modal-content::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            left: -80px;
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        #blogModal .modal-header,
+        #blogModal .modal-body,
+        #blogModal .modal-footer {
+            position: relative;
+            z-index: 1;
+        }
+        #blogModal .modal-header {
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 18px 24px;
+        }
+        #blogModal .modal-header h3 {
+            color: #fff;
+            margin: 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #blogModal .modal-header h3::before {
+            content: '\f044';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: #f59e0b;
+        }
+        #blogModal .close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+        #blogModal .close-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: rotate(90deg);
+        }
+        #blogModal .modal-body {
+            padding: 24px;
+        }
+        #blogModal .modal-footer {
+            background: rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 16px 24px;
+        }
+        /* Labels */
+        #blogModal label {
+            color: #e2e8f0 !important;
+            font-size: 13px;
+            letter-spacing: 0.3px;
+            margin-bottom: 6px !important;
+        }
+        #blogModal label small { color: rgba(255, 255, 255, 0.55) !important; }
+        /* Inputs */
+        #blogModal input[type="text"],
+        #blogModal input[type="file"],
+        #blogModal select,
+        #blogModal textarea {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            color: #fff !important;
+            border-radius: 10px !important;
+            padding: 10px 14px !important;
+            transition: all 0.2s;
+        }
+        #blogModal input[type="text"]::placeholder,
+        #blogModal textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4) !important;
+        }
+        #blogModal input[type="text"]:focus,
+        #blogModal select:focus,
+        #blogModal textarea:focus {
+            background: rgba(255, 255, 255, 0.12) !important;
+            border-color: rgba(102, 126, 234, 0.6) !important;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        #blogModal select option { background: #1e293b; color: #fff; }
+        #blogModal input[type="file"] {
+            border-style: dashed !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            cursor: pointer;
+        }
+        #blogModal input[type="file"]::file-selector-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            margin-right: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        /* Pin checkbox card */
+        #blogModal #blogPinned + i + span { color: #fff; }
+        #blogModal label[for=""], #blogModal .modal-body > div > label {
+            font-weight: 600;
+        }
+        #blogModal .modal-body > div[style*="rgba(245,158,11"] {
+            background: rgba(245, 158, 11, 0.12) !important;
+            border: 1px solid rgba(245, 158, 11, 0.4) !important;
+            border-radius: 10px !important;
+        }
+        #blogModal .modal-body > div[style*="rgba(245,158,11"] p {
+            color: rgba(255, 255, 255, 0.65) !important;
+        }
+        /* Footer buttons */
+        #blogModal .modal-footer .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        #blogModal .modal-footer .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+        #blogModal .modal-footer .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.2s;
+        }
+        #blogModal .modal-footer .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        /* Cover preview */
+        #blogModal #blogCoverPreview img {
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        #blogModal #blogCoverRemoveBtn {
+            background: rgba(239, 68, 68, 0.2) !important;
+            color: #fca5a5 !important;
+            border: 1px solid rgba(239, 68, 68, 0.4) !important;
+            border-radius: 8px !important;
+        }
+        /* Quill editor — glass theme */
         #blogEditorToolbar {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-bottom: none;
-            border-radius: 6px 6px 0 0;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            border-bottom: none !important;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 8px !important;
+        }
+        #blogEditorToolbar .ql-stroke { stroke: rgba(255,255,255,0.85); }
+        #blogEditorToolbar .ql-fill { fill: rgba(255,255,255,0.85); }
+        #blogEditorToolbar .ql-picker { color: rgba(255,255,255,0.85); }
+        #blogEditorToolbar .ql-picker-label { color: rgba(255,255,255,0.85); }
+        #blogEditorToolbar button:hover .ql-stroke,
+        #blogEditorToolbar .ql-picker-label:hover { stroke: #f59e0b; color: #f59e0b; }
+        #blogEditorToolbar button:hover .ql-fill { fill: #f59e0b; }
+        #blogEditorToolbar button.ql-active .ql-stroke { stroke: #f59e0b; }
+        #blogEditorToolbar button.ql-active .ql-fill { fill: #f59e0b; }
+        #blogEditorToolbar .ql-picker-options {
+            background: #1e293b !important;
+            color: #fff !important;
+            border-color: rgba(255,255,255,0.2) !important;
+        }
+        #blogEditor {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            border-radius: 0 0 10px 10px !important;
         }
         #blogEditor .ql-editor {
             min-height: 280px;
@@ -33,6 +240,14 @@
             color: #94a3b8;
             font-style: normal;
         }
+        /* Scrollbar */
+        #blogModal .modal-content::-webkit-scrollbar { width: 8px; }
+        #blogModal .modal-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        #blogModal .modal-content::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+        }
+        #blogModal .modal-content::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
     </style>
     <style>
         /* Chapter table gets its own card-style design */
