@@ -212,7 +212,6 @@ async function loadCourses() {
                         ${eligibility ? `<span class="meta-tag">${logoImg} ${eligibility}</span>` : ''}
                     </div>
                     <p class="course-preview">${shortDesc}</p>
-                    <div class="price">₹${priceFormatted} <span style="font-size:0.85em;color:#94a3b8;">(${feeType})</span></div>
                     <div class="course-card-actions">
                         <button class="btn-view" onclick="openCourseModal(${course.id})"><i class="fas fa-eye"></i> View Details</button>
                         <a href="apply.html?course=${encodeURIComponent(course.name)}" class="btn-enroll"><i class="fas fa-user-graduate"></i> Enroll Now</a>
@@ -262,7 +261,6 @@ function openCourseModal(id) {
                 <span class="meta-tag"><i class="fas fa-clock"></i> ${course.duration}</span>
                 ${eligibility ? `<span class="meta-tag"><i class="fas fa-graduation-cap"></i> ${eligibility}</span>` : ''}
             </div>
-            <div class="price" style="font-size: 1.5rem; margin: 20px 0;">₹${priceFormatted} <span style="font-size: 0.85em; color: #94a3b8;">(${feeType})</span></div>
             <div class="course-description">
                 <h4>Course Description</h4>
                 <p style="white-space: pre-wrap; line-height: 1.6;">${desc}</p>
