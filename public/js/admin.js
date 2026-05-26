@@ -479,6 +479,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 'announcements': loadAnnouncementsTable,
                 'tests': loadTestsTable,
                 'blog': loadBlogTable,
+                'blog-comments': loadBlogComments,
+                'newsletter': loadNewsletterSubs,
                 'alumni': loadAlumniTable,
                 'attendance': loadAttendancePage,
                 'holidays': loadHolidaysTable,
@@ -3464,6 +3466,8 @@ async function loadBlogTable() {
                 html += '<td>' + blog.category + '</td>';
                 html += '<td>' + blog.author + '</td>';
                 html += '<td>' + (blog.views || 0) + '</td>';
+                html += '<td>' + (blog.likes || 0) + '</td>';
+                html += '<td><span id="blogCmtCount-' + blog.id + '">-</span></td>';
                 html += '<td>' + formatDate(blog.createdAt) + '</td>';
                 html += '<td>' + (blog.published ? '<span style="color:#16a34a;font-weight:600;">Published</span>' : '<span style="color:#dc2626;font-weight:600;">Draft</span>') + '</td>';
                 html += '<td style="white-space:nowrap;">';
@@ -13350,3 +13354,285 @@ async function exportExamResultsToExcel() {
     const bodyObserver = new MutationObserver(() => scanAndAttach());
     bodyObserver.observe(document.body, { childList: true, subtree: true });
 })();
+
+// ============================================================
+// ===== Blog Comments Moderation =====
+// ============================================================
+let _blogCommentsCache = [];
+let _blogCommentTab = 'pending';
+let _commentReplyTarget = null;
+
+function setCommentTab(status) {
+    _blogCommentTab = status;
+    document.querySelectorAll('.comment-tab-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.status === status);
+    });
+    loadBlogComments();
+}
+
+async function loadBlogComments() {
+    try {
+        const res = await fetch('/api/admin/comments?status=' + encodeURIComponent(_blogCommentTab));
+        const data = await res.json();
+        if (!data.success) return;
+        _blogCommentsCache = data.comments || [];
+        // Update pending badges
+        const pending = data.pendingCount || 0;
+        const navBadge = document.getElementById('blogCommentsBadge');
+        if (navBadge) {
+            navBadge.textContent = pending;
+            navBadge.style.display = pending > 0 ? 'inline-block' : 'none';
+        }
+        const tabBadge = document.getElementById('cmtPendingCount');
+        if (tabBadge) tabBadge.textContent = pending;
+        renderBlogCommentsList();
+        // Update inline comment counts on blog table
+        if (typeof _allBlogs !== 'undefined' && Array.isArray(_allBlogs)) {
+            const allRes = await fetch('/api/admin/comments?status=all');
+            const allData = await allRes.json();
+            if (allData.success) {
+                const counts = {};
+                (allData.comments || []).forEach(c => {
+                    counts[c.blogId] = (counts[c.blogId] || 0) + 1;
+                });
+                _allBlogs.forEach(b => {
+                    const el = document.getElementById('blogCmtCount-' + b.id);
+                    if (el) el.textContent = counts[b.id] || 0;
+                });
+            }
+        }
+    } catch (e) { console.error('Load comments err:', e); }
+}
+
+function renderBlogCommentsList() {
+    const container = document.getElementById('blogCommentsList');
+    if (!container) return;
+    if (_blogCommentsCache.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:50px;color:rgba(255,255,255,0.5);"><i class="fas fa-inbox" style="font-size:50px;opacity:0.3;display:block;margin-bottom:14px;"></i>No comments in this view.</div>';
+        return;
+    }
+    container.innerHTML = `
+        <div class="data-table">
+            <table>
+                <thead><tr>
+                    <th><input type="checkbox" id="cmtSelectAll" onchange="cmtToggleSelectAll(this)"></th>
+                    <th>Status</th><th>Author</th><th>Comment</th><th>Blog Post</th><th>Date</th><th>Actions</th>
+                </tr></thead>
+                <tbody>
+                ${_blogCommentsCache.map(c => renderCommentRow(c)).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function renderCommentRow(c) {
+    const status = c.approved
+        ? '<span style="color:#16a34a;font-weight:600;">' + (c.isAdmin ? 'Admin Reply' : 'Approved') + '</span>'
+        : '<span style="color:#ef4444;font-weight:600;">Pending</span>';
+    const date = formatDate(c.createdAt);
+    const blogLink = c.blogSlug
+        ? '<a href="/blog/' + encodeURIComponent(c.blogSlug) + '" target="_blank">' + escapeAdminHtml(c.blogTitle) + ' <i class="fas fa-external-link-alt" style="font-size:10px;"></i></a>'
+        : escapeAdminHtml(c.blogTitle);
+    const isReply = c.parentId ? '<span style="color:#94a3b8;font-size:11px;">↳ Reply</span> ' : '';
+    return `<tr data-comment-id="${c.id}">
+        <td><input type="checkbox" class="cmt-select" data-id="${c.id}"></td>
+        <td>${status}</td>
+        <td><strong>${escapeAdminHtml(c.name)}</strong><br><small style="color:#64748b;">${escapeAdminHtml(c.email || '')}</small></td>
+        <td style="max-width:340px;">${isReply}<div style="white-space:pre-wrap;word-break:break-word;font-size:13px;">${escapeAdminHtml(c.content)}</div></td>
+        <td>${blogLink}</td>
+        <td>${date}</td>
+        <td style="white-space:nowrap;">
+            ${!c.approved ? `<button class="btn btn-success" onclick="approveComment(${c.id})" style="padding:4px 8px;font-size:12px;margin-right:4px;background:#16a34a;" title="Approve"><i class="fas fa-check"></i></button>` : ''}
+            ${c.approved && !c.isAdmin ? `<button class="btn btn-secondary" onclick="unapproveComment(${c.id})" style="padding:4px 8px;font-size:12px;margin-right:4px;" title="Unapprove"><i class="fas fa-undo"></i></button>` : ''}
+            ${!c.isAdmin ? `<button class="btn btn-primary" onclick="openReplyModal(${c.id})" style="padding:4px 8px;font-size:12px;margin-right:4px;" title="Reply"><i class="fas fa-reply"></i></button>` : ''}
+            <button class="btn btn-secondary" onclick="deleteComment(${c.id})" style="padding:4px 8px;font-size:12px;background:#ef4444;color:#fff;" title="Delete"><i class="fas fa-trash"></i></button>
+        </td>
+    </tr>`;
+}
+
+function escapeAdminHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function cmtToggleSelectAll(checkbox) {
+    document.querySelectorAll('.cmt-select').forEach(cb => cb.checked = checkbox.checked);
+}
+
+function getSelectedCommentIds() {
+    return Array.from(document.querySelectorAll('.cmt-select:checked')).map(cb => parseInt(cb.dataset.id));
+}
+
+async function approveComment(id) {
+    try {
+        const res = await fetch('/api/admin/comments/' + id + '/approve', { method: 'PUT' });
+        const data = await res.json();
+        if (data.success) { showNotification('Comment approved', 'success'); loadBlogComments(); }
+    } catch (e) { showNotification('Error approving comment', 'error'); }
+}
+
+async function unapproveComment(id) {
+    try {
+        const res = await fetch('/api/admin/comments/' + id + '/unapprove', { method: 'PUT' });
+        const data = await res.json();
+        if (data.success) { showNotification('Comment moved back to pending', 'success'); loadBlogComments(); }
+    } catch (e) { showNotification('Error', 'error'); }
+}
+
+async function deleteComment(id) {
+    if (!confirm('Delete this comment? Replies to it will also be deleted.')) return;
+    try {
+        const res = await fetch('/api/admin/comments/' + id, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) { showNotification('Comment deleted', 'success'); loadBlogComments(); }
+    } catch (e) { showNotification('Error deleting', 'error'); }
+}
+
+async function bulkApproveComments() {
+    const ids = getSelectedCommentIds();
+    if (ids.length === 0) return showNotification('No comments selected', 'warning');
+    try {
+        const res = await fetch('/api/admin/comments/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids, action: 'approve' })
+        });
+        if ((await res.json()).success) { showNotification(`${ids.length} comments approved`, 'success'); loadBlogComments(); }
+    } catch (e) { showNotification('Error', 'error'); }
+}
+
+async function bulkDeleteComments() {
+    const ids = getSelectedCommentIds();
+    if (ids.length === 0) return showNotification('No comments selected', 'warning');
+    if (!confirm(`Delete ${ids.length} comments?`)) return;
+    try {
+        const res = await fetch('/api/admin/comments/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids, action: 'delete' })
+        });
+        if ((await res.json()).success) { showNotification(`${ids.length} comments deleted`, 'success'); loadBlogComments(); }
+    } catch (e) { showNotification('Error', 'error'); }
+}
+
+function openReplyModal(commentId) {
+    const c = _blogCommentsCache.find(x => x.id == commentId);
+    if (!c) return;
+    _commentReplyTarget = c;
+    document.getElementById('replyCommentId').value = c.id;
+    document.getElementById('replyToName').textContent = c.name;
+    document.getElementById('replyToContent').textContent = c.content;
+    document.getElementById('replyContent').value = '';
+    document.getElementById('commentReplyModal').style.display = 'flex';
+}
+
+function closeCommentReplyModal() {
+    document.getElementById('commentReplyModal').style.display = 'none';
+    _commentReplyTarget = null;
+}
+
+async function submitCommentReply() {
+    const id = document.getElementById('replyCommentId').value;
+    const content = document.getElementById('replyContent').value.trim();
+    if (!content) return showNotification('Reply cannot be empty', 'warning');
+    try {
+        const res = await fetch('/api/admin/comments/' + id + '/reply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content, name: 'Admin' })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Reply posted', 'success');
+            closeCommentReplyModal();
+            loadBlogComments();
+        } else {
+            showNotification(data.message || 'Error', 'error');
+        }
+    } catch (e) { showNotification('Error posting reply', 'error'); }
+}
+
+// Auto-refresh pending count every 60s
+setInterval(() => {
+    fetch('/api/admin/comments?status=pending')
+        .then(r => r.json())
+        .then(d => {
+            if (!d.success) return;
+            const badge = document.getElementById('blogCommentsBadge');
+            if (badge) {
+                const count = d.pendingCount || 0;
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        }).catch(() => {});
+}, 60000);
+
+// Initial badge load (after login)
+setTimeout(() => {
+    fetch('/api/admin/comments?status=pending')
+        .then(r => r.json())
+        .then(d => {
+            if (!d.success) return;
+            const badge = document.getElementById('blogCommentsBadge');
+            if (badge) {
+                const count = d.pendingCount || 0;
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        }).catch(() => {});
+}, 2000);
+
+// ============================================================
+// ===== Newsletter Subscribers =====
+// ============================================================
+let _newsletterSubs = [];
+
+async function loadNewsletterSubs() {
+    try {
+        const res = await fetch('/api/admin/newsletter/subscribers');
+        const data = await res.json();
+        if (!data.success) return;
+        _newsletterSubs = data.subscribers || [];
+        document.getElementById('newsletterCount').textContent = '(' + _newsletterSubs.length + ')';
+        const tbody = document.querySelector('#newsletterTable tbody');
+        if (_newsletterSubs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:#94a3b8;">No subscribers yet.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = _newsletterSubs
+            .slice()
+            .sort((a, b) => new Date(b.subscribedAt) - new Date(a.subscribedAt))
+            .map((s, i) => `
+            <tr>
+                <td>${i + 1}</td>
+                <td><a href="mailto:${escapeAdminHtml(s.email)}">${escapeAdminHtml(s.email)}</a></td>
+                <td>${escapeAdminHtml(s.name || '-')}</td>
+                <td>${formatDate(s.subscribedAt)}</td>
+                <td><button class="btn btn-secondary" onclick="deleteNewsletterSub(${s.id})" style="padding:4px 8px;font-size:12px;background:#ef4444;color:#fff;"><i class="fas fa-trash"></i></button></td>
+            </tr>
+        `).join('');
+    } catch (e) { console.error('Newsletter load err:', e); }
+}
+
+async function deleteNewsletterSub(id) {
+    if (!confirm('Remove this subscriber?')) return;
+    try {
+        const res = await fetch('/api/admin/newsletter/subscribers/' + id, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) { showNotification('Subscriber removed', 'success'); loadNewsletterSubs(); }
+    } catch (e) { showNotification('Error', 'error'); }
+}
+
+function exportNewsletterCSV() {
+    if (_newsletterSubs.length === 0) return showNotification('No subscribers to export', 'warning');
+    const rows = [['Email', 'Name', 'Subscribed On']];
+    _newsletterSubs.forEach(s => rows.push([s.email, s.name || '', s.subscribedAt]));
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'newsletter-subscribers-' + new Date().toISOString().substring(0, 10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}

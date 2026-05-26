@@ -575,6 +575,8 @@
                         <li><a href="#" data-page="assignments"><i class="fas fa-tasks"></i> Assignments</a></li>
                         <li><a href="#" data-page="announcements"><i class="fas fa-bullhorn"></i> Announcements</a></li>
                         <li><a href="#" data-page="blog"><i class="fas fa-blog"></i> Blog</a></li>
+                        <li><a href="#" data-page="blog-comments"><i class="fas fa-comments"></i> Blog Comments <span id="blogCommentsBadge" style="display:none;background:#ef4444;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:6px;">0</span></a></li>
+                        <li><a href="#" data-page="newsletter"><i class="fas fa-envelope"></i> Newsletter</a></li>
                         <li><a href="#" data-page="alumni"><i class="fas fa-user-graduate"></i> Alumni Network</a></li>
                         <li><a href="#" data-page="testimonials"><i class="fas fa-star"></i> Testimonials</a></li>
                         <li><a href="#" data-page="gallery"><i class="fas fa-images"></i> Gallery</a></li>
@@ -2737,9 +2739,66 @@
                 </div>
                 <div class="data-table">
                     <table id="blogTable">
-                        <thead><tr><th><input type="checkbox" id="selectAllBlogPosts" onchange="toggleAllBlogPostCheckboxes()"></th><th>Pin</th><th>Title</th><th>Category</th><th>Author</th><th>Views</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                        <thead><tr><th><input type="checkbox" id="selectAllBlogPosts" onchange="toggleAllBlogPostCheckboxes()"></th><th>Pin</th><th>Title</th><th>Category</th><th>Author</th><th>Views</th><th>Likes</th><th>Comments</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Blog Comments Page -->
+            <div id="page-blog-comments" class="page-content hidden">
+                <div class="page-header">
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <div class="comment-tabs" style="display:flex;gap:6px;">
+                            <button class="btn btn-secondary comment-tab-btn active" data-status="pending" onclick="setCommentTab('pending')"><i class="fas fa-clock"></i> Pending <span id="cmtPendingCount" style="background:#ef4444;color:#fff;padding:1px 8px;border-radius:10px;margin-left:4px;font-size:11px;">0</span></button>
+                            <button class="btn btn-secondary comment-tab-btn" data-status="approved" onclick="setCommentTab('approved')"><i class="fas fa-check"></i> Approved</button>
+                            <button class="btn btn-secondary comment-tab-btn" data-status="all" onclick="setCommentTab('all')"><i class="fas fa-list"></i> All</button>
+                        </div>
+                        <button class="btn btn-secondary" onclick="loadBlogComments()"><i class="fas fa-sync"></i> Refresh</button>
+                        <button class="btn btn-success" onclick="bulkApproveComments()"><i class="fas fa-check-double"></i> Approve Selected</button>
+                        <button class="btn btn-danger" onclick="bulkDeleteComments()"><i class="fas fa-trash"></i> Delete Selected</button>
+                    </div>
+                </div>
+                <div id="blogCommentsList" style="margin-top:20px;"></div>
+            </div>
+
+            <!-- Newsletter Subscribers Page -->
+            <div id="page-newsletter" class="page-content hidden">
+                <div class="page-header">
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <h3 style="margin:0;color:#fff;"><i class="fas fa-envelope-open-text"></i> Newsletter Subscribers <span id="newsletterCount" style="opacity:0.6;font-weight:normal;font-size:14px;">(0)</span></h3>
+                        <button class="btn btn-secondary" onclick="loadNewsletterSubs()" style="margin-left:auto;"><i class="fas fa-sync"></i> Refresh</button>
+                        <button class="btn btn-success" onclick="exportNewsletterCSV()" style="background:#16a34a;"><i class="fas fa-file-csv"></i> Export CSV</button>
+                    </div>
+                </div>
+                <div class="data-table">
+                    <table id="newsletterTable">
+                        <thead><tr><th>#</th><th>Email</th><th>Name</th><th>Subscribed On</th><th>Actions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reply to Comment Modal -->
+            <div id="commentReplyModal" class="modal" style="display:none;">
+                <div class="modal-content" style="max-width:500px;">
+                    <div class="modal-header">
+                        <h3>Reply to Comment</h3>
+                        <button class="close-btn" onclick="closeCommentReplyModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="replyCommentId">
+                        <div style="background:rgba(0,0,0,0.05);padding:10px;border-radius:6px;margin-bottom:14px;font-size:13px;">
+                            <strong id="replyToName">User</strong> wrote:
+                            <div id="replyToContent" style="margin-top:6px;color:#475569;"></div>
+                        </div>
+                        <label style="display:block;margin-bottom:6px;font-weight:600;">Your Reply (as Admin) *</label>
+                        <textarea id="replyContent" rows="5" placeholder="Type your response..." style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:6px;font-family:inherit;"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeCommentReplyModal()">Cancel</button>
+                        <button class="btn btn-primary" onclick="submitCommentReply()"><i class="fas fa-paper-plane"></i> Post Reply</button>
+                    </div>
                 </div>
             </div>
 

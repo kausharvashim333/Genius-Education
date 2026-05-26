@@ -284,6 +284,113 @@
         .newsletter-msg { margin-top: 12px; font-size: 13px; min-height: 18px; }
         .newsletter-msg.success { color: #86efac; }
         .newsletter-msg.error { color: #fca5a5; }
+
+        /* Comments section */
+        .comments-section { margin-top: 36px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.15); }
+        .comments-section h3 { color: #fff; font-size: 22px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+        .comments-section h3 .count-badge { background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #f59e0b; padding: 2px 12px; border-radius: 14px; font-size: 14px; font-weight: 700; }
+        .comment-form-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .comment-form-card h4 { color: #fff; margin: 0 0 14px; font-size: 16px; }
+        .comment-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        @media (max-width: 600px) { .comment-form-row { grid-template-columns: 1fr; } }
+        .comment-form-card input, .comment-form-card textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .comment-form-card textarea { min-height: 100px; resize: vertical; }
+        .comment-form-card input::placeholder, .comment-form-card textarea::placeholder { color: rgba(255,255,255,0.4); }
+        .comment-form-card input:focus, .comment-form-card textarea:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.6);
+            background: rgba(255,255,255,0.12);
+        }
+        .comment-submit-row { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; flex-wrap: wrap; gap: 10px; }
+        .comment-submit-row small { color: rgba(255,255,255,0.5); font-size: 12px; }
+        .comment-submit-btn {
+            padding: 10px 22px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+        .comment-submit-btn:hover { transform: translateY(-2px); }
+        .comment-submit-btn:disabled { opacity: 0.6; cursor: wait; }
+        .comment-form-msg { font-size: 13px; }
+        .comment-form-msg.success { color: #86efac; }
+        .comment-form-msg.error { color: #fca5a5; }
+
+        .comment-list { display: flex; flex-direction: column; gap: 16px; }
+        .comment-item {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 16px 18px;
+            color: #fff;
+        }
+        .comment-item.is-reply { margin-left: 30px; background: rgba(102, 126, 234, 0.08); border-color: rgba(102, 126, 234, 0.25); }
+        .comment-item.is-admin { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3); }
+        .comment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .comment-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .comment-item.is-admin .comment-avatar { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+        .comment-name {
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .comment-name .admin-badge {
+            font-size: 10px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .comment-date { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+        .comment-content { color: rgba(255,255,255,0.9); line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+        .comment-actions { margin-top: 8px; }
+        .comment-reply-btn {
+            background: none;
+            border: none;
+            color: #fbbf24;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 0;
+        }
+        .comment-reply-btn:hover { text-decoration: underline; }
+        .comment-empty { text-align: center; padding: 30px 20px; color: rgba(255,255,255,0.55); }
         /* Sidebar */
         .post-sidebar {
             display: flex;
@@ -619,10 +726,166 @@
                         <button type="submit"><i class="fas fa-paper-plane"></i> Subscribe</button>
                     </form>
                     <div class="newsletter-msg" id="newsletterMsg"></div>
+                </div>
+
+                <!-- Comments -->
+                <div class="comments-section">
+                    <h3><i class="fas fa-comments" style="color:#f59e0b;"></i> Comments <span class="count-badge" id="commentsCount">0</span></h3>
+
+                    <!-- Form -->
+                    <div class="comment-form-card">
+                        <h4 id="commentFormTitle"><i class="fas fa-pen-fancy"></i> Leave a Comment</h4>
+                        <input type="hidden" id="replyToId" value="">
+                        <div id="replyToBanner" style="display:none;background:rgba(102,126,234,0.15);border:1px solid rgba(102,126,234,0.4);padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:13px;color:#fff;">
+                            Replying to <strong id="replyToName"></strong>
+                            <button type="button" onclick="cancelReply()" style="float:right;background:none;border:none;color:#fbbf24;cursor:pointer;font-size:13px;">Cancel</button>
+                        </div>
+                        <div class="comment-form-row">
+                            <input type="text" id="commentName" placeholder="Your name *" maxlength="80" required>
+                            <input type="email" id="commentEmail" placeholder="Your email * (not displayed)" required>
+                        </div>
+                        <textarea id="commentContent" placeholder="Share your thoughts..." maxlength="3000" required></textarea>
+                        <div class="comment-submit-row">
+                            <small><i class="fas fa-info-circle"></i> Comments are reviewed before publishing.</small>
+                            <button type="button" class="comment-submit-btn" onclick="submitComment()">
+                                <i class="fas fa-paper-plane"></i> Post Comment
+                            </button>
+                        </div>
+                        <div class="comment-form-msg" id="commentFormMsg" style="margin-top:10px;"></div>
+                    </div>
+
+                    <!-- List -->
+                    <div class="comment-list" id="commentList">
+                        <div class="comment-empty"><i class="fas fa-comment-slash" style="font-size:30px;opacity:0.4;display:block;margin-bottom:8px;"></i>No comments yet. Be the first!</div>
+                    </div>
                 </div>`;
             document.getElementById('postContent').innerHTML = html;
             updateLikeButton();
             updateBookmarkButton();
+            loadComments();
+            // Restore saved name/email from localStorage
+            try {
+                const cached = JSON.parse(localStorage.getItem('blogCommenter') || '{}');
+                if (cached.name) document.getElementById('commentName').value = cached.name;
+                if (cached.email) document.getElementById('commentEmail').value = cached.email;
+            } catch (e) {}
+        }
+
+        // ===== Comments =====
+        let _comments = [];
+
+        async function loadComments() {
+            if (!_currentBlog) return;
+            try {
+                const res = await fetch(`/api/blogs/${_currentBlog.id}/comments`);
+                const data = await res.json();
+                if (data.success) {
+                    _comments = data.comments || [];
+                    renderComments();
+                }
+            } catch (e) { console.error('Load comments error:', e); }
+        }
+
+        function renderComments() {
+            const list = document.getElementById('commentList');
+            const countEl = document.getElementById('commentsCount');
+            if (!list) return;
+            countEl.textContent = _comments.length;
+            if (_comments.length === 0) {
+                list.innerHTML = '<div class="comment-empty"><i class="fas fa-comment-slash" style="font-size:30px;opacity:0.4;display:block;margin-bottom:8px;"></i>No comments yet. Be the first!</div>';
+                return;
+            }
+            // Build tree: parents first, replies grouped
+            const parents = _comments.filter(c => !c.parentId).sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
+            const repliesByParent = {};
+            _comments.filter(c => c.parentId).forEach(c => {
+                if (!repliesByParent[c.parentId]) repliesByParent[c.parentId] = [];
+                repliesByParent[c.parentId].push(c);
+            });
+            list.innerHTML = parents.map(p => {
+                const replies = (repliesByParent[p.id] || []).sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
+                return renderComment(p, false) + replies.map(r => renderComment(r, true)).join('');
+            }).join('');
+        }
+
+        function escapeHtmlPost(str) {
+            return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function renderComment(c, isReply) {
+            const initials = String(c.name || 'A').trim().split(/\s+/).map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'A';
+            const date = new Date(c.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            const time = new Date(c.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            const adminBadge = c.isAdmin ? '<span class="admin-badge"><i class="fas fa-shield-alt"></i> ADMIN</span>' : '';
+            return `
+                <div class="comment-item ${isReply ? 'is-reply' : ''} ${c.isAdmin ? 'is-admin' : ''}">
+                    <div class="comment-header">
+                        <div class="comment-avatar">${escapeHtmlPost(initials)}</div>
+                        <div>
+                            <div class="comment-name">${escapeHtmlPost(c.name)}${adminBadge}</div>
+                            <div class="comment-date">${date} at ${time}</div>
+                        </div>
+                    </div>
+                    <div class="comment-content">${escapeHtmlPost(c.content)}</div>
+                    ${!isReply ? `<div class="comment-actions"><button class="comment-reply-btn" onclick="setReplyTo(${c.id}, '${escapeHtmlPost(c.name).replace(/'/g, "\\'")}')"><i class="fas fa-reply"></i> Reply</button></div>` : ''}
+                </div>
+            `;
+        }
+
+        function setReplyTo(id, name) {
+            document.getElementById('replyToId').value = id;
+            document.getElementById('replyToName').textContent = name;
+            document.getElementById('replyToBanner').style.display = 'block';
+            document.getElementById('commentFormTitle').innerHTML = '<i class="fas fa-reply"></i> Reply to ' + name;
+            document.getElementById('commentContent').focus();
+            document.querySelector('.comment-form-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function cancelReply() {
+            document.getElementById('replyToId').value = '';
+            document.getElementById('replyToBanner').style.display = 'none';
+            document.getElementById('commentFormTitle').innerHTML = '<i class="fas fa-pen-fancy"></i> Leave a Comment';
+        }
+
+        async function submitComment() {
+            if (!_currentBlog) return;
+            const name = document.getElementById('commentName').value.trim();
+            const email = document.getElementById('commentEmail').value.trim();
+            const content = document.getElementById('commentContent').value.trim();
+            const parentId = document.getElementById('replyToId').value || null;
+            const msg = document.getElementById('commentFormMsg');
+            const btn = document.querySelector('.comment-submit-btn');
+            msg.className = 'comment-form-msg';
+            msg.textContent = '';
+
+            if (!name || !email || !content) {
+                msg.textContent = 'Please fill in all required fields.';
+                msg.classList.add('error');
+                return;
+            }
+
+            btn.disabled = true;
+            try {
+                const res = await fetch(`/api/blogs/${_currentBlog.id}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, content, parentId: parentId ? parseInt(parentId) : null })
+                });
+                const data = await res.json();
+                msg.textContent = data.message || (data.success ? 'Submitted!' : 'Failed to post comment.');
+                msg.classList.add(data.success ? 'success' : 'error');
+                if (data.success) {
+                    document.getElementById('commentContent').value = '';
+                    cancelReply();
+                    // Save name/email for next time
+                    try { localStorage.setItem('blogCommenter', JSON.stringify({ name, email })); } catch (e) {}
+                }
+            } catch (err) {
+                msg.textContent = 'Network error. Please try again.';
+                msg.classList.add('error');
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         // ===== Reactions =====

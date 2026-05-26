@@ -3760,7 +3760,14 @@ function ensureBlogSlugs(blogs) {
 app.get('/api/blogs', (req, res) => {
     let blogs = readData('blogs.json') || [];
     blogs = ensureBlogSlugs(blogs);
-    res.json({ success: true, blogs });
+    // Attach approved comment counts
+    const comments = readData('blog_comments.json') || [];
+    const commentCounts = {};
+    comments.forEach(c => {
+        if (c.approved) commentCounts[c.blogId] = (commentCounts[c.blogId] || 0) + 1;
+    });
+    const enriched = blogs.map(b => ({ ...b, commentCount: commentCounts[b.id] || 0 }));
+    res.json({ success: true, blogs: enriched });
 });
 
 // Get a single blog by slug (clean URL support)
@@ -3922,6 +3929,149 @@ app.delete('/api/admin/newsletter/subscribers/:id', (req, res) => {
     const filtered = subs.filter(s => s.id != req.params.id);
     if (filtered.length === subs.length) return res.status(404).json({ success: false });
     writeData('newsletter_subscribers.json', filtered);
+    res.json({ success: true });
+});
+
+// ===== Blog Comments =====
+function sanitizeComment(text) {
+    // Strip HTML tags for safety; keep line breaks
+    return String(text || '').replace(/<[^>]+>/g, '').trim();
+}
+
+// Public: get approved comments for a blog (with admin replies)
+app.get('/api/blogs/:id/comments', (req, res) => {
+    const all = readData('blog_comments.json') || [];
+    const approved = all.filter(c => c.blogId == req.params.id && c.approved);
+    res.json({ success: true, comments: approved });
+});
+
+// Public: post a new comment (requires moderation)
+app.post('/api/blogs/:id/comments', (req, res) => {
+    const blogId = parseInt(req.params.id);
+    const { name, email, content, parentId } = req.body || {};
+    const cleanName = String(name || '').trim().substring(0, 80);
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    const cleanContent = sanitizeComment(content).substring(0, 3000);
+
+    if (!cleanName) return res.status(400).json({ success: false, message: 'Name is required' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) return res.status(400).json({ success: false, message: 'Valid email required' });
+    if (!cleanContent || cleanContent.length < 3) return res.status(400).json({ success: false, message: 'Comment is too short' });
+
+    const blogs = readData('blogs.json') || [];
+    if (!blogs.some(b => b.id === blogId)) return res.status(404).json({ success: false, message: 'Blog not found' });
+
+    const all = readData('blog_comments.json') || [];
+    // Validate parent exists and belongs to same blog
+    let validParentId = null;
+    if (parentId) {
+        const parent = all.find(c => c.id == parentId && c.blogId === blogId);
+        if (parent) validParentId = parent.id;
+    }
+    const comment = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        blogId,
+        parentId: validParentId,
+        name: cleanName,
+        email: cleanEmail,
+        content: cleanContent,
+        approved: false,
+        isAdmin: false,
+        createdAt: new Date().toISOString()
+    };
+    all.push(comment);
+    writeData('blog_comments.json', all);
+    res.json({ success: true, message: 'Thank you! Your comment is awaiting moderation.', comment: { ...comment, email: undefined } });
+});
+
+// Admin: list all comments with optional filter (status=pending/approved/all)
+app.get('/api/admin/comments', (req, res) => {
+    const status = req.query.status || 'all';
+    const all = readData('blog_comments.json') || [];
+    const blogs = readData('blogs.json') || [];
+    let filtered = all;
+    if (status === 'pending') filtered = all.filter(c => !c.approved);
+    else if (status === 'approved') filtered = all.filter(c => c.approved);
+    // Attach blog title for context
+    const enriched = filtered.map(c => {
+        const b = blogs.find(x => x.id === c.blogId);
+        return { ...c, blogTitle: b ? b.title : '(deleted blog)', blogSlug: b ? b.slug : null };
+    }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json({ success: true, comments: enriched, pendingCount: all.filter(c => !c.approved).length });
+});
+
+// Admin: approve comment
+app.put('/api/admin/comments/:id/approve', (req, res) => {
+    const all = readData('blog_comments.json') || [];
+    const idx = all.findIndex(c => c.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false });
+    all[idx].approved = true;
+    writeData('blog_comments.json', all);
+    res.json({ success: true });
+});
+
+// Admin: unapprove (set back to pending)
+app.put('/api/admin/comments/:id/unapprove', (req, res) => {
+    const all = readData('blog_comments.json') || [];
+    const idx = all.findIndex(c => c.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false });
+    all[idx].approved = false;
+    writeData('blog_comments.json', all);
+    res.json({ success: true });
+});
+
+// Admin: reply to a comment (auto-approved, marked as admin)
+app.post('/api/admin/comments/:id/reply', (req, res) => {
+    const { content, name } = req.body || {};
+    const cleanContent = sanitizeComment(content).substring(0, 3000);
+    if (!cleanContent || cleanContent.length < 1) return res.status(400).json({ success: false, message: 'Reply cannot be empty' });
+
+    const all = readData('blog_comments.json') || [];
+    const parent = all.find(c => c.id == req.params.id);
+    if (!parent) return res.status(404).json({ success: false });
+
+    const reply = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        blogId: parent.blogId,
+        parentId: parent.id,
+        name: (name || 'Admin').trim(),
+        email: 'admin@internal',
+        content: cleanContent,
+        approved: true,
+        isAdmin: true,
+        createdAt: new Date().toISOString()
+    };
+    all.push(reply);
+    // Auto-approve parent if it isn't approved yet
+    const parentIdx = all.findIndex(c => c.id == req.params.id);
+    if (parentIdx !== -1 && !all[parentIdx].approved) all[parentIdx].approved = true;
+    writeData('blog_comments.json', all);
+    res.json({ success: true, reply });
+});
+
+// Admin: delete comment (and its replies)
+app.delete('/api/admin/comments/:id', (req, res) => {
+    const all = readData('blog_comments.json') || [];
+    const id = parseInt(req.params.id);
+    const filtered = all.filter(c => c.id !== id && c.parentId !== id);
+    if (filtered.length === all.length) return res.status(404).json({ success: false });
+    writeData('blog_comments.json', filtered);
+    res.json({ success: true });
+});
+
+// Admin: bulk approve / delete
+app.post('/api/admin/comments/bulk', (req, res) => {
+    const { ids, action } = req.body || {};
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ success: false });
+    let all = readData('blog_comments.json') || [];
+    const idSet = new Set(ids.map(Number));
+    if (action === 'approve') {
+        all.forEach(c => { if (idSet.has(c.id)) c.approved = true; });
+    } else if (action === 'delete') {
+        all = all.filter(c => !idSet.has(c.id) && !idSet.has(c.parentId));
+    } else {
+        return res.status(400).json({ success: false, message: 'Unknown action' });
+    }
+    writeData('blog_comments.json', all);
     res.json({ success: true });
 });
 
