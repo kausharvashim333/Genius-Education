@@ -6,6 +6,34 @@
     <title>Admin Panel - Genius Computer Education</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Quill Rich Text Editor (for blog content) -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+    <style>
+        /* Quill editor styling overrides for admin blog modal */
+        #blogEditorToolbar {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+        }
+        #blogEditor .ql-editor {
+            min-height: 280px;
+            font-size: 15px;
+            line-height: 1.7;
+            color: #1e293b;
+        }
+        #blogEditor .ql-editor img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 8px 0;
+        }
+        #blogEditor .ql-editor.ql-blank::before {
+            color: #94a3b8;
+            font-style: normal;
+        }
+    </style>
     <style>
         /* Chapter table gets its own card-style design */
         #page-videos .chapter-table-wrapper {
@@ -3688,7 +3716,7 @@
 
     <!-- Blog Modal -->
     <div id="blogModal" class="modal" style="display:none;">
-        <div class="modal-content" style="max-width:700px;">
+        <div class="modal-content" style="max-width:900px;max-height:90vh;overflow-y:auto;">
             <div class="modal-header">
                 <h3 id="blogModalTitle">Add Blog Post</h3>
                 <button class="close-btn" onclick="closeBlogModal()">&times;</button>
@@ -3714,12 +3742,60 @@
                     <input type="text" id="blogAuthor" placeholder="Author name" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;">
                 </div>
                 <div style="margin-bottom:12px;">
-                    <label style="display:block;margin-bottom:4px;font-weight:600;">Featured Image URL <small style="color:#888;">(optional)</small></label>
-                    <input type="text" id="blogImage" placeholder="https://... or /uploads/..." style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;">
+                    <label style="display:block;margin-bottom:4px;font-weight:600;">Cover Image <small style="color:#888;">(optional, max 10MB)</small></label>
+                    <input type="hidden" id="blogImage">
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <input type="file" id="blogCoverInput" accept="image/*" onchange="uploadBlogCover(this)" style="flex:1;min-width:200px;padding:8px;border:1px dashed #cbd5e1;border-radius:6px;background:#f8fafc;">
+                        <button type="button" id="blogCoverRemoveBtn" onclick="removeBlogCover()" style="padding:8px 12px;background:#fee2e2;color:#dc2626;border:none;border-radius:6px;cursor:pointer;display:none;"><i class="fas fa-trash"></i> Remove</button>
+                    </div>
+                    <div id="blogCoverPreview" style="margin-top:10px;display:none;">
+                        <img id="blogCoverImg" src="" alt="Cover preview" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #e2e8f0;">
+                    </div>
                 </div>
                 <div style="margin-bottom:12px;">
-                    <label style="display:block;margin-bottom:4px;font-weight:600;">Content * <small style="color:#888;">(HTML supported)</small></label>
-                    <textarea id="blogContent" placeholder="Blog content" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;min-height:200px;"></textarea>
+                    <label style="display:block;margin-bottom:4px;font-weight:600;">Content * <small style="color:#888;">(Use toolbar to format text and insert images anywhere)</small></label>
+                    <div id="blogEditorToolbar">
+                        <span class="ql-formats">
+                            <select class="ql-header">
+                                <option value="1">Heading 1</option>
+                                <option value="2">Heading 2</option>
+                                <option value="3">Heading 3</option>
+                                <option selected>Normal</option>
+                            </select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-bold"></button>
+                            <button class="ql-italic"></button>
+                            <button class="ql-underline"></button>
+                            <button class="ql-strike"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <select class="ql-color"></select>
+                            <select class="ql-background"></select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-list" value="ordered"></button>
+                            <button class="ql-list" value="bullet"></button>
+                            <button class="ql-indent" value="-1"></button>
+                            <button class="ql-indent" value="+1"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <select class="ql-align"></select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-blockquote"></button>
+                            <button class="ql-code-block"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-link"></button>
+                            <button class="ql-image" title="Insert image"></button>
+                            <button class="ql-video" title="Embed YouTube video"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-clean"></button>
+                        </span>
+                    </div>
+                    <div id="blogEditor" style="min-height:300px;background:#fff;border:1px solid #e2e8f0;border-radius:0 0 6px 6px;"></div>
                 </div>
                 <div style="margin-bottom:12px;padding:12px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:6px;">
                     <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;margin:0;">

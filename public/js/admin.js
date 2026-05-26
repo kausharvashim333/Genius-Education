@@ -3504,10 +3504,27 @@ function editBlog(id) {
     document.getElementById('blogTitle').value = blog.title || '';
     document.getElementById('blogCategory').value = blog.category || 'General';
     document.getElementById('blogAuthor').value = blog.author || '';
-    document.getElementById('blogImage').value = blog.image || '';
-    document.getElementById('blogContent').value = blog.content || '';
     document.getElementById('blogPinned').checked = !!blog.pinned;
+    
+    // Cover image preview
+    if (blog.image) {
+        document.getElementById('blogImage').value = blog.image;
+        document.getElementById('blogCoverImg').src = blog.image;
+        document.getElementById('blogCoverPreview').style.display = 'block';
+        document.getElementById('blogCoverRemoveBtn').style.display = 'inline-flex';
+    } else {
+        removeBlogCover();
+    }
+    document.getElementById('blogCoverInput').value = '';
+    
     document.getElementById('blogModal').style.display = 'block';
+    // Initialize Quill and load content
+    setTimeout(() => {
+        initBlogQuill();
+        if (_blogQuill) {
+            _blogQuill.clipboard.dangerouslyPasteHTML(0, blog.content || '');
+        }
+    }, 50);
 }
 
 function toggleAllBlogPostCheckboxes() {
@@ -3551,6 +3568,97 @@ async function deleteSelectedBlogPosts() {
     }
 }
 
+// Quill editor instance (initialized on first modal open)
+let _blogQuill = null;
+
+function initBlogQuill() {
+    if (_blogQuill || typeof Quill === 'undefined') return;
+    _blogQuill = new Quill('#blogEditor', {
+        theme: 'snow',
+        modules: {
+            toolbar: {
+                container: '#blogEditorToolbar',
+                handlers: {
+                    image: blogQuillImageHandler
+                }
+            }
+        },
+        placeholder: 'Write your blog content here... Use the image button in the toolbar to insert images anywhere in the content.'
+    });
+}
+
+// Custom image handler for Quill: upload to server and embed
+function blogQuillImageHandler() {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+    input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) return;
+        if (file.size > 10 * 1024 * 1024) {
+            showNotification('Image too large (max 10MB)', 'error');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+            showNotification('Uploading image...', 'info');
+            const res = await fetch('/api/upload/blog-image', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success && data.url) {
+                const range = _blogQuill.getSelection(true);
+                _blogQuill.insertEmbed(range.index, 'image', data.url, 'user');
+                _blogQuill.setSelection(range.index + 1);
+                showNotification('Image inserted', 'success');
+            } else {
+                showNotification(data.message || 'Upload failed', 'error');
+            }
+        } catch (e) {
+            showNotification('Upload error', 'error');
+        }
+    };
+}
+
+// Cover image upload
+async function uploadBlogCover(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+        showNotification('Cover image too large (max 10MB)', 'error');
+        input.value = '';
+        return;
+    }
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+        showNotification('Uploading cover image...', 'info');
+        const res = await fetch('/api/upload/blog-image', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success && data.url) {
+            document.getElementById('blogImage').value = data.url;
+            document.getElementById('blogCoverImg').src = data.url;
+            document.getElementById('blogCoverPreview').style.display = 'block';
+            document.getElementById('blogCoverRemoveBtn').style.display = 'inline-flex';
+            showNotification('Cover uploaded', 'success');
+        } else {
+            showNotification(data.message || 'Upload failed', 'error');
+            input.value = '';
+        }
+    } catch (e) {
+        showNotification('Upload error', 'error');
+        input.value = '';
+    }
+}
+
+function removeBlogCover() {
+    document.getElementById('blogImage').value = '';
+    document.getElementById('blogCoverInput').value = '';
+    document.getElementById('blogCoverImg').src = '';
+    document.getElementById('blogCoverPreview').style.display = 'none';
+    document.getElementById('blogCoverRemoveBtn').style.display = 'none';
+}
+
 function openBlogModal() {
     document.getElementById('blogModalTitle').textContent = 'Add Blog Post';
     document.getElementById('blogId').value = '';
@@ -3558,9 +3666,14 @@ function openBlogModal() {
     document.getElementById('blogCategory').value = 'General';
     document.getElementById('blogAuthor').value = '';
     document.getElementById('blogImage').value = '';
-    document.getElementById('blogContent').value = '';
+    document.getElementById('blogCoverInput').value = '';
     document.getElementById('blogPinned').checked = false;
+    removeBlogCover();
     document.getElementById('blogModal').style.display = 'block';
+    setTimeout(() => {
+        initBlogQuill();
+        if (_blogQuill) _blogQuill.setContents([]);
+    }, 50);
 }
 
 function closeBlogModal() {
@@ -3573,7 +3686,12 @@ async function saveBlog() {
     const category = document.getElementById('blogCategory').value;
     const author = document.getElementById('blogAuthor').value;
     const image = document.getElementById('blogImage').value;
-    const content = document.getElementById('blogContent').value;
+    let content = '';
+    if (_blogQuill) {
+        const html = _blogQuill.root.innerHTML;
+        // Treat truly empty editor as empty string
+        content = (_blogQuill.getText().trim() === '' && !/<img/i.test(html)) ? '' : html;
+    }
     const pinned = document.getElementById('blogPinned').checked;
     
     if (!title || !content) {
