@@ -13570,21 +13570,21 @@ function renderCommentRow(c) {
         : '<span style="color:#ef4444;font-weight:600;">Pending</span>';
     const date = formatDate(c.createdAt);
     const blogLink = c.blogSlug
-        ? '<a href="/blog/' + encodeURIComponent(c.blogSlug) + '" target="_blank">' + escapeAdminHtml(c.blogTitle) + ' <i class="fas fa-external-link-alt" style="font-size:10px;"></i></a>'
+        ? '<a href="/blog/' + encodeURIComponent(c.blogSlug) + '" target="_blank" style="color:#f59e0b;text-decoration:none;">' + escapeAdminHtml(c.blogTitle) + ' <i class="fas fa-external-link-alt" style="font-size:10px;"></i></a>'
         : escapeAdminHtml(c.blogTitle);
     const isReply = c.parentId ? '<span style="color:#94a3b8;font-size:11px;">↳ Reply</span> ' : '';
     return `<tr data-comment-id="${c.id}">
         <td><input type="checkbox" class="cmt-select" data-id="${c.id}"></td>
         <td>${status}</td>
-        <td><strong>${escapeAdminHtml(c.name)}</strong><br><small style="color:#64748b;">${escapeAdminHtml(c.email || '')}</small></td>
-        <td style="max-width:340px;">${isReply}<div style="white-space:pre-wrap;word-break:break-word;font-size:13px;">${escapeAdminHtml(c.content)}</div></td>
-        <td>${blogLink}</td>
-        <td>${date}</td>
+        <td><strong style="color:#fff;">${escapeAdminHtml(c.name)}</strong><br><small style="color:#94a3b8;">${escapeAdminHtml(c.email || '')}</small></td>
+        <td style="max-width:400px;min-width:280px;">${isReply}<div style="white-space:pre-wrap;word-break:break-word;font-size:14px;color:#e2e8f0;line-height:1.5;max-height:120px;overflow-y:auto;padding:4px;background:rgba(0,0,0,0.2);border-radius:4px;">${escapeAdminHtml(c.content)}</div></td>
+        <td style="max-width:200px;min-width:150px;">${blogLink}</td>
+        <td style="color:#cbd5e1;">${date}</td>
         <td style="white-space:nowrap;">
-            ${!c.approved ? `<button class="btn btn-success" onclick="approveComment(${c.id})" style="padding:4px 8px;font-size:12px;margin-right:4px;background:#16a34a;" title="Approve"><i class="fas fa-check"></i></button>` : ''}
-            ${c.approved && !c.isAdmin ? `<button class="btn btn-secondary" onclick="unapproveComment(${c.id})" style="padding:4px 8px;font-size:12px;margin-right:4px;" title="Unapprove"><i class="fas fa-undo"></i></button>` : ''}
-            ${!c.isAdmin ? `<button class="btn btn-primary" onclick="openReplyModal(${c.id})" style="padding:4px 8px;font-size:12px;margin-right:4px;" title="Reply"><i class="fas fa-reply"></i></button>` : ''}
-            <button class="btn btn-secondary" onclick="deleteComment(${c.id})" style="padding:4px 8px;font-size:12px;background:#ef4444;color:#fff;" title="Delete"><i class="fas fa-trash"></i></button>
+            ${!c.approved ? `<button class="btn btn-success" onclick="approveComment(${c.id})" style="padding:6px 10px;font-size:13px;margin-right:4px;background:#16a34a;" title="Approve"><i class="fas fa-check"></i></button>` : ''}
+            ${c.approved && !c.isAdmin ? `<button class="btn btn-secondary" onclick="unapproveComment(${c.id})" style="padding:6px 10px;font-size:13px;margin-right:4px;" title="Unapprove"><i class="fas fa-undo"></i></button>` : ''}
+            ${!c.isAdmin ? `<button class="btn btn-primary" onclick="openReplyModal(${c.id})" style="padding:6px 10px;font-size:13px;margin-right:4px;" title="Reply"><i class="fas fa-reply"></i></button>` : ''}
+            <button class="btn btn-secondary" onclick="deleteComment(${c.id})" style="padding:6px 10px;font-size:13px;background:#ef4444;color:#fff;" title="Delete"><i class="fas fa-trash"></i></button>
         </td>
     </tr>`;
 }
@@ -13742,11 +13742,11 @@ async function loadNewsletterSubs() {
             .sort((a, b) => new Date(b.subscribedAt) - new Date(a.subscribedAt))
             .map((s, i) => `
             <tr>
-                <td>${i + 1}</td>
-                <td><a href="mailto:${escapeAdminHtml(s.email)}">${escapeAdminHtml(s.email)}</a></td>
-                <td>${escapeAdminHtml(s.name || '-')}</td>
-                <td>${formatDate(s.subscribedAt)}</td>
-                <td><button class="btn btn-secondary" onclick="deleteNewsletterSub(${s.id})" style="padding:4px 8px;font-size:12px;background:#ef4444;color:#fff;"><i class="fas fa-trash"></i></button></td>
+                <td style="color:#cbd5e1;">${i + 1}</td>
+                <td style="min-width:200px;"><a href="mailto:${escapeAdminHtml(s.email)}" style="color:#f59e0b;text-decoration:none;font-weight:500;">${escapeAdminHtml(s.email)}</a></td>
+                <td style="min-width:150px;color:#e2e8f0;font-weight:500;">${escapeAdminHtml(s.name || '-')}</td>
+                <td style="color:#cbd5e1;">${formatDate(s.subscribedAt)}</td>
+                <td><button class="btn btn-secondary" onclick="deleteNewsletterSub(${s.id})" style="padding:6px 10px;font-size:13px;background:#ef4444;color:#fff;" title="Delete"><i class="fas fa-trash"></i></button></td>
             </tr>
         `).join('');
     } catch (e) { console.error('Newsletter load err:', e); }
