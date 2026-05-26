@@ -3881,6 +3881,12 @@ app.post('/api/blogs', (req, res) => {
 
     blogs.unshift(blog);
     writeData('blogs.json', blogs);
+    
+    // Send notification if published
+    if (finalStatus === 'published') {
+        sendBlogPublishNotification(blog);
+    }
+    
     res.json({ success: true, blog });
 });
 
@@ -3890,6 +3896,10 @@ app.put('/api/blogs/:id', (req, res) => {
     if (idx === -1) return res.status(404).json({ success: false, message: 'Blog not found' });
 
     const { title, content, category, author, image, published, pinned, tags, excerpt, metaTitle, metaDescription, ogImage, status, scheduledFor } = req.body;
+    
+    // Track previous status for notification
+    const previousStatus = blogs[idx].status || 'draft';
+    const wasPublished = blogs[idx].published === true;
     if (title && title !== blogs[idx].title) {
         blogs[idx].title = title;
         blogs[idx].slug = uniqueSlug(blogs, makeSlug(title), blogs[idx].id);
@@ -3944,6 +3954,13 @@ app.put('/api/blogs/:id', (req, res) => {
     blogs[idx].updatedAt = new Date().toISOString();
 
     writeData('blogs.json', blogs);
+    
+    // Send notification if status changed to published
+    const isNowPublished = blogs[idx].status === 'published' || blogs[idx].published === true;
+    if (isNowPublished && !wasPublished && previousStatus !== 'published') {
+        sendBlogPublishNotification(blogs[idx]);
+    }
+    
     res.json({ success: true, blog: blogs[idx] });
 });
 
@@ -4101,6 +4118,83 @@ app.post('/api/blogs/:id/share', (req, res) => {
 });
 
 // ===== Newsletter Subscribers =====
+
+// Send blog publish notification to all subscribers
+async function sendBlogPublishNotification(blog) {
+    try {
+        const subs = readData('newsletter_subscribers.json') || [];
+        const activeSubs = subs.filter(s => s.active !== false);
+        if (activeSubs.length === 0) return;
+
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
+        if (!smtpUser || !smtpPass) {
+            console.log('SMTP not configured, skipping blog notification');
+            return;
+        }
+
+        const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpSecure,
+            auth: { user: smtpUser, pass: smtpPass }
+        });
+
+        const inst = settings.instituteName || 'Genius Computer Education';
+        const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+        const blogUrl = `${baseUrl}/blog/${encodeURIComponent(blog.slug)}`;
+        const excerpt = blog.excerpt || blog.content.replace(/<[^>]+>/g, ' ').substring(0, 200) + '...';
+        const tagsHtml = (blog.tags || []).length > 0 
+            ? `<p style="color:#6b7280;font-size:13px;"><strong>Tags:</strong> ${blog.tags.join(', ')}</p>` 
+            : '';
+
+        const mailOptions = {
+            from: `"${inst}" <${smtpUser}>`,
+            subject: `New Blog Post: ${blog.title}`,
+            html: `
+                <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f9fafb;">
+                    <div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:30px;border-radius:10px;text-align:center;color:#fff;margin-bottom:20px;">
+                        <h1 style="margin:0;font-size:28px;">${inst}</h1>
+                        <p style="margin:10px 0 0;opacity:0.9;">New Blog Post Published</p>
+                    </div>
+                    <div style="background:#fff;padding:25px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+                        ${blog.image ? `<img src="${blog.image}" alt="${blog.title}" style="width:100%;max-height:300px;object-fit:cover;border-radius:8px;margin-bottom:20px;">` : ''}
+                        <h2 style="color:#1f2937;margin:0 0 15px;font-size:24px;">${blog.title}</h2>
+                        <p style="color:#4b5563;line-height:1.6;margin-bottom:15px;">${excerpt}</p>
+                        ${tagsHtml}
+                        <p style="color:#6b7280;font-size:13px;margin-bottom:20px;">
+                            <strong>Category:</strong> ${blog.category} | 
+                            <strong>Author:</strong> ${blog.author} |
+                            <strong>Reading Time:</strong> ${blog.readingTime || 1} min
+                        </p>
+                        <a href="${blogUrl}" style="display:inline-block;background:#667eea;color:#fff;padding:12px 30px;text-decoration:none;border-radius:6px;font-weight:600;">Read Full Article</a>
+                    </div>
+                    <p style="text-align:center;color:#9ca3af;font-size:12px;margin-top:20px;">
+                        You received this email because you subscribed to ${inst} newsletter.<br>
+                        <a href="${baseUrl}/unsubscribe" style="color:#6b7280;">Unsubscribe</a>
+                    </p>
+                </div>
+            `
+        };
+
+        // Send to all subscribers
+        const promises = activeSubs.map(sub => {
+            const personalizedOptions = {
+                ...mailOptions,
+                to: sub.email,
+                html: mailOptions.html.replace('Dear Subscriber', sub.name ? `Dear ${sub.name}` : 'Dear Subscriber')
+            };
+            return transporter.sendMail(personalizedOptions).catch(err => {
+                console.error(`Failed to send to ${sub.email}:`, err.message);
+            });
+        });
+
+        await Promise.all(promises);
+        console.log(`Blog notification sent to ${activeSubs.length} subscribers`);
+    } catch (err) {
+        console.error('Blog notification error:', err);
+    }
+}
+
 app.post('/api/newsletter/subscribe', (req, res) => {
     const { email, name } = req.body || {};
     const cleanEmail = String(email || '').trim().toLowerCase();
