@@ -486,6 +486,23 @@
             document.getElementById('readingProgress').style.width = scrolled + '%';
         });
 
+        // Load institute branding (logo + name)
+        async function loadBranding() {
+            try {
+                const res = await fetch('/api/settings');
+                const settings = await res.json();
+                if (settings.logo) {
+                    const navLogo = document.querySelector('.nav-logo');
+                    if (navLogo) { navLogo.src = settings.logo; }
+                }
+                if (settings.name) {
+                    const link = document.querySelector('.nav-brand a');
+                    if (link) link.textContent = settings.name;
+                }
+            } catch (e) {}
+        }
+        loadBranding();
+
         // Init
         loadPost();
 
