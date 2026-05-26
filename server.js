@@ -3737,7 +3737,11 @@ function uniqueSlug(blogs, baseSlug, excludeId) {
     return slug;
 }
 
-// Migrate existing blogs to have slugs (one-time on first read)
+// Default engagement state for blog
+function defaultReactions() { return { helpful: 0, fire: 0, idea: 0, love: 0 }; }
+function defaultShares() { return { whatsapp: 0, facebook: 0, twitter: 0, linkedin: 0, copy: 0, total: 0 }; }
+
+// Migrate existing blogs to have slugs + engagement fields
 function ensureBlogSlugs(blogs) {
     let changed = false;
     blogs.forEach(b => {
@@ -3745,6 +3749,9 @@ function ensureBlogSlugs(blogs) {
             b.slug = uniqueSlug(blogs, makeSlug(b.title), b.id);
             changed = true;
         }
+        if (typeof b.likes !== 'number') { b.likes = 0; changed = true; }
+        if (!b.reactions || typeof b.reactions !== 'object') { b.reactions = defaultReactions(); changed = true; }
+        if (!b.shares || typeof b.shares !== 'object') { b.shares = defaultShares(); changed = true; }
     });
     if (changed) writeData('blogs.json', blogs);
     return blogs;
@@ -3830,6 +3837,92 @@ app.post('/api/blogs/:id/view', (req, res) => {
     blogs[idx].views = (blogs[idx].views || 0) + 1;
     writeData('blogs.json', blogs);
     res.json({ success: true, views: blogs[idx].views });
+});
+
+// Like / unlike blog (toggle via action param)
+app.post('/api/blogs/:id/like', (req, res) => {
+    const { action } = req.body || {};
+    const blogs = readData('blogs.json') || [];
+    const idx = blogs.findIndex(b => b.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false });
+    blogs[idx].likes = blogs[idx].likes || 0;
+    if (action === 'unlike') {
+        blogs[idx].likes = Math.max(0, blogs[idx].likes - 1);
+    } else {
+        blogs[idx].likes += 1;
+    }
+    writeData('blogs.json', blogs);
+    res.json({ success: true, likes: blogs[idx].likes });
+});
+
+// React to blog with emoji type (helpful/fire/idea/love)
+app.post('/api/blogs/:id/react', (req, res) => {
+    const { type, action } = req.body || {};
+    const allowed = ['helpful', 'fire', 'idea', 'love'];
+    if (!allowed.includes(type)) return res.status(400).json({ success: false, message: 'Invalid reaction type' });
+    const blogs = readData('blogs.json') || [];
+    const idx = blogs.findIndex(b => b.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false });
+    if (!blogs[idx].reactions) blogs[idx].reactions = defaultReactions();
+    if (action === 'remove') {
+        blogs[idx].reactions[type] = Math.max(0, (blogs[idx].reactions[type] || 0) - 1);
+    } else {
+        blogs[idx].reactions[type] = (blogs[idx].reactions[type] || 0) + 1;
+    }
+    writeData('blogs.json', blogs);
+    res.json({ success: true, reactions: blogs[idx].reactions });
+});
+
+// Track share by platform
+app.post('/api/blogs/:id/share', (req, res) => {
+    const { platform } = req.body || {};
+    const allowed = ['whatsapp', 'facebook', 'twitter', 'linkedin', 'copy'];
+    if (!allowed.includes(platform)) return res.status(400).json({ success: false });
+    const blogs = readData('blogs.json') || [];
+    const idx = blogs.findIndex(b => b.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false });
+    if (!blogs[idx].shares) blogs[idx].shares = defaultShares();
+    blogs[idx].shares[platform] = (blogs[idx].shares[platform] || 0) + 1;
+    blogs[idx].shares.total = (blogs[idx].shares.total || 0) + 1;
+    writeData('blogs.json', blogs);
+    res.json({ success: true, shares: blogs[idx].shares });
+});
+
+// ===== Newsletter Subscribers =====
+app.post('/api/newsletter/subscribe', (req, res) => {
+    const { email, name } = req.body || {};
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+        return res.status(400).json({ success: false, message: 'Please enter a valid email address' });
+    }
+    const subs = readData('newsletter_subscribers.json') || [];
+    if (subs.some(s => s.email === cleanEmail)) {
+        return res.status(409).json({ success: false, message: 'You are already subscribed!' });
+    }
+    subs.push({
+        id: Date.now(),
+        email: cleanEmail,
+        name: (name || '').trim(),
+        subscribedAt: new Date().toISOString(),
+        active: true
+    });
+    writeData('newsletter_subscribers.json', subs);
+    res.json({ success: true, message: 'Subscribed successfully! Thank you for joining our newsletter.' });
+});
+
+// Admin: list all newsletter subscribers
+app.get('/api/admin/newsletter/subscribers', (req, res) => {
+    const subs = readData('newsletter_subscribers.json') || [];
+    res.json({ success: true, subscribers: subs });
+});
+
+// Admin: delete subscriber
+app.delete('/api/admin/newsletter/subscribers/:id', (req, res) => {
+    const subs = readData('newsletter_subscribers.json') || [];
+    const filtered = subs.filter(s => s.id != req.params.id);
+    if (filtered.length === subs.length) return res.status(404).json({ success: false });
+    writeData('newsletter_subscribers.json', filtered);
+    res.json({ success: true });
 });
 
 app.delete('/api/blogs/:id', (req, res) => {

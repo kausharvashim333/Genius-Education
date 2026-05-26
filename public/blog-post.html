@@ -161,6 +161,129 @@
         .share-linkedin { background: #0a66c2; }
         .share-twitter { background: #1da1f2; }
         .share-copy { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); }
+
+        /* Engagement bar (Like + Bookmark) */
+        .engagement-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+            padding: 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .eng-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .eng-btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+        .eng-btn.active.like-btn {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            border-color: transparent;
+        }
+        .eng-btn.active.bookmark-btn {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            border-color: transparent;
+        }
+        .eng-btn i { font-size: 16px; }
+        .eng-count { font-weight: 700; }
+
+        /* Reactions row */
+        .reactions-section {
+            margin-top: 36px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255,255,255,0.15);
+        }
+        .reactions-section h4 { color: #fff; margin-bottom: 14px; }
+        .reactions-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .reaction-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .reaction-btn:hover {
+            background: rgba(255,255,255,0.14);
+            transform: translateY(-3px);
+        }
+        .reaction-btn.active {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: #f59e0b;
+        }
+        .reaction-emoji { font-size: 20px; }
+        .reaction-label { font-size: 12px; opacity: 0.9; }
+        .reaction-count { font-weight: 700; min-width: 14px; text-align: right; }
+
+        /* Newsletter card */
+        .newsletter-card {
+            margin-top: 36px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            border-radius: 14px;
+            padding: 28px;
+            text-align: center;
+        }
+        .newsletter-card h3 { color: #fff; font-size: 22px; margin: 0 0 8px; }
+        .newsletter-card p { color: rgba(255,255,255,0.8); margin-bottom: 18px; font-size: 14px; }
+        .newsletter-form {
+            display: flex;
+            gap: 10px;
+            max-width: 480px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+        .newsletter-form input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+        }
+        .newsletter-form input::placeholder { color: rgba(255,255,255,0.5); }
+        .newsletter-form input:focus { outline: none; border-color: #f59e0b; background: rgba(255,255,255,0.15); }
+        .newsletter-form button {
+            padding: 12px 22px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        .newsletter-form button:hover { transform: translateY(-2px); }
+        .newsletter-form button:disabled { opacity: 0.5; cursor: wait; }
+        .newsletter-msg { margin-top: 12px; font-size: 13px; min-height: 18px; }
+        .newsletter-msg.success { color: #86efac; }
+        .newsletter-msg.error { color: #fca5a5; }
         /* Sidebar */
         .post-sidebar {
             display: flex;
@@ -450,17 +573,264 @@
                 </div>
                 ${imgHtml}
                 <div class="post-body">${b.content}</div>
+
+                <!-- Engagement Bar (Like + Bookmark + Share count) -->
+                <div class="engagement-bar">
+                    <button class="eng-btn like-btn" onclick="toggleLike()">
+                        <i class="fas fa-heart"></i>
+                        <span class="eng-count" id="likeCount">${b.likes || 0}</span>
+                        <span>Like</span>
+                    </button>
+                    <button class="eng-btn bookmark-btn" onclick="toggleBookmark()">
+                        <i class="fas fa-bookmark"></i>
+                        <span id="bookmarkLabel">Save</span>
+                    </button>
+                    <span style="margin-left:auto;color:rgba(255,255,255,0.6);font-size:13px;">
+                        <i class="fas fa-share-alt"></i> Shared <strong id="totalShares">${(b.shares && b.shares.total) || 0}</strong> times
+                    </span>
+                </div>
+
+                <!-- Reactions -->
+                <div class="reactions-section">
+                    <h4><i class="fas fa-smile-beam" style="color:#f59e0b;"></i> What did you think?</h4>
+                    <div class="reactions-row" id="reactionsRow">
+                        ${renderReactions(b)}
+                    </div>
+                </div>
+
+                <!-- Share -->
                 <div class="share-section">
                     <h4><i class="fas fa-share-alt"></i> Share this article</h4>
                     <div class="share-buttons">
-                        <a href="https://wa.me/?text=${encodeURIComponent(b.title + ' - ' + window.location.href)}" target="_blank" class="share-btn share-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn share-facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
-                        <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(b.title)}&url=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn share-twitter"><i class="fab fa-twitter"></i> Twitter</a>
-                        <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn share-linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</a>
+                        <a href="https://wa.me/?text=${encodeURIComponent(b.title + ' - ' + window.location.href)}" target="_blank" class="share-btn share-whatsapp" onclick="trackShare('whatsapp')"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn share-facebook" onclick="trackShare('facebook')"><i class="fab fa-facebook-f"></i> Facebook</a>
+                        <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(b.title)}&url=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn share-twitter" onclick="trackShare('twitter')"><i class="fab fa-twitter"></i> Twitter</a>
+                        <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn share-linkedin" onclick="trackShare('linkedin')"><i class="fab fa-linkedin-in"></i> LinkedIn</a>
                         <button class="share-btn share-copy" onclick="copyLink()"><i class="fas fa-link"></i> <span id="copyText">Copy Link</span></button>
                     </div>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="newsletter-card">
+                    <h3><i class="fas fa-envelope-open-text" style="color:#f59e0b;"></i> Stay in the loop</h3>
+                    <p>Subscribe to our newsletter for weekly tips, exam updates, and new tutorials delivered straight to your inbox.</p>
+                    <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
+                        <input type="email" id="newsletterEmail" placeholder="Enter your email" required>
+                        <button type="submit"><i class="fas fa-paper-plane"></i> Subscribe</button>
+                    </form>
+                    <div class="newsletter-msg" id="newsletterMsg"></div>
                 </div>`;
             document.getElementById('postContent').innerHTML = html;
+            updateLikeButton();
+            updateBookmarkButton();
+        }
+
+        // ===== Reactions =====
+        const REACTION_DEFS = [
+            { type: 'helpful', emoji: '🙏', label: 'Helpful' },
+            { type: 'fire',    emoji: '🔥', label: 'Fire' },
+            { type: 'idea',    emoji: '💡', label: 'Insightful' },
+            { type: 'love',    emoji: '❤️', label: 'Loved' }
+        ];
+
+        function renderReactions(b) {
+            const r = b.reactions || { helpful: 0, fire: 0, idea: 0, love: 0 };
+            const userReaction = getUserReaction(b.id);
+            return REACTION_DEFS.map(def => `
+                <div class="reaction-btn ${userReaction === def.type ? 'active' : ''}" onclick="toggleReaction('${def.type}')">
+                    <span class="reaction-emoji">${def.emoji}</span>
+                    <span class="reaction-label">${def.label}</span>
+                    <span class="reaction-count" data-type="${def.type}">${r[def.type] || 0}</span>
+                </div>
+            `).join('');
+        }
+
+        function getUserReaction(blogId) {
+            try {
+                const data = JSON.parse(localStorage.getItem('blogReactions') || '{}');
+                return data[blogId] || null;
+            } catch (e) { return null; }
+        }
+
+        function setUserReaction(blogId, type) {
+            try {
+                const data = JSON.parse(localStorage.getItem('blogReactions') || '{}');
+                if (type === null) delete data[blogId];
+                else data[blogId] = type;
+                localStorage.setItem('blogReactions', JSON.stringify(data));
+            } catch (e) {}
+        }
+
+        async function toggleReaction(type) {
+            if (!_currentBlog) return;
+            const blogId = _currentBlog.id;
+            const current = getUserReaction(blogId);
+
+            try {
+                // Remove previous reaction if any
+                if (current && current !== type) {
+                    await fetch(`/api/blogs/${blogId}/react`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: current, action: 'remove' })
+                    });
+                }
+
+                if (current === type) {
+                    // User clicked same reaction → toggle off
+                    const res = await fetch(`/api/blogs/${blogId}/react`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type, action: 'remove' })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        _currentBlog.reactions = data.reactions;
+                        setUserReaction(blogId, null);
+                    }
+                } else {
+                    // Add new reaction
+                    const res = await fetch(`/api/blogs/${blogId}/react`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        _currentBlog.reactions = data.reactions;
+                        setUserReaction(blogId, type);
+                    }
+                }
+                document.getElementById('reactionsRow').innerHTML = renderReactions(_currentBlog);
+            } catch (e) { console.error('Reaction error:', e); }
+        }
+
+        // ===== Likes =====
+        function isLiked(blogId) {
+            try {
+                const list = JSON.parse(localStorage.getItem('blogLikes') || '[]');
+                return list.includes(blogId);
+            } catch (e) { return false; }
+        }
+
+        function setLiked(blogId, value) {
+            try {
+                let list = JSON.parse(localStorage.getItem('blogLikes') || '[]');
+                if (value) { if (!list.includes(blogId)) list.push(blogId); }
+                else list = list.filter(id => id !== blogId);
+                localStorage.setItem('blogLikes', JSON.stringify(list));
+            } catch (e) {}
+        }
+
+        function updateLikeButton() {
+            if (!_currentBlog) return;
+            const btn = document.querySelector('.like-btn');
+            if (btn) btn.classList.toggle('active', isLiked(_currentBlog.id));
+        }
+
+        async function toggleLike() {
+            if (!_currentBlog) return;
+            const blogId = _currentBlog.id;
+            const liked = isLiked(blogId);
+            try {
+                const res = await fetch(`/api/blogs/${blogId}/like`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: liked ? 'unlike' : 'like' })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setLiked(blogId, !liked);
+                    document.getElementById('likeCount').textContent = data.likes;
+                    updateLikeButton();
+                }
+            } catch (e) { console.error('Like error:', e); }
+        }
+
+        // ===== Bookmark =====
+        function isBookmarked(blogId) {
+            try {
+                const list = JSON.parse(localStorage.getItem('blogBookmarks') || '[]');
+                return list.some(b => b.id === blogId);
+            } catch (e) { return false; }
+        }
+
+        function toggleBookmark() {
+            if (!_currentBlog) return;
+            const blogId = _currentBlog.id;
+            try {
+                let list = JSON.parse(localStorage.getItem('blogBookmarks') || '[]');
+                if (isBookmarked(blogId)) {
+                    list = list.filter(b => b.id !== blogId);
+                } else {
+                    list.unshift({
+                        id: blogId,
+                        slug: _currentBlog.slug,
+                        title: _currentBlog.title,
+                        image: _currentBlog.image,
+                        category: _currentBlog.category,
+                        savedAt: new Date().toISOString()
+                    });
+                }
+                localStorage.setItem('blogBookmarks', JSON.stringify(list));
+                updateBookmarkButton();
+            } catch (e) { console.error('Bookmark error:', e); }
+        }
+
+        function updateBookmarkButton() {
+            if (!_currentBlog) return;
+            const btn = document.querySelector('.bookmark-btn');
+            const label = document.getElementById('bookmarkLabel');
+            if (!btn || !label) return;
+            const saved = isBookmarked(_currentBlog.id);
+            btn.classList.toggle('active', saved);
+            label.textContent = saved ? 'Saved' : 'Save';
+        }
+
+        // ===== Share Tracking =====
+        async function trackShare(platform) {
+            if (!_currentBlog) return;
+            try {
+                const res = await fetch(`/api/blogs/${_currentBlog.id}/share`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ platform })
+                });
+                const data = await res.json();
+                if (data.success && data.shares) {
+                    const el = document.getElementById('totalShares');
+                    if (el) el.textContent = data.shares.total;
+                }
+            } catch (e) { /* silent */ }
+        }
+
+        // ===== Newsletter =====
+        async function subscribeNewsletter(e) {
+            e.preventDefault();
+            const email = document.getElementById('newsletterEmail').value.trim();
+            const msg = document.getElementById('newsletterMsg');
+            const btn = e.target.querySelector('button');
+            msg.className = 'newsletter-msg';
+            msg.textContent = '';
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/newsletter/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                msg.textContent = data.message || (data.success ? 'Subscribed!' : 'Failed to subscribe');
+                msg.className = 'newsletter-msg ' + (data.success ? 'success' : 'error');
+                if (data.success) {
+                    document.getElementById('newsletterEmail').value = '';
+                }
+            } catch (err) {
+                msg.textContent = 'Network error. Please try again.';
+                msg.className = 'newsletter-msg error';
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         function copyLink() {
@@ -469,6 +839,7 @@
                 const orig = el.textContent;
                 el.textContent = 'Copied!';
                 setTimeout(() => el.textContent = orig, 2000);
+                trackShare('copy');
             });
         }
 

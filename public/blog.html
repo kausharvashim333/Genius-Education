@@ -421,6 +421,19 @@
                     <h4><i class="fas fa-fire"></i> Trending Now</h4>
                     <div id="trendingList"></div>
                 </div>
+                <div class="sidebar-card" id="bookmarksCard" style="display:none;">
+                    <h4><i class="fas fa-bookmark"></i> Your Bookmarks</h4>
+                    <div id="bookmarksList"></div>
+                </div>
+                <div class="sidebar-card" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2)); border-color: rgba(102, 126, 234, 0.4);">
+                    <h4 style="color:#fff;"><i class="fas fa-envelope"></i> Newsletter</h4>
+                    <p style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:10px;">Get weekly tips & exam updates.</p>
+                    <form onsubmit="subscribeNewsletter(event)" style="display:flex;flex-direction:column;gap:8px;">
+                        <input type="email" id="newsletterEmail" placeholder="Your email" required style="padding:9px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-size:13px;">
+                        <button type="submit" style="padding:10px;background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;color:#fff;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;"><i class="fas fa-paper-plane"></i> Subscribe</button>
+                    </form>
+                    <div id="newsletterMsg" style="margin-top:8px;font-size:12px;min-height:14px;"></div>
+                </div>
                 <div class="sidebar-card">
                     <h4><i class="fas fa-clock"></i> Recent Posts</h4>
                     <div id="recentList"></div>
@@ -522,6 +535,7 @@
                     buildCategories();
                     renderTrending();
                     renderRecent();
+                    renderBookmarks();
                     renderBlogList();
                 }
             } catch (e) { console.error('Error loading blogs:', e); }
@@ -611,7 +625,7 @@
                         <div class="blog-content">${escapeHtml(shortDesc)}</div>
                         <div class="blog-footer">
                             <span class="blog-author"><i class="fas fa-user"></i> ${escapeHtml(blog.author || 'Admin')}</span>
-                            <span class="blog-meta-info"><i class="far fa-clock"></i> ${blog.readingTime || 1} min &bull; <i class="far fa-eye"></i> ${blog.views || 0} &bull; ${date}</span>
+                            <span class="blog-meta-info"><i class="far fa-clock"></i> ${blog.readingTime || 1} min &bull; <i class="far fa-eye"></i> ${blog.views || 0} &bull; <i class="fas fa-heart" style="color:#ef4444;"></i> ${blog.likes || 0} &bull; ${date}</span>
                         </div>
                     </div>
                 </div>
@@ -657,6 +671,55 @@
                     </div>
                 </a>`;
             }).join('');
+        }
+
+        // ===== Bookmarks (from localStorage) =====
+        function renderBookmarks() {
+            const card = document.getElementById('bookmarksCard');
+            const list = document.getElementById('bookmarksList');
+            let bookmarks = [];
+            try { bookmarks = JSON.parse(localStorage.getItem('blogBookmarks') || '[]'); } catch(e){}
+            if (bookmarks.length === 0) { card.style.display = 'none'; return; }
+            card.style.display = 'block';
+            list.innerHTML = bookmarks.slice(0, 5).map(b => {
+                const url = b.slug ? `/blog/${encodeURIComponent(b.slug)}` : `blog-post.html?id=${b.id}`;
+                const thumb = b.image ? `background-image:url('${b.image}');` : 'background:linear-gradient(135deg,rgba(102,126,234,0.3),rgba(118,75,162,0.3));';
+                return `
+                <a class="recent-item" href="${url}">
+                    <div class="recent-thumb" style="${thumb}"></div>
+                    <div class="recent-info">
+                        <div class="recent-title">${escapeHtml(b.title)}</div>
+                        <div class="recent-date">${escapeHtml(b.category || '')}</div>
+                    </div>
+                </a>`;
+            }).join('');
+        }
+
+        // ===== Newsletter =====
+        async function subscribeNewsletter(e) {
+            e.preventDefault();
+            const email = document.getElementById('newsletterEmail').value.trim();
+            const msg = document.getElementById('newsletterMsg');
+            const btn = e.target.querySelector('button');
+            msg.textContent = '';
+            msg.style.color = '';
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/newsletter/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                msg.textContent = data.message || (data.success ? 'Subscribed!' : 'Failed');
+                msg.style.color = data.success ? '#86efac' : '#fca5a5';
+                if (data.success) document.getElementById('newsletterEmail').value = '';
+            } catch (err) {
+                msg.textContent = 'Network error.';
+                msg.style.color = '#fca5a5';
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         // Load institute branding (logo + name)
