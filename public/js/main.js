@@ -727,24 +727,41 @@ async function loadBlogs() {
         const data = await res.json();
         const container = document.getElementById('blogContainer');
         const empty = document.getElementById('blogEmpty');
+        if (!container) return;
         
         if (data.success && data.blogs && data.blogs.length > 0) {
-            const publishedBlogs = data.blogs.filter(b => b.published);
-            if (publishedBlogs.length > 0) {
-                container.innerHTML = publishedBlogs.map(blog => `
+            // Show only pinned + published blogs on home page (max 6)
+            let pinned = data.blogs.filter(b => b.published && b.pinned);
+            // Fallback: if no pinned blogs, show 3 latest published so the section isn't empty
+            if (pinned.length === 0) {
+                pinned = data.blogs.filter(b => b.published).slice(0, 3);
+            }
+            pinned = pinned.slice(0, 6);
+            
+            if (pinned.length > 0) {
+                container.innerHTML = pinned.map(blog => {
+                    const excerpt = String(blog.content || '').replace(/<[^>]+>/g, ' ').trim();
+                    const shortDesc = excerpt.substring(0, 140) + (excerpt.length > 140 ? '...' : '');
+                    const imgHtml = blog.image ? `<div class="blog-card-image" style="background-image:url('${blog.image}');"></div>` : '';
+                    const pinBadge = blog.pinned ? `<span class="blog-pinned-badge"><i class="fas fa-thumbtack"></i> Featured</span>` : '';
+                    return `
                     <div class="blog-card" onclick="viewBlogDetail(${blog.id})">
-                        <div class="blog-header">
-                            <span class="blog-category">${blog.category}</span>
-                            <span class="blog-date">${formatDate(blog.createdAt)}</span>
-                        </div>
-                        <h3 class="blog-title">${blog.title}</h3>
-                        <div class="blog-content">${blog.content.substring(0, 150)}${blog.content.length > 150 ? '...' : ''}</div>
-                        <div class="blog-footer">
-                            <span class="blog-author"><i class="fas fa-user"></i> ${blog.author}</span>
-                            <button class="btn-read-more" onclick="event.stopPropagation(); viewBlogDetail(${blog.id})">Read More</button>
+                        ${imgHtml}
+                        <div class="blog-card-body">
+                            <div class="blog-header">
+                                <span class="blog-category">${blog.category}</span>
+                                ${pinBadge}
+                            </div>
+                            <h3 class="blog-title">${blog.title}</h3>
+                            <div class="blog-content">${shortDesc}</div>
+                            <div class="blog-footer">
+                                <span class="blog-author"><i class="fas fa-user"></i> ${blog.author}</span>
+                                <span class="blog-meta-info"><i class="far fa-clock"></i> ${blog.readingTime || 1} min</span>
+                            </div>
                         </div>
                     </div>
-                `).join('');
+                    `;
+                }).join('');
                 empty.style.display = 'none';
             } else {
                 container.innerHTML = '';
@@ -760,38 +777,8 @@ async function loadBlogs() {
 }
 
 function viewBlogDetail(id) {
-    fetch('/api/blogs')
-        .then(res => res.json())
-        .then(data => {
-            if (data.success && data.blogs) {
-                const blog = data.blogs.find(b => b.id === id);
-                if (blog) {
-                    const modal = document.createElement('div');
-                    modal.id = 'blogDetailModal';
-                    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
-                    modal.innerHTML = `
-                        <div class="blog-detail-content" style="background:rgba(0,0,0,0.4);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;max-width:800px;width:100%;max-height:90vh;overflow-y:auto;padding:30px;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid rgba(255,255,255,0.2);">
-                                <span class="blog-category" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:600;">${blog.category}</span>
-                                <span style="color:rgba(255,255,255,0.7);font-size:14px;">${formatDate(blog.createdAt)}</span>
-                            </div>
-                            <h2 style="color:#fff;font-size:28px;margin:0 0 20px 0;font-weight:600;">${blog.title}</h2>
-                            <div style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin-bottom:20px;">${blog.content}</div>
-                            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:20px;border-top:1px solid rgba(255,255,255,0.2);">
-                                <span style="color:rgba(255,255,255,0.7);font-size:14px;"><i class="fas fa-user" style="margin-right:6px;"></i> ${blog.author}</span>
-                                <button onclick="document.getElementById('blogDetailModal').remove()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s;">Close</button>
-                            </div>
-                        </div>
-                    `;
-                    document.body.appendChild(modal);
-                    
-                    modal.addEventListener('click', (e) => {
-                        if (e.target === modal) modal.remove();
-                    });
-                }
-            }
-        })
-        .catch(e => console.error('Error loading blog detail:', e));
+    // Open the dedicated blog post page
+    window.location.href = 'blog-post.html?id=' + id;
 }
 
 function toggleReadMore(id) {

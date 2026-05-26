@@ -3688,8 +3688,15 @@ app.get('/api/blogs', (req, res) => {
     res.json({ success: true, blogs });
 });
 
+// Helper: calculate reading time (avg 200 words/min)
+function calcReadingTime(text) {
+    if (!text) return 1;
+    const words = String(text).replace(/<[^>]+>/g, ' ').trim().split(/\s+/).length;
+    return Math.max(1, Math.ceil(words / 200));
+}
+
 app.post('/api/blogs', (req, res) => {
-    const { title, content, category, author, image } = req.body;
+    const { title, content, category, author, image, pinned } = req.body;
     if (!title || !content) return res.status(400).json({ success: false, message: 'Title and content required' });
     
     const blogs = readData('blogs.json') || [];
@@ -3700,6 +3707,9 @@ app.post('/api/blogs', (req, res) => {
         category: category || 'General',
         author: author || 'Admin',
         image: image || '',
+        pinned: pinned === true || pinned === 'true',
+        views: 0,
+        readingTime: calcReadingTime(content),
         createdAt: new Date().toISOString(),
         published: true
     };
@@ -3714,16 +3724,30 @@ app.put('/api/blogs/:id', (req, res) => {
     const idx = blogs.findIndex(b => b.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Blog not found' });
     
-    const { title, content, category, author, image, published } = req.body;
+    const { title, content, category, author, image, published, pinned } = req.body;
     if (title) blogs[idx].title = title;
-    if (content) blogs[idx].content = content;
+    if (content) {
+        blogs[idx].content = content;
+        blogs[idx].readingTime = calcReadingTime(content);
+    }
     if (category !== undefined) blogs[idx].category = category;
     if (author !== undefined) blogs[idx].author = author;
     if (image !== undefined) blogs[idx].image = image;
     if (published !== undefined) blogs[idx].published = published;
+    if (pinned !== undefined) blogs[idx].pinned = pinned === true || pinned === 'true';
     
     writeData('blogs.json', blogs);
     res.json({ success: true, blog: blogs[idx] });
+});
+
+// Increment view count
+app.post('/api/blogs/:id/view', (req, res) => {
+    const blogs = readData('blogs.json') || [];
+    const idx = blogs.findIndex(b => b.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false });
+    blogs[idx].views = (blogs[idx].views || 0) + 1;
+    writeData('blogs.json', blogs);
+    res.json({ success: true, views: blogs[idx].views });
 });
 
 app.delete('/api/blogs/:id', (req, res) => {

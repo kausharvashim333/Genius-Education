@@ -3443,24 +3443,32 @@ async function deleteHoliday(holidayId) {
 }
 
 // Blog Management Functions
+let _allBlogs = [];
 async function loadBlogTable() {
     try {
         const res = await fetch('/api/blogs');
         const data = await res.json();
         
         if (data.success && data.blogs) {
+            _allBlogs = data.blogs;
             const tbody = document.querySelector('#blogTable tbody');
             tbody.innerHTML = data.blogs.map(blog => {
+                const pinIcon = blog.pinned
+                    ? '<i class="fas fa-thumbtack" style="color:#f59e0b;" title="Pinned"></i>'
+                    : '<i class="fas fa-thumbtack" style="color:#cbd5e1;" title="Not pinned"></i>';
                 let html = '';
                 html += '<tr>';
                 html += '<td><input type="checkbox" class="blog-checkbox" data-id="' + blog.id + '"></td>';
+                html += '<td style="text-align:center;cursor:pointer;" onclick="togglePinBlog(' + blog.id + ')">' + pinIcon + '</td>';
                 html += '<td><strong>' + blog.title + '</strong></td>';
                 html += '<td>' + blog.category + '</td>';
                 html += '<td>' + blog.author + '</td>';
+                html += '<td>' + (blog.views || 0) + '</td>';
                 html += '<td>' + formatDate(blog.createdAt) + '</td>';
                 html += '<td>' + (blog.published ? '<span style="color:#16a34a;font-weight:600;">Published</span>' : '<span style="color:#dc2626;font-weight:600;">Draft</span>') + '</td>';
-                html += '<td>';
-                html += '<button class="btn btn-secondary" onclick="deleteBlog(' + blog.id + ')" style="padding:4px 8px;font-size:12px;">Delete</button>';
+                html += '<td style="white-space:nowrap;">';
+                html += '<button class="btn btn-primary" onclick="editBlog(' + blog.id + ')" style="padding:4px 8px;font-size:12px;margin-right:4px;"><i class="fas fa-edit"></i></button>';
+                html += '<button class="btn btn-secondary" onclick="deleteBlog(' + blog.id + ')" style="padding:4px 8px;font-size:12px;"><i class="fas fa-trash"></i></button>';
                 html += '</td>';
                 html += '</tr>';
                 return html;
@@ -3469,6 +3477,37 @@ async function loadBlogTable() {
     } catch (e) {
         console.error('Error loading blogs:', e);
     }
+}
+
+async function togglePinBlog(id) {
+    const blog = _allBlogs.find(b => b.id == id);
+    if (!blog) return;
+    try {
+        const res = await fetch('/api/blogs/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pinned: !blog.pinned })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification(blog.pinned ? 'Blog unpinned' : 'Blog pinned to home page', 'success');
+            loadBlogTable();
+        }
+    } catch (e) { showNotification('Error updating pin status', 'error'); }
+}
+
+function editBlog(id) {
+    const blog = _allBlogs.find(b => b.id == id);
+    if (!blog) return;
+    document.getElementById('blogModalTitle').textContent = 'Edit Blog Post';
+    document.getElementById('blogId').value = blog.id;
+    document.getElementById('blogTitle').value = blog.title || '';
+    document.getElementById('blogCategory').value = blog.category || 'General';
+    document.getElementById('blogAuthor').value = blog.author || '';
+    document.getElementById('blogImage').value = blog.image || '';
+    document.getElementById('blogContent').value = blog.content || '';
+    document.getElementById('blogPinned').checked = !!blog.pinned;
+    document.getElementById('blogModal').style.display = 'block';
 }
 
 function toggleAllBlogPostCheckboxes() {
@@ -3518,7 +3557,9 @@ function openBlogModal() {
     document.getElementById('blogTitle').value = '';
     document.getElementById('blogCategory').value = 'General';
     document.getElementById('blogAuthor').value = '';
+    document.getElementById('blogImage').value = '';
     document.getElementById('blogContent').value = '';
+    document.getElementById('blogPinned').checked = false;
     document.getElementById('blogModal').style.display = 'block';
 }
 
@@ -3527,10 +3568,13 @@ function closeBlogModal() {
 }
 
 async function saveBlog() {
+    const id = document.getElementById('blogId').value;
     const title = document.getElementById('blogTitle').value;
     const category = document.getElementById('blogCategory').value;
     const author = document.getElementById('blogAuthor').value;
+    const image = document.getElementById('blogImage').value;
     const content = document.getElementById('blogContent').value;
+    const pinned = document.getElementById('blogPinned').checked;
     
     if (!title || !content) {
         showNotification('Title and content are required!', 'error');
@@ -3538,16 +3582,18 @@ async function saveBlog() {
     }
     
     try {
-        const res = await fetch('/api/blogs', {
-            method: 'POST',
+        const url = id ? '/api/blogs/' + id : '/api/blogs';
+        const method = id ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+            method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, category, author, content })
+            body: JSON.stringify({ title, category, author, image, content, pinned })
         });
         
         const data = await res.json();
         
         if (data.success) {
-            showNotification('Blog post added!', 'success');
+            showNotification(id ? 'Blog post updated!' : 'Blog post added!', 'success');
             closeBlogModal();
             loadBlogTable();
         } else {
