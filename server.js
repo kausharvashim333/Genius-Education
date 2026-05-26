@@ -3708,11 +3708,6 @@ app.post('/api/upload/blog-image', uploadBlogImage.single('image'), (req, res) =
     res.json({ success: true, url });
 });
 
-app.get('/api/blogs', (req, res) => {
-    const blogs = readData('blogs.json') || [];
-    res.json({ success: true, blogs });
-});
-
 // Helper: calculate reading time (avg 200 words/min)
 function calcReadingTime(text) {
     if (!text) return 1;
@@ -3720,14 +3715,71 @@ function calcReadingTime(text) {
     return Math.max(1, Math.ceil(words / 200));
 }
 
+// Helper: convert title to URL-safe slug
+function makeSlug(title) {
+    return String(title || '')
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .substring(0, 80) || 'post';
+}
+
+// Ensure slug uniqueness across blogs (excluding given id)
+function uniqueSlug(blogs, baseSlug, excludeId) {
+    let slug = baseSlug;
+    let n = 2;
+    while (blogs.some(b => b.slug === slug && b.id != excludeId)) {
+        slug = baseSlug + '-' + n;
+        n++;
+    }
+    return slug;
+}
+
+// Migrate existing blogs to have slugs (one-time on first read)
+function ensureBlogSlugs(blogs) {
+    let changed = false;
+    blogs.forEach(b => {
+        if (!b.slug) {
+            b.slug = uniqueSlug(blogs, makeSlug(b.title), b.id);
+            changed = true;
+        }
+    });
+    if (changed) writeData('blogs.json', blogs);
+    return blogs;
+}
+
+app.get('/api/blogs', (req, res) => {
+    let blogs = readData('blogs.json') || [];
+    blogs = ensureBlogSlugs(blogs);
+    res.json({ success: true, blogs });
+});
+
+// Get a single blog by slug (clean URL support)
+app.get('/api/blogs/by-slug/:slug', (req, res) => {
+    let blogs = readData('blogs.json') || [];
+    blogs = ensureBlogSlugs(blogs);
+    const blog = blogs.find(b => b.slug === req.params.slug && b.published !== false);
+    if (!blog) return res.status(404).json({ success: false, message: 'Not found' });
+    res.json({ success: true, blog });
+});
+
+// Clean URL route: /blog/:slug → serves blog-post.html
+app.get('/blog/:slug', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'blog-post.html'));
+});
+
 app.post('/api/blogs', (req, res) => {
     const { title, content, category, author, image, pinned } = req.body;
     if (!title || !content) return res.status(400).json({ success: false, message: 'Title and content required' });
     
     const blogs = readData('blogs.json') || [];
+    const slug = uniqueSlug(blogs, makeSlug(title));
     const blog = {
         id: Date.now(),
         title,
+        slug,
         content,
         category: category || 'General',
         author: author || 'Admin',
@@ -3750,7 +3802,11 @@ app.put('/api/blogs/:id', (req, res) => {
     if (idx === -1) return res.status(404).json({ success: false, message: 'Blog not found' });
     
     const { title, content, category, author, image, published, pinned } = req.body;
-    if (title) blogs[idx].title = title;
+    if (title && title !== blogs[idx].title) {
+        blogs[idx].title = title;
+        // Regenerate slug when title changes
+        blogs[idx].slug = uniqueSlug(blogs, makeSlug(title), blogs[idx].id);
+    }
     if (content) {
         blogs[idx].content = content;
         blogs[idx].readingTime = calcReadingTime(content);
@@ -3760,6 +3816,7 @@ app.put('/api/blogs/:id', (req, res) => {
     if (image !== undefined) blogs[idx].image = image;
     if (published !== undefined) blogs[idx].published = published;
     if (pinned !== undefined) blogs[idx].pinned = pinned === true || pinned === 'true';
+    if (!blogs[idx].slug) blogs[idx].slug = uniqueSlug(blogs, makeSlug(blogs[idx].title), blogs[idx].id);
     
     writeData('blogs.json', blogs);
     res.json({ success: true, blog: blogs[idx] });

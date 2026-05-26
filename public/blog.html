@@ -9,28 +9,146 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .blog-page-hero {
-            padding: 100px 0 50px;
+            padding: 100px 0 30px;
             text-align: center;
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
         }
-        .blog-page-hero h1 {
-            font-size: 42px;
-            color: #fff;
-            margin-bottom: 12px;
-        }
+        .blog-page-hero h1 { font-size: 42px; color: #fff; margin-bottom: 12px; }
         .blog-page-hero p { color: rgba(255,255,255,0.8); font-size: 16px; max-width: 600px; margin: 0 auto; }
+
+        /* Featured hero post */
+        .featured-post {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 30px;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 30px 0 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .featured-post:hover {
+            transform: translateY(-4px);
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+        .featured-post-image {
+            height: 100%;
+            min-height: 320px;
+            background-size: cover;
+            background-position: center;
+            background-color: rgba(102, 126, 234, 0.15);
+            position: relative;
+        }
+        .featured-post-image::after {
+            content: '\f0a3';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+        }
+        .featured-post-image::before {
+            content: 'FEATURED';
+            position: absolute;
+            top: 16px;
+            left: 50px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            line-height: 28px;
+            z-index: 2;
+        }
+        .featured-post-body {
+            padding: 36px 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: #fff;
+        }
+        .featured-post-body .featured-cat {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            width: fit-content;
+        }
+        .featured-post-body h2 {
+            font-size: 26px;
+            line-height: 1.3;
+            margin: 0 0 14px;
+            color: #fff;
+        }
+        .featured-post-body .featured-excerpt {
+            color: rgba(255,255,255,0.75);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .featured-post-meta {
+            display: flex;
+            gap: 18px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.65);
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        .featured-read-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            width: fit-content;
+            transition: all 0.2s;
+        }
+        .featured-post:hover .featured-read-btn { transform: translateX(6px); }
+        @media (max-width: 768px) {
+            .featured-post { grid-template-columns: 1fr; }
+            .featured-post-image { min-height: 220px; }
+            .featured-post-body { padding: 24px 20px; }
+            .featured-post-body h2 { font-size: 22px; }
+        }
+
+        /* Main layout: content + sidebar */
+        .blog-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        @media (max-width: 992px) { .blog-layout { grid-template-columns: 1fr; } }
+
         .blog-toolbar {
             display: flex;
             gap: 12px;
-            margin: 30px 0;
+            margin-bottom: 20px;
             flex-wrap: wrap;
             align-items: center;
         }
-        .blog-search {
-            flex: 1;
-            min-width: 250px;
-            position: relative;
-        }
+        .blog-search { flex: 1; min-width: 250px; position: relative; }
         .blog-search input {
             width: 100%;
             padding: 12px 16px 12px 42px;
@@ -51,12 +169,7 @@
             font-size: 14px;
             cursor: pointer;
         }
-        .blog-categories {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 30px;
-        }
+        .blog-categories { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
         .blog-cat-chip {
             padding: 8px 18px;
             background: rgba(255,255,255,0.08);
@@ -83,16 +196,151 @@
         }
         .blog-page-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 24px;
-            margin-bottom: 50px;
         }
         .blog-empty-state {
             text-align: center;
-            padding: 80px 20px;
+            padding: 60px 20px;
             color: rgba(255,255,255,0.7);
+            grid-column: 1 / -1;
         }
-        .blog-empty-state i { font-size: 60px; margin-bottom: 20px; opacity: 0.4; }
+        .blog-empty-state i { font-size: 60px; margin-bottom: 16px; opacity: 0.4; }
+
+        /* Skeleton loaders */
+        .skeleton-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .skeleton-img { height: 180px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+        .skeleton-line { height: 12px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 4px; margin: 8px 16px; }
+        .skeleton-line.lg { height: 18px; }
+        .skeleton-line.short { width: 60%; }
+        .skeleton-card .skeleton-body { padding: 12px 0 18px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* Load more button */
+        .load-more-wrap { text-align: center; margin: 30px 0 50px; }
+        .load-more-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: #fff;
+            padding: 12px 32px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .load-more-btn:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        .load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Sidebar */
+        .blog-sidebar { display: flex; flex-direction: column; gap: 18px; position: sticky; top: 90px; align-self: start; max-height: calc(100vh - 110px); overflow-y: auto; }
+        .sidebar-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            padding: 20px;
+            color: #fff;
+        }
+        .sidebar-card h4 {
+            font-size: 14px;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            color: #f59e0b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .trending-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.2s;
+        }
+        .trending-item:last-child { border-bottom: none; }
+        .trending-item:hover { transform: translateX(4px); }
+        .trending-rank {
+            font-size: 22px;
+            font-weight: 800;
+            color: rgba(255,255,255,0.2);
+            min-width: 28px;
+            line-height: 1;
+        }
+        .trending-item:nth-child(1) .trending-rank { color: #f59e0b; }
+        .trending-item:nth-child(2) .trending-rank { color: #cbd5e1; }
+        .trending-item:nth-child(3) .trending-rank { color: #ea7d2f; }
+        .trending-info { flex: 1; min-width: 0; }
+        .trending-title {
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.35;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .trending-meta { font-size: 11px; color: rgba(255,255,255,0.6); }
+        .recent-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-decoration: none;
+            color: #fff;
+        }
+        .recent-item:last-child { border-bottom: none; }
+        .recent-item:hover { background: rgba(255,255,255,0.03); }
+        .recent-thumb {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            background-color: rgba(255,255,255,0.08);
+            flex-shrink: 0;
+        }
+        .recent-info { flex: 1; min-width: 0; }
+        .recent-title {
+            font-size: 12.5px;
+            font-weight: 600;
+            line-height: 1.35;
+            margin-bottom: 3px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .recent-date { font-size: 11px; color: rgba(255,255,255,0.55); }
+
+        /* Improved blog card hover */
+        .blog-page-grid .blog-card { transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s; cursor: pointer; }
+        .blog-page-grid .blog-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.3);
+        }
+        .blog-page-grid .blog-card-image { transition: transform 0.4s; }
+        .blog-page-grid .blog-card:hover .blog-card-image { transform: scale(1.05); }
     </style>
 </head>
 <body>
@@ -123,34 +371,61 @@
         </div>
     </section>
 
-    <!-- Blog Content -->
-    <section style="padding: 30px 0 60px;">
-        <div class="container">
-            <!-- Toolbar -->
-            <div class="blog-toolbar">
-                <div class="blog-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="blogSearch" placeholder="Search articles..." oninput="renderBlogList()">
+    <!-- Featured Hero Post -->
+    <section class="container">
+        <div id="featuredPostWrap"></div>
+    </section>
+
+    <!-- Main Content + Sidebar -->
+    <section class="container" style="padding-bottom: 30px;">
+        <div class="blog-layout">
+            <!-- Main column -->
+            <div class="blog-main">
+                <!-- Toolbar -->
+                <div class="blog-toolbar">
+                    <div class="blog-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="blogSearch" placeholder="Search articles..." oninput="renderBlogList()">
+                    </div>
+                    <select class="blog-sort" id="blogSort" onchange="renderBlogList()">
+                        <option value="latest">Latest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="popular">Most Read</option>
+                    </select>
                 </div>
-                <select class="blog-sort" id="blogSort" onchange="renderBlogList()">
-                    <option value="latest">Latest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="popular">Most Read</option>
-                </select>
+
+                <!-- Categories -->
+                <div class="blog-categories" id="blogCategories"></div>
+
+                <!-- Blog Grid -->
+                <div class="blog-page-grid" id="blogPageGrid"></div>
+
+                <!-- Empty State -->
+                <div class="blog-empty-state" id="blogEmptyState" style="display:none;">
+                    <i class="far fa-newspaper"></i>
+                    <h3>No blog posts found</h3>
+                    <p>Try adjusting your search or category filter.</p>
+                </div>
+
+                <!-- Load More -->
+                <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+                    <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()">
+                        <i class="fas fa-plus"></i> Load More Posts
+                    </button>
+                </div>
             </div>
 
-            <!-- Categories -->
-            <div class="blog-categories" id="blogCategories"></div>
-
-            <!-- Blog Grid -->
-            <div class="blog-page-grid" id="blogPageGrid"></div>
-
-            <!-- Empty State -->
-            <div class="blog-empty-state" id="blogEmptyState" style="display:none;">
-                <i class="far fa-newspaper"></i>
-                <h3>No blog posts found</h3>
-                <p>Try adjusting your search or category filter.</p>
-            </div>
+            <!-- Sidebar -->
+            <aside class="blog-sidebar">
+                <div class="sidebar-card">
+                    <h4><i class="fas fa-fire"></i> Trending Now</h4>
+                    <div id="trendingList"></div>
+                </div>
+                <div class="sidebar-card">
+                    <h4><i class="fas fa-clock"></i> Recent Posts</h4>
+                    <div id="recentList"></div>
+                </div>
+            </aside>
         </div>
     </section>
 
@@ -166,14 +441,87 @@
     <script>
         let _blogs = [];
         let _activeCategory = 'all';
+        let _featuredId = null;
+        const PAGE_SIZE = 9;
+        let _visibleCount = PAGE_SIZE;
+
+        // Show skeleton loaders initially
+        function showSkeletons(count = 6) {
+            const grid = document.getElementById('blogPageGrid');
+            const skeletons = Array.from({length: count}, () => `
+                <div class="skeleton-card">
+                    <div class="skeleton-img"></div>
+                    <div class="skeleton-body">
+                        <div class="skeleton-line short"></div>
+                        <div class="skeleton-line lg"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line short"></div>
+                    </div>
+                </div>
+            `).join('');
+            grid.innerHTML = skeletons;
+        }
+
+        // Featured post hero (largest pinned, else latest)
+        function renderFeatured() {
+            const wrap = document.getElementById('featuredPostWrap');
+            const candidate = _blogs.find(b => b.pinned) || _blogs[0];
+            if (!candidate) { wrap.innerHTML = ''; _featuredId = null; return; }
+            _featuredId = candidate.id;
+            const excerpt = String(candidate.content || '').replace(/<[^>]+>/g, ' ').trim().substring(0, 200);
+            const date = relativeTime(candidate.createdAt);
+            const imgStyle = candidate.image ? `background-image:url('${candidate.image}');` : 'background:linear-gradient(135deg,rgba(102,126,234,0.3),rgba(118,75,162,0.3));';
+            const url = postUrl(candidate);
+            wrap.innerHTML = `
+                <div class="featured-post" onclick="window.location.href='${url}'">
+                    <div class="featured-post-image" style="${imgStyle}"></div>
+                    <div class="featured-post-body">
+                        <span class="featured-cat">${candidate.category || 'General'}</span>
+                        <h2>${escapeHtml(candidate.title)}</h2>
+                        <p class="featured-excerpt">${escapeHtml(excerpt)}${excerpt.length >= 200 ? '...' : ''}</p>
+                        <div class="featured-post-meta">
+                            <span><i class="fas fa-user"></i> ${escapeHtml(candidate.author || 'Admin')}</span>
+                            <span><i class="far fa-clock"></i> ${candidate.readingTime || 1} min read</span>
+                            <span><i class="far fa-eye"></i> ${candidate.views || 0} views</span>
+                            <span><i class="far fa-calendar"></i> ${date}</span>
+                        </div>
+                        <span class="featured-read-btn">Read Article <i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function postUrl(b) {
+            return b.slug ? `/blog/${encodeURIComponent(b.slug)}` : `blog-post.html?id=${b.id}`;
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        // Relative date formatter ("2 days ago")
+        function relativeTime(dateStr) {
+            const d = new Date(dateStr);
+            const sec = Math.floor((Date.now() - d.getTime()) / 1000);
+            if (sec < 60) return 'just now';
+            if (sec < 3600) return Math.floor(sec/60) + ' min ago';
+            if (sec < 86400) return Math.floor(sec/3600) + ' hr ago';
+            if (sec < 604800) return Math.floor(sec/86400) + ' day' + (Math.floor(sec/86400)>1?'s':'') + ' ago';
+            if (sec < 2592000) return Math.floor(sec/604800) + ' wk ago';
+            return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
 
         async function loadAllBlogs() {
+            showSkeletons();
             try {
                 const res = await fetch('/api/blogs');
                 const data = await res.json();
                 if (data.success && data.blogs) {
                     _blogs = data.blogs.filter(b => b.published);
+                    renderFeatured();
                     buildCategories();
+                    renderTrending();
+                    renderRecent();
                     renderBlogList();
                 }
             } catch (e) { console.error('Error loading blogs:', e); }
@@ -189,7 +537,7 @@
             const container = document.getElementById('blogCategories');
             container.innerHTML = cats.map(c => `
                 <div class="blog-cat-chip ${c === _activeCategory ? 'active' : ''}" onclick="setCategory('${c}')">
-                    ${c === 'all' ? 'All Posts' : c}
+                    ${c === 'all' ? 'All Posts' : escapeHtml(c)}
                     <span class="blog-cat-count">${counts[c] || 0}</span>
                 </div>
             `).join('');
@@ -197,14 +545,21 @@
 
         function setCategory(c) {
             _activeCategory = c;
+            _visibleCount = PAGE_SIZE;
             buildCategories();
             renderBlogList();
         }
 
-        function renderBlogList() {
+        function loadMore() {
+            _visibleCount += PAGE_SIZE;
+            renderBlogList();
+        }
+
+        function getFilteredSorted() {
             const search = (document.getElementById('blogSearch').value || '').toLowerCase().trim();
             const sort = document.getElementById('blogSort').value;
-            let list = _blogs.slice();
+            // Exclude the featured post (top) so it doesn't show twice
+            let list = _blogs.filter(b => b.id !== _featuredId);
 
             if (_activeCategory !== 'all') {
                 list = list.filter(b => (b.category || 'General') === _activeCategory);
@@ -212,49 +567,95 @@
             if (search) {
                 list = list.filter(b => (b.title || '').toLowerCase().includes(search) || (b.content || '').toLowerCase().includes(search));
             }
-
-            // Sort: pinned always first within sort
             const pinnedFirst = (a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
-            if (sort === 'latest') {
-                list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            } else if (sort === 'oldest') {
-                list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-            } else if (sort === 'popular') {
-                list.sort((a, b) => (b.views || 0) - (a.views || 0));
-            }
+            if (sort === 'latest') list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            else if (sort === 'oldest') list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            else if (sort === 'popular') list.sort((a, b) => (b.views || 0) - (a.views || 0));
             list.sort(pinnedFirst);
+            return list;
+        }
 
+        function renderBlogList() {
+            const all = getFilteredSorted();
             const grid = document.getElementById('blogPageGrid');
             const empty = document.getElementById('blogEmptyState');
-            if (list.length === 0) {
+            const loadMoreWrap = document.getElementById('loadMoreWrap');
+
+            if (all.length === 0) {
                 grid.innerHTML = '';
                 empty.style.display = 'block';
+                loadMoreWrap.style.display = 'none';
                 return;
             }
             empty.style.display = 'none';
-            grid.innerHTML = list.map(blog => {
+            const visible = all.slice(0, _visibleCount);
+
+            grid.innerHTML = visible.map(blog => {
                 const excerpt = String(blog.content || '').replace(/<[^>]+>/g, ' ').trim();
-                const shortDesc = excerpt.substring(0, 140) + (excerpt.length > 140 ? '...' : '');
-                const imgHtml = blog.image ? `<div class="blog-card-image" style="background-image:url('${blog.image}');"></div>` : '';
+                const shortDesc = excerpt.substring(0, 120) + (excerpt.length > 120 ? '...' : '');
+                const imgHtml = blog.image
+                    ? `<div class="blog-card-image" style="background-image:url('${blog.image}');"></div>`
+                    : `<div class="blog-card-image" style="background:linear-gradient(135deg,rgba(102,126,234,0.3),rgba(118,75,162,0.3));"></div>`;
                 const pinBadge = blog.pinned ? `<span class="blog-pinned-badge"><i class="fas fa-thumbtack"></i> Featured</span>` : '';
-                const date = new Date(blog.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                const date = relativeTime(blog.createdAt);
+                const url = postUrl(blog);
                 return `
-                <div class="blog-card" onclick="window.location.href='blog-post.html?id=${blog.id}'">
+                <div class="blog-card" onclick="window.location.href='${url}'">
                     ${imgHtml}
                     <div class="blog-card-body">
                         <div class="blog-header">
-                            <span class="blog-category">${blog.category || 'General'}</span>
+                            <span class="blog-category">${escapeHtml(blog.category || 'General')}</span>
                             ${pinBadge}
                         </div>
-                        <h3 class="blog-title">${blog.title}</h3>
-                        <div class="blog-content">${shortDesc}</div>
+                        <h3 class="blog-title">${escapeHtml(blog.title)}</h3>
+                        <div class="blog-content">${escapeHtml(shortDesc)}</div>
                         <div class="blog-footer">
-                            <span class="blog-author"><i class="fas fa-user"></i> ${blog.author || 'Admin'}</span>
-                            <span class="blog-meta-info"><i class="far fa-clock"></i> ${blog.readingTime || 1} min &bull; <i class="far fa-eye"></i> ${blog.views || 0}</span>
+                            <span class="blog-author"><i class="fas fa-user"></i> ${escapeHtml(blog.author || 'Admin')}</span>
+                            <span class="blog-meta-info"><i class="far fa-clock"></i> ${blog.readingTime || 1} min &bull; <i class="far fa-eye"></i> ${blog.views || 0} &bull; ${date}</span>
                         </div>
                     </div>
                 </div>
                 `;
+            }).join('');
+
+            // Load more visibility
+            if (visible.length < all.length) {
+                loadMoreWrap.style.display = 'block';
+                document.getElementById('loadMoreBtn').innerHTML = `<i class="fas fa-plus"></i> Load More (${all.length - visible.length} remaining)`;
+            } else {
+                loadMoreWrap.style.display = 'none';
+            }
+        }
+
+        function renderTrending() {
+            const trending = _blogs.slice().sort((a,b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
+            const list = document.getElementById('trendingList');
+            if (trending.length === 0) { list.innerHTML = '<p style="font-size:12px;color:rgba(255,255,255,0.5);">No trending posts yet.</p>'; return; }
+            list.innerHTML = trending.map((b, i) => `
+                <a class="trending-item" href="${postUrl(b)}">
+                    <div class="trending-rank">${(i+1).toString().padStart(2,'0')}</div>
+                    <div class="trending-info">
+                        <div class="trending-title">${escapeHtml(b.title)}</div>
+                        <div class="trending-meta"><i class="far fa-eye"></i> ${b.views || 0} views &bull; ${b.readingTime || 1} min</div>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        function renderRecent() {
+            const recent = _blogs.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+            const list = document.getElementById('recentList');
+            if (recent.length === 0) { list.innerHTML = '<p style="font-size:12px;color:rgba(255,255,255,0.5);">No posts yet.</p>'; return; }
+            list.innerHTML = recent.map(b => {
+                const thumb = b.image ? `background-image:url('${b.image}');` : 'background:linear-gradient(135deg,rgba(102,126,234,0.3),rgba(118,75,162,0.3));';
+                return `
+                <a class="recent-item" href="${postUrl(b)}">
+                    <div class="recent-thumb" style="${thumb}"></div>
+                    <div class="recent-info">
+                        <div class="recent-title">${escapeHtml(b.title)}</div>
+                        <div class="recent-date">${relativeTime(b.createdAt)}</div>
+                    </div>
+                </a>`;
             }).join('');
         }
 

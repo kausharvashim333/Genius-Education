@@ -730,6 +730,8 @@ async function loadBlogs() {
         if (!container) return;
         
         if (data.success && data.blogs && data.blogs.length > 0) {
+            // Cache for clean URL lookup in viewBlogDetail
+            window._homeBlogs = data.blogs;
             // Show only pinned + published blogs on home page (max 6)
             let pinned = data.blogs.filter(b => b.published && b.pinned);
             // Fallback: if no pinned blogs, show 3 latest published so the section isn't empty
@@ -777,8 +779,13 @@ async function loadBlogs() {
 }
 
 function viewBlogDetail(id) {
-    // Open the dedicated blog post page
-    window.location.href = 'blog-post.html?id=' + id;
+    // Open the dedicated blog post page (use clean URL if slug available)
+    const blog = (window._homeBlogs || []).find(b => b.id == id);
+    if (blog && blog.slug) {
+        window.location.href = '/blog/' + encodeURIComponent(blog.slug);
+    } else {
+        window.location.href = 'blog-post.html?id=' + id;
+    }
 }
 
 function toggleReadMore(id) {

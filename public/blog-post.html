@@ -325,38 +325,90 @@
         let _currentBlog = null;
         let _allBlogs = [];
 
-        function getBlogId() {
+        function getBlogIdentifier() {
+            // Clean URL: /blog/<slug>
+            const m = window.location.pathname.match(/^\/blog\/([^\/?#]+)/);
+            if (m) return { type: 'slug', value: decodeURIComponent(m[1]) };
+            // Legacy: ?id=
             const params = new URLSearchParams(window.location.search);
-            return params.get('id');
+            const id = params.get('id');
+            if (id) return { type: 'id', value: id };
+            return null;
+        }
+
+        function postUrl(b) {
+            return b.slug ? `/blog/${encodeURIComponent(b.slug)}` : `blog-post.html?id=${b.id}`;
         }
 
         async function loadPost() {
-            const id = getBlogId();
-            if (!id) {
-                showNotFound();
-                return;
-            }
+            const ident = getBlogIdentifier();
+            if (!ident) { showNotFound(); return; }
             try {
                 const res = await fetch('/api/blogs');
                 const data = await res.json();
-                if (!data.success || !data.blogs) {
-                    showNotFound();
-                    return;
-                }
+                if (!data.success || !data.blogs) { showNotFound(); return; }
                 _allBlogs = data.blogs.filter(b => b.published);
-                _currentBlog = _allBlogs.find(b => b.id == id);
-                if (!_currentBlog) {
-                    showNotFound();
-                    return;
+                if (ident.type === 'slug') {
+                    _currentBlog = _allBlogs.find(b => b.slug === ident.value);
+                } else {
+                    _currentBlog = _allBlogs.find(b => b.id == ident.value);
+                    // If clean URL exists, redirect for SEO
+                    if (_currentBlog && _currentBlog.slug) {
+                        window.history.replaceState({}, '', `/blog/${encodeURIComponent(_currentBlog.slug)}`);
+                    }
                 }
+                if (!_currentBlog) { showNotFound(); return; }
                 renderPost();
                 renderSidebar();
                 renderRelated();
-                trackView(id);
+                injectJsonLd();
+                trackView(_currentBlog.id);
             } catch (e) {
                 console.error('Error:', e);
                 showNotFound();
             }
+        }
+
+        // SEO: inject JSON-LD structured data for Article
+        function injectJsonLd() {
+            const b = _currentBlog;
+            const url = window.location.origin + postUrl(b);
+            const excerpt = String(b.content || '').replace(/<[^>]+>/g, ' ').trim().substring(0, 160);
+            const json = {
+                "@context": "https://schema.org",
+                "@type": "BlogPosting",
+                "headline": b.title,
+                "description": excerpt,
+                "image": b.image ? (b.image.startsWith('http') ? b.image : window.location.origin + b.image) : undefined,
+                "author": { "@type": "Person", "name": b.author || 'Admin' },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": document.querySelector('.nav-brand a')?.textContent || 'Genius Computer Education'
+                },
+                "datePublished": b.createdAt,
+                "dateModified": b.updatedAt || b.createdAt,
+                "mainEntityOfPage": { "@type": "WebPage", "@id": url },
+                "url": url
+            };
+            // Remove undefined keys
+            Object.keys(json).forEach(k => json[k] === undefined && delete json[k]);
+            const script = document.createElement('script');
+            script.type = 'application/ld+json';
+            script.textContent = JSON.stringify(json);
+            document.head.appendChild(script);
+            // Also set canonical link
+            const canonical = document.createElement('link');
+            canonical.rel = 'canonical';
+            canonical.href = url;
+            document.head.appendChild(canonical);
+            // Set og:url
+            let ogUrl = document.querySelector('meta[property="og:url"]');
+            if (!ogUrl) {
+                ogUrl = document.createElement('meta');
+                ogUrl.setAttribute('property', 'og:url');
+                document.head.appendChild(ogUrl);
+            }
+            ogUrl.setAttribute('content', url);
         }
 
         function showNotFound() {
@@ -452,7 +504,7 @@
             const date = new Date(b.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
             const thumbStyle = b.image ? `background-image:url('${b.image}');` : '';
             return `
-                <a class="sidebar-post" href="blog-post.html?id=${b.id}">
+                <a class="sidebar-post" href="${postUrl(b)}">
                     <div class="sidebar-post-thumb" style="${thumbStyle}"></div>
                     <div class="sidebar-post-info">
                         <div class="sidebar-post-title">${b.title}</div>
@@ -472,7 +524,7 @@
                 const shortDesc = excerpt.substring(0, 100) + (excerpt.length > 100 ? '...' : '');
                 const imgHtml = blog.image ? `<div class="blog-card-image" style="background-image:url('${blog.image}');"></div>` : '';
                 return `
-                <div class="blog-card" onclick="window.location.href='blog-post.html?id=${blog.id}'">
+                <div class="blog-card" onclick="window.location.href='${postUrl(blog)}'">
                     ${imgHtml}
                     <div class="blog-card-body">
                         <div class="blog-header">
