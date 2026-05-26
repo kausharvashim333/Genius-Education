@@ -3448,9 +3448,9 @@ async function deleteHoliday(holidayId) {
 let _allBlogs = [];
 async function loadBlogTable() {
     try {
-        const res = await fetch('/api/blogs');
+        const res = await fetch('/api/blogs?all=1');
         const data = await res.json();
-        
+
         if (data.success && data.blogs) {
             _allBlogs = data.blogs;
             const tbody = document.querySelector('#blogTable tbody');
@@ -3458,21 +3458,36 @@ async function loadBlogTable() {
                 const pinIcon = blog.pinned
                     ? '<i class="fas fa-thumbtack" style="color:#f59e0b;" title="Pinned"></i>'
                     : '<i class="fas fa-thumbtack" style="color:#cbd5e1;" title="Not pinned"></i>';
+                let statusHtml;
+                const st = blog.status || (blog.published === false ? 'draft' : 'published');
+                if (st === 'published') {
+                    statusHtml = '<span style="color:#16a34a;font-weight:600;"><i class="fas fa-check-circle"></i> Published</span>';
+                } else if (st === 'scheduled') {
+                    const when = blog.scheduledFor ? new Date(blog.scheduledFor).toLocaleString() : '';
+                    statusHtml = '<span style="color:#f59e0b;font-weight:600;" title="Scheduled for ' + when + '"><i class="fas fa-clock"></i> Scheduled<br><small style="font-weight:400;">' + when + '</small></span>';
+                } else {
+                    statusHtml = '<span style="color:#94a3b8;font-weight:600;"><i class="fas fa-pencil-alt"></i> Draft</span>';
+                }
                 let html = '';
                 html += '<tr>';
                 html += '<td><input type="checkbox" class="blog-checkbox" data-id="' + blog.id + '"></td>';
                 html += '<td style="text-align:center;cursor:pointer;" onclick="togglePinBlog(' + blog.id + ')">' + pinIcon + '</td>';
-                html += '<td><strong>' + blog.title + '</strong></td>';
+                html += '<td><strong>' + blog.title + '</strong>';
+                if (blog.tags && blog.tags.length) {
+                    html += '<br><span style="font-size:11px;color:#64748b;">' + blog.tags.slice(0,4).map(t => '#' + t).join(' ') + (blog.tags.length > 4 ? ' …' : '') + '</span>';
+                }
+                html += '</td>';
                 html += '<td>' + blog.category + '</td>';
                 html += '<td>' + blog.author + '</td>';
                 html += '<td>' + (blog.views || 0) + '</td>';
                 html += '<td>' + (blog.likes || 0) + '</td>';
-                html += '<td><span id="blogCmtCount-' + blog.id + '">-</span></td>';
+                html += '<td><span id="blogCmtCount-' + blog.id + '">' + (blog.commentCount || 0) + '</span></td>';
                 html += '<td>' + formatDate(blog.createdAt) + '</td>';
-                html += '<td>' + (blog.published ? '<span style="color:#16a34a;font-weight:600;">Published</span>' : '<span style="color:#dc2626;font-weight:600;">Draft</span>') + '</td>';
+                html += '<td>' + statusHtml + '</td>';
                 html += '<td style="white-space:nowrap;">';
-                html += '<button class="btn btn-primary" onclick="editBlog(' + blog.id + ')" style="padding:4px 8px;font-size:12px;margin-right:4px;"><i class="fas fa-edit"></i></button>';
-                html += '<button class="btn btn-secondary" onclick="deleteBlog(' + blog.id + ')" style="padding:4px 8px;font-size:12px;"><i class="fas fa-trash"></i></button>';
+                html += '<button class="btn btn-secondary" onclick="openBlogAnalytics(' + blog.id + ')" style="padding:4px 8px;font-size:12px;margin-right:4px;background:#0ea5e9;color:#fff;" title="Analytics"><i class="fas fa-chart-line"></i></button>';
+                html += '<button class="btn btn-primary" onclick="editBlog(' + blog.id + ')" style="padding:4px 8px;font-size:12px;margin-right:4px;" title="Edit"><i class="fas fa-edit"></i></button>';
+                html += '<button class="btn btn-secondary" onclick="deleteBlog(' + blog.id + ')" style="padding:4px 8px;font-size:12px;" title="Delete"><i class="fas fa-trash"></i></button>';
                 html += '</td>';
                 html += '</tr>';
                 return html;
@@ -3481,6 +3496,72 @@ async function loadBlogTable() {
     } catch (e) {
         console.error('Error loading blogs:', e);
     }
+}
+
+// ===== Blog Analytics Modal =====
+async function openBlogAnalytics(id) {
+    document.getElementById('blogAnalyticsModal').style.display = 'flex';
+    document.getElementById('blogAnalyticsBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+    try {
+        const res = await fetch('/api/admin/blogs/' + id + '/analytics');
+        const data = await res.json();
+        if (!data.success) {
+            document.getElementById('blogAnalyticsBody').innerHTML = '<div style="color:#ef4444;">Could not load analytics.</div>';
+            return;
+        }
+        const a = data.analytics;
+        const reactions = a.reactions || {};
+        const shares = a.shares || {};
+        const totalShares = (shares.whatsapp || 0) + (shares.facebook || 0) + (shares.twitter || 0) + (shares.linkedin || 0) + (shares.copy || 0);
+        document.getElementById('blogAnalyticsBody').innerHTML = `
+            <h4 style="margin:0 0 14px;color:#1e293b;">${escapeAdminHtml(a.title)}</h4>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
+                ${analyticsTile('eye', '#0ea5e9', 'Views', a.views)}
+                ${analyticsTile('heart', '#ef4444', 'Likes', a.likes)}
+                ${analyticsTile('comment', '#8b5cf6', 'Comments', a.commentsTotal + ' (' + a.commentsApproved + ' live)')}
+                ${analyticsTile('share-alt', '#16a34a', 'Total Shares', totalShares)}
+            </div>
+            <div style="margin-bottom:18px;">
+                <h5 style="margin:0 0 8px;color:#475569;">Reactions</h5>
+                <div style="display:flex;gap:14px;flex-wrap:wrap;">
+                    <div>🙏 Helpful: <strong>${reactions.helpful || 0}</strong></div>
+                    <div>🔥 Fire: <strong>${reactions.fire || 0}</strong></div>
+                    <div>💡 Insightful: <strong>${reactions.idea || 0}</strong></div>
+                    <div>❤️ Loved: <strong>${reactions.love || 0}</strong></div>
+                </div>
+            </div>
+            <div style="margin-bottom:18px;">
+                <h5 style="margin:0 0 8px;color:#475569;">Shares Breakdown</h5>
+                <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px;">
+                    <div><i class="fab fa-whatsapp" style="color:#25d366;"></i> ${shares.whatsapp || 0}</div>
+                    <div><i class="fab fa-facebook" style="color:#1877f2;"></i> ${shares.facebook || 0}</div>
+                    <div><i class="fab fa-twitter" style="color:#1da1f2;"></i> ${shares.twitter || 0}</div>
+                    <div><i class="fab fa-linkedin" style="color:#0a66c2;"></i> ${shares.linkedin || 0}</div>
+                    <div><i class="fas fa-link"></i> Copy: ${shares.copy || 0}</div>
+                </div>
+            </div>
+            <div style="background:#f1f5f9;padding:10px;border-radius:6px;font-size:12px;color:#475569;">
+                <div><strong>Status:</strong> ${a.status}${a.scheduledFor ? ' (publishes ' + new Date(a.scheduledFor).toLocaleString() + ')' : ''}</div>
+                <div><strong>Created:</strong> ${new Date(a.createdAt).toLocaleString()}</div>
+                <div><strong>Updated:</strong> ${new Date(a.updatedAt).toLocaleString()}</div>
+                ${a.commentsPending ? '<div style="color:#ef4444;margin-top:4px;"><strong>' + a.commentsPending + ' comments awaiting moderation</strong></div>' : ''}
+            </div>
+        `;
+    } catch (e) {
+        document.getElementById('blogAnalyticsBody').innerHTML = '<div style="color:#ef4444;">Error loading analytics.</div>';
+    }
+}
+
+function analyticsTile(icon, color, label, value) {
+    return `<div style="background:${color}10;border:1px solid ${color}30;padding:14px;border-radius:8px;text-align:center;">
+        <i class="fas fa-${icon}" style="color:${color};font-size:20px;"></i>
+        <div style="font-size:20px;font-weight:700;margin-top:6px;color:#0f172a;">${value}</div>
+        <div style="font-size:12px;color:#64748b;">${label}</div>
+    </div>`;
+}
+
+function closeBlogAnalyticsModal() {
+    document.getElementById('blogAnalyticsModal').style.display = 'none';
 }
 
 async function togglePinBlog(id) {
@@ -3509,7 +3590,37 @@ function editBlog(id) {
     document.getElementById('blogCategory').value = blog.category || 'General';
     document.getElementById('blogAuthor').value = blog.author || '';
     document.getElementById('blogPinned').checked = !!blog.pinned;
-    
+
+    // Tags / excerpt / SEO
+    document.getElementById('blogTags').value = Array.isArray(blog.tags) ? blog.tags.join(', ') : '';
+    document.getElementById('blogExcerpt').value = blog.excerpt || '';
+    document.getElementById('blogMetaTitle').value = blog.metaTitle || '';
+    document.getElementById('blogMetaDescription').value = blog.metaDescription || '';
+    document.getElementById('blogOgImage').value = blog.ogImage || '';
+
+    // Status
+    const status = blog.status || (blog.published === false ? 'draft' : 'published');
+    const radio = document.querySelector(`input[name="blogStatus"][value="${status}"]`);
+    if (radio) radio.checked = true;
+    if (blog.scheduledFor) {
+        // Convert ISO to datetime-local format (YYYY-MM-DDTHH:MM)
+        const d = new Date(blog.scheduledFor);
+        const pad = n => String(n).padStart(2, '0');
+        const localStr = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        document.getElementById('blogScheduledFor').value = localStr;
+    } else {
+        document.getElementById('blogScheduledFor').value = '';
+    }
+    onBlogStatusChange();
+
+    // Last updated
+    if (blog.updatedAt) {
+        document.getElementById('blogLastUpdatedRow').style.display = 'block';
+        document.getElementById('blogLastUpdatedText').textContent = formatDate(blog.updatedAt) + ' ' + new Date(blog.updatedAt).toLocaleTimeString();
+    } else {
+        document.getElementById('blogLastUpdatedRow').style.display = 'none';
+    }
+
     // Cover image preview
     if (blog.image) {
         document.getElementById('blogImage').value = blog.image;
@@ -3520,15 +3631,20 @@ function editBlog(id) {
         removeBlogCover();
     }
     document.getElementById('blogCoverInput').value = '';
-    
+
     document.getElementById('blogModal').style.display = 'block';
-    // Initialize Quill and load content
     setTimeout(() => {
         initBlogQuill();
         if (_blogQuill) {
             _blogQuill.clipboard.dangerouslyPasteHTML(0, blog.content || '');
         }
     }, 50);
+}
+
+function onBlogStatusChange() {
+    const status = document.querySelector('input[name="blogStatus"]:checked');
+    const isScheduled = status && status.value === 'scheduled';
+    document.getElementById('blogScheduleRow').style.display = isScheduled ? 'block' : 'none';
 }
 
 function toggleAllBlogPostCheckboxes() {
@@ -3859,6 +3975,16 @@ function openBlogModal() {
     document.getElementById('blogImage').value = '';
     document.getElementById('blogCoverInput').value = '';
     document.getElementById('blogPinned').checked = false;
+    document.getElementById('blogTags').value = '';
+    document.getElementById('blogExcerpt').value = '';
+    document.getElementById('blogMetaTitle').value = '';
+    document.getElementById('blogMetaDescription').value = '';
+    document.getElementById('blogOgImage').value = '';
+    document.getElementById('blogScheduledFor').value = '';
+    const pubRadio = document.querySelector('input[name="blogStatus"][value="published"]');
+    if (pubRadio) pubRadio.checked = true;
+    onBlogStatusChange();
+    document.getElementById('blogLastUpdatedRow').style.display = 'none';
     removeBlogCover();
     document.getElementById('blogModal').style.display = 'block';
     setTimeout(() => {
@@ -3880,23 +4006,35 @@ async function saveBlog() {
     let content = '';
     if (_blogQuill) {
         const html = _blogQuill.root.innerHTML;
-        // Treat truly empty editor as empty string
         content = (_blogQuill.getText().trim() === '' && !/<img/i.test(html)) ? '' : html;
     }
     const pinned = document.getElementById('blogPinned').checked;
-    
+    const tags = document.getElementById('blogTags').value;
+    const excerpt = document.getElementById('blogExcerpt').value;
+    const metaTitle = document.getElementById('blogMetaTitle').value;
+    const metaDescription = document.getElementById('blogMetaDescription').value;
+    const ogImage = document.getElementById('blogOgImage').value;
+    const statusEl = document.querySelector('input[name="blogStatus"]:checked');
+    const status = statusEl ? statusEl.value : 'published';
+    let scheduledFor = null;
+    if (status === 'scheduled') {
+        const v = document.getElementById('blogScheduledFor').value;
+        if (!v) { showNotification('Please select a publish date/time for scheduled post', 'error'); return; }
+        scheduledFor = new Date(v).toISOString();
+    }
+
     if (!title || !content) {
         showNotification('Title and content are required!', 'error');
         return;
     }
-    
+
     try {
         const url = id ? '/api/blogs/' + id : '/api/blogs';
         const method = id ? 'PUT' : 'POST';
         const res = await fetch(url, {
             method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, category, author, image, content, pinned })
+            body: JSON.stringify({ title, category, author, image, content, pinned, tags, excerpt, metaTitle, metaDescription, ogImage, status, scheduledFor })
         });
         
         const data = await res.json();

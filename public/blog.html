@@ -438,6 +438,19 @@
                     <h4><i class="fas fa-clock"></i> Recent Posts</h4>
                     <div id="recentList"></div>
                 </div>
+                <div class="sidebar-card" id="tagsCard" style="display:none;">
+                    <h4><i class="fas fa-tags"></i> Popular Tags</h4>
+                    <div id="tagsList" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+                </div>
+                <div class="sidebar-card" id="archiveCard" style="display:none;">
+                    <h4><i class="fas fa-archive"></i> Archive</h4>
+                    <div id="archiveList"></div>
+                </div>
+                <div class="sidebar-card" style="background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(245,158,11,0.15));">
+                    <h4 style="color:#fff;"><i class="fas fa-rss"></i> Subscribe via RSS</h4>
+                    <p style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:10px;">Follow our blog in any reader.</p>
+                    <a href="/blog/rss.xml" target="_blank" style="display:inline-block;padding:6px 12px;background:#f97316;color:#fff;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;"><i class="fas fa-rss"></i> RSS Feed</a>
+                </div>
             </aside>
         </div>
     </section>
@@ -454,9 +467,19 @@
     <script>
         let _blogs = [];
         let _activeCategory = 'all';
+        let _activeTag = null;
+        let _activeArchive = null; // 'YYYY-MM'
         let _featuredId = null;
         const PAGE_SIZE = 9;
         let _visibleCount = PAGE_SIZE;
+
+        // Read filter from URL on init
+        (function readUrlFilters() {
+            const params = new URLSearchParams(location.search);
+            if (params.get('tag')) _activeTag = params.get('tag').toLowerCase();
+            if (params.get('archive')) _activeArchive = params.get('archive');
+            if (params.get('category')) _activeCategory = params.get('category');
+        })();
 
         // Show skeleton loaders initially
         function showSkeletons(count = 6) {
@@ -536,6 +559,9 @@
                     renderTrending();
                     renderRecent();
                     renderBookmarks();
+                    renderTags();
+                    renderArchive();
+                    renderActiveFilters();
                     renderBlogList();
                 }
             } catch (e) { console.error('Error loading blogs:', e); }
@@ -572,14 +598,25 @@
         function getFilteredSorted() {
             const search = (document.getElementById('blogSearch').value || '').toLowerCase().trim();
             const sort = document.getElementById('blogSort').value;
-            // Exclude the featured post (top) so it doesn't show twice
-            let list = _blogs.filter(b => b.id !== _featuredId);
+            const isFilteringByTagOrArchive = !!(_activeTag || _activeArchive);
+            // Featured hidden only when no tag/archive filter active (so filter results show all matches)
+            let list = isFilteringByTagOrArchive ? _blogs.slice() : _blogs.filter(b => b.id !== _featuredId);
 
             if (_activeCategory !== 'all') {
                 list = list.filter(b => (b.category || 'General') === _activeCategory);
             }
+            if (_activeTag) {
+                list = list.filter(b => Array.isArray(b.tags) && b.tags.includes(_activeTag));
+            }
+            if (_activeArchive) {
+                list = list.filter(b => {
+                    const d = new Date(b.createdAt);
+                    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+                    return key === _activeArchive;
+                });
+            }
             if (search) {
-                list = list.filter(b => (b.title || '').toLowerCase().includes(search) || (b.content || '').toLowerCase().includes(search));
+                list = list.filter(b => (b.title || '').toLowerCase().includes(search) || (b.content || '').toLowerCase().includes(search) || (Array.isArray(b.tags) && b.tags.some(t => t.includes(search))));
             }
             const pinnedFirst = (a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
             if (sort === 'latest') list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -671,6 +708,114 @@
                     </div>
                 </a>`;
             }).join('');
+        }
+
+        // ===== Tags =====
+        function renderTags() {
+            const counts = {};
+            _blogs.forEach(b => (b.tags || []).forEach(t => { counts[t] = (counts[t] || 0) + 1; }));
+            const tags = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 30);
+            const card = document.getElementById('tagsCard');
+            const list = document.getElementById('tagsList');
+            if (tags.length === 0) { card.style.display = 'none'; return; }
+            card.style.display = 'block';
+            list.innerHTML = tags.map(([t, c]) => {
+                const active = (_activeTag === t);
+                return `<span class="tag-chip" data-tag="${escapeHtml(t)}" onclick="setTag('${escapeHtml(t).replace(/'/g, "\\'")}')" style="cursor:pointer;padding:5px 10px;border-radius:20px;font-size:12px;background:${active ? '#f97316' : 'rgba(255,255,255,0.08)'};color:${active ? '#fff' : 'rgba(255,255,255,0.85)'};border:1px solid ${active ? '#f97316' : 'rgba(255,255,255,0.15)'};">#${escapeHtml(t)} <small style="opacity:0.6;">(${c})</small></span>`;
+            }).join('');
+        }
+
+        // ===== Archive (by month) =====
+        function renderArchive() {
+            const counts = {};
+            _blogs.forEach(b => {
+                const d = new Date(b.createdAt);
+                if (isNaN(d)) return;
+                const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+                counts[key] = (counts[key] || 0) + 1;
+            });
+            const months = Object.entries(counts).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 12);
+            const card = document.getElementById('archiveCard');
+            const list = document.getElementById('archiveList');
+            if (months.length === 0) { card.style.display = 'none'; return; }
+            card.style.display = 'block';
+            const monthName = key => {
+                const [y, m] = key.split('-');
+                return new Date(parseInt(y), parseInt(m) - 1, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+            };
+            list.innerHTML = months.map(([key, c]) => {
+                const active = _activeArchive === key;
+                return `<a href="javascript:void(0)" onclick="setArchive('${key}')" style="display:flex;justify-content:space-between;padding:6px 8px;color:${active ? '#f97316' : 'rgba(255,255,255,0.85)'};text-decoration:none;border-radius:4px;font-size:13px;background:${active ? 'rgba(249,115,22,0.15)' : 'transparent'};"><span>${monthName(key)}</span><span style="opacity:0.6;">(${c})</span></a>`;
+            }).join('');
+        }
+
+        function setTag(tag) {
+            _activeTag = (_activeTag === tag) ? null : tag;
+            _activeArchive = null;
+            _visibleCount = PAGE_SIZE;
+            updateUrl();
+            renderTags();
+            renderArchive();
+            renderActiveFilters();
+            renderBlogList();
+            scrollToList();
+        }
+        function setArchive(key) {
+            _activeArchive = (_activeArchive === key) ? null : key;
+            _activeTag = null;
+            _visibleCount = PAGE_SIZE;
+            updateUrl();
+            renderTags();
+            renderArchive();
+            renderActiveFilters();
+            renderBlogList();
+            scrollToList();
+        }
+        function clearFilters() {
+            _activeTag = null;
+            _activeArchive = null;
+            _activeCategory = 'all';
+            _visibleCount = PAGE_SIZE;
+            updateUrl();
+            buildCategories();
+            renderTags();
+            renderArchive();
+            renderActiveFilters();
+            renderBlogList();
+        }
+        function updateUrl() {
+            const p = new URLSearchParams();
+            if (_activeTag) p.set('tag', _activeTag);
+            if (_activeArchive) p.set('archive', _activeArchive);
+            if (_activeCategory && _activeCategory !== 'all') p.set('category', _activeCategory);
+            const qs = p.toString();
+            history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+        }
+        function scrollToList() {
+            const grid = document.getElementById('blogPageGrid');
+            if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        function renderActiveFilters() {
+            // Inject a "filter chip strip" above the grid
+            let bar = document.getElementById('activeFilterBar');
+            if (!bar) {
+                bar = document.createElement('div');
+                bar.id = 'activeFilterBar';
+                bar.style.cssText = 'margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;';
+                const grid = document.getElementById('blogPageGrid');
+                grid.parentNode.insertBefore(bar, grid);
+            }
+            const chips = [];
+            if (_activeTag) chips.push(`<span style="background:rgba(249,115,22,0.18);color:#fdba74;padding:4px 10px;border-radius:14px;font-size:12px;">Tag: #${escapeHtml(_activeTag)} <a href="javascript:void(0)" onclick="setTag('${escapeHtml(_activeTag).replace(/'/g, "\\'")}')" style="color:#fdba74;margin-left:4px;">×</a></span>`);
+            if (_activeArchive) chips.push(`<span style="background:rgba(14,165,233,0.18);color:#7dd3fc;padding:4px 10px;border-radius:14px;font-size:12px;">Archive: ${_activeArchive} <a href="javascript:void(0)" onclick="setArchive('${_activeArchive}')" style="color:#7dd3fc;margin-left:4px;">×</a></span>`);
+            if (chips.length > 0) {
+                chips.push('<button onclick="clearFilters()" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:3px 10px;border-radius:14px;font-size:12px;cursor:pointer;">Clear all</button>');
+                bar.innerHTML = chips.join('');
+                bar.style.display = 'flex';
+            } else {
+                bar.style.display = 'none';
+                bar.innerHTML = '';
+            }
         }
 
         // ===== Bookmarks (from localStorage) =====

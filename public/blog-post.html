@@ -130,6 +130,105 @@
             font-family: 'Courier New', monospace;
             font-size: 14px;
         }
+        /* Font-size adjustment via root data-attribute */
+        body[data-font-size="small"] .post-body { font-size: 15px; line-height: 1.7; }
+        body[data-font-size="normal"] .post-body { font-size: 17px; line-height: 1.8; }
+        body[data-font-size="large"] .post-body { font-size: 19px; line-height: 1.9; }
+        body[data-font-size="xlarge"] .post-body { font-size: 21px; line-height: 2.0; }
+        /* Reading toolbar (floating) */
+        .reading-toolbar {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(15,23,42,0.92);
+            backdrop-filter: blur(10px);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            z-index: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+        .reading-toolbar button {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .reading-toolbar button:hover { background: rgba(245,158,11,0.3); border-color: #f59e0b; }
+        .reading-toolbar button.active { background: #f59e0b; color: #fff; }
+        .reading-toolbar .rt-label { font-size: 10px; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 2px; }
+        @media (max-width: 768px) {
+            .reading-toolbar { right: 10px; bottom: 80px; padding: 6px; }
+            .reading-toolbar button { width: 32px; height: 32px; font-size: 12px; }
+        }
+        /* TOC */
+        .toc-card { max-height: 60vh; overflow-y: auto; }
+        .toc-list { list-style: none; padding: 0; margin: 0; }
+        .toc-list li { margin: 0; }
+        .toc-list a {
+            display: block;
+            padding: 6px 10px;
+            color: rgba(255,255,255,0.75);
+            font-size: 13px;
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            border-radius: 0 6px 6px 0;
+            transition: all 0.2s;
+        }
+        .toc-list a:hover { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .toc-list a.active { background: rgba(245,158,11,0.18); color: #fbbf24; border-left-color: #f59e0b; font-weight: 600; }
+        .toc-list .toc-h3 a { padding-left: 24px; font-size: 12px; }
+        .post-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
+        .post-tag {
+            background: rgba(249,115,22,0.15);
+            color: #fdba74;
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            text-decoration: none;
+            border: 1px solid rgba(249,115,22,0.3);
+            transition: all 0.2s;
+        }
+        .post-tag:hover { background: rgba(249,115,22,0.3); color: #fff; }
+        .post-updated-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(14,165,233,0.15);
+            color: #7dd3fc;
+            border-radius: 12px;
+            font-size: 12px;
+            border: 1px solid rgba(14,165,233,0.25);
+            margin-left: 8px;
+        }
+        /* Print-friendly */
+        @media print {
+            body { background: #fff !important; color: #000 !important; }
+            .top-nav, .post-sidebar, #relatedSection, .footer,
+            .engagement-bar, .reactions-section, .share-section,
+            .newsletter-card, .comments-section, .reading-toolbar,
+            .reading-progress { display: none !important; }
+            .post-wrapper { display: block !important; margin: 0; padding: 0; max-width: 100%; }
+            .post-main { background: #fff !important; box-shadow: none !important; padding: 0 !important; }
+            .post-title, .post-meta, .post-body, .post-body * { color: #000 !important; }
+            .post-body a { color: #1d4ed8 !important; text-decoration: underline !important; }
+            .post-body img { max-width: 100% !important; page-break-inside: avoid; }
+            .post-body h1, .post-body h2, .post-body h3 { page-break-after: avoid; color: #000 !important; }
+            .post-body p, .post-body li { page-break-inside: avoid; }
+            .breadcrumb { display: none; }
+        }
         .share-section {
             margin-top: 40px;
             padding-top: 24px;
@@ -520,6 +619,10 @@
 
         <!-- Sidebar -->
         <aside class="post-sidebar">
+            <div class="sidebar-card toc-card" id="tocCard" style="display:none;">
+                <h4><i class="fas fa-list-ul"></i> On this page</h4>
+                <ul class="toc-list" id="tocList"></ul>
+            </div>
             <div class="sidebar-card">
                 <h4><i class="fas fa-folder"></i> Categories</h4>
                 <div class="sidebar-cat-list" id="sidebarCategories"></div>
@@ -533,6 +636,20 @@
                 <div id="sidebarRecent"></div>
             </div>
         </aside>
+    </div>
+
+    <!-- Floating Reading Toolbar -->
+    <div class="reading-toolbar" id="readingToolbar">
+        <div class="rt-label">Aa</div>
+        <button data-size="small" onclick="setFontSize('small')" title="Small text">A-</button>
+        <button data-size="normal" class="active" onclick="setFontSize('normal')" title="Normal text">A</button>
+        <button data-size="large" onclick="setFontSize('large')" title="Large text">A+</button>
+        <button data-size="xlarge" onclick="setFontSize('xlarge')" title="Extra large">A++</button>
+        <div style="height:1px;background:rgba(255,255,255,0.1);margin:4px 0;"></div>
+        <button onclick="window.print()" title="Print article"><i class="fas fa-print"></i></button>
+        <button onclick="scrollToTop()" title="Back to top"><i class="fas fa-arrow-up"></i></button>
+    </div>
+    <div style="display:none;">
     </div>
 
     <!-- Related Posts -->
@@ -656,19 +773,35 @@
 
         function renderPost() {
             const b = _currentBlog;
-            // Update head meta
-            document.getElementById('pageTitle').textContent = b.title + ' - Genius Computer Education';
-            const excerpt = String(b.content || '').replace(/<[^>]+>/g, ' ').trim().substring(0, 160);
-            document.getElementById('metaDescription').setAttribute('content', excerpt);
-            document.getElementById('ogTitle').setAttribute('content', b.title);
-            document.getElementById('ogDescription').setAttribute('content', excerpt);
-            if (b.image) document.getElementById('ogImage').setAttribute('content', b.image);
+            // Update head meta — prefer admin overrides
+            const metaTitleFinal = b.metaTitle || (b.title + ' - Genius Computer Education');
+            document.getElementById('pageTitle').textContent = metaTitleFinal;
+            const fallbackExcerpt = String(b.content || '').replace(/<[^>]+>/g, ' ').trim().substring(0, 160);
+            const metaDescFinal = b.metaDescription || b.excerpt || fallbackExcerpt;
+            document.getElementById('metaDescription').setAttribute('content', metaDescFinal);
+            document.getElementById('ogTitle').setAttribute('content', b.metaTitle || b.title);
+            document.getElementById('ogDescription').setAttribute('content', metaDescFinal);
+            const finalOgImage = b.ogImage || b.image || '';
+            if (finalOgImage) document.getElementById('ogImage').setAttribute('content', finalOgImage);
 
             const date = new Date(b.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+            // Show "Updated" badge only when meaningfully later than createdAt (>= 60s)
+            let updatedBadge = '';
+            if (b.updatedAt && b.createdAt) {
+                const diff = new Date(b.updatedAt).getTime() - new Date(b.createdAt).getTime();
+                if (diff > 60000) {
+                    const upDate = new Date(b.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                    updatedBadge = `<span class="post-updated-badge" title="Last updated ${new Date(b.updatedAt).toLocaleString()}"><i class="fas fa-sync-alt"></i> Updated ${upDate}</span>`;
+                }
+            }
+
             const imgHtml = b.image ? `<img src="${b.image}" alt="${b.title}" class="post-image">` : '';
+            const tagsHtml = Array.isArray(b.tags) && b.tags.length
+                ? `<div class="post-tags">${b.tags.map(t => `<a class="post-tag" href="/blog.html?tag=${encodeURIComponent(t)}">#${escapeHtmlPost(t)}</a>`).join('')}</div>`
+                : '';
             const html = `
                 <div class="breadcrumb">
-                    <a href="index.html">Home</a> &rsaquo; <a href="blog.html">Blog</a> &rsaquo; <a href="blog.html" onclick="event.preventDefault();window.location.href='blog.html';">${b.category}</a> &rsaquo; <span>${b.title}</span>
+                    <a href="index.html">Home</a> &rsaquo; <a href="blog.html">Blog</a> &rsaquo; <a href="blog.html?category=${encodeURIComponent(b.category || '')}">${b.category}</a> &rsaquo; <span>${b.title}</span>
                 </div>
                 <span class="post-category-pill"><i class="fas fa-folder-open"></i> ${b.category}</span>
                 <h1 class="post-title">${b.title}</h1>
@@ -677,9 +810,11 @@
                     <span><i class="far fa-calendar"></i> ${date}</span>
                     <span><i class="far fa-clock"></i> ${b.readingTime || 1} min read</span>
                     <span><i class="far fa-eye"></i> ${(b.views || 0) + 1} views</span>
+                    ${updatedBadge}
                 </div>
                 ${imgHtml}
                 <div class="post-body">${b.content}</div>
+                ${tagsHtml}
 
                 <!-- Engagement Bar (Like + Bookmark + Share count) -->
                 <div class="engagement-bar">
@@ -763,6 +898,8 @@
             updateLikeButton();
             updateBookmarkButton();
             loadComments();
+            buildTOC();
+            applyStoredFontSize();
             // Restore saved name/email from localStorage
             try {
                 const cached = JSON.parse(localStorage.getItem('blogCommenter') || '{}');
@@ -1149,9 +1286,24 @@
         }
 
         function renderRelated() {
-            const related = _allBlogs
-                .filter(b => b.id != _currentBlog.id && b.category === _currentBlog.category)
-                .slice(0, 3);
+            const cur = _currentBlog;
+            const curTags = new Set((cur.tags || []).map(t => t.toLowerCase()));
+            // Score: tags overlap (3 pts each) + same category (2 pts) + recency boost (1 pt last 30 days)
+            const candidates = _allBlogs
+                .filter(b => b.id != cur.id)
+                .map(b => {
+                    let score = 0;
+                    (b.tags || []).forEach(t => { if (curTags.has(String(t).toLowerCase())) score += 3; });
+                    if (b.category === cur.category) score += 2;
+                    const ageDays = (Date.now() - new Date(b.createdAt).getTime()) / (1000 * 3600 * 24);
+                    if (ageDays < 30) score += 1;
+                    return { b, score };
+                })
+                .filter(x => x.score > 0)
+                .sort((a, b) => b.score - a.score || new Date(b.b.createdAt) - new Date(a.b.createdAt))
+                .slice(0, 3)
+                .map(x => x.b);
+            const related = candidates;
             if (related.length === 0) return;
             document.getElementById('relatedSection').style.display = 'block';
             document.getElementById('relatedGrid').innerHTML = related.map(blog => {
@@ -1206,6 +1358,79 @@
             } catch (e) {}
         }
         loadBranding();
+
+        // ===== Table of Contents (auto from H2/H3) =====
+        function slugifyId(text) {
+            return String(text || '').toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .trim()
+                .replace(/\s+/g, '-')
+                .substring(0, 60) || 'section';
+        }
+        function buildTOC() {
+            const body = document.querySelector('.post-body');
+            const list = document.getElementById('tocList');
+            const card = document.getElementById('tocCard');
+            if (!body || !list || !card) return;
+            const headings = body.querySelectorAll('h2, h3');
+            if (headings.length < 2) { card.style.display = 'none'; return; }
+            const usedIds = new Set();
+            const items = [];
+            headings.forEach(h => {
+                let id = h.id;
+                if (!id) {
+                    id = slugifyId(h.textContent);
+                    let dedup = id, n = 2;
+                    while (usedIds.has(dedup) || document.getElementById(dedup)) {
+                        dedup = id + '-' + n++;
+                    }
+                    id = dedup;
+                    h.id = id;
+                }
+                usedIds.add(id);
+                items.push({ id, text: h.textContent.trim(), level: h.tagName.toLowerCase() });
+            });
+            list.innerHTML = items.map(it => `<li class="${it.level === 'h3' ? 'toc-h3' : ''}"><a href="#${it.id}" data-target="${it.id}">${escapeHtmlPost(it.text)}</a></li>`).join('');
+            card.style.display = 'block';
+            // Smooth scroll
+            list.querySelectorAll('a').forEach(a => {
+                a.addEventListener('click', e => {
+                    e.preventDefault();
+                    const tgt = document.getElementById(a.dataset.target);
+                    if (tgt) tgt.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            });
+            // Scroll-spy: highlight current section
+            const spy = () => {
+                let activeId = null;
+                items.forEach(it => {
+                    const el = document.getElementById(it.id);
+                    if (el && el.getBoundingClientRect().top <= 100) activeId = it.id;
+                });
+                list.querySelectorAll('a').forEach(a => {
+                    a.classList.toggle('active', a.dataset.target === activeId);
+                });
+            };
+            window.addEventListener('scroll', spy, { passive: true });
+            spy();
+        }
+
+        // ===== Font size control =====
+        function setFontSize(size) {
+            document.body.setAttribute('data-font-size', size);
+            try { localStorage.setItem('blogFontSize', size); } catch (e) {}
+            document.querySelectorAll('.reading-toolbar button[data-size]').forEach(b => {
+                b.classList.toggle('active', b.dataset.size === size);
+            });
+        }
+        function applyStoredFontSize() {
+            let saved = 'normal';
+            try { saved = localStorage.getItem('blogFontSize') || 'normal'; } catch (e) {}
+            setFontSize(saved);
+        }
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
         // Init
         loadPost();

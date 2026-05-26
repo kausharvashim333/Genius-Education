@@ -3741,7 +3741,7 @@ function uniqueSlug(blogs, baseSlug, excludeId) {
 function defaultReactions() { return { helpful: 0, fire: 0, idea: 0, love: 0 }; }
 function defaultShares() { return { whatsapp: 0, facebook: 0, twitter: 0, linkedin: 0, copy: 0, total: 0 }; }
 
-// Migrate existing blogs to have slugs + engagement fields
+// Migrate existing blogs to have slugs + engagement fields + new metadata
 function ensureBlogSlugs(blogs) {
     let changed = false;
     blogs.forEach(b => {
@@ -3752,21 +3752,70 @@ function ensureBlogSlugs(blogs) {
         if (typeof b.likes !== 'number') { b.likes = 0; changed = true; }
         if (!b.reactions || typeof b.reactions !== 'object') { b.reactions = defaultReactions(); changed = true; }
         if (!b.shares || typeof b.shares !== 'object') { b.shares = defaultShares(); changed = true; }
+        if (!Array.isArray(b.tags)) { b.tags = []; changed = true; }
+        if (typeof b.excerpt !== 'string') { b.excerpt = ''; changed = true; }
+        if (typeof b.metaTitle !== 'string') { b.metaTitle = ''; changed = true; }
+        if (typeof b.metaDescription !== 'string') { b.metaDescription = ''; changed = true; }
+        if (typeof b.ogImage !== 'string') { b.ogImage = ''; changed = true; }
+        if (!b.status) {
+            // Derive: published true -> 'published', else 'draft'
+            b.status = b.published === false ? 'draft' : 'published';
+            changed = true;
+        }
+        if (b.scheduledFor === undefined) { b.scheduledFor = null; changed = true; }
+        if (!b.updatedAt) { b.updatedAt = b.createdAt; changed = true; }
     });
     if (changed) writeData('blogs.json', blogs);
     return blogs;
 }
 
+// Auto-publish scheduled posts whose time has arrived
+function autoPublishScheduled(blogs) {
+    const now = Date.now();
+    let changed = false;
+    blogs.forEach(b => {
+        if (b.status === 'scheduled' && b.scheduledFor) {
+            const t = new Date(b.scheduledFor).getTime();
+            if (!isNaN(t) && t <= now) {
+                b.status = 'published';
+                b.published = true;
+                changed = true;
+            }
+        }
+    });
+    if (changed) writeData('blogs.json', blogs);
+    return blogs;
+}
+
+// Normalize tags array (lowercase, trimmed, deduped, max 10)
+function normalizeTags(tags) {
+    if (!Array.isArray(tags)) {
+        if (typeof tags === 'string') tags = tags.split(',');
+        else return [];
+    }
+    const seen = new Set();
+    const out = [];
+    tags.forEach(t => {
+        const v = String(t || '').trim().toLowerCase().replace(/\s+/g, '-').substring(0, 30);
+        if (v && !seen.has(v)) { seen.add(v); out.push(v); }
+    });
+    return out.slice(0, 10);
+}
+
 app.get('/api/blogs', (req, res) => {
     let blogs = readData('blogs.json') || [];
     blogs = ensureBlogSlugs(blogs);
+    blogs = autoPublishScheduled(blogs);
     // Attach approved comment counts
     const comments = readData('blog_comments.json') || [];
     const commentCounts = {};
     comments.forEach(c => {
         if (c.approved) commentCounts[c.blogId] = (commentCounts[c.blogId] || 0) + 1;
     });
-    const enriched = blogs.map(b => ({ ...b, commentCount: commentCounts[b.id] || 0 }));
+    // Public listing excludes drafts and not-yet-due scheduled posts; admin can pass ?all=1
+    const isAdminView = req.query.all === '1';
+    const filtered = isAdminView ? blogs : blogs.filter(b => b.status === 'published' && b.published !== false);
+    const enriched = filtered.map(b => ({ ...b, commentCount: commentCounts[b.id] || 0 }));
     res.json({ success: true, blogs: enriched });
 });
 
@@ -3785,11 +3834,25 @@ app.get('/blog/:slug', (req, res) => {
 });
 
 app.post('/api/blogs', (req, res) => {
-    const { title, content, category, author, image, pinned } = req.body;
+    const { title, content, category, author, image, pinned, tags, excerpt, metaTitle, metaDescription, ogImage, status, scheduledFor } = req.body;
     if (!title || !content) return res.status(400).json({ success: false, message: 'Title and content required' });
-    
+
     const blogs = readData('blogs.json') || [];
     const slug = uniqueSlug(blogs, makeSlug(title));
+    let finalStatus = (status || 'published').toLowerCase();
+    if (!['draft', 'scheduled', 'published'].includes(finalStatus)) finalStatus = 'published';
+    let finalScheduledFor = null;
+    if (finalStatus === 'scheduled') {
+        const t = scheduledFor ? new Date(scheduledFor) : null;
+        if (!t || isNaN(t.getTime())) return res.status(400).json({ success: false, message: 'Valid scheduledFor required for scheduled posts' });
+        if (t.getTime() <= Date.now()) {
+            // Past time → just publish now
+            finalStatus = 'published';
+        } else {
+            finalScheduledFor = t.toISOString();
+        }
+    }
+    const now = new Date().toISOString();
     const blog = {
         id: Date.now(),
         title,
@@ -3799,12 +3862,23 @@ app.post('/api/blogs', (req, res) => {
         author: author || 'Admin',
         image: image || '',
         pinned: pinned === true || pinned === 'true',
+        tags: normalizeTags(tags),
+        excerpt: String(excerpt || '').trim().substring(0, 300),
+        metaTitle: String(metaTitle || '').trim().substring(0, 70),
+        metaDescription: String(metaDescription || '').trim().substring(0, 200),
+        ogImage: String(ogImage || '').trim(),
+        status: finalStatus,
+        scheduledFor: finalScheduledFor,
         views: 0,
+        likes: 0,
+        reactions: defaultReactions(),
+        shares: defaultShares(),
         readingTime: calcReadingTime(content),
-        createdAt: new Date().toISOString(),
-        published: true
+        createdAt: now,
+        updatedAt: now,
+        published: finalStatus === 'published'
     };
-    
+
     blogs.unshift(blog);
     writeData('blogs.json', blogs);
     res.json({ success: true, blog });
@@ -3814,11 +3888,10 @@ app.put('/api/blogs/:id', (req, res) => {
     const blogs = readData('blogs.json') || [];
     const idx = blogs.findIndex(b => b.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Blog not found' });
-    
-    const { title, content, category, author, image, published, pinned } = req.body;
+
+    const { title, content, category, author, image, published, pinned, tags, excerpt, metaTitle, metaDescription, ogImage, status, scheduledFor } = req.body;
     if (title && title !== blogs[idx].title) {
         blogs[idx].title = title;
-        // Regenerate slug when title changes
         blogs[idx].slug = uniqueSlug(blogs, makeSlug(title), blogs[idx].id);
     }
     if (content) {
@@ -3828,12 +3901,144 @@ app.put('/api/blogs/:id', (req, res) => {
     if (category !== undefined) blogs[idx].category = category;
     if (author !== undefined) blogs[idx].author = author;
     if (image !== undefined) blogs[idx].image = image;
-    if (published !== undefined) blogs[idx].published = published;
     if (pinned !== undefined) blogs[idx].pinned = pinned === true || pinned === 'true';
+    if (tags !== undefined) blogs[idx].tags = normalizeTags(tags);
+    if (excerpt !== undefined) blogs[idx].excerpt = String(excerpt).trim().substring(0, 300);
+    if (metaTitle !== undefined) blogs[idx].metaTitle = String(metaTitle).trim().substring(0, 70);
+    if (metaDescription !== undefined) blogs[idx].metaDescription = String(metaDescription).trim().substring(0, 200);
+    if (ogImage !== undefined) blogs[idx].ogImage = String(ogImage).trim();
+
+    if (status !== undefined) {
+        let s = String(status).toLowerCase();
+        if (!['draft', 'scheduled', 'published'].includes(s)) s = 'published';
+        if (s === 'scheduled') {
+            const sched = scheduledFor || blogs[idx].scheduledFor;
+            const t = sched ? new Date(sched) : null;
+            if (!t || isNaN(t.getTime())) return res.status(400).json({ success: false, message: 'Valid scheduledFor required for scheduled posts' });
+            if (t.getTime() <= Date.now()) {
+                blogs[idx].status = 'published';
+                blogs[idx].published = true;
+                blogs[idx].scheduledFor = null;
+            } else {
+                blogs[idx].status = 'scheduled';
+                blogs[idx].published = false;
+                blogs[idx].scheduledFor = t.toISOString();
+            }
+        } else {
+            blogs[idx].status = s;
+            blogs[idx].published = (s === 'published');
+            if (s !== 'scheduled') blogs[idx].scheduledFor = null;
+        }
+    } else if (scheduledFor !== undefined && blogs[idx].status === 'scheduled') {
+        const t = new Date(scheduledFor);
+        if (!isNaN(t.getTime())) blogs[idx].scheduledFor = t.toISOString();
+    }
+
+    // Legacy 'published' boolean still respected if status not given
+    if (status === undefined && published !== undefined) {
+        blogs[idx].published = !!published;
+        blogs[idx].status = published ? 'published' : 'draft';
+    }
+
     if (!blogs[idx].slug) blogs[idx].slug = uniqueSlug(blogs, makeSlug(blogs[idx].title), blogs[idx].id);
-    
+    blogs[idx].updatedAt = new Date().toISOString();
+
     writeData('blogs.json', blogs);
     res.json({ success: true, blog: blogs[idx] });
+});
+
+// Public: list of all distinct tags with counts (only from published blogs)
+app.get('/api/blogs/tags', (req, res) => {
+    let blogs = readData('blogs.json') || [];
+    blogs = ensureBlogSlugs(blogs);
+    blogs = autoPublishScheduled(blogs);
+    const counts = {};
+    blogs.filter(b => b.status === 'published').forEach(b => {
+        (b.tags || []).forEach(t => { counts[t] = (counts[t] || 0) + 1; });
+    });
+    const tags = Object.entries(counts).map(([tag, count]) => ({ tag, count })).sort((a, b) => b.count - a.count);
+    res.json({ success: true, tags });
+});
+
+// Per-post analytics summary (admin)
+app.get('/api/admin/blogs/:id/analytics', (req, res) => {
+    const blogs = readData('blogs.json') || [];
+    const blog = blogs.find(b => b.id == req.params.id);
+    if (!blog) return res.status(404).json({ success: false });
+    const comments = readData('blog_comments.json') || [];
+    const blogComments = comments.filter(c => c.blogId == blog.id);
+    res.json({
+        success: true,
+        analytics: {
+            id: blog.id,
+            title: blog.title,
+            views: blog.views || 0,
+            likes: blog.likes || 0,
+            reactions: blog.reactions || defaultReactions(),
+            shares: blog.shares || defaultShares(),
+            commentsTotal: blogComments.length,
+            commentsApproved: blogComments.filter(c => c.approved).length,
+            commentsPending: blogComments.filter(c => !c.approved).length,
+            createdAt: blog.createdAt,
+            updatedAt: blog.updatedAt,
+            status: blog.status,
+            scheduledFor: blog.scheduledFor
+        }
+    });
+});
+
+// ===== SEO: Sitemap.xml =====
+app.get('/sitemap.xml', (req, res) => {
+    let blogs = readData('blogs.json') || [];
+    blogs = ensureBlogSlugs(blogs);
+    blogs = autoPublishScheduled(blogs);
+    const base = (req.protocol + '://' + req.get('host')).replace(/\/$/, '');
+    const staticUrls = ['/', '/blog.html', '/index.html#courses', '/index.html#about', '/index.html#contact'];
+    const urls = [];
+    staticUrls.forEach(u => {
+        urls.push(`<url><loc>${base}${u}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`);
+    });
+    blogs.filter(b => b.status === 'published').forEach(b => {
+        const lastmod = (b.updatedAt || b.createdAt || new Date().toISOString()).substring(0, 10);
+        urls.push(`<url><loc>${base}/blog/${encodeURIComponent(b.slug)}</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
+    });
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
+    res.set('Content-Type', 'application/xml').send(xml);
+});
+
+// ===== SEO: RSS feed =====
+app.get('/blog/rss.xml', (req, res) => {
+    let blogs = readData('blogs.json') || [];
+    blogs = ensureBlogSlugs(blogs);
+    blogs = autoPublishScheduled(blogs);
+    const base = (req.protocol + '://' + req.get('host')).replace(/\/$/, '');
+    const settings = readData('settings.json') || {};
+    const siteName = settings.name || 'Genius Computer Education';
+    const items = blogs
+        .filter(b => b.status === 'published')
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 30)
+        .map(b => {
+            const desc = b.excerpt || String(b.content || '').replace(/<[^>]+>/g, '').substring(0, 200);
+            return `<item>
+                <title><![CDATA[${b.title}]]></title>
+                <link>${base}/blog/${encodeURIComponent(b.slug)}</link>
+                <guid isPermaLink="true">${base}/blog/${encodeURIComponent(b.slug)}</guid>
+                <pubDate>${new Date(b.createdAt).toUTCString()}</pubDate>
+                <category><![CDATA[${b.category || 'General'}]]></category>
+                <description><![CDATA[${desc}]]></description>
+            </item>`;
+        }).join('\n');
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+<title><![CDATA[${siteName} - Blog]]></title>
+<link>${base}/blog.html</link>
+<description><![CDATA[Latest articles from ${siteName}]]></description>
+<language>en-IN</language>
+<lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+${items}
+</channel></rss>`;
+    res.set('Content-Type', 'application/rss+xml').send(xml);
 });
 
 // Increment view count
