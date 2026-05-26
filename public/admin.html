@@ -220,7 +220,9 @@
             border-color: rgba(255,255,255,0.2) !important;
         }
         #blogEditor {
-            background: rgba(255, 255, 255, 0.95) !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.18) !important;
             border-radius: 0 0 10px 10px !important;
         }
@@ -228,18 +230,66 @@
             min-height: 280px;
             font-size: 15px;
             line-height: 1.7;
-            color: #1e293b;
+            color: #f1f5f9;
         }
         #blogEditor .ql-editor img {
             max-width: 100%;
             height: auto;
             border-radius: 6px;
             margin: 8px 0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
         }
         #blogEditor .ql-editor.ql-blank::before {
-            color: #94a3b8;
+            color: rgba(255, 255, 255, 0.4);
             font-style: normal;
         }
+        /* Headings */
+        #blogEditor .ql-editor h1,
+        #blogEditor .ql-editor h2,
+        #blogEditor .ql-editor h3 {
+            color: #fff;
+        }
+        /* Links */
+        #blogEditor .ql-editor a { color: #fbbf24; }
+        /* Blockquote */
+        #blogEditor .ql-editor blockquote {
+            border-left: 4px solid #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 10px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+        }
+        /* Code block + inline code */
+        #blogEditor .ql-editor pre.ql-syntax,
+        #blogEditor .ql-editor code {
+            background: rgba(0, 0, 0, 0.4) !important;
+            color: #fbbf24 !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 8px 12px;
+        }
+        /* Selection */
+        #blogEditor .ql-editor ::selection {
+            background: rgba(102, 126, 234, 0.4);
+            color: #fff;
+        }
+        /* Link tooltip popup */
+        #blogModal .ql-tooltip {
+            background: rgba(30, 41, 59, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #fff !important;
+            border-radius: 8px !important;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+        }
+        #blogModal .ql-tooltip input[type="text"] {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #fff !important;
+            border-radius: 6px !important;
+        }
+        #blogModal .ql-tooltip a { color: #fbbf24 !important; }
         /* Scrollbar */
         #blogModal .modal-content::-webkit-scrollbar { width: 8px; }
         #blogModal .modal-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
