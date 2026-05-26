@@ -3573,6 +3573,31 @@ let _blogQuill = null;
 
 function initBlogQuill() {
     if (_blogQuill || typeof Quill === 'undefined') return;
+
+    // ----- Custom Image blot: preserve width + class attributes -----
+    const BaseImage = Quill.import('formats/image');
+    const IMG_ATTRS = ['alt', 'src', 'width', 'class'];
+    class BlogImage extends BaseImage {
+        static formats(domNode) {
+            const fmt = {};
+            IMG_ATTRS.forEach(attr => {
+                if (domNode.hasAttribute(attr)) fmt[attr] = domNode.getAttribute(attr);
+            });
+            return fmt;
+        }
+        format(name, value) {
+            if (IMG_ATTRS.includes(name)) {
+                if (value) this.domNode.setAttribute(name, value);
+                else this.domNode.removeAttribute(name);
+            } else {
+                super.format(name, value);
+            }
+        }
+    }
+    BlogImage.blotName = 'image';
+    BlogImage.tagName = 'IMG';
+    Quill.register(BlogImage, true);
+
     _blogQuill = new Quill('#blogEditor', {
         theme: 'snow',
         modules: {
@@ -3583,8 +3608,170 @@ function initBlogQuill() {
                 }
             }
         },
-        placeholder: 'Write your blog content here... Use the image button in the toolbar to insert images anywhere in the content.'
+        placeholder: 'Write your blog content here... Use the image button in the toolbar to insert images anywhere in the content. Click on any inserted image to resize, align, or add a caption.'
     });
+
+    setupBlogImageEditing();
+}
+
+// ===== Image click-to-edit popover (size / align / caption / delete) =====
+let _imgPopover = null;
+let _activeImg = null;
+
+function setupBlogImageEditing() {
+    const editor = _blogQuill.root;
+    editor.addEventListener('click', (e) => {
+        if (e.target.tagName === 'IMG') {
+            e.preventDefault();
+            e.stopPropagation();
+            showImagePopover(e.target);
+        }
+    });
+    // Close popover on outside click
+    document.addEventListener('mousedown', (e) => {
+        if (!_imgPopover) return;
+        if (_imgPopover.contains(e.target)) return;
+        if (e.target.tagName === 'IMG' && editor.contains(e.target)) return;
+        hideImagePopover();
+    });
+    // Reposition on scroll
+    window.addEventListener('scroll', () => { if (_activeImg) positionPopover(_activeImg); }, true);
+}
+
+function showImagePopover(img) {
+    hideImagePopover();
+    _activeImg = img;
+    img.classList.add('blog-img-selected');
+
+    const popover = document.createElement('div');
+    popover.className = 'blog-img-popover';
+
+    const currentSize = img.getAttribute('width') || '100%';
+    const currentAlign = (img.className.match(/img-align-(left|center|right)/) || [])[1] || 'center';
+
+    popover.innerHTML = `
+        <div class="bip-row">
+            <span class="bip-label"><i class="fas fa-expand-arrows-alt"></i> Size</span>
+            <div class="bip-btns">
+                <button data-size="25%" class="${currentSize==='25%'?'active':''}" title="Small">S</button>
+                <button data-size="50%" class="${currentSize==='50%'?'active':''}" title="Medium">M</button>
+                <button data-size="75%" class="${currentSize==='75%'?'active':''}" title="Large">L</button>
+                <button data-size="100%" class="${currentSize==='100%'?'active':''}" title="Full width">Full</button>
+            </div>
+        </div>
+        <div class="bip-row">
+            <span class="bip-label"><i class="fas fa-align-justify"></i> Align</span>
+            <div class="bip-btns">
+                <button data-align="left" class="${currentAlign==='left'?'active':''}" title="Left"><i class="fas fa-align-left"></i></button>
+                <button data-align="center" class="${currentAlign==='center'?'active':''}" title="Center"><i class="fas fa-align-center"></i></button>
+                <button data-align="right" class="${currentAlign==='right'?'active':''}" title="Right"><i class="fas fa-align-right"></i></button>
+            </div>
+        </div>
+        <div class="bip-row bip-caption-row">
+            <span class="bip-label"><i class="fas fa-comment-dots"></i> Caption</span>
+            <input type="text" class="bip-caption" placeholder="Add caption (optional)" maxlength="200">
+        </div>
+        <div class="bip-row bip-delete-row">
+            <button class="bip-delete"><i class="fas fa-trash"></i> Delete Image</button>
+        </div>
+    `;
+    document.body.appendChild(popover);
+    _imgPopover = popover;
+    positionPopover(img);
+
+    // Pre-fill caption
+    const captionEl = findCaptionFor(img);
+    if (captionEl) popover.querySelector('.bip-caption').value = captionEl.textContent;
+
+    // Wire events
+    popover.querySelectorAll('button[data-size]').forEach(btn => {
+        btn.onclick = () => { setImageSize(img, btn.dataset.size); refreshPopoverActive(popover, 'size', btn.dataset.size); };
+    });
+    popover.querySelectorAll('button[data-align]').forEach(btn => {
+        btn.onclick = () => { setImageAlign(img, btn.dataset.align); refreshPopoverActive(popover, 'align', btn.dataset.align); };
+    });
+    popover.querySelector('.bip-caption').oninput = (e) => setImageCaption(img, e.target.value);
+    popover.querySelector('.bip-delete').onclick = () => { deleteImageWithCaption(img); hideImagePopover(); };
+}
+
+function refreshPopoverActive(popover, type, val) {
+    popover.querySelectorAll(`button[data-${type}]`).forEach(b => {
+        b.classList.toggle('active', b.dataset[type] === val);
+    });
+}
+
+function positionPopover(img) {
+    if (!_imgPopover) return;
+    const rect = img.getBoundingClientRect();
+    const popH = _imgPopover.offsetHeight || 200;
+    let top = rect.bottom + 8;
+    if (top + popH > window.innerHeight - 10) top = Math.max(10, rect.top - popH - 8);
+    let left = rect.left;
+    const popW = _imgPopover.offsetWidth || 280;
+    if (left + popW > window.innerWidth - 10) left = window.innerWidth - popW - 10;
+    _imgPopover.style.position = 'fixed';
+    _imgPopover.style.top = top + 'px';
+    _imgPopover.style.left = Math.max(10, left) + 'px';
+    _imgPopover.style.zIndex = '100000';
+}
+
+function hideImagePopover() {
+    if (_imgPopover) { _imgPopover.remove(); _imgPopover = null; }
+    if (_activeImg) { _activeImg.classList.remove('blog-img-selected'); _activeImg = null; }
+}
+
+function setImageSize(img, size) {
+    img.setAttribute('width', size);
+    img.style.width = size;
+    if (_blogQuill) _blogQuill.update();
+}
+
+function setImageAlign(img, align) {
+    // Remove existing align classes
+    img.classList.remove('img-align-left', 'img-align-center', 'img-align-right');
+    img.classList.add('img-align-' + align);
+    if (_blogQuill) _blogQuill.update();
+}
+
+function findCaptionFor(img) {
+    // Caption is the next paragraph after the image's parent <p>, with class blog-caption
+    const parentP = img.closest('p');
+    if (!parentP) return null;
+    const next = parentP.nextElementSibling;
+    if (next && next.classList && next.classList.contains('blog-caption')) return next;
+    return null;
+}
+
+function setImageCaption(img, text) {
+    const parentP = img.closest('p');
+    if (!parentP) return;
+    let caption = findCaptionFor(img);
+    text = (text || '').trim();
+    if (!text) {
+        if (caption) caption.remove();
+        return;
+    }
+    if (caption) {
+        caption.textContent = text;
+    } else {
+        caption = document.createElement('p');
+        caption.className = 'blog-caption';
+        caption.textContent = text;
+        parentP.parentNode.insertBefore(caption, parentP.nextSibling);
+    }
+    if (_blogQuill) _blogQuill.update();
+}
+
+function deleteImageWithCaption(img) {
+    const caption = findCaptionFor(img);
+    if (caption) caption.remove();
+    const parentP = img.closest('p');
+    if (parentP && parentP.textContent.trim() === '' && parentP.querySelectorAll('img').length === 1) {
+        parentP.remove();
+    } else {
+        img.remove();
+    }
+    if (_blogQuill) _blogQuill.update();
 }
 
 // Custom image handler for Quill: upload to server and embed

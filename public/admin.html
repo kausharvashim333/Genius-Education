@@ -290,6 +290,132 @@
             border-radius: 6px !important;
         }
         #blogModal .ql-tooltip a { color: #fbbf24 !important; }
+        /* Image alignment classes (used in editor + caption display) */
+        #blogEditor .ql-editor img { cursor: pointer; transition: outline 0.15s; }
+        #blogEditor .ql-editor img.blog-img-selected {
+            outline: 3px solid #f59e0b;
+            outline-offset: 2px;
+        }
+        #blogEditor .ql-editor img.img-align-left,
+        .post-body img.img-align-left,
+        .blog-content img.img-align-left {
+            float: left;
+            margin: 4px 18px 8px 0;
+        }
+        #blogEditor .ql-editor img.img-align-right,
+        .post-body img.img-align-right,
+        .blog-content img.img-align-right {
+            float: right;
+            margin: 4px 0 8px 18px;
+        }
+        #blogEditor .ql-editor img.img-align-center,
+        .post-body img.img-align-center,
+        .blog-content img.img-align-center {
+            display: block;
+            margin: 12px auto;
+        }
+        #blogEditor .ql-editor .blog-caption,
+        .post-body .blog-caption,
+        .blog-content .blog-caption {
+            text-align: center;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 13px;
+            margin: 4px 0 16px;
+            padding: 0 12px;
+        }
+        /* Image edit popover (floating toolbar) */
+        .blog-img-popover {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            color: #fff;
+            min-width: 280px;
+            font-size: 13px;
+        }
+        .blog-img-popover .bip-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .blog-img-popover .bip-row:last-child { margin-bottom: 0; }
+        .blog-img-popover .bip-label {
+            color: rgba(255, 255, 255, 0.7);
+            min-width: 70px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .blog-img-popover .bip-label i { color: #f59e0b; }
+        .blog-img-popover .bip-btns {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+        }
+        .blog-img-popover .bip-btns button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            min-width: 36px;
+            transition: all 0.15s;
+        }
+        .blog-img-popover .bip-btns button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .blog-img-popover .bip-btns button.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: transparent;
+        }
+        .blog-img-popover .bip-caption {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .blog-img-popover .bip-caption::placeholder { color: rgba(255, 255, 255, 0.4); }
+        .blog-img-popover .bip-caption:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.6);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .blog-img-popover .bip-delete-row { justify-content: center; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 4px; padding-top: 8px; }
+        .blog-img-popover .bip-delete {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .blog-img-popover .bip-delete:hover {
+            background: rgba(239, 68, 68, 0.4);
+            color: #fff;
+        }
+        /* Clearfix for floats inside editor */
+        #blogEditor .ql-editor::after {
+            content: '';
+            display: table;
+            clear: both;
+        }
         /* Scrollbar */
         #blogModal .modal-content::-webkit-scrollbar { width: 8px; }
         #blogModal .modal-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }

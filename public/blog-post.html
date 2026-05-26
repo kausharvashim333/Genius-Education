@@ -93,10 +93,27 @@
         }
         .post-body p { margin-bottom: 16px; }
         .post-body h2, .post-body h3 { color: #fff; margin: 28px 0 14px; }
-        .post-body img { max-width: 100%; border-radius: 8px; margin: 16px 0; }
+        .post-body img { max-width: 100%; border-radius: 8px; margin: 16px 0; height: auto; }
+        .post-body img.img-align-left { float: left; margin: 4px 20px 10px 0; max-width: 50%; }
+        .post-body img.img-align-right { float: right; margin: 4px 0 10px 20px; max-width: 50%; }
+        .post-body img.img-align-center { display: block; margin: 16px auto; }
+        .post-body .blog-caption {
+            text-align: center;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            margin: -8px 0 20px;
+            padding: 0 12px;
+        }
+        .post-body p:has(> img) { clear: both; }
+        .post-body::after { content: ''; display: table; clear: both; }
         .post-body a { color: #fbbf24; text-decoration: underline; }
         .post-body ul, .post-body ol { padding-left: 24px; margin: 12px 0; }
         .post-body li { margin-bottom: 6px; }
+        @media (max-width: 600px) {
+            .post-body img.img-align-left,
+            .post-body img.img-align-right { float: none; display: block; margin: 16px auto; max-width: 100%; }
+        }
         .post-body blockquote {
             border-left: 4px solid #f59e0b;
             padding: 12px 18px;
