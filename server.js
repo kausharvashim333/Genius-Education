@@ -3683,6 +3683,31 @@ app.get('/api/exam-calendar/student/:studentId', (req, res) => {
 });
 
 // --- Blog Management ---
+// Blog image upload storage
+const blogImageStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = 'uploads/blogs';
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + (file.originalname || 'image').replace(/\s+/g, '_'))
+});
+const uploadBlogImage = multer({
+    storage: blogImageStorage,
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (/^image\//.test(file.mimetype)) cb(null, true);
+        else cb(new Error('Only image files allowed'));
+    }
+});
+
+// Single image upload (used by Quill editor + cover image)
+app.post('/api/upload/blog-image', uploadBlogImage.single('image'), (req, res) => {
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+    const url = '/uploads/blogs/' + req.file.filename;
+    res.json({ success: true, url });
+});
+
 app.get('/api/blogs', (req, res) => {
     const blogs = readData('blogs.json') || [];
     res.json({ success: true, blogs });
