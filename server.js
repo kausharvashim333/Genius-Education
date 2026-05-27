@@ -983,7 +983,7 @@ app.post('/api/faculty/login', async (req, res) => {
 
     if (!passwordMatch) return res.json({ success: false, message: 'Invalid credentials' });
 
-    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false } });
+    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false } });
 });
 
 // Faculty OTP Login
@@ -1076,9 +1076,9 @@ app.post('/api/faculty/verify-otp', (req, res) => {
     const filteredOtps = otps.filter(o => o.email !== email);
     writeData('faculty-otps.json', filteredOtps);
     
-    res.json({ 
-        success: true, 
-        user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false } 
+    res.json({
+        success: true,
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false }
     });
 });
 

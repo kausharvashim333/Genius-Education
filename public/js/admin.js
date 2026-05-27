@@ -1763,9 +1763,32 @@ async function deleteSelectedTestimonials() {
 }
 
 // ===== Faculty =====
-function openFacultyModal() {
+async function openFacultyModal() {
     document.getElementById('facultyForm').reset();
     document.getElementById('facultyModal').classList.add('active');
+    
+    // Load roles dynamically (excluding Super Admin)
+    try {
+        const res = await fetch('/api/roles');
+        const roles = await res.json();
+        const roleSelect = document.getElementById('facultyRole');
+        
+        // Keep default options and add custom roles
+        roleSelect.innerHTML = `
+            <option value="Faculty">Faculty</option>
+            <option value="Admin">Admin</option>
+            <option value="Staff">Staff</option>
+        `;
+        
+        // Add custom roles (excluding Super Admin)
+        roles.forEach(role => {
+            if (role.name !== 'Super Admin') {
+                roleSelect.innerHTML += `<option value="${role.name}">${role.name}</option>`;
+            }
+        });
+    } catch (e) {
+        console.error('Error loading roles:', e);
+    }
 }
 
 document.getElementById('facultyForm').addEventListener('submit', async function(e) {
