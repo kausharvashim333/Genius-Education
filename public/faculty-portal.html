@@ -449,6 +449,18 @@
                         <tbody></tbody>
                     </table>
                 </div>
+
+                <div id="entranceStudentRegistrationContent" class="faculty-content-section">
+                    <h3>Entrance Exam Student Registration</h3>
+                    <p style="color:#94a3b8;margin-bottom:15px;">Yahan aap students ko entrance exams ke liye register kar sakte hain.</p>
+                    <div style="margin-bottom:20px;">
+                        <button onclick="openEntranceRegistrationModal()" class="btn btn-primary"><i class="fas fa-plus"></i> Register Student</button>
+                    </div>
+                    <table class="data-table" id="entranceStudentRegistrationTable">
+                        <thead><tr><th>Reg No</th><th>Name</th><th>Phone</th><th>Course</th><th>Shift</th><th>Password</th><th>Status</th><th>Action</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </main>
         </div>
     </div>
@@ -620,6 +632,76 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeRegistrationModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveRegistration()">Save Registration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entrance Exam Student Registration Modal -->
+    <div id="entranceRegModal" class="modal">
+        <div class="modal-content" style="max-width:600px;max-height:90vh;overflow-y:auto;">
+            <div class="modal-header">
+                <h3>Register Student for Entrance Exam</h3>
+                <button class="close-btn" onclick="closeEntranceRegistrationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="entRegId">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">
+                    <div>
+                        <label style="display:block;margin-bottom:4px;font-weight:600;">Registration ID *</label>
+                        <input type="text" id="entRegIdNo" placeholder="e.g. ENT001" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:4px;font-weight:600;">Exam *</label>
+                        <select id="entRegExamSel" onchange="loadShiftsForRegistration()" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
+                            <option value="">Select Exam</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:4px;font-weight:600;">Shift</label>
+                        <select id="entRegShiftSel" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
+                            <option value="">Select Shift</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:4px;font-weight:600;">Student Name *</label>
+                        <input type="text" id="entRegName" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:4px;font-weight:600;">Father's Name</label>
+                        <input type="text" id="entRegFather" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:4px;font-weight:600;">Gender</label>
+                        <select id="entRegGender" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:4px;font-weight:600;">Mobile No. *</label>
+                        <input type="text" id="entRegPhone" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:4px;font-weight:600;">Qualification</label>
+                        <select id="entRegQualification" onchange="autoFillCourse()" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
+                            <option value="">Select Qualification</option>
+                            <option value="10th">10th</option>
+                            <option value="12th">12th</option>
+                            <option value="Graduate">Graduate</option>
+                            <option value="Post Graduate">Post Graduate</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:4px;font-weight:600;">Applied Course</label>
+                        <input type="text" id="entRegCourse" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEntranceRegistrationModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEntranceRegistration()">Save & Generate Login</button>
             </div>
         </div>
     </div>

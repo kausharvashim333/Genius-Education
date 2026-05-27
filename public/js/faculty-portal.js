@@ -437,11 +437,12 @@ function loadFacultyMenu() {
                     <li><a href="#" onclick="showSection('entranceRegistrations'); return false;"><i class="fas fa-user-check"></i> Registrations</a></li>
                     <li><a href="#" onclick="showSection('entranceMonitor'); return false;"><i class="fas fa-eye"></i> Live Monitoring</a></li>
                     <li><a href="#" onclick="showSection('entranceResults'); return false;"><i class="fas fa-chart-line"></i> Results</a></li>
+                    <li><a href="#" onclick="showSection('entranceStudentRegistration'); return false;"><i class="fas fa-user-plus"></i> Student Registration</a></li>
                 </ul>
             </li>`;
     }
 
-    // Student Registration
+    // Student Registration (Regular Exams)
     menuHTML += '<li><a href="#" onclick="showSection(\'studentRegistration\'); return false;"><i class="fas fa-user-plus"></i> Student Registration</a></li>';
     
     menu.innerHTML = menuHTML;
@@ -510,6 +511,7 @@ function showSection(section) {
         'entranceRegistrations': 'Exam Registrations',
         'entranceMonitor': 'Live Monitoring',
         'entranceResults': 'Exam Results',
+        'entranceStudentRegistration': 'Entrance Exam Student Registration',
         'studentRegistration': 'Student Registration'
     };
     document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
@@ -532,6 +534,7 @@ function showSection(section) {
     if (section === 'entranceRegistrations') loadEntranceRegistrations();
     if (section === 'entranceMonitor') loadEntranceMonitor();
     if (section === 'entranceResults') loadEntranceResults();
+    if (section === 'entranceStudentRegistration') loadEntranceStudentRegistration();
     if (section === 'studentRegistration') loadStudentRegistration();
 }
 
@@ -1367,6 +1370,199 @@ async function generateRollNumber() {
     } catch (e) {
         console.error('Error generating roll number:', e);
         alert('Error generating roll number');
+    }
+}
+
+// ===== Entrance Exam Student Registration Functions =====
+let entranceExamsCache = [];
+
+async function loadEntranceStudentRegistration() {
+    try {
+        const [exams, regs] = await Promise.all([
+            fetch('/api/entrance-exams').then(r => r.json()),
+            fetch('/api/entrance-registrations').then(r => r.json())
+        ]);
+
+        entranceExamsCache = exams || [];
+        const shiftMap = {};
+        (exams || []).forEach(e => {
+            (e.shifts || []).forEach(s => shiftMap[s.id] = s.name);
+        });
+
+        const tbody = document.querySelector('#entranceStudentRegistrationTable tbody');
+
+        if (!regs || regs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:20px;">No entrance exam registrations found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = regs.map(r => {
+            const statusBadge = r.suspended
+                ? '<span style="color:#ef4444;font-weight:600;">Suspended</span>'
+                : '<span style="color:#16a34a;font-weight:600;">' + (r.status || '') + '</span>';
+            return `
+                <tr${r.suspended ? ' style="background:rgba(239,68,68,0.08);"' : ''}>
+                    <td>${r.registrationNo || ''}</td>
+                    <td>${r.studentName || ''}</td>
+                    <td>${r.phone || ''}</td>
+                    <td>${r.course || '-'}</td>
+                    <td>${shiftMap[r.shiftId] || '<span style="color:#f59e0b;">Not Assigned</span>'}</td>
+                    <td><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">${r.loginPassword || ''}</code></td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <button onclick="editEntranceRegistration(${JSON.stringify(r).replace(/"/g, '&quot;')})" class="btn btn-primary" style="padding:5px 10px;font-size:12px;margin-right:5px;"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteEntranceRegistration(${r.id})" class="btn btn-danger" style="padding:5px 10px;font-size:12px;"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } catch (e) {
+        console.error('Error loading entrance student registrations:', e);
+        document.querySelector('#entranceStudentRegistrationTable tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:#ef4444;">Error loading registrations</td></tr>';
+    }
+}
+
+function openEntranceRegistrationModal() {
+    document.getElementById('entRegId').value = '';
+    ['entRegIdNo', 'entRegName', 'entRegFather', 'entRegPhone', 'entRegQualification', 'entRegCourse'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+
+    // Populate exam dropdown
+    const sel = document.getElementById('entRegExamSel');
+    sel.innerHTML = '<option value="">Select Exam</option>' + entranceExamsCache.map(e => '<option value="' + e.id + '">' + e.name + '</option>').join('');
+    document.getElementById('entRegShiftSel').innerHTML = '<option value="">Select Shift</option>';
+
+    document.getElementById('entranceRegModal').classList.add('active');
+}
+
+function closeEntranceRegistrationModal() {
+    document.getElementById('entranceRegModal').classList.remove('active');
+}
+
+function editEntranceRegistration(reg) {
+    document.getElementById('entRegId').value = reg.id;
+    document.getElementById('entRegIdNo').value = reg.registrationNo || '';
+    document.getElementById('entRegName').value = reg.studentName || '';
+    document.getElementById('entRegFather').value = reg.fatherName || '';
+    document.getElementById('entRegGender').value = reg.gender || 'Male';
+    document.getElementById('entRegPhone').value = reg.phone || '';
+    document.getElementById('entRegQualification').value = reg.qualification || '';
+    document.getElementById('entRegCourse').value = reg.course || '';
+
+    // Populate exam dropdown
+    const sel = document.getElementById('entRegExamSel');
+    sel.innerHTML = '<option value="">Select Exam</option>' + entranceExamsCache.map(e => '<option value="' + e.id + '">' + e.name + '</option>').join('');
+    sel.value = reg.examId || '';
+
+    // Populate shift dropdown
+    const shiftSel = document.getElementById('entRegShiftSel');
+    const exam = entranceExamsCache.find(e => e.id == reg.examId);
+    if (exam && exam.shifts) {
+        shiftSel.innerHTML = '<option value="">Select Shift</option>' + exam.shifts.map(s => '<option value="' + s.id + '">' + s.name + '</option>').join('');
+        shiftSel.value = reg.shiftId || '';
+    }
+
+    document.getElementById('entranceRegModal').classList.add('active');
+}
+
+function loadShiftsForRegistration() {
+    const examId = document.getElementById('entRegExamSel').value;
+    const shiftSel = document.getElementById('entRegShiftSel');
+    shiftSel.innerHTML = '<option value="">Select Shift</option>';
+
+    if (!examId) return;
+
+    const exam = entranceExamsCache.find(e => e.id == examId);
+    if (exam && exam.shifts) {
+        shiftSel.innerHTML += exam.shifts.map(s => '<option value="' + s.id + '">' + s.name + '</option>').join('');
+    }
+}
+
+function autoFillCourse() {
+    const qual = document.getElementById('entRegQualification').value;
+    const courseMap = {
+        '10th': 'DCA',
+        '12th': 'ADCA',
+        'Graduate': 'PGDCA',
+        'Post Graduate': 'MCA'
+    };
+    if (courseMap[qual]) {
+        document.getElementById('entRegCourse').value = courseMap[qual];
+    }
+}
+
+async function saveEntranceRegistration() {
+    const id = document.getElementById('entRegId').value;
+    const registrationNo = document.getElementById('entRegIdNo').value;
+    const examId = document.getElementById('entRegExamSel').value;
+    const shiftId = document.getElementById('entRegShiftSel').value;
+    const studentName = document.getElementById('entRegName').value;
+    const fatherName = document.getElementById('entRegFather').value;
+    const gender = document.getElementById('entRegGender').value;
+    const phone = document.getElementById('entRegPhone').value;
+    const qualification = document.getElementById('entRegQualification').value;
+    const course = document.getElementById('entRegCourse').value;
+
+    if (!registrationNo || !examId || !studentName || !phone) {
+        alert('Please fill all required fields');
+        return;
+    }
+
+    try {
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? '/api/entrance-registrations/' + id : '/api/entrance-registrations';
+
+        const data = {
+            registrationNo,
+            examId: parseInt(examId),
+            shiftId: shiftId ? parseInt(shiftId) : null,
+            studentName,
+            fatherName,
+            gender,
+            phone,
+            qualification,
+            course
+        };
+
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+            alert(id ? 'Registration updated!' : 'Student registered! Login credentials generated.');
+            closeEntranceRegistrationModal();
+            loadEntranceStudentRegistration();
+        } else {
+            alert(result.message || 'Error saving registration!');
+        }
+    } catch (e) {
+        console.error('Error saving entrance registration:', e);
+        alert('Error saving registration!');
+    }
+}
+
+async function deleteEntranceRegistration(id) {
+    if (!confirm('Are you sure you want to delete this registration?')) return;
+
+    try {
+        const res = await fetch('/api/entrance-registrations/' + id, { method: 'DELETE' });
+        const data = await res.json();
+
+        if (data.success) {
+            alert('Registration deleted!');
+            loadEntranceStudentRegistration();
+        } else {
+            alert('Error deleting registration!');
+        }
+    } catch (e) {
+        console.error('Error deleting entrance registration:', e);
+        alert('Error deleting registration!');
     }
 }
 
