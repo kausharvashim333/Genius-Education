@@ -380,9 +380,8 @@ function loadFacultyMenu() {
     
     // Dashboard - always visible
     menuHTML += '<li><a href="#" onclick="showSection(\'dashboard\')"><i class="fas fa-home"></i> Dashboard</a></li>';
-    
+
     // Common options for all roles
-    menuHTML += '<li><a href="#" onclick="showSection(\'courses\')"><i class="fas fa-book"></i> My Courses</a></li>';
     menuHTML += '<li><a href="#" onclick="showSection(\'students\')"><i class="fas fa-users"></i> My Students</a></li>';
     
     // Role-specific options
@@ -488,7 +487,6 @@ function showSection(section) {
     // Update page title
     const titles = {
         'dashboard': 'Dashboard',
-        'courses': 'My Courses',
         'students': 'My Students',
         'assignments': 'Assignments',
         'attendance': 'Attendance',
@@ -505,7 +503,6 @@ function showSection(section) {
     document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
 
     // Load section-specific data
-    if (section === 'courses') loadCourses();
     if (section === 'students') loadStudents();
     if (section === 'assignments') loadAssignments();
     if (section === 'attendance') {
@@ -532,47 +529,6 @@ async function loadFacultyStats() {
         document.getElementById('assignmentsCount').textContent = assignments.length;
     } catch (e) {
         console.error('Error loading stats:', e);
-    }
-}
-
-async function loadCourses() {
-    try {
-        const courses = await fetch('/api/courses').then(r => r.json());
-        const coursesList = document.getElementById('coursesList');
-
-        if (!courses.length) {
-            coursesList.innerHTML = '<p style="color:rgba(255,255,255,0.7);text-align:center;padding:40px;">No courses found.</p>';
-            return;
-        }
-
-        coursesList.innerHTML = '<div class="courses-grid">' + courses.map(course => {
-            const isActive = course.status === 'active' || !course.status;
-            const badgeClass = isActive ? 'course-card-badge-active' : 'course-card-badge-inactive';
-            const badgeText = isActive ? 'Active' : 'Inactive';
-            return `
-            <div class="course-card-glass">
-                <div class="course-card-header">
-                    <div class="course-card-icon"><i class="fas fa-book-open"></i></div>
-                    <div>
-                        <h4 class="course-card-title">${course.name || 'Untitled Course'}</h4>
-                        <span class="course-card-badge ${badgeClass}">${badgeText}</span>
-                    </div>
-                </div>
-                <div class="course-card-meta-row">
-                    ${course.duration ? `<div class="course-card-meta"><i class="fas fa-clock"></i> ${course.duration}</div>` : ''}
-                    ${course.fees ? `<div class="course-card-meta"><i class="fas fa-rupee-sign"></i> ${course.fees}</div>` : ''}
-                </div>
-                ${course.description ? `<p class="course-card-desc">${course.description}</p>` : ''}
-                <div class="course-card-actions">
-                    <button class="course-card-btn course-card-btn-primary" onclick="viewCourseDetails(${course.id})">View Details</button>
-                    <button class="course-card-btn course-card-btn-secondary" onclick="editCourse(${course.id})">Edit</button>
-                </div>
-            </div>
-        `;
-        }).join('') + '</div>';
-    } catch (e) {
-        console.error('Error loading courses:', e);
-        document.getElementById('coursesList').innerHTML = '<p style="color:#ef4444;text-align:center;padding:40px;">Error loading courses.</p>';
     }
 }
 
