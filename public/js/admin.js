@@ -1859,43 +1859,23 @@ async function toggleFacultyBlogAccess(id, currentState) {
     }
 }
 
-async function toggleFacultyExamQuestionAccess(id, currentState) {
+async function toggleFacultyEntranceManagementAccess(id, currentState) {
     const newState = !currentState;
     try {
-        const res = await fetch(`/api/faculty/${id}/exam-question-access`, {
+        const res = await fetch(`/api/faculty/${id}/entrance-management-access`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ canAddExamQuestions: newState })
+            body: JSON.stringify({ canManageEntranceExam: newState })
         });
         const data = await res.json();
         if (data.success) {
             loadFacultyTable();
-            showNotification(`Exam question access ${newState ? 'enabled' : 'disabled'} for ${data.faculty.name}`, 'success');
+            showNotification(`Entrance exam access ${newState ? 'enabled' : 'disabled'} for ${data.faculty.name}`, 'success');
         } else {
             showNotification(data.message || 'Failed to toggle access', 'error');
         }
     } catch (err) {
-        showNotification('Error toggling exam question access', 'error');
-    }
-}
-
-async function toggleFacultyEntranceRegistrationAccess(id, currentState) {
-    const newState = !currentState;
-    try {
-        const res = await fetch(`/api/faculty/${id}/entrance-registration-access`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ canRegisterEntranceExam: newState })
-        });
-        const data = await res.json();
-        if (data.success) {
-            loadFacultyTable();
-            showNotification(`Entrance registration access ${newState ? 'enabled' : 'disabled'} for ${data.faculty.name}`, 'success');
-        } else {
-            showNotification(data.message || 'Failed to toggle access', 'error');
-        }
-    } catch (err) {
-        showNotification('Error toggling entrance registration access', 'error');
+        showNotification('Error toggling entrance exam access', 'error');
     }
 }
 
@@ -1906,7 +1886,7 @@ async function loadFacultyTable() {
         if (!tbody) return;
         
         if (faculty.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No faculty members</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No faculty members</td></tr>';
             return;
         }
         
@@ -1932,15 +1912,9 @@ async function loadFacultyTable() {
             html += '</button>';
             html += '</td>';
             html += '<td>';
-            const canAddQ = f.canAddExamQuestions === true;
-            html += '<button class="action-btn ' + (canAddQ ? 'success-btn' : 'warning-btn') + '" onclick="toggleFacultyExamQuestionAccess(' + f.id + ', ' + canAddQ + ')" title="Toggle exam question access">';
-            html += canAddQ ? '<i class="fas fa-check-circle"></i> Enabled' : '<i class="fas fa-times-circle"></i> Disabled';
-            html += '</button>';
-            html += '</td>';
-            html += '<td>';
-            const canReg = f.canRegisterEntranceExam === true;
-            html += '<button class="action-btn ' + (canReg ? 'success-btn' : 'warning-btn') + '" onclick="toggleFacultyEntranceRegistrationAccess(' + f.id + ', ' + canReg + ')" title="Toggle entrance registration access">';
-            html += canReg ? '<i class="fas fa-check-circle"></i> Enabled' : '<i class="fas fa-times-circle"></i> Disabled';
+            const canEntrance = f.canManageEntranceExam === true;
+            html += '<button class="action-btn ' + (canEntrance ? 'success-btn' : 'warning-btn') + '" onclick="toggleFacultyEntranceManagementAccess(' + f.id + ', ' + canEntrance + ')" title="Toggle full entrance exam management access">';
+            html += canEntrance ? '<i class="fas fa-check-circle"></i> Enabled' : '<i class="fas fa-times-circle"></i> Disabled';
             html += '</button>';
             html += '</td>';
             html += '<td>';

@@ -600,7 +600,7 @@
                         <li><a href="#" data-page="exam-reports"><i class="fas fa-file-alt"></i> Reports</a></li>
                     </ul>
                 </li>
-                <li class="dropdown">
+                <li class="dropdown" data-section="entrance-exam">
                     <a href="#" class="dropdown-toggle"><i class="fas fa-graduation-cap"></i> Entrance Exam <i class="fas fa-chevron-down" style="margin-left:auto;font-size:10px;"></i></a>
                     <ul class="dropdown-menu">
                         <li><a href="#" data-page="entrance-dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
@@ -1544,8 +1544,7 @@
                                 <th>Role</th>
                                 <th title="Cash/UPI admission submit karne ki permission">Admission Access</th>
                                 <th title="Blog likhne ki permission">Blog Access</th>
-                                <th title="Entrance Exam ke questions add karne ki permission">Exam Question Access</th>
-                                <th title="Entrance Exam ke liye student register karne ki permission">Entrance Registration Access</th>
+                                <th title="Entrance Exam ka pura management access (questions, registrations, results, settings)">Entrance Exam Access</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -4765,5 +4764,84 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/entrance-admin.js"></script>
+    <script>
+    // ============ FACULTY EMBED MODE ============
+    // When admin.html is loaded inside the faculty portal iframe:
+    //   ?mode=embed&page=<data-page>  — show only that specific page, no sidebar/topbar
+    // Permission validated against currentFaculty in localStorage.
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        if (mode !== 'embed') return;
+
+        const requestedPage = urlParams.get('page') || 'entrance-dashboard';
+
+        // Page-to-permission mapping
+        const ENTRANCE_PAGES = ['entrance-dashboard', 'entrance-exams', 'entrance-questions', 'entrance-registrations', 'entrance-monitor', 'entrance-results', 'entrance-settings'];
+        const BLOG_PAGES = ['blog', 'blog-pending', 'blog-comments'];
+
+        let faculty = null;
+        try { faculty = JSON.parse(localStorage.getItem('facultySession')); } catch (e) {}
+        if (!faculty) {
+            document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#fff;background:#1e293b;height:100vh;"><h2>Session expired</h2><p>Please log in again from the faculty portal.</p></div>';
+            return;
+        }
+
+        const perms = faculty.permissions || [];
+        const hasPerm = (p) => perms.includes('all') || perms.includes(p);
+
+        let allowed = false;
+        if (ENTRANCE_PAGES.includes(requestedPage)) {
+            allowed = faculty.canManageEntranceExam === true || hasPerm('entrance-exam');
+        } else if (BLOG_PAGES.includes(requestedPage)) {
+            allowed = faculty.canWriteBlogs === true || hasPerm('blogs');
+        }
+
+        if (!allowed) {
+            document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#fff;background:#1e293b;height:100vh;"><h2>Access Denied</h2><p>You do not have permission for this section.</p></div>';
+            return;
+        }
+
+        // Inject embed-mode CSS to hide chrome
+        const style = document.createElement('style');
+        style.textContent = `
+            body.embed-mode .admin-login-nav,
+            body.embed-mode #loginSection,
+            body.embed-mode .sidebar,
+            body.embed-mode .admin-header,
+            body.embed-mode #sidebarToggle { display: none !important; }
+            body.embed-mode .main-content { margin-left: 0 !important; padding: 20px !important; width: 100% !important; }
+            body.embed-mode .admin-dashboard { display: block !important; }
+            body.embed-mode { background: transparent !important; }
+        `;
+        document.head.appendChild(style);
+        document.body.classList.add('embed-mode');
+
+        function applyEmbedMode() {
+            const loginSection = document.getElementById('loginSection');
+            const dashboardSection = document.getElementById('dashboardSection');
+            if (loginSection) loginSection.style.display = 'none';
+            if (dashboardSection) dashboardSection.classList.remove('hidden');
+
+            // Navigate to requested page
+            const pageLink = document.querySelector('.sidebar-menu a[data-page="' + requestedPage + '"]');
+            if (pageLink) {
+                pageLink.click();
+            } else {
+                // Fallback: try to show the page element directly
+                document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+                const pageEl = document.getElementById('page-' + requestedPage);
+                if (pageEl) pageEl.classList.remove('hidden');
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', applyEmbedMode);
+        } else {
+            applyEmbedMode();
+        }
+        setTimeout(applyEmbedMode, 600);
+    })();
+    </script>
 </body>
 </html>

@@ -407,29 +407,72 @@ function loadFacultyMenu() {
         return perms.includes('all') || perms.includes(perm);
     };
     
-    // Debug: Log current faculty data
-    console.log('Current Faculty Data:', currentFaculty);
-    console.log('canWriteBlogs:', currentFaculty.canWriteBlogs);
-    console.log('canAddExamQuestions:', currentFaculty.canAddExamQuestions);
-    console.log('canRegisterEntranceExam:', currentFaculty.canRegisterEntranceExam);
-    console.log('permissions:', currentFaculty.permissions);
-    
-    // Blog management - permission via role OR individual toggle
+    // Blog Management dropdown - permission via role OR individual toggle
     if (currentFaculty.canWriteBlogs || hasPermission('blogs')) {
-        menuHTML += '<li><a href="#" onclick="showSection(\'blogs\')"><i class="fas fa-blog"></i> Blog Management</a></li>';
+        menuHTML += `
+            <li class="has-submenu">
+                <a href="#" class="submenu-toggle" onclick="toggleSubmenu(event, this)">
+                    <i class="fas fa-blog"></i> Blog Management
+                    <i class="fas fa-chevron-down chevron"></i>
+                </a>
+                <ul class="submenu">
+                    <li><a href="#" onclick="showSection('blogs'); return false;"><i class="fas fa-pen"></i> My Blogs</a></li>
+                    <li><a href="#" onclick="loadEmbed('blog', 'All Blogs'); return false;"><i class="fas fa-list"></i> All Blogs</a></li>
+                    <li><a href="#" onclick="loadEmbed('blog-pending', 'Pending Blogs'); return false;"><i class="fas fa-clock"></i> Pending Blogs</a></li>
+                    <li><a href="#" onclick="loadEmbed('blog-comments', 'Blog Comments'); return false;"><i class="fas fa-comments"></i> Blog Comments</a></li>
+                </ul>
+            </li>`;
     }
     
-    // Entrance Exam - permission via role
-    if (hasPermission('entrance-exam')) {
-        menuHTML += '<li><a href="#" onclick="showSection(\'entranceExam\')"><i class="fas fa-file-alt"></i> Entrance Exam</a></li>';
-    }
-    
-    // Entrance Exam Registration - permission via role OR individual toggle
-    if (currentFaculty.canRegisterEntranceExam || hasPermission('entrance-registration')) {
-        menuHTML += '<li><a href="#" onclick="showSection(\'entranceRegistration\')"><i class="fas fa-user-plus"></i> Entrance Registration</a></li>';
+    // Entrance Exam Management dropdown - all admin entrance pages
+    if (currentFaculty.canManageEntranceExam || hasPermission('entrance-exam')) {
+        menuHTML += `
+            <li class="has-submenu">
+                <a href="#" class="submenu-toggle" onclick="toggleSubmenu(event, this)">
+                    <i class="fas fa-graduation-cap"></i> Entrance Exam
+                    <i class="fas fa-chevron-down chevron"></i>
+                </a>
+                <ul class="submenu">
+                    <li><a href="#" onclick="loadEmbed('entrance-dashboard', 'Entrance Dashboard'); return false;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="#" onclick="loadEmbed('entrance-exams', 'Manage Exams'); return false;"><i class="fas fa-clipboard-list"></i> Manage Exams</a></li>
+                    <li><a href="#" onclick="loadEmbed('entrance-questions', 'Question Bank'); return false;"><i class="fas fa-question-circle"></i> Question Bank</a></li>
+                    <li><a href="#" onclick="loadEmbed('entrance-registrations', 'Registrations'); return false;"><i class="fas fa-user-check"></i> Registrations</a></li>
+                    <li><a href="#" onclick="loadEmbed('entrance-monitor', 'Live Monitoring'); return false;"><i class="fas fa-eye"></i> Live Monitoring</a></li>
+                    <li><a href="#" onclick="loadEmbed('entrance-results', 'Results'); return false;"><i class="fas fa-chart-line"></i> Results</a></li>
+                    <li><a href="#" onclick="loadEmbed('entrance-settings', 'Settings'); return false;"><i class="fas fa-toggle-on"></i> Settings</a></li>
+                </ul>
+            </li>`;
     }
     
     menu.innerHTML = menuHTML;
+}
+
+// Toggle expand/collapse for sidebar submenus
+function toggleSubmenu(event, anchorEl) {
+    event.preventDefault();
+    const parentLi = anchorEl.closest('li.has-submenu');
+    if (!parentLi) return;
+    parentLi.classList.toggle('open');
+}
+
+// Load an admin page inside the embedded iframe
+function loadEmbed(page, title) {
+    const frame = document.getElementById('embedFrame');
+    if (!frame) return;
+    frame.src = '/admin.html?mode=embed&page=' + encodeURIComponent(page);
+
+    // Hide all sections, show embed
+    document.querySelectorAll('.faculty-content-section').forEach(el => el.classList.remove('active'));
+    const embedSection = document.getElementById('embedContent');
+    if (embedSection) embedSection.classList.add('active');
+
+    // Hide stats grid
+    const facultyStats = document.getElementById('facultyStats');
+    if (facultyStats) facultyStats.style.display = 'none';
+
+    // Update page title
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle && title) pageTitle.textContent = title;
 }
 
 function showSection(section) {
