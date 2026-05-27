@@ -949,12 +949,12 @@ async function loadEntranceQuestions() {
         const questions = await res.json();
 
         if (!questions || questions.length === 0) {
-            document.getElementById('entranceQuestionsList').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No questions found.</p>';
+            document.getElementById('entranceQuestionsList').innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.7);padding:20px;">No questions found.</p>';
             return;
         }
 
         document.getElementById('entranceQuestionsList').innerHTML = `
-            <table class="data-table">
+            <table class="glass-table">
                 <thead><tr><th>Question</th><th>Subject</th><th>Difficulty</th><th>Created</th></tr></thead>
                 <tbody>
                     ${questions.map(q => `
@@ -970,7 +970,7 @@ async function loadEntranceQuestions() {
         `;
     } catch (e) {
         console.error('Error loading entrance questions:', e);
-        document.getElementById('entranceQuestionsList').innerHTML = '<p style="color:red;">Error loading questions.</p>';
+        document.getElementById('entranceQuestionsList').innerHTML = '<p style="color:#ef4444;">Error loading questions.</p>';
     }
 }
 
@@ -980,12 +980,12 @@ async function loadEntranceRegistrations() {
         const registrations = await res.json();
 
         if (!registrations || registrations.length === 0) {
-            document.getElementById('entranceRegistrationsList').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No registrations found.</p>';
+            document.getElementById('entranceRegistrationsList').innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.7);padding:20px;">No registrations found.</p>';
             return;
         }
 
         document.getElementById('entranceRegistrationsList').innerHTML = `
-            <table class="data-table">
+            <table class="glass-table">
                 <thead><tr><th>Reg No</th><th>Name</th><th>Phone</th><th>Exam</th><th>Status</th></tr></thead>
                 <tbody>
                     ${registrations.map(r => `
@@ -1002,7 +1002,7 @@ async function loadEntranceRegistrations() {
         `;
     } catch (e) {
         console.error('Error loading entrance registrations:', e);
-        document.getElementById('entranceRegistrationsList').innerHTML = '<p style="color:red;">Error loading registrations.</p>';
+        document.getElementById('entranceRegistrationsList').innerHTML = '<p style="color:#ef4444;">Error loading registrations.</p>';
     }
 }
 
@@ -1012,22 +1012,22 @@ async function loadEntranceMonitor() {
         const exams = await examsRes.json();
 
         if (!exams || exams.length === 0) {
-            document.getElementById('entranceMonitorList').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No exams found for monitoring.</p>';
+            document.getElementById('entranceMonitorList').innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.7);padding:20px;">No exams found for monitoring.</p>';
             return;
         }
 
-        let html = '<div style="margin-bottom:20px;"><label>Select Exam: </label><select id="monitorExamSelect" onchange="loadMonitorData(this.value)" style="padding:8px;border:1px solid #e2e8f0;border-radius:4px;">';
+        let html = '<div style="margin-bottom:20px;"><label style="color:rgba(255,255,255,0.9);margin-right:10px;">Select Exam: </label><select id="monitorExamSelect" onchange="loadMonitorData(this.value)" class="glass-select">';
         html += '<option value="">-- Select Exam --</option>';
         exams.forEach(e => {
             html += `<option value="${e.id}">${e.name}</option>`;
         });
         html += '</select></div>';
-        html += '<div id="monitorData">Select an exam to view live monitoring data.</div>';
+        html += '<div id="monitorData" style="color:rgba(255,255,255,0.7);">Select an exam to view live monitoring data.</div>';
 
         document.getElementById('entranceMonitorList').innerHTML = html;
     } catch (e) {
         console.error('Error loading entrance monitor:', e);
-        document.getElementById('entranceMonitorList').innerHTML = '<p style="color:red;">Error loading monitor.</p>';
+        document.getElementById('entranceMonitorList').innerHTML = '<p style="color:#ef4444;">Error loading monitor.</p>';
     }
 }
 
@@ -1042,7 +1042,7 @@ async function loadMonitorData(examId) {
         const data = await res.json();
 
         if (!data || data.length === 0) {
-            document.getElementById('monitorData').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No students started this exam yet.</p>';
+            document.getElementById('monitorData').innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.7);padding:20px;">No students started this exam yet.</p>';
             return;
         }
 
@@ -1051,20 +1051,20 @@ async function loadMonitorData(examId) {
 
         document.getElementById('monitorData').innerHTML = `
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:20px;">
-                <div style="background:#f8fafc;padding:15px;border-radius:8px;text-align:center;">
+                <div class="glass-card">
                     <h4 style="margin:0 0 5px 0;">Total Started</h4>
-                    <div style="font-size:24px;font-weight:600;color:#1e293b;">${data.length}</div>
+                    <div class="stat-value">${data.length}</div>
                 </div>
-                <div style="background:#fef3c7;padding:15px;border-radius:8px;text-align:center;">
+                <div class="glass-card">
                     <h4 style="margin:0 0 5px 0;">In Progress</h4>
-                    <div style="font-size:24px;font-weight:600;color:#b45309;">${inProgress}</div>
+                    <div class="stat-value" style="color:#fbbf24;">${inProgress}</div>
                 </div>
-                <div style="background:#dcfce7;padding:15px;border-radius:8px;text-align:center;">
+                <div class="glass-card">
                     <h4 style="margin:0 0 5px 0;">Submitted</h4>
-                    <div style="font-size:24px;font-weight:600;color:#16a34a;">${submitted}</div>
+                    <div class="stat-value" style="color:#16a34a;">${submitted}</div>
                 </div>
             </div>
-            <table class="data-table">
+            <table class="glass-table">
                 <thead><tr><th>Student</th><th>Started At</th><th>Status</th><th>Progress</th></tr></thead>
                 <tbody>
                     ${data.map(d => `
@@ -1090,22 +1090,22 @@ async function loadEntranceResults() {
         const exams = await examsRes.json();
 
         if (!exams || exams.length === 0) {
-            document.getElementById('entranceResultsList').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No exams found.</p>';
+            document.getElementById('entranceResultsList').innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.7);padding:20px;">No exams found.</p>';
             return;
         }
 
-        let html = '<div style="margin-bottom:20px;"><label>Select Exam: </label><select id="resultsExamSelect" onchange="loadResultsData(this.value)" style="padding:8px;border:1px solid #e2e8f0;border-radius:4px;">';
+        let html = '<div style="margin-bottom:20px;"><label style="color:rgba(255,255,255,0.9);margin-right:10px;">Select Exam: </label><select id="resultsExamSelect" onchange="loadResultsData(this.value)" class="glass-select">';
         html += '<option value="">-- Select Exam --</option>';
         exams.forEach(e => {
             html += `<option value="${e.id}">${e.name}</option>`;
         });
         html += '</select></div>';
-        html += '<div id="resultsData">Select an exam to view results.</div>';
+        html += '<div id="resultsData" style="color:rgba(255,255,255,0.7);">Select an exam to view results.</div>';
 
         document.getElementById('entranceResultsList').innerHTML = html;
     } catch (e) {
         console.error('Error loading entrance results:', e);
-        document.getElementById('entranceResultsList').innerHTML = '<p style="color:red;">Error loading results.</p>';
+        document.getElementById('entranceResultsList').innerHTML = '<p style="color:#ef4444;">Error loading results.</p>';
     }
 }
 
@@ -1120,12 +1120,12 @@ async function loadResultsData(examId) {
         const results = await res.json();
 
         if (!results || results.length === 0) {
-            document.getElementById('resultsData').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No results found for this exam.</p>';
+            document.getElementById('resultsData').innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.7);padding:20px;">No results found for this exam.</p>';
             return;
         }
 
         document.getElementById('resultsData').innerHTML = `
-            <table class="data-table">
+            <table class="glass-table">
                 <thead><tr><th>Student</th><th>Marks</th><th>Total</th><th>Percentage</th><th>Status</th></tr></thead>
                 <tbody>
                     ${results.map(r => {
@@ -1168,7 +1168,7 @@ async function loadEntranceStudentRegistration() {
         const tbody = document.querySelector('#entranceStudentRegistrationTable tbody');
 
         if (!regs || regs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:20px;">No entrance exam registrations found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:rgba(255,255,255,0.7);padding:20px;">No entrance exam registrations found</td></tr>';
             return;
         }
 
@@ -1177,17 +1177,17 @@ async function loadEntranceStudentRegistration() {
                 ? '<span style="color:#ef4444;font-weight:600;">Suspended</span>'
                 : '<span style="color:#16a34a;font-weight:600;">' + (r.status || '') + '</span>';
             return `
-                <tr${r.suspended ? ' style="background:rgba(239,68,68,0.08);"' : ''}>
+                <tr${r.suspended ? ' style="background:rgba(239,68,68,0.15);"' : ''}>
                     <td>${r.registrationNo || ''}</td>
                     <td>${r.studentName || ''}</td>
                     <td>${r.phone || ''}</td>
                     <td>${r.course || '-'}</td>
-                    <td>${shiftMap[r.shiftId] || '<span style="color:#f59e0b;">Not Assigned</span>'}</td>
-                    <td><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">${r.loginPassword || ''}</code></td>
+                    <td>${shiftMap[r.shiftId] || '<span style="color:#fbbf24;">Not Assigned</span>'}</td>
+                    <td><code>${r.loginPassword || ''}</code></td>
                     <td>${statusBadge}</td>
                     <td>
-                        <button onclick="editEntranceRegistration(${JSON.stringify(r).replace(/"/g, '&quot;')})" class="btn btn-primary" style="padding:5px 10px;font-size:12px;margin-right:5px;"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteEntranceRegistration(${r.id})" class="btn btn-danger" style="padding:5px 10px;font-size:12px;"><i class="fas fa-trash"></i></button>
+                        <button onclick="editEntranceRegistration(${JSON.stringify(r).replace(/"/g, '&quot;')})" class="glass-btn" style="padding:5px 10px;font-size:12px;margin-right:5px;"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteEntranceRegistration(${r.id})" class="glass-btn" style="padding:5px 10px;font-size:12px;background:linear-gradient(135deg, rgba(239,68,68,0.8), rgba(220,38,38,0.8));"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `;
