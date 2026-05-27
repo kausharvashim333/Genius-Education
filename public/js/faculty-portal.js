@@ -419,7 +419,7 @@ function loadFacultyMenu() {
                     <li><a href="#" onclick="showSection('blogs'); return false;"><i class="fas fa-pen"></i> My Blogs</a></li>
                     <li><a href="#" onclick="showSection('allBlogs'); return false;"><i class="fas fa-list"></i> All Blogs</a></li>
                     <li><a href="#" onclick="showSection('pendingBlogs'); return false;"><i class="fas fa-clock"></i> Pending Blogs</a></li>
-                    <li><a href="#" onclick="loadEmbed('blog-comments', 'Blog Comments'); return false;"><i class="fas fa-comments"></i> Blog Comments</a></li>
+                    <li><a href="#" onclick="showSection('blogComments'); return false;"><i class="fas fa-comments"></i> Blog Comments</a></li>
                 </ul>
             </li>`;
     }
@@ -504,7 +504,8 @@ function showSection(section) {
         'notices': 'Notices',
         'blogs': 'Blog Management',
         'allBlogs': 'All My Blogs',
-        'pendingBlogs': 'Pending Approval Blogs'
+        'pendingBlogs': 'Pending Approval Blogs',
+        'blogComments': 'Blog Comments'
     };
     document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
 
@@ -521,6 +522,7 @@ function showSection(section) {
     if (section === 'blogs') loadBlogs();
     if (section === 'allBlogs') loadAllBlogs();
     if (section === 'pendingBlogs') loadPendingBlogs();
+    if (section === 'blogComments') loadBlogComments();
 }
 
 async function loadFacultyStats() {
@@ -877,6 +879,58 @@ async function loadPendingBlogs() {
         }).join('');
     } catch (e) {
         console.error('Error loading pending blogs:', e);
+    }
+}
+
+async function loadBlogComments() {
+    try {
+        // First get faculty's blog IDs
+        const blogsRes = await fetch(`/api/blogs?all=1&authorId=${currentFaculty.id}`);
+        const blogsData = await blogsRes.json();
+        const facultyBlogIds = (blogsData.blogs || []).map(b => b.id);
+
+        if (facultyBlogIds.length === 0) {
+            document.getElementById('blogCommentsList').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No blogs found. Create blogs first to see comments.</p>';
+            return;
+        }
+
+        // Get all comments
+        const commentsRes = await fetch('/api/admin/comments?status=all');
+        const commentsData = await commentsRes.json();
+        const allComments = commentsData.comments || [];
+
+        // Filter comments to only those on faculty's blogs
+        const facultyComments = allComments.filter(c => facultyBlogIds.includes(c.blogId));
+
+        if (facultyComments.length === 0) {
+            document.getElementById('blogCommentsList').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No comments on your blogs yet.</p>';
+            return;
+        }
+
+        // Render comments
+        document.getElementById('blogCommentsList').innerHTML = facultyComments.map(comment => {
+            const statusColor = comment.approved ? '#16a34a' : '#f59e0b';
+            const statusText = comment.approved ? 'Approved' : 'Pending';
+            return `
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:15px;margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                        <div>
+                            <strong style="color:#1e293b;">${comment.name || 'Anonymous'}</strong>
+                            <span style="color:#64748b;font-size:12px;margin-left:10px;">${comment.email || ''}</span>
+                        </div>
+                        <span style="color:${statusColor};font-size:12px;font-weight:600;background:${comment.approved ? '#dcfce7' : '#fef3c7'};padding:2px 8px;border-radius:4px;">${statusText}</span>
+                    </div>
+                    <p style="color:#334155;margin:0 0 8px 0;">${comment.content}</p>
+                    <div style="font-size:12px;color:#94a3b8;">
+                        <span>On: ${comment.blogTitle || 'Unknown Blog'}</span>
+                        <span style="margin-left:15px;">${formatDate(comment.createdAt)}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (e) {
+        console.error('Error loading blog comments:', e);
+        document.getElementById('blogCommentsList').innerHTML = '<p style="color:red;">Error loading comments.</p>';
     }
 }
 
