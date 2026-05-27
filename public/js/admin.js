@@ -3523,7 +3523,18 @@ async function deleteHoliday(holidayId) {
 let _allBlogs = [];
 async function loadBlogTable() {
     try {
-        const res = await fetch('/api/blogs?all=1');
+        // Check if running in faculty embed mode - filter by faculty ID
+        let apiUrl = '/api/blogs?all=1';
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('mode') === 'embed') {
+            try {
+                const faculty = JSON.parse(localStorage.getItem('facultySession'));
+                if (faculty && faculty.id) {
+                    apiUrl += '&authorId=' + faculty.id;
+                }
+            } catch (e) {}
+        }
+        const res = await fetch(apiUrl);
         const data = await res.json();
 
         if (data.success && data.blogs) {
