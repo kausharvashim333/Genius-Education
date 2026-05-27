@@ -424,7 +424,7 @@ function loadFacultyMenu() {
             </li>`;
     }
     
-    // Entrance Exam Management dropdown - all admin entrance pages
+    // Entrance Exam Management dropdown - faculty can access question bank, registrations, monitoring, results
     if (currentFaculty.canManageEntranceExam || hasPermission('entrance-exam')) {
         menuHTML += `
             <li class="has-submenu">
@@ -433,13 +433,10 @@ function loadFacultyMenu() {
                     <i class="fas fa-chevron-down chevron"></i>
                 </a>
                 <ul class="submenu">
-                    <li><a href="#" onclick="loadEmbed('entrance-dashboard', 'Entrance Dashboard'); return false;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="#" onclick="loadEmbed('entrance-exams', 'Manage Exams'); return false;"><i class="fas fa-clipboard-list"></i> Manage Exams</a></li>
-                    <li><a href="#" onclick="loadEmbed('entrance-questions', 'Question Bank'); return false;"><i class="fas fa-question-circle"></i> Question Bank</a></li>
-                    <li><a href="#" onclick="loadEmbed('entrance-registrations', 'Registrations'); return false;"><i class="fas fa-user-check"></i> Registrations</a></li>
-                    <li><a href="#" onclick="loadEmbed('entrance-monitor', 'Live Monitoring'); return false;"><i class="fas fa-eye"></i> Live Monitoring</a></li>
-                    <li><a href="#" onclick="loadEmbed('entrance-results', 'Results'); return false;"><i class="fas fa-chart-line"></i> Results</a></li>
-                    <li><a href="#" onclick="loadEmbed('entrance-settings', 'Settings'); return false;"><i class="fas fa-toggle-on"></i> Settings</a></li>
+                    <li><a href="#" onclick="showSection('entranceQuestions'); return false;"><i class="fas fa-question-circle"></i> Question Bank</a></li>
+                    <li><a href="#" onclick="showSection('entranceRegistrations'); return false;"><i class="fas fa-user-check"></i> Registrations</a></li>
+                    <li><a href="#" onclick="showSection('entranceMonitor'); return false;"><i class="fas fa-eye"></i> Live Monitoring</a></li>
+                    <li><a href="#" onclick="showSection('entranceResults'); return false;"><i class="fas fa-chart-line"></i> Results</a></li>
                 </ul>
             </li>`;
     }
@@ -505,7 +502,11 @@ function showSection(section) {
         'blogs': 'Blog Management',
         'allBlogs': 'All My Blogs',
         'pendingBlogs': 'Pending Approval Blogs',
-        'blogComments': 'Blog Comments'
+        'blogComments': 'Blog Comments',
+        'entranceQuestions': 'Question Bank',
+        'entranceRegistrations': 'Exam Registrations',
+        'entranceMonitor': 'Live Monitoring',
+        'entranceResults': 'Exam Results'
     };
     document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
 
@@ -523,6 +524,10 @@ function showSection(section) {
     if (section === 'allBlogs') loadAllBlogs();
     if (section === 'pendingBlogs') loadPendingBlogs();
     if (section === 'blogComments') loadBlogComments();
+    if (section === 'entranceQuestions') loadEntranceQuestions();
+    if (section === 'entranceRegistrations') loadEntranceRegistrations();
+    if (section === 'entranceMonitor') loadEntranceMonitor();
+    if (section === 'entranceResults') loadEntranceResults();
 }
 
 async function loadFacultyStats() {
@@ -931,6 +936,213 @@ async function loadBlogComments() {
     } catch (e) {
         console.error('Error loading blog comments:', e);
         document.getElementById('blogCommentsList').innerHTML = '<p style="color:red;">Error loading comments.</p>';
+    }
+}
+
+// ===== Entrance Exam Functions =====
+async function loadEntranceQuestions() {
+    try {
+        const res = await fetch('/api/entrance-questions');
+        const questions = await res.json();
+
+        if (!questions || questions.length === 0) {
+            document.getElementById('entranceQuestionsList').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No questions found.</p>';
+            return;
+        }
+
+        document.getElementById('entranceQuestionsList').innerHTML = `
+            <table class="data-table">
+                <thead><tr><th>Question</th><th>Subject</th><th>Difficulty</th><th>Created</th></tr></thead>
+                <tbody>
+                    ${questions.map(q => `
+                        <tr>
+                            <td>${q.question || 'N/A'}</td>
+                            <td>${q.subject || 'N/A'}</td>
+                            <td>${q.difficulty || 'N/A'}</td>
+                            <td>${formatDate(q.createdAt)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (e) {
+        console.error('Error loading entrance questions:', e);
+        document.getElementById('entranceQuestionsList').innerHTML = '<p style="color:red;">Error loading questions.</p>';
+    }
+}
+
+async function loadEntranceRegistrations() {
+    try {
+        const res = await fetch('/api/entrance-registrations');
+        const registrations = await res.json();
+
+        if (!registrations || registrations.length === 0) {
+            document.getElementById('entranceRegistrationsList').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No registrations found.</p>';
+            return;
+        }
+
+        document.getElementById('entranceRegistrationsList').innerHTML = `
+            <table class="data-table">
+                <thead><tr><th>Reg No</th><th>Name</th><th>Phone</th><th>Exam</th><th>Status</th></tr></thead>
+                <tbody>
+                    ${registrations.map(r => `
+                        <tr>
+                            <td>${r.registrationNo || 'N/A'}</td>
+                            <td>${r.studentName || 'N/A'}</td>
+                            <td>${r.phone || 'N/A'}</td>
+                            <td>${r.examName || 'N/A'}</td>
+                            <td>${r.suspended ? '<span style="color:#ef4444;">Suspended</span>' : '<span style="color:#16a34a;">Active</span>'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (e) {
+        console.error('Error loading entrance registrations:', e);
+        document.getElementById('entranceRegistrationsList').innerHTML = '<p style="color:red;">Error loading registrations.</p>';
+    }
+}
+
+async function loadEntranceMonitor() {
+    try {
+        const examsRes = await fetch('/api/entrance-exams');
+        const exams = await examsRes.json();
+
+        if (!exams || exams.length === 0) {
+            document.getElementById('entranceMonitorList').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No exams found for monitoring.</p>';
+            return;
+        }
+
+        let html = '<div style="margin-bottom:20px;"><label>Select Exam: </label><select id="monitorExamSelect" onchange="loadMonitorData(this.value)" style="padding:8px;border:1px solid #e2e8f0;border-radius:4px;">';
+        html += '<option value="">-- Select Exam --</option>';
+        exams.forEach(e => {
+            html += `<option value="${e.id}">${e.name}</option>`;
+        });
+        html += '</select></div>';
+        html += '<div id="monitorData">Select an exam to view live monitoring data.</div>';
+
+        document.getElementById('entranceMonitorList').innerHTML = html;
+    } catch (e) {
+        console.error('Error loading entrance monitor:', e);
+        document.getElementById('entranceMonitorList').innerHTML = '<p style="color:red;">Error loading monitor.</p>';
+    }
+}
+
+async function loadMonitorData(examId) {
+    if (!examId) {
+        document.getElementById('monitorData').innerHTML = 'Select an exam to view live monitoring data.';
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/entrance/monitor/' + examId);
+        const data = await res.json();
+
+        if (!data || data.length === 0) {
+            document.getElementById('monitorData').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No students started this exam yet.</p>';
+            return;
+        }
+
+        const inProgress = data.filter(d => !d.submitted).length;
+        const submitted = data.filter(d => d.submitted).length;
+
+        document.getElementById('monitorData').innerHTML = `
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:20px;">
+                <div style="background:#f8fafc;padding:15px;border-radius:8px;text-align:center;">
+                    <h4 style="margin:0 0 5px 0;">Total Started</h4>
+                    <div style="font-size:24px;font-weight:600;color:#1e293b;">${data.length}</div>
+                </div>
+                <div style="background:#fef3c7;padding:15px;border-radius:8px;text-align:center;">
+                    <h4 style="margin:0 0 5px 0;">In Progress</h4>
+                    <div style="font-size:24px;font-weight:600;color:#b45309;">${inProgress}</div>
+                </div>
+                <div style="background:#dcfce7;padding:15px;border-radius:8px;text-align:center;">
+                    <h4 style="margin:0 0 5px 0;">Submitted</h4>
+                    <div style="font-size:24px;font-weight:600;color:#16a34a;">${submitted}</div>
+                </div>
+            </div>
+            <table class="data-table">
+                <thead><tr><th>Student</th><th>Started At</th><th>Status</th><th>Progress</th></tr></thead>
+                <tbody>
+                    ${data.map(d => `
+                        <tr>
+                            <td>${d.studentName || 'N/A'}</td>
+                            <td>${formatDate(d.startedAt)}</td>
+                            <td>${d.submitted ? '<span style="color:#16a34a;">Submitted</span>' : '<span style="color:#f59e0b;">In Progress</span>'}</td>
+                            <td>${d.questionIndex || 0} / ${d.totalQuestions || 0}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (e) {
+        console.error('Error loading monitor data:', e);
+        document.getElementById('monitorData').innerHTML = '<p style="color:red;">Error loading monitor data.</p>';
+    }
+}
+
+async function loadEntranceResults() {
+    try {
+        const examsRes = await fetch('/api/entrance-exams');
+        const exams = await examsRes.json();
+
+        if (!exams || exams.length === 0) {
+            document.getElementById('entranceResultsList').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No exams found.</p>';
+            return;
+        }
+
+        let html = '<div style="margin-bottom:20px;"><label>Select Exam: </label><select id="resultsExamSelect" onchange="loadResultsData(this.value)" style="padding:8px;border:1px solid #e2e8f0;border-radius:4px;">';
+        html += '<option value="">-- Select Exam --</option>';
+        exams.forEach(e => {
+            html += `<option value="${e.id}">${e.name}</option>`;
+        });
+        html += '</select></div>';
+        html += '<div id="resultsData">Select an exam to view results.</div>';
+
+        document.getElementById('entranceResultsList').innerHTML = html;
+    } catch (e) {
+        console.error('Error loading entrance results:', e);
+        document.getElementById('entranceResultsList').innerHTML = '<p style="color:red;">Error loading results.</p>';
+    }
+}
+
+async function loadResultsData(examId) {
+    if (!examId) {
+        document.getElementById('resultsData').innerHTML = 'Select an exam to view results.';
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/entrance-results?examId=' + examId);
+        const results = await res.json();
+
+        if (!results || results.length === 0) {
+            document.getElementById('resultsData').innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">No results found for this exam.</p>';
+            return;
+        }
+
+        document.getElementById('resultsData').innerHTML = `
+            <table class="data-table">
+                <thead><tr><th>Student</th><th>Marks</th><th>Total</th><th>Percentage</th><th>Status</th></tr></thead>
+                <tbody>
+                    ${results.map(r => {
+                        const percentage = r.totalMarks > 0 ? ((r.marksObtained / r.totalMarks) * 100).toFixed(2) : 0;
+                        return `
+                            <tr>
+                                <td>${r.studentName || 'N/A'}</td>
+                                <td>${r.marksObtained || 0}</td>
+                                <td>${r.totalMarks || 0}</td>
+                                <td>${percentage}%</td>
+                                <td>${r.published ? '<span style="color:#16a34a;">Published</span>' : '<span style="color:#f59e0b;">Draft</span>'}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (e) {
+        console.error('Error loading results data:', e);
+        document.getElementById('resultsData').innerHTML = '<p style="color:red;">Error loading results data.</p>';
     }
 }
 
