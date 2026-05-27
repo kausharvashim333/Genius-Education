@@ -575,6 +575,7 @@
                         <li><a href="#" data-page="assignments"><i class="fas fa-tasks"></i> Assignments</a></li>
                         <li><a href="#" data-page="announcements"><i class="fas fa-bullhorn"></i> Announcements</a></li>
                         <li><a href="#" data-page="blog"><i class="fas fa-blog"></i> Blog</a></li>
+                        <li><a href="#" data-page="blog-pending"><i class="fas fa-clock"></i> Pending Blogs <span id="pendingBlogsBadge" style="display:none;background:#f59e0b;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:6px;">0</span></a></li>
                         <li><a href="#" data-page="blog-comments"><i class="fas fa-comments"></i> Blog Comments <span id="blogCommentsBadge" style="display:none;background:#ef4444;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:6px;">0</span></a></li>
                         <li><a href="#" data-page="newsletter"><i class="fas fa-envelope"></i> Newsletter</a></li>
                         <li><a href="#" data-page="alumni"><i class="fas fa-user-graduate"></i> Alumni Network</a></li>
@@ -1542,6 +1543,7 @@
                                 <th>Experience</th>
                                 <th>Role</th>
                                 <th title="Cash/UPI admission submit karne ki permission">Admission Access</th>
+                                <th title="Blog likhne ki permission">Blog Access</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -2760,6 +2762,17 @@
                     </div>
                 </div>
                 <div id="blogCommentsList" style="margin-top:20px;"></div>
+            </div>
+
+            <!-- Pending Blogs Review Page -->
+            <div id="page-blog-pending" class="page-content hidden">
+                <div class="page-header">
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <h3 style="margin:0;color:#fff;"><i class="fas fa-clock"></i> Pending Blog Approvals <span id="pendingBlogsCount" style="opacity:0.6;font-weight:normal;font-size:14px;">(0)</span></h3>
+                        <button class="btn btn-secondary" onclick="loadPendingBlogs()" style="margin-left:auto;"><i class="fas fa-sync"></i> Refresh</button>
+                    </div>
+                </div>
+                <div id="pendingBlogsList" style="margin-top:20px;"></div>
             </div>
 
             <!-- Newsletter Subscribers Page -->

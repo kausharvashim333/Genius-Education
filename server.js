@@ -894,7 +894,8 @@ app.post('/api/faculty', async (req, res) => {
         ...req.body, 
         email: req.body.email,
         password: password,
-        role: req.body.role || 'Faculty'
+        role: req.body.role || 'Faculty',
+        canWriteBlogs: false
     };
     faculty.push(member);
     writeData('faculty.json', faculty);
@@ -945,6 +946,25 @@ app.delete('/api/faculty/:id', (req, res) => {
     faculty = faculty.filter(f => f.id != req.params.id);
     writeData('faculty.json', faculty);
     res.json({ success: true });
+});
+
+app.put('/api/faculty/:id', (req, res) => {
+    const faculty = readData('faculty.json') || [];
+    const idx = faculty.findIndex(f => f.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Faculty not found' });
+    
+    // Update allowed fields
+    const { name, email, subject, experience, role, admissionAccess, canWriteBlogs } = req.body;
+    if (name !== undefined) faculty[idx].name = name;
+    if (email !== undefined) faculty[idx].email = email;
+    if (subject !== undefined) faculty[idx].subject = subject;
+    if (experience !== undefined) faculty[idx].experience = experience;
+    if (role !== undefined) faculty[idx].role = role;
+    if (admissionAccess !== undefined) faculty[idx].admissionAccess = admissionAccess;
+    if (canWriteBlogs !== undefined) faculty[idx].canWriteBlogs = canWriteBlogs;
+    
+    writeData('faculty.json', faculty);
+    res.json({ success: true, faculty: faculty[idx] });
 });
 
 app.post('/api/faculty/login', async (req, res) => {
@@ -3812,9 +3832,14 @@ app.get('/api/blogs', (req, res) => {
     comments.forEach(c => {
         if (c.approved) commentCounts[c.blogId] = (commentCounts[c.blogId] || 0) + 1;
     });
-    // Public listing excludes drafts and not-yet-due scheduled posts; admin can pass ?all=1
+    // Public listing excludes drafts, pending, rejected, and not-yet-due scheduled posts; admin can pass ?all=1
     const isAdminView = req.query.all === '1';
-    const filtered = isAdminView ? blogs : blogs.filter(b => b.status === 'published' && b.published !== false);
+    const authorId = req.query.authorId;
+    let filtered = isAdminView ? blogs : blogs.filter(b => b.status === 'published' && b.published !== false);
+    // If authorId is provided, filter by that author (for faculty portal)
+    if (authorId) {
+        filtered = filtered.filter(b => b.authorId == authorId);
+    }
     const enriched = filtered.map(b => ({ ...b, commentCount: commentCounts[b.id] || 0 }));
     res.json({ success: true, blogs: enriched });
 });
@@ -3834,13 +3859,20 @@ app.get('/blog/:slug', (req, res) => {
 });
 
 app.post('/api/blogs', (req, res) => {
-    const { title, content, category, author, image, pinned, tags, excerpt, metaTitle, metaDescription, ogImage, status, scheduledFor } = req.body;
+    const { title, content, category, author, image, pinned, tags, excerpt, metaTitle, metaDescription, ogImage, status, scheduledFor, authorId, authorRole } = req.body;
     if (!title || !content) return res.status(400).json({ success: false, message: 'Title and content required' });
 
     const blogs = readData('blogs.json') || [];
     const slug = uniqueSlug(blogs, makeSlug(title));
+    
+    // Faculty submissions default to pending approval
     let finalStatus = (status || 'published').toLowerCase();
-    if (!['draft', 'scheduled', 'published'].includes(finalStatus)) finalStatus = 'published';
+    if (authorRole === 'faculty' && !['draft', 'scheduled', 'published', 'pending', 'rejected'].includes(finalStatus)) {
+        finalStatus = 'pending';
+    } else if (!['draft', 'scheduled', 'published', 'pending', 'rejected'].includes(finalStatus)) {
+        finalStatus = 'published';
+    }
+    
     let finalScheduledFor = null;
     if (finalStatus === 'scheduled') {
         const t = scheduledFor ? new Date(scheduledFor) : null;
@@ -3860,6 +3892,8 @@ app.post('/api/blogs', (req, res) => {
         content,
         category: category || 'General',
         author: author || 'Admin',
+        authorId: authorId || null,
+        authorRole: authorRole || 'admin',
         image: image || '',
         pinned: pinned === true || pinned === 'true',
         tags: normalizeTags(tags),
@@ -3895,7 +3929,7 @@ app.put('/api/blogs/:id', (req, res) => {
     const idx = blogs.findIndex(b => b.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Blog not found' });
 
-    const { title, content, category, author, image, published, pinned, tags, excerpt, metaTitle, metaDescription, ogImage, status, scheduledFor } = req.body;
+    const { title, content, category, author, image, published, pinned, tags, excerpt, metaTitle, metaDescription, ogImage, status, scheduledFor, authorId, authorRole } = req.body;
     
     // Track previous status for notification
     const previousStatus = blogs[idx].status || 'draft';
@@ -3910,6 +3944,8 @@ app.put('/api/blogs/:id', (req, res) => {
     }
     if (category !== undefined) blogs[idx].category = category;
     if (author !== undefined) blogs[idx].author = author;
+    if (authorId !== undefined) blogs[idx].authorId = authorId;
+    if (authorRole !== undefined) blogs[idx].authorRole = authorRole;
     if (image !== undefined) blogs[idx].image = image;
     if (pinned !== undefined) blogs[idx].pinned = pinned === true || pinned === 'true';
     if (tags !== undefined) blogs[idx].tags = normalizeTags(tags);
@@ -3920,7 +3956,7 @@ app.put('/api/blogs/:id', (req, res) => {
 
     if (status !== undefined) {
         let s = String(status).toLowerCase();
-        if (!['draft', 'scheduled', 'published'].includes(s)) s = 'published';
+        if (!['draft', 'scheduled', 'published', 'pending', 'rejected'].includes(s)) s = 'published';
         if (s === 'scheduled') {
             const sched = scheduledFor || blogs[idx].scheduledFor;
             const t = sched ? new Date(sched) : null;
@@ -3956,12 +3992,50 @@ app.put('/api/blogs/:id', (req, res) => {
     writeData('blogs.json', blogs);
     
     // Send notification if status changed to published
-    const isNowPublished = blogs[idx].status === 'published' || blogs[idx].published === true;
-    if (isNowPublished && !wasPublished && previousStatus !== 'published') {
+    const newStatus = blogs[idx].status;
+    if (newStatus === 'published' && previousStatus !== 'published' && !wasPublished) {
         sendBlogPublishNotification(blogs[idx]);
     }
     
     res.json({ success: true, blog: blogs[idx] });
+});
+
+// Admin blog approval endpoints
+app.put('/api/admin/blogs/:id/approve', (req, res) => {
+    const blogs = readData('blogs.json') || [];
+    const idx = blogs.findIndex(b => b.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Blog not found' });
+    
+    blogs[idx].status = 'published';
+    blogs[idx].published = true;
+    blogs[idx].updatedAt = new Date().toISOString();
+    writeData('blogs.json', blogs);
+    
+    // Send notification
+    sendBlogPublishNotification(blogs[idx]);
+    
+    res.json({ success: true, blog: blogs[idx] });
+});
+
+app.put('/api/admin/blogs/:id/reject', (req, res) => {
+    const { rejectionReason } = req.body;
+    const blogs = readData('blogs.json') || [];
+    const idx = blogs.findIndex(b => b.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Blog not found' });
+    
+    blogs[idx].status = 'rejected';
+    blogs[idx].published = false;
+    blogs[idx].rejectionReason = rejectionReason || '';
+    blogs[idx].updatedAt = new Date().toISOString();
+    writeData('blogs.json', blogs);
+    
+    res.json({ success: true, blog: blogs[idx] });
+});
+
+app.get('/api/admin/blogs/pending', (req, res) => {
+    const blogs = readData('blogs.json') || [];
+    const pending = blogs.filter(b => b.status === 'pending');
+    res.json({ success: true, blogs: pending });
 });
 
 // Public: list of all distinct tags with counts (only from published blogs)

@@ -270,7 +270,68 @@
                     <h3>Notices</h3>
                     <div id="noticesList"></div>
                 </div>
+
+                <div id="blogsContent" class="faculty-content-section">
+                    <h3>Blog Management</h3>
+                    <div style="margin-bottom:20px;">
+                        <button onclick="openBlogEditor()" class="btn btn-primary"><i class="fas fa-plus"></i> Create New Blog</button>
+                    </div>
+                    <table class="data-table" id="blogsTable">
+                        <thead><tr><th>Title</th><th>Status</th><th>Category</th><th>Created</th><th>Action</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </main>
+        </div>
+    </div>
+
+    <!-- Blog Editor Modal -->
+    <div id="blogEditorModal" class="modal-overlay">
+        <div class="modal-box" style="width:800px;max-width:95%;">
+            <div class="modal-header">
+                <h3 id="blogEditorTitle">Create Blog Post</h3>
+                <button class="close-btn" onclick="closeBlogEditor()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="blogForm">
+                    <input type="hidden" id="blogId">
+                    <div class="form-group">
+                        <label>Title *</label>
+                        <input type="text" id="blogTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="text" id="blogCategory" placeholder="e.g., Technology, Education">
+                    </div>
+                    <div class="form-group">
+                        <label>Excerpt</label>
+                        <input type="text" id="blogExcerpt" placeholder="Brief summary (max 300 chars)" maxlength="300">
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="text" id="blogImage" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label>Tags (comma separated)</label>
+                        <input type="text" id="blogTags" placeholder="e.g., programming, web, tutorial">
+                    </div>
+                    <div class="form-group">
+                        <label>Content *</label>
+                        <textarea id="blogContent" rows="10" required style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:6px;font-size:14px;color:#fff;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="blogStatus" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:6px;font-size:14px;color:#fff;">
+                            <option value="draft">Draft</option>
+                            <option value="pending">Submit for Approval</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeBlogEditor()" class="btn btn-secondary">Cancel</button>
+                <button type="button" onclick="saveBlog()" class="btn btn-primary">Save</button>
+            </div>
         </div>
     </div>
 

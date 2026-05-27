@@ -468,6 +468,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 'settings': loadSettings,
                 'helpdesk': loadTicketsTable,
                 'backup': loadBackupsList,
+                'blog-pending': loadPendingBlogs,
                 'roles': loadRolesTable,
                 'about': loadAbout,
                 'study-materials': loadStudyMaterialsTable,
@@ -1811,8 +1812,27 @@ async function toggleFacultyAdmissionAccess(id, currentState) {
             showNotification(data.message || 'Failed to toggle access', 'error');
         }
     } catch (err) {
-        console.error('Toggle error:', err);
-        showNotification('Error toggling access!', 'error');
+        showNotification('Error toggling admission access', 'error');
+    }
+}
+
+async function toggleFacultyBlogAccess(id, currentState) {
+    const newState = !currentState;
+    try {
+        const res = await fetch(`/api/faculty/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ canWriteBlogs: newState })
+        });
+        const data = await res.json();
+        if (data.success) {
+            loadFacultyTable();
+            showNotification(`Blog access ${newState ? 'enabled' : 'disabled'} for ${data.faculty.name}`, 'success');
+        } else {
+            showNotification(data.message || 'Failed to toggle access', 'error');
+        }
+    } catch (err) {
+        showNotification('Error toggling blog access', 'error');
     }
 }
 
@@ -1823,7 +1843,7 @@ async function loadFacultyTable() {
         if (!tbody) return;
         
         if (faculty.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No faculty members</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No faculty members</td></tr>';
             return;
         }
         
@@ -1840,6 +1860,12 @@ async function loadFacultyTable() {
             const canSubmit = f.canSubmitAdmission === true;
             html += '<button class="action-btn ' + (canSubmit ? 'success-btn' : 'warning-btn') + '" onclick="toggleFacultyAdmissionAccess(' + f.id + ', ' + canSubmit + ')" title="Toggle admission access">';
             html += canSubmit ? '<i class="fas fa-check-circle"></i> Enabled' : '<i class="fas fa-times-circle"></i> Disabled';
+            html += '</button>';
+            html += '</td>';
+            html += '<td>';
+            const canWrite = f.canWriteBlogs === true;
+            html += '<button class="action-btn ' + (canWrite ? 'success-btn' : 'warning-btn') + '" onclick="toggleFacultyBlogAccess(' + f.id + ', ' + canWrite + ')" title="Toggle blog access">';
+            html += canWrite ? '<i class="fas fa-check-circle"></i> Enabled' : '<i class="fas fa-times-circle"></i> Disabled';
             html += '</button>';
             html += '</td>';
             html += '<td>';
@@ -13760,6 +13786,156 @@ async function deleteNewsletterSub(id) {
         const data = await res.json();
         if (data.success) { showNotification('Subscriber removed', 'success'); loadNewsletterSubs(); }
     } catch (e) { showNotification('Error', 'error'); }
+}
+
+// ===== Pending Blogs Review =====
+async function loadPendingBlogs() {
+    try {
+        const res = await fetch('/api/admin/blogs/pending');
+        const data = await res.json();
+        if (!data.success) return;
+        
+        const pendingBlogs = data.blogs || [];
+        document.getElementById('pendingBlogsCount').textContent = '(' + pendingBlogs.length + ')';
+        
+        const badge = document.getElementById('pendingBlogsBadge');
+        if (badge) {
+            badge.textContent = pendingBlogs.length;
+            badge.style.display = pendingBlogs.length > 0 ? 'inline' : 'none';
+        }
+        
+        const container = document.getElementById('pendingBlogsList');
+        
+        if (pendingBlogs.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;"><i class="fas fa-check-circle" style="font-size:48px;margin-bottom:15px;"></i><p>No pending blogs to review.</p></div>';
+            return;
+        }
+        
+        container.innerHTML = pendingBlogs.map(blog => `
+            <div style="background:rgba(255,255,255,0.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;">
+                    <div>
+                        <h4 style="margin:0 0 8px 0;color:#fff;font-size:18px;">${escapeAdminHtml(blog.title)}</h4>
+                        <div style="display:flex;gap:15px;align-items:center;font-size:13px;color:#94a3b8;">
+                            <span><i class="fas fa-user"></i> ${escapeAdminHtml(blog.author || 'Unknown')}</span>
+                            <span><i class="fas fa-folder"></i> ${escapeAdminHtml(blog.category || 'N/A')}</span>
+                            <span><i class="fas fa-calendar"></i> ${formatDate(blog.createdAt)}</span>
+                        </div>
+                    </div>
+                    <span style="background:#f59e0b;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">Pending</span>
+                </div>
+                
+                ${blog.excerpt ? `<p style="color:#cbd5e1;margin-bottom:15px;line-height:1.6;">${escapeAdminHtml(blog.excerpt)}</p>` : ''}
+                
+                ${blog.image ? `<img src="${escapeAdminHtml(blog.image)}" alt="Blog Image" style="max-width:200px;border-radius:8px;margin-bottom:15px;">` : ''}
+                
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <button onclick="viewPendingBlog(${blog.id})" class="btn btn-secondary" style="padding:8px 16px;"><i class="fas fa-eye"></i> View Full</button>
+                    <button onclick="approveBlog(${blog.id})" class="btn btn-success" style="padding:8px 16px;background:#16a34a;"><i class="fas fa-check"></i> Approve</button>
+                    <button onclick="rejectBlog(${blog.id})" class="btn btn-danger" style="padding:8px 16px;"><i class="fas fa-times"></i> Reject</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        console.error('Error loading pending blogs:', e);
+    }
+}
+
+async function viewPendingBlog(blogId) {
+    try {
+        const res = await fetch('/api/blogs?all=1');
+        const data = await res.json();
+        const blog = data.blogs.find(b => b.id === blogId);
+        
+        if (!blog) return;
+        
+        const content = `
+            <div style="max-height:70vh;overflow-y:auto;padding:20px;">
+                <h2 style="margin:0 0 15px 0;color:#fff;">${escapeAdminHtml(blog.title)}</h2>
+                <div style="display:flex;gap:15px;align-items:center;margin-bottom:20px;font-size:13px;color:#94a3b8;">
+                    <span><i class="fas fa-user"></i> ${escapeAdminHtml(blog.author || 'Unknown')}</span>
+                    <span><i class="fas fa-folder"></i> ${escapeAdminHtml(blog.category || 'N/A')}</span>
+                    <span><i class="fas fa-calendar"></i> ${formatDate(blog.createdAt)}</span>
+                </div>
+                ${blog.image ? `<img src="${escapeAdminHtml(blog.image)}" alt="Blog Image" style="max-width:100%;border-radius:8px;margin-bottom:20px;">` : ''}
+                <div style="color:#e2e8f0;line-height:1.8;">${blog.content}</div>
+                ${(blog.tags || []).length > 0 ? `<div style="margin-top:20px;"><strong>Tags:</strong> ${blog.tags.map(t => `<span style="background:rgba(102,126,234,0.3);color:#fff;padding:4px 10px;border-radius:15px;font-size:12px;margin-right:8px;">${escapeAdminHtml(t)}</span>`).join('')}</div>` : ''}
+            </div>
+        `;
+        
+        showModal('Blog Preview', content, [
+            { text: 'Close', class: 'btn-secondary', onclick: 'closeModal()' }
+        ]);
+    } catch (e) {
+        console.error('Error viewing blog:', e);
+    }
+}
+
+async function approveBlog(blogId) {
+    if (!confirm('Are you sure you want to approve this blog? It will be published immediately.')) return;
+    
+    try {
+        const res = await fetch(`/api/admin/blogs/${blogId}/approve`, {
+            method: 'PUT'
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            showNotification('Blog approved and published successfully!', 'success');
+            loadPendingBlogs();
+        } else {
+            showNotification(data.message || 'Failed to approve blog', 'error');
+        }
+    } catch (e) {
+        console.error('Error approving blog:', e);
+        showNotification('Error approving blog', 'error');
+    }
+}
+
+async function rejectBlog(blogId) {
+    const reason = prompt('Please enter a reason for rejection (optional):');
+    
+    try {
+        const res = await fetch(`/api/admin/blogs/${blogId}/reject`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rejectionReason: reason || '' })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            showNotification('Blog rejected successfully!', 'success');
+            loadPendingBlogs();
+        } else {
+            showNotification(data.message || 'Failed to reject blog', 'error');
+        }
+    } catch (e) {
+        console.error('Error rejecting blog:', e);
+        showNotification('Error rejecting blog', 'error');
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${type === 'success' ? '#16a34a' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        border-radius: 8px;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 function exportNewsletterCSV() {

@@ -383,6 +383,11 @@ function loadFacultyMenu() {
         menuHTML += '<li><a href="#" onclick="showSection(\'notices\')"><i class="fas fa-bullhorn"></i> Notices</a></li>';
     }
     
+    // Blog management - only if faculty has permission
+    if (currentFaculty.canWriteBlogs === true) {
+        menuHTML += '<li><a href="#" onclick="showSection(\'blogs\')"><i class="fas fa-blog"></i> Blog Management</a></li>';
+    }
+    
     menu.innerHTML = menuHTML;
 }
 
@@ -412,7 +417,8 @@ function showSection(section) {
         'materials': 'Study Materials',
         'results': 'Exam Results',
         'enquiries': 'Enquiries',
-        'notices': 'Notices'
+        'notices': 'Notices',
+        'blogs': 'Blog Management'
     };
     document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
     
@@ -426,6 +432,7 @@ function showSection(section) {
     }
     if (section === 'materials') loadMaterials();
     if (section === 'notices') loadNotices();
+    if (section === 'blogs') loadBlogs();
 }
 
 async function loadFacultyStats() {
@@ -667,5 +674,169 @@ async function saveAttendance(studentId) {
     } catch (e) {
         console.error('Error saving attendance:', e);
         alert('Error saving attendance');
+    }
+}
+
+// ===== Blog Management Functions =====
+async function loadBlogs() {
+    try {
+        const res = await fetch(`/api/blogs?all=1&authorId=${currentFaculty.id}`);
+        const data = await res.json();
+        const blogs = data.blogs || [];
+        
+        const tbody = document.getElementById('blogsTable').querySelector('tbody');
+        
+        if (blogs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No blogs found. Create your first blog!</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = blogs.map(blog => {
+            const statusColors = {
+                'draft': '#64748b',
+                'pending': '#f59e0b',
+                'published': '#16a34a',
+                'rejected': '#ef4444'
+            };
+            const statusColor = statusColors[blog.status] || '#64748b';
+            
+            return `
+                <tr>
+                    <td>${blog.title}</td>
+                    <td><span style="color:${statusColor};font-weight:600;">${blog.status}</span></td>
+                    <td>${blog.category || 'N/A'}</td>
+                    <td>${formatDate(blog.createdAt)}</td>
+                    <td>
+                        <button onclick="editBlog(${blog.id})" class="btn btn-primary" style="padding:5px 10px;font-size:12px;margin-right:5px;"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteBlog(${blog.id})" class="btn btn-danger" style="padding:5px 10px;font-size:12px;"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } catch (e) {
+        console.error('Error loading blogs:', e);
+    }
+}
+
+function openBlogEditor(blogId = null) {
+    document.getElementById('blogEditorModal').classList.add('active');
+    document.getElementById('blogForm').reset();
+    document.getElementById('blogId').value = '';
+    document.getElementById('blogEditorTitle').textContent = 'Create Blog Post';
+    
+    if (blogId) {
+        document.getElementById('blogEditorTitle').textContent = 'Edit Blog Post';
+        loadBlogForEdit(blogId);
+    }
+}
+
+function closeBlogEditor() {
+    document.getElementById('blogEditorModal').classList.remove('active');
+    document.getElementById('blogForm').reset();
+}
+
+async function loadBlogForEdit(blogId) {
+    try {
+        const res = await fetch('/api/blogs?all=1');
+        const data = await res.json();
+        const blog = data.blogs.find(b => b.id === blogId);
+        
+        if (blog) {
+            document.getElementById('blogId').value = blog.id;
+            document.getElementById('blogTitle').value = blog.title;
+            document.getElementById('blogCategory').value = blog.category || '';
+            document.getElementById('blogExcerpt').value = blog.excerpt || '';
+            document.getElementById('blogImage').value = blog.image || '';
+            document.getElementById('blogTags').value = (blog.tags || []).join(', ');
+            document.getElementById('blogContent').value = blog.content;
+            document.getElementById('blogStatus').value = blog.status || 'draft';
+        }
+    } catch (e) {
+        console.error('Error loading blog:', e);
+    }
+}
+
+async function saveBlog() {
+    const blogId = document.getElementById('blogId').value;
+    const title = document.getElementById('blogTitle').value;
+    const category = document.getElementById('blogCategory').value;
+    const excerpt = document.getElementById('blogExcerpt').value;
+    const image = document.getElementById('blogImage').value;
+    const tags = document.getElementById('blogTags').value;
+    const content = document.getElementById('blogContent').value;
+    const status = document.getElementById('blogStatus').value;
+    
+    if (!title || !content) {
+        alert('Title and content are required!');
+        return;
+    }
+    
+    const blogData = {
+        title,
+        category,
+        excerpt,
+        image,
+        tags: tags.split(',').map(t => t.trim()).filter(t => t),
+        content,
+        status,
+        author: currentFaculty.name,
+        authorId: currentFaculty.id,
+        authorRole: 'faculty'
+    };
+    
+    try {
+        let res;
+        if (blogId) {
+            res = await fetch(`/api/blogs/${blogId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(blogData)
+            });
+        } else {
+            res = await fetch('/api/blogs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(blogData)
+            });
+        }
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            closeBlogEditor();
+            loadBlogs();
+            alert(status === 'pending' ? 'Blog submitted for approval!' : 'Blog saved successfully!');
+        } else {
+            alert(data.message || 'Error saving blog');
+        }
+    } catch (e) {
+        console.error('Error saving blog:', e);
+        alert('Error saving blog');
+    }
+}
+
+async function editBlog(blogId) {
+    openBlogEditor(blogId);
+}
+
+async function deleteBlog(blogId) {
+    if (!confirm('Are you sure you want to delete this blog?')) return;
+    
+    try {
+        const res = await fetch(`/api/blogs/${blogId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            loadBlogs();
+            alert('Blog deleted successfully!');
+        } else {
+            alert('Error deleting blog');
+        }
+    } catch (e) {
+        console.error('Error deleting blog:', e);
+        alert('Error deleting blog');
     }
 }
