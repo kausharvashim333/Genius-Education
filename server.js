@@ -1706,6 +1706,30 @@ app.patch('/api/faculty/:id/exam-question-access', (req, res) => {
     res.json({ success: true, faculty: faculty[idx] });
 });
 
+// Get current faculty data with latest permissions (for refreshing faculty session)
+app.get('/api/faculty/:id/me', (req, res) => {
+    const faculty = readData('faculty.json') || [];
+    const user = faculty.find(f => f.id == req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: 'Faculty not found' });
+    const rolePermissions = getRolePermissions(user.role);
+    res.json({
+        success: true,
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            subject: user.subject,
+            passwordChanged: user.passwordChanged || false,
+            canWriteBlogs: user.canWriteBlogs || false,
+            canSubmitAdmission: user.canSubmitAdmission || false,
+            canAddExamQuestions: user.canAddExamQuestions || false,
+            canRegisterEntranceExam: user.canRegisterEntranceExam || false,
+            permissions: rolePermissions
+        }
+    });
+});
+
 app.patch('/api/faculty/:id/entrance-registration-access', (req, res) => {
     const faculty = readData('faculty.json') || [];
     const idx = faculty.findIndex(f => f.id == req.params.id);

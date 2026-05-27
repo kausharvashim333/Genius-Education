@@ -173,9 +173,12 @@ async function verifyOTP() {
     }
 }
 
-function showDashboard() {
+async function showDashboard() {
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('dashboardSection').classList.remove('hidden');
+    
+    // Refresh faculty data from server to get latest permissions
+    await refreshFacultyData();
     
     document.getElementById('facultyName').textContent = currentFaculty.name;
     document.getElementById('facultyRole').textContent = 'Role: ' + currentFaculty.role;
@@ -187,6 +190,21 @@ function showDashboard() {
     
     loadFacultyMenu();
     loadFacultyStats();
+}
+
+async function refreshFacultyData() {
+    if (!currentFaculty || !currentFaculty.id) return;
+    try {
+        const res = await fetch('/api/faculty/' + currentFaculty.id + '/me');
+        const data = await res.json();
+        if (data.success && data.user) {
+            // Merge new data, preserve any client-only fields
+            currentFaculty = { ...currentFaculty, ...data.user };
+            localStorage.setItem('facultySession', JSON.stringify(currentFaculty));
+        }
+    } catch (err) {
+        console.warn('Could not refresh faculty data:', err);
+    }
 }
 
 function showPasswordChangeModal() {
@@ -388,6 +406,13 @@ function loadFacultyMenu() {
         const perms = currentFaculty.permissions || [];
         return perms.includes('all') || perms.includes(perm);
     };
+    
+    // Debug: Log current faculty data
+    console.log('Current Faculty Data:', currentFaculty);
+    console.log('canWriteBlogs:', currentFaculty.canWriteBlogs);
+    console.log('canAddExamQuestions:', currentFaculty.canAddExamQuestions);
+    console.log('canRegisterEntranceExam:', currentFaculty.canRegisterEntranceExam);
+    console.log('permissions:', currentFaculty.permissions);
     
     // Blog management - permission via role OR individual toggle
     if (currentFaculty.canWriteBlogs || hasPermission('blogs')) {
