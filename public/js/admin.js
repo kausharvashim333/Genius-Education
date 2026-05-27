@@ -3636,6 +3636,7 @@ function editBlog(id) {
     setTimeout(() => {
         initBlogQuill();
         if (_blogQuill) {
+            _blogQuill.root.innerHTML = ''; // Clear existing content first
             _blogQuill.clipboard.dangerouslyPasteHTML(0, blog.content || '');
         }
     }, 50);
