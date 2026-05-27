@@ -384,7 +384,7 @@ function loadFacultyMenu() {
     }
     
     // Blog management - only if faculty has permission
-    if (currentFaculty.canWriteBlogs === true) {
+    if (currentFaculty.canWriteBlogs) {
         menuHTML += '<li><a href="#" onclick="showSection(\'blogs\')"><i class="fas fa-blog"></i> Blog Management</a></li>';
     }
     

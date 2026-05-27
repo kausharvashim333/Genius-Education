@@ -1671,6 +1671,17 @@ app.patch('/api/faculty/:id/admission-access', (req, res) => {
     res.json({ success: true, faculty: faculty[idx] });
 });
 
+app.patch('/api/faculty/:id/blog-access', (req, res) => {
+    const faculty = readData('faculty.json') || [];
+    const idx = faculty.findIndex(f => f.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Faculty not found' });
+    const newVal = req.body.canWriteBlogs === true;
+    faculty[idx].canWriteBlogs = newVal;
+    writeData('faculty.json', faculty);
+    logActivity('faculty.blog-access-toggle', { type: 'admin' }, { facultyId: faculty[idx].id, name: faculty[idx].name, canWriteBlogs: newVal }, req);
+    res.json({ success: true, faculty: faculty[idx] });
+});
+
 // Helper: validate apply verify token
 function consumeApplyVerifyToken(email, token) {
     if (!email || !token) return false;
