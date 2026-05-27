@@ -417,8 +417,8 @@ function loadFacultyMenu() {
                 </a>
                 <ul class="submenu">
                     <li><a href="#" onclick="showSection('blogs'); return false;"><i class="fas fa-pen"></i> My Blogs</a></li>
-                    <li><a href="#" onclick="loadEmbed('blog', 'All Blogs'); return false;"><i class="fas fa-list"></i> All Blogs</a></li>
-                    <li><a href="#" onclick="loadEmbed('blog-pending', 'Pending Blogs'); return false;"><i class="fas fa-clock"></i> Pending Blogs</a></li>
+                    <li><a href="#" onclick="showSection('allBlogs'); return false;"><i class="fas fa-list"></i> All Blogs</a></li>
+                    <li><a href="#" onclick="showSection('pendingBlogs'); return false;"><i class="fas fa-clock"></i> Pending Blogs</a></li>
                     <li><a href="#" onclick="loadEmbed('blog-comments', 'Blog Comments'); return false;"><i class="fas fa-comments"></i> Blog Comments</a></li>
                 </ul>
             </li>`;
@@ -502,10 +502,12 @@ function showSection(section) {
         'results': 'Exam Results',
         'enquiries': 'Enquiries',
         'notices': 'Notices',
-        'blogs': 'Blog Management'
+        'blogs': 'Blog Management',
+        'allBlogs': 'All My Blogs',
+        'pendingBlogs': 'Pending Approval Blogs'
     };
     document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
-    
+
     // Load section-specific data
     if (section === 'courses') loadCourses();
     if (section === 'students') loadStudents();
@@ -517,6 +519,8 @@ function showSection(section) {
     if (section === 'materials') loadMaterials();
     if (section === 'notices') loadNotices();
     if (section === 'blogs') loadBlogs();
+    if (section === 'allBlogs') loadAllBlogs();
+    if (section === 'pendingBlogs') loadPendingBlogs();
 }
 
 async function loadFacultyStats() {
@@ -767,14 +771,14 @@ async function loadBlogs() {
         const res = await fetch(`/api/blogs?all=1&authorId=${currentFaculty.id}`);
         const data = await res.json();
         const blogs = data.blogs || [];
-        
+
         const tbody = document.getElementById('blogsTable').querySelector('tbody');
-        
+
         if (blogs.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No blogs found. Create your first blog!</td></tr>';
             return;
         }
-        
+
         tbody.innerHTML = blogs.map(blog => {
             const statusColors = {
                 'draft': '#64748b',
@@ -783,7 +787,7 @@ async function loadBlogs() {
                 'rejected': '#ef4444'
             };
             const statusColor = statusColors[blog.status] || '#64748b';
-            
+
             return `
                 <tr>
                     <td>${blog.title}</td>
@@ -799,6 +803,80 @@ async function loadBlogs() {
         }).join('');
     } catch (e) {
         console.error('Error loading blogs:', e);
+    }
+}
+
+async function loadAllBlogs() {
+    try {
+        const res = await fetch(`/api/blogs?all=1&authorId=${currentFaculty.id}`);
+        const data = await res.json();
+        const blogs = data.blogs || [];
+
+        const tbody = document.getElementById('allBlogsTable').querySelector('tbody');
+
+        if (blogs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No blogs found. Create your first blog!</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = blogs.map(blog => {
+            const statusColors = {
+                'draft': '#64748b',
+                'pending': '#f59e0b',
+                'published': '#16a34a',
+                'rejected': '#ef4444'
+            };
+            const statusColor = statusColors[blog.status] || '#64748b';
+
+            return `
+                <tr>
+                    <td>${blog.title}</td>
+                    <td><span style="color:${statusColor};font-weight:600;">${blog.status}</span></td>
+                    <td>${blog.category || 'N/A'}</td>
+                    <td>${formatDate(blog.createdAt)}</td>
+                    <td>
+                        <button onclick="editBlog(${blog.id})" class="btn btn-primary" style="padding:5px 10px;font-size:12px;margin-right:5px;"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteBlog(${blog.id})" class="btn btn-danger" style="padding:5px 10px;font-size:12px;"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } catch (e) {
+        console.error('Error loading all blogs:', e);
+    }
+}
+
+async function loadPendingBlogs() {
+    try {
+        const res = await fetch(`/api/blogs?all=1&authorId=${currentFaculty.id}`);
+        const data = await res.json();
+        const blogs = data.blogs || [];
+
+        // Filter only pending blogs
+        const pendingBlogs = blogs.filter(blog => blog.status === 'pending');
+
+        const tbody = document.getElementById('pendingBlogsTable').querySelector('tbody');
+
+        if (pendingBlogs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No pending blogs. Your submitted blogs will appear here.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = pendingBlogs.map(blog => {
+            return `
+                <tr>
+                    <td>${blog.title}</td>
+                    <td>${blog.category || 'N/A'}</td>
+                    <td>${formatDate(blog.createdAt)}</td>
+                    <td>
+                        <button onclick="editBlog(${blog.id})" class="btn btn-primary" style="padding:5px 10px;font-size:12px;margin-right:5px;"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteBlog(${blog.id})" class="btn btn-danger" style="padding:5px 10px;font-size:12px;"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } catch (e) {
+        console.error('Error loading pending blogs:', e);
     }
 }
 

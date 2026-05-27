@@ -386,6 +386,27 @@
                         <tbody></tbody>
                     </table>
                 </div>
+
+                <div id="allBlogsContent" class="faculty-content-section">
+                    <h3>All My Blogs</h3>
+                    <p style="color:#94a3b8;margin-bottom:15px;">Yahan aapke saare blogs dikhte hain - draft, pending, published sab.</p>
+                    <div style="margin-bottom:20px;">
+                        <button onclick="openBlogEditor()" class="btn btn-primary"><i class="fas fa-plus"></i> Create New Blog</button>
+                    </div>
+                    <table class="data-table" id="allBlogsTable">
+                        <thead><tr><th>Title</th><th>Status</th><th>Category</th><th>Created</th><th>Action</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div id="pendingBlogsContent" class="faculty-content-section">
+                    <h3>Pending Approval Blogs</h3>
+                    <p style="color:#94a3b8;margin-bottom:15px;">Yahan wo blogs hain jo aapne submit kiye hain aur admin ki approval ka wait kar rahe hain.</p>
+                    <table class="data-table" id="pendingBlogsTable">
+                        <thead><tr><th>Title</th><th>Category</th><th>Submitted On</th><th>Action</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </main>
         </div>
     </div>
