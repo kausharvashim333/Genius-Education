@@ -802,94 +802,323 @@ async function loadBlogs() {
     }
 }
 
-function openBlogEditor(blogId = null) {
-    document.getElementById('blogEditorModal').classList.add('active');
-    document.getElementById('blogForm').reset();
-    document.getElementById('blogId').value = '';
-    document.getElementById('blogEditorTitle').textContent = 'Create Blog Post';
-    
-    if (blogId) {
-        document.getElementById('blogEditorTitle').textContent = 'Edit Blog Post';
-        loadBlogForEdit(blogId);
+// ===== Quill-based blog editor (matches admin panel) =====
+let _blogQuill = null;
+let _imgPopover = null;
+let _activeImg = null;
+
+function initBlogQuill() {
+    if (_blogQuill || typeof Quill === 'undefined') return;
+
+    // Custom Image blot to preserve width + alignment classes
+    const BaseImage = Quill.import('formats/image');
+    const IMG_ATTRS = ['alt', 'src', 'width', 'class'];
+    class BlogImage extends BaseImage {
+        static formats(domNode) {
+            const fmt = {};
+            IMG_ATTRS.forEach(attr => { if (domNode.hasAttribute(attr)) fmt[attr] = domNode.getAttribute(attr); });
+            return fmt;
+        }
+        format(name, value) {
+            if (IMG_ATTRS.includes(name)) {
+                if (value) this.domNode.setAttribute(name, value); else this.domNode.removeAttribute(name);
+            } else { super.format(name, value); }
+        }
     }
+    BlogImage.blotName = 'image';
+    BlogImage.tagName = 'IMG';
+    Quill.register(BlogImage, true);
+
+    _blogQuill = new Quill('#blogEditor', {
+        theme: 'snow',
+        modules: {
+            toolbar: {
+                container: '#blogEditorToolbar',
+                handlers: { image: blogQuillImageHandler }
+            }
+        },
+        placeholder: 'Write your blog content here... Use the image button in the toolbar to insert images anywhere. Click any inserted image to resize, align, or add a caption.'
+    });
+
+    setupBlogImageEditing();
+}
+
+function setupBlogImageEditing() {
+    const editor = _blogQuill.root;
+    editor.addEventListener('click', (e) => {
+        if (e.target.tagName === 'IMG') {
+            e.preventDefault(); e.stopPropagation();
+            showImagePopover(e.target);
+        }
+    });
+    document.addEventListener('mousedown', (e) => {
+        if (!_imgPopover) return;
+        if (_imgPopover.contains(e.target)) return;
+        if (e.target.tagName === 'IMG' && editor.contains(e.target)) return;
+        hideImagePopover();
+    });
+    window.addEventListener('scroll', () => { if (_activeImg) positionImagePopover(_activeImg); }, true);
+}
+
+function showImagePopover(img) {
+    hideImagePopover();
+    _activeImg = img;
+    img.classList.add('blog-img-selected');
+    const popover = document.createElement('div');
+    popover.className = 'blog-img-popover';
+    const currentSize = img.getAttribute('width') || '100%';
+    const currentAlign = (img.className.match(/img-align-(left|center|right)/) || [])[1] || 'center';
+    popover.innerHTML = `
+        <div class="bip-row">
+            <span class="bip-label"><i class="fas fa-expand-arrows-alt"></i> Size</span>
+            <div class="bip-btns">
+                <button data-size="25%" class="${currentSize==='25%'?'active':''}">S</button>
+                <button data-size="50%" class="${currentSize==='50%'?'active':''}">M</button>
+                <button data-size="75%" class="${currentSize==='75%'?'active':''}">L</button>
+                <button data-size="100%" class="${currentSize==='100%'?'active':''}">Full</button>
+            </div>
+        </div>
+        <div class="bip-row">
+            <span class="bip-label"><i class="fas fa-align-justify"></i> Align</span>
+            <div class="bip-btns">
+                <button data-align="left" class="${currentAlign==='left'?'active':''}"><i class="fas fa-align-left"></i></button>
+                <button data-align="center" class="${currentAlign==='center'?'active':''}"><i class="fas fa-align-center"></i></button>
+                <button data-align="right" class="${currentAlign==='right'?'active':''}"><i class="fas fa-align-right"></i></button>
+            </div>
+        </div>
+        <div class="bip-row">
+            <span class="bip-label"><i class="fas fa-comment-dots"></i> Caption</span>
+            <input type="text" class="bip-caption" placeholder="Add caption (optional)" maxlength="200">
+        </div>
+        <div class="bip-row bip-delete-row">
+            <button class="bip-delete"><i class="fas fa-trash"></i> Delete Image</button>
+        </div>`;
+    document.body.appendChild(popover);
+    _imgPopover = popover;
+    positionImagePopover(img);
+    const captionEl = findBlogCaptionFor(img);
+    if (captionEl) popover.querySelector('.bip-caption').value = captionEl.textContent;
+    popover.querySelectorAll('button[data-size]').forEach(btn => {
+        btn.onclick = () => { setBlogImageSize(img, btn.dataset.size); refreshBlogPopover(popover, 'size', btn.dataset.size); };
+    });
+    popover.querySelectorAll('button[data-align]').forEach(btn => {
+        btn.onclick = () => { setBlogImageAlign(img, btn.dataset.align); refreshBlogPopover(popover, 'align', btn.dataset.align); };
+    });
+    popover.querySelector('.bip-caption').oninput = (e) => setBlogImageCaption(img, e.target.value);
+    popover.querySelector('.bip-delete').onclick = () => { deleteBlogImage(img); hideImagePopover(); };
+}
+
+function refreshBlogPopover(popover, type, val) {
+    popover.querySelectorAll(`button[data-${type}]`).forEach(b => b.classList.toggle('active', b.dataset[type] === val));
+}
+
+function positionImagePopover(img) {
+    if (!_imgPopover) return;
+    const rect = img.getBoundingClientRect();
+    const popH = _imgPopover.offsetHeight || 200;
+    let top = rect.bottom + 8;
+    if (top + popH > window.innerHeight - 10) top = Math.max(10, rect.top - popH - 8);
+    let left = rect.left;
+    const popW = _imgPopover.offsetWidth || 280;
+    if (left + popW > window.innerWidth - 10) left = window.innerWidth - popW - 10;
+    _imgPopover.style.position = 'fixed';
+    _imgPopover.style.top = top + 'px';
+    _imgPopover.style.left = Math.max(10, left) + 'px';
+    _imgPopover.style.zIndex = '100001';
+}
+
+function hideImagePopover() {
+    if (_imgPopover) { _imgPopover.remove(); _imgPopover = null; }
+    if (_activeImg) { _activeImg.classList.remove('blog-img-selected'); _activeImg = null; }
+}
+
+function setBlogImageSize(img, size) {
+    img.setAttribute('width', size); img.style.width = size;
+    if (_blogQuill) _blogQuill.update();
+}
+
+function setBlogImageAlign(img, align) {
+    img.classList.remove('img-align-left', 'img-align-center', 'img-align-right');
+    img.classList.add('img-align-' + align);
+    if (_blogQuill) _blogQuill.update();
+}
+
+function findBlogCaptionFor(img) {
+    const parentP = img.closest('p'); if (!parentP) return null;
+    const next = parentP.nextElementSibling;
+    if (next && next.classList && next.classList.contains('blog-caption')) return next;
+    return null;
+}
+
+function setBlogImageCaption(img, text) {
+    const parentP = img.closest('p'); if (!parentP) return;
+    let caption = findBlogCaptionFor(img);
+    text = (text || '').trim();
+    if (!text) { if (caption) caption.remove(); return; }
+    if (caption) { caption.textContent = text; }
+    else {
+        caption = document.createElement('p');
+        caption.className = 'blog-caption';
+        caption.textContent = text;
+        parentP.parentNode.insertBefore(caption, parentP.nextSibling);
+    }
+    if (_blogQuill) _blogQuill.update();
+}
+
+function deleteBlogImage(img) {
+    const caption = findBlogCaptionFor(img); if (caption) caption.remove();
+    const parentP = img.closest('p');
+    if (parentP && parentP.textContent.trim() === '' && parentP.querySelectorAll('img').length === 1) parentP.remove();
+    else img.remove();
+    if (_blogQuill) _blogQuill.update();
+}
+
+function blogQuillImageHandler() {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+    input.onchange = async () => {
+        const file = input.files[0]; if (!file) return;
+        if (file.size > 10 * 1024 * 1024) { alert('Image too large (max 10MB)'); return; }
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+            const res = await fetch('/api/upload/blog-image', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success && data.url) {
+                const range = _blogQuill.getSelection(true);
+                _blogQuill.insertEmbed(range.index, 'image', data.url, 'user');
+                _blogQuill.setSelection(range.index + 1);
+            } else { alert(data.message || 'Upload failed'); }
+        } catch (e) { alert('Upload error'); }
+    };
+}
+
+async function uploadBlogCover(input) {
+    const file = input.files[0]; if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { alert('Cover image too large (max 10MB)'); input.value = ''; return; }
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+        const res = await fetch('/api/upload/blog-image', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success && data.url) {
+            document.getElementById('blogImage').value = data.url;
+            document.getElementById('blogCoverImg').src = data.url;
+            document.getElementById('blogCoverPreview').style.display = 'block';
+            document.getElementById('blogCoverRemoveBtn').style.display = 'inline-flex';
+        } else { alert(data.message || 'Upload failed'); input.value = ''; }
+    } catch (e) { alert('Upload error'); input.value = ''; }
+}
+
+function removeBlogCover() {
+    document.getElementById('blogImage').value = '';
+    document.getElementById('blogCoverInput').value = '';
+    document.getElementById('blogCoverImg').src = '';
+    document.getElementById('blogCoverPreview').style.display = 'none';
+    document.getElementById('blogCoverRemoveBtn').style.display = 'none';
+}
+
+function openBlogEditor(blogId = null) {
+    document.getElementById('blogModalTitle').textContent = blogId ? 'Edit Blog Post' : 'Create Blog Post';
+    document.getElementById('blogId').value = '';
+    document.getElementById('blogTitle').value = '';
+    document.getElementById('blogCategory').value = 'General';
+    document.getElementById('blogTags').value = '';
+    document.getElementById('blogExcerpt').value = '';
+    document.getElementById('blogMetaTitle').value = '';
+    document.getElementById('blogMetaDescription').value = '';
+    document.getElementById('blogOgImage').value = '';
+    document.getElementById('blogStatus').value = 'pending';
+    removeBlogCover();
+    document.getElementById('blogModal').style.display = 'block';
+    setTimeout(() => {
+        initBlogQuill();
+        if (_blogQuill) _blogQuill.setContents([]);
+        if (blogId) loadBlogForEdit(blogId);
+    }, 50);
 }
 
 function closeBlogEditor() {
-    document.getElementById('blogEditorModal').classList.remove('active');
-    document.getElementById('blogForm').reset();
+    document.getElementById('blogModal').style.display = 'none';
+    hideImagePopover();
 }
 
 async function loadBlogForEdit(blogId) {
     try {
-        const res = await fetch('/api/blogs?all=1');
+        const res = await fetch(`/api/blogs?all=1&authorId=${currentFaculty.id}`);
         const data = await res.json();
-        const blog = data.blogs.find(b => b.id === blogId);
-        
-        if (blog) {
-            document.getElementById('blogId').value = blog.id;
-            document.getElementById('blogTitle').value = blog.title;
-            document.getElementById('blogCategory').value = blog.category || '';
-            document.getElementById('blogExcerpt').value = blog.excerpt || '';
-            document.getElementById('blogImage').value = blog.image || '';
-            document.getElementById('blogTags').value = (blog.tags || []).join(', ');
-            document.getElementById('blogContent').value = blog.content;
-            document.getElementById('blogStatus').value = blog.status || 'draft';
+        const blog = (data.blogs || []).find(b => b.id == blogId);
+        if (!blog) { alert('Blog not found'); return; }
+        document.getElementById('blogId').value = blog.id;
+        document.getElementById('blogTitle').value = blog.title || '';
+        document.getElementById('blogCategory').value = blog.category || 'General';
+        document.getElementById('blogTags').value = Array.isArray(blog.tags) ? blog.tags.join(', ') : '';
+        document.getElementById('blogExcerpt').value = blog.excerpt || '';
+        document.getElementById('blogMetaTitle').value = blog.metaTitle || '';
+        document.getElementById('blogMetaDescription').value = blog.metaDescription || '';
+        document.getElementById('blogOgImage').value = blog.ogImage || '';
+        if (blog.image) {
+            document.getElementById('blogImage').value = blog.image;
+            document.getElementById('blogCoverImg').src = blog.image;
+            document.getElementById('blogCoverPreview').style.display = 'block';
+            document.getElementById('blogCoverRemoveBtn').style.display = 'inline-flex';
+        }
+        if (_blogQuill) {
+            _blogQuill.root.innerHTML = '';
+            _blogQuill.clipboard.dangerouslyPasteHTML(0, blog.content || '');
         }
     } catch (e) {
         console.error('Error loading blog:', e);
     }
 }
 
-async function saveBlog() {
+async function saveBlog(targetStatus) {
     const blogId = document.getElementById('blogId').value;
-    const title = document.getElementById('blogTitle').value;
+    const title = document.getElementById('blogTitle').value.trim();
     const category = document.getElementById('blogCategory').value;
-    const excerpt = document.getElementById('blogExcerpt').value;
     const image = document.getElementById('blogImage').value;
     const tags = document.getElementById('blogTags').value;
-    const content = document.getElementById('blogContent').value;
-    const status = document.getElementById('blogStatus').value;
-    
-    if (!title || !content) {
-        alert('Title and content are required!');
-        return;
+    const excerpt = document.getElementById('blogExcerpt').value;
+    const metaTitle = document.getElementById('blogMetaTitle').value;
+    const metaDescription = document.getElementById('blogMetaDescription').value;
+    const ogImage = document.getElementById('blogOgImage').value;
+
+    let content = '';
+    if (_blogQuill) {
+        const html = _blogQuill.root.innerHTML;
+        content = (_blogQuill.getText().trim() === '' && !/<img/i.test(html)) ? '' : html;
     }
-    
+
+    if (!title || !content) { alert('Title and content are required!'); return; }
+
+    // Faculty can only save as draft or submit for approval (pending)
+    const status = (targetStatus === 'draft') ? 'draft' : 'pending';
+
     const blogData = {
-        title,
-        category,
-        excerpt,
-        image,
-        tags: tags.split(',').map(t => t.trim()).filter(t => t),
-        content,
+        title, category, image, content,
+        tags: tags.split(',').map(t => t.trim()).filter(t => t).slice(0, 10),
+        excerpt, metaTitle, metaDescription, ogImage,
         status,
         author: currentFaculty.name,
         authorId: currentFaculty.id,
         authorRole: 'faculty'
     };
-    
+
     try {
-        let res;
-        if (blogId) {
-            res = await fetch(`/api/blogs/${blogId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(blogData)
-            });
-        } else {
-            res = await fetch('/api/blogs', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(blogData)
-            });
-        }
-        
+        const url = blogId ? `/api/blogs/${blogId}` : '/api/blogs';
+        const method = blogId ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(blogData)
+        });
         const data = await res.json();
-        
         if (data.success) {
             closeBlogEditor();
             loadBlogs();
-            alert(status === 'pending' ? 'Blog submitted for approval!' : 'Blog saved successfully!');
+            alert(status === 'pending' ? 'Blog submitted for approval!' : 'Blog saved as draft!');
         } else {
             alert(data.message || 'Error saving blog');
         }
@@ -905,20 +1134,11 @@ async function editBlog(blogId) {
 
 async function deleteBlog(blogId) {
     if (!confirm('Are you sure you want to delete this blog?')) return;
-    
     try {
-        const res = await fetch(`/api/blogs/${blogId}`, {
-            method: 'DELETE'
-        });
-        
+        const res = await fetch(`/api/blogs/${blogId}`, { method: 'DELETE' });
         const data = await res.json();
-        
-        if (data.success) {
-            loadBlogs();
-            alert('Blog deleted successfully!');
-        } else {
-            alert('Error deleting blog');
-        }
+        if (data.success) { loadBlogs(); alert('Blog deleted successfully!'); }
+        else { alert('Error deleting blog'); }
     } catch (e) {
         console.error('Error deleting blog:', e);
         alert('Error deleting blog');

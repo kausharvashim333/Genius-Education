@@ -3927,10 +3927,11 @@ app.post('/api/blogs', (req, res) => {
     const blogs = readData('blogs.json') || [];
     const slug = uniqueSlug(blogs, makeSlug(title));
     
-    // Faculty submissions default to pending approval
+    // Faculty submissions are ALWAYS restricted to draft or pending (admin approval required)
     let finalStatus = (status || 'published').toLowerCase();
-    if (authorRole === 'faculty' && !['draft', 'scheduled', 'published', 'pending', 'rejected'].includes(finalStatus)) {
-        finalStatus = 'pending';
+    if (authorRole === 'faculty') {
+        // Faculty can only choose 'draft' — anything else (published/scheduled/pending) becomes 'pending' awaiting approval
+        finalStatus = (finalStatus === 'draft') ? 'draft' : 'pending';
     } else if (!['draft', 'scheduled', 'published', 'pending', 'rejected'].includes(finalStatus)) {
         finalStatus = 'published';
     }
@@ -4019,6 +4020,10 @@ app.put('/api/blogs/:id', (req, res) => {
     if (status !== undefined) {
         let s = String(status).toLowerCase();
         if (!['draft', 'scheduled', 'published', 'pending', 'rejected'].includes(s)) s = 'published';
+        // Faculty edits cannot publish/schedule directly — force to draft or pending
+        if (authorRole === 'faculty' || blogs[idx].authorRole === 'faculty') {
+            s = (s === 'draft') ? 'draft' : 'pending';
+        }
         if (s === 'scheduled') {
             const sched = scheduledFor || blogs[idx].scheduledFor;
             const t = sched ? new Date(sched) : null;

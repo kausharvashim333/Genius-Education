@@ -6,7 +6,97 @@
     <title>Faculty Portal - Genius Computer Education</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Quill Rich Text Editor (for blog content) -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
     <style>
+        /* ===== Blog Modal — Glassmorphism (same as admin) ===== */
+        #blogModal { display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); overflow-y: auto; padding: 20px; }
+        #blogModal .modal-content {
+            background: rgba(30, 41, 59, 0.85) !important;
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px !important;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1);
+            color: #f1f5f9; position: relative; overflow: hidden;
+            max-width: 900px; max-height: 90vh; margin: 0 auto; overflow-y: auto;
+        }
+        #blogModal .modal-content::before { content:''; position:absolute; top:-80px; right:-80px; width:240px; height:240px; background: radial-gradient(circle, rgba(102,126,234,0.35) 0%, transparent 70%); border-radius:50%; pointer-events:none; }
+        #blogModal .modal-content::after { content:''; position:absolute; bottom:-80px; left:-80px; width:240px; height:240px; background: radial-gradient(circle, rgba(245,158,11,0.25) 0%, transparent 70%); border-radius:50%; pointer-events:none; }
+        #blogModal .modal-header, #blogModal .modal-body, #blogModal .modal-footer { position: relative; z-index: 1; }
+        #blogModal .modal-header { background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.15); padding: 18px 24px; display:flex; justify-content:space-between; align-items:center; }
+        #blogModal .modal-header h3 { color:#fff; margin:0; font-weight:600; display:flex; align-items:center; gap:10px; }
+        #blogModal .modal-header h3::before { content:'\f044'; font-family:'Font Awesome 6 Free'; font-weight:900; color:#f59e0b; }
+        #blogModal .close-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:20px; transition: all 0.2s; }
+        #blogModal .close-btn:hover { background: rgba(239,68,68,0.3); transform: rotate(90deg); }
+        #blogModal .modal-body { padding: 24px; }
+        #blogModal .modal-footer { background: rgba(255,255,255,0.05); border-top: 1px solid rgba(255,255,255,0.15); padding: 16px 24px; display:flex; justify-content:flex-end; gap:10px; }
+        #blogModal label { color:#e2e8f0 !important; font-size:13px; letter-spacing:0.3px; margin-bottom:6px; }
+        #blogModal label small { color: rgba(255,255,255,0.55) !important; }
+        #blogModal input[type="text"], #blogModal input[type="file"], #blogModal input[type="datetime-local"], #blogModal select, #blogModal textarea {
+            background: rgba(255,255,255,0.08) !important; border: 1px solid rgba(255,255,255,0.18) !important; color:#fff !important;
+            border-radius: 10px !important; padding: 10px 14px !important; transition: all 0.2s;
+        }
+        #blogModal input::placeholder, #blogModal textarea::placeholder { color: rgba(255,255,255,0.4) !important; }
+        #blogModal input:focus, #blogModal select:focus, #blogModal textarea:focus {
+            background: rgba(255,255,255,0.12) !important; border-color: rgba(102,126,234,0.6) !important; outline:none; box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+        }
+        #blogModal select option { background: #1e293b; color:#fff; }
+        #blogModal input[type="file"] { border-style: dashed !important; background: rgba(255,255,255,0.05) !important; cursor: pointer; }
+        #blogModal input[type="file"]::file-selector-button { background: linear-gradient(135deg, #667eea, #764ba2); color:#fff; border:none; padding:6px 14px; border-radius:6px; margin-right:12px; cursor:pointer; font-weight:600; }
+        #blogModal .modal-footer .btn-secondary { background: rgba(255,255,255,0.1); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius:10px; padding: 10px 18px; cursor:pointer; }
+        #blogModal .modal-footer .btn-secondary:hover { background: rgba(255,255,255,0.18); }
+        #blogModal .modal-footer .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius:10px; color:#fff; font-weight:600; padding: 10px 18px; cursor:pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.4); transition: all 0.2s; }
+        #blogModal .modal-footer .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.6); }
+        #blogModal .modal-footer .btn-draft { background: rgba(148,163,184,0.2); color:#fff; border: 1px solid rgba(148,163,184,0.4); border-radius:10px; padding: 10px 18px; cursor:pointer; }
+        #blogModal #blogCoverPreview img { border: 1px solid rgba(255,255,255,0.2) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        #blogModal #blogCoverRemoveBtn { background: rgba(239,68,68,0.2) !important; color:#fca5a5 !important; border: 1px solid rgba(239,68,68,0.4) !important; border-radius: 8px !important; padding: 8px 12px; cursor: pointer; }
+        /* Quill — glass theme */
+        #blogEditorToolbar { background: rgba(255,255,255,0.08) !important; border: 1px solid rgba(255,255,255,0.18) !important; border-bottom: none !important; border-radius: 10px 10px 0 0 !important; padding:8px !important; }
+        #blogEditorToolbar .ql-stroke { stroke: rgba(255,255,255,0.85); }
+        #blogEditorToolbar .ql-fill { fill: rgba(255,255,255,0.85); }
+        #blogEditorToolbar .ql-picker, #blogEditorToolbar .ql-picker-label { color: rgba(255,255,255,0.85); }
+        #blogEditorToolbar button:hover .ql-stroke, #blogEditorToolbar .ql-picker-label:hover { stroke:#f59e0b; color:#f59e0b; }
+        #blogEditorToolbar button:hover .ql-fill { fill:#f59e0b; }
+        #blogEditorToolbar button.ql-active .ql-stroke { stroke:#f59e0b; }
+        #blogEditorToolbar button.ql-active .ql-fill { fill:#f59e0b; }
+        #blogEditorToolbar .ql-picker-options { background: #1e293b !important; color:#fff !important; border-color: rgba(255,255,255,0.2) !important; }
+        #blogEditor { background: rgba(255,255,255,0.06) !important; border: 1px solid rgba(255,255,255,0.18) !important; border-radius: 0 0 10px 10px !important; }
+        #blogEditor .ql-editor { min-height: 280px; font-size:15px; line-height:1.7; color:#f1f5f9; }
+        #blogEditor .ql-editor img { max-width:100%; height:auto; border-radius:6px; margin: 8px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.3); cursor:pointer; }
+        #blogEditor .ql-editor.ql-blank::before { color: rgba(255,255,255,0.4); font-style: normal; }
+        #blogEditor .ql-editor h1, #blogEditor .ql-editor h2, #blogEditor .ql-editor h3 { color:#fff; }
+        #blogEditor .ql-editor a { color:#fbbf24; }
+        #blogEditor .ql-editor blockquote { border-left: 4px solid #f59e0b; background: rgba(245,158,11,0.1); color: rgba(255,255,255,0.9); padding: 10px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; }
+        #blogEditor .ql-editor pre.ql-syntax, #blogEditor .ql-editor code { background: rgba(0,0,0,0.4) !important; color:#fbbf24 !important; border: 1px solid rgba(255,255,255,0.1); border-radius:6px; padding: 8px 12px; }
+        #blogModal .ql-tooltip { background: rgba(30,41,59,0.95) !important; border: 1px solid rgba(255,255,255,0.2) !important; color:#fff !important; border-radius:8px !important; }
+        #blogModal .ql-tooltip input[type="text"] { background: rgba(255,255,255,0.1) !important; border: 1px solid rgba(255,255,255,0.2) !important; color:#fff !important; }
+        #blogModal .ql-tooltip a { color:#fbbf24 !important; }
+        #blogEditor .ql-editor img.blog-img-selected { outline: 3px solid #f59e0b; outline-offset: 2px; }
+        #blogEditor .ql-editor img.img-align-left { float:left; margin: 4px 18px 8px 0; }
+        #blogEditor .ql-editor img.img-align-right { float:right; margin: 4px 0 8px 18px; }
+        #blogEditor .ql-editor img.img-align-center { display:block; margin: 12px auto; }
+        #blogEditor .ql-editor .blog-caption { text-align:center; font-style:italic; color: rgba(255,255,255,0.65); font-size:13px; margin: 4px 0 16px; padding: 0 12px; }
+        .blog-img-popover { background: rgba(15,23,42,0.95); backdrop-filter: blur(20px) saturate(180%); border: 1px solid rgba(255,255,255,0.2); border-radius:12px; padding:12px; box-shadow: 0 12px 40px rgba(0,0,0,0.6); color:#fff; min-width:280px; font-size:13px; }
+        .blog-img-popover .bip-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+        .blog-img-popover .bip-row:last-child { margin-bottom:0; }
+        .blog-img-popover .bip-label { color: rgba(255,255,255,0.7); min-width:70px; font-weight:600; display:inline-flex; align-items:center; gap:6px; }
+        .blog-img-popover .bip-label i { color:#f59e0b; }
+        .blog-img-popover .bip-btns { display:flex; gap:4px; flex:1; }
+        .blog-img-popover .bip-btns button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600; min-width:36px; }
+        .blog-img-popover .bip-btns button:hover { background: rgba(255,255,255,0.2); }
+        .blog-img-popover .bip-btns button.active { background: linear-gradient(135deg, #667eea, #764ba2); border-color: transparent; }
+        .blog-img-popover .bip-caption { flex:1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; font-size:12px; }
+        .blog-img-popover .bip-caption::placeholder { color: rgba(255,255,255,0.4); }
+        .blog-img-popover .bip-delete-row { justify-content:center; padding-top:8px; border-top: 1px solid rgba(255,255,255,0.1); margin-top:4px; }
+        .blog-img-popover .bip-delete { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color:#fca5a5; padding:6px 14px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:6px; }
+        .blog-img-popover .bip-delete:hover { background: rgba(239,68,68,0.4); color:#fff; }
+        #blogEditor .ql-editor::after { content:''; display: table; clear: both; }
+        /* Faculty approval notice */
+        .faculty-approval-notice { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); border-radius:10px; padding: 12px 16px; margin-bottom: 16px; color: #fde68a; display:flex; align-items:flex-start; gap:10px; }
+        .faculty-approval-notice i { color: #f59e0b; font-size:18px; margin-top:2px; }
+        .faculty-approval-notice strong { color: #fff; }
         .hidden { display: none !important; }
         .faculty-portal { display: flex; min-height: 100vh; }
         .faculty-sidebar { width: 250px; background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.1); color: white; padding: 20px; }
@@ -300,52 +390,116 @@
         </div>
     </div>
 
-    <!-- Blog Editor Modal -->
-    <div id="blogEditorModal" class="modal-overlay">
-        <div class="modal-box" style="width:800px;max-width:95%;">
+    <!-- Blog Modal — Rich Quill Editor (mirrors admin panel) -->
+    <div id="blogModal">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3 id="blogEditorTitle">Create Blog Post</h3>
+                <h3 id="blogModalTitle">Create Blog Post</h3>
                 <button class="close-btn" onclick="closeBlogEditor()">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="blogForm">
-                    <input type="hidden" id="blogId">
-                    <div class="form-group">
-                        <label>Title *</label>
-                        <input type="text" id="blogTitle" required>
+                <div class="faculty-approval-notice">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Approval required:</strong> Aapke blogs admin ki approval ke baad public hote hain. <em>Submit for Approval</em> pe click karte hi blog admin ke pending queue me chala jayega. <em>Save as Draft</em> sirf aapke account me save rahega.
                     </div>
-                    <div class="form-group">
-                        <label>Category</label>
-                        <input type="text" id="blogCategory" placeholder="e.g., Technology, Education">
+                </div>
+                <input type="hidden" id="blogId">
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;margin-bottom:4px;font-weight:600;">Title *</label>
+                    <input type="text" id="blogTitle" placeholder="Blog title" style="width:100%;">
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;margin-bottom:4px;font-weight:600;">Category</label>
+                    <select id="blogCategory" style="width:100%;height:42px;">
+                        <option value="General">General</option>
+                        <option value="Education">Education</option>
+                        <option value="Tips">Tips</option>
+                        <option value="News">News</option>
+                        <option value="Announcement">Announcement</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;margin-bottom:4px;font-weight:600;">Cover Image <small>(optional, max 10MB)</small></label>
+                    <input type="hidden" id="blogImage">
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <input type="file" id="blogCoverInput" accept="image/*" onchange="uploadBlogCover(this)" style="flex:1;min-width:200px;">
+                        <button type="button" id="blogCoverRemoveBtn" onclick="removeBlogCover()" style="display:none;"><i class="fas fa-trash"></i> Remove</button>
                     </div>
-                    <div class="form-group">
-                        <label>Excerpt</label>
-                        <input type="text" id="blogExcerpt" placeholder="Brief summary (max 300 chars)" maxlength="300">
+                    <div id="blogCoverPreview" style="margin-top:10px;display:none;">
+                        <img id="blogCoverImg" src="" alt="Cover preview" style="max-width:100%;max-height:200px;border-radius:8px;">
                     </div>
-                    <div class="form-group">
-                        <label>Image URL</label>
-                        <input type="text" id="blogImage" placeholder="https://...">
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;margin-bottom:4px;font-weight:600;">Content * <small>(Use toolbar to format text and insert images anywhere)</small></label>
+                    <div id="blogEditorToolbar">
+                        <span class="ql-formats">
+                            <select class="ql-header">
+                                <option value="1">Heading 1</option>
+                                <option value="2">Heading 2</option>
+                                <option value="3">Heading 3</option>
+                                <option selected>Normal</option>
+                            </select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-bold"></button>
+                            <button class="ql-italic"></button>
+                            <button class="ql-underline"></button>
+                            <button class="ql-strike"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <select class="ql-color"></select>
+                            <select class="ql-background"></select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-list" value="ordered"></button>
+                            <button class="ql-list" value="bullet"></button>
+                            <button class="ql-indent" value="-1"></button>
+                            <button class="ql-indent" value="+1"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <select class="ql-align"></select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-blockquote"></button>
+                            <button class="ql-code-block"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-link"></button>
+                            <button class="ql-image" title="Insert image"></button>
+                            <button class="ql-video" title="Embed YouTube video"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-clean"></button>
+                        </span>
                     </div>
-                    <div class="form-group">
-                        <label>Tags (comma separated)</label>
-                        <input type="text" id="blogTags" placeholder="e.g., programming, web, tutorial">
+                    <div id="blogEditor"></div>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;margin-bottom:4px;font-weight:600;">Tags <small>(comma separated, max 10)</small></label>
+                    <input type="text" id="blogTags" placeholder="e.g. tally, gst, finance" style="width:100%;">
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;margin-bottom:4px;font-weight:600;">Excerpt / Summary <small>(max 300 chars)</small></label>
+                    <textarea id="blogExcerpt" rows="2" maxlength="300" placeholder="Short summary used on listing pages" style="width:100%;font-family:inherit;"></textarea>
+                </div>
+                <details style="margin-bottom:12px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:10px;">
+                    <summary style="cursor:pointer;font-weight:600;color:#e2e8f0;"><i class="fas fa-search"></i> SEO &amp; Social Sharing (optional)</summary>
+                    <div style="margin-top:12px;">
+                        <label style="display:block;margin-bottom:4px;font-size:13px;">Meta Title <small>(max 70 chars)</small></label>
+                        <input type="text" id="blogMetaTitle" maxlength="70" placeholder="Custom title for Google search results" style="width:100%;margin-bottom:10px;">
+                        <label style="display:block;margin-bottom:4px;font-size:13px;">Meta Description <small>(max 200 chars)</small></label>
+                        <textarea id="blogMetaDescription" maxlength="200" rows="2" placeholder="Description for search results" style="width:100%;margin-bottom:10px;font-family:inherit;"></textarea>
+                        <label style="display:block;margin-bottom:4px;font-size:13px;">OG Image URL <small>(1200x630 recommended)</small></label>
+                        <input type="text" id="blogOgImage" placeholder="https://..." style="width:100%;">
                     </div>
-                    <div class="form-group">
-                        <label>Content *</label>
-                        <textarea id="blogContent" rows="10" required style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:6px;font-size:14px;color:#fff;"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select id="blogStatus" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:6px;font-size:14px;color:#fff;">
-                            <option value="draft">Draft</option>
-                            <option value="pending">Submit for Approval</option>
-                        </select>
-                    </div>
-                </form>
+                </details>
+                <input type="hidden" id="blogStatus" value="pending">
             </div>
             <div class="modal-footer">
-                <button type="button" onclick="closeBlogEditor()" class="btn btn-secondary">Cancel</button>
-                <button type="button" onclick="saveBlog()" class="btn btn-primary">Save</button>
+                <button class="btn-secondary" onclick="closeBlogEditor()">Cancel</button>
+                <button class="btn-draft" onclick="saveBlog('draft')"><i class="fas fa-save"></i> Save as Draft</button>
+                <button class="btn-primary" onclick="saveBlog('pending')"><i class="fas fa-paper-plane"></i> Submit for Approval</button>
             </div>
         </div>
     </div>
