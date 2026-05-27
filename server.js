@@ -986,7 +986,7 @@ app.post('/api/faculty/login', async (req, res) => {
     // Get permissions for this user's role
     const rolePermissions = getRolePermissions(user.role);
     
-    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false, permissions: rolePermissions } });
+    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false, canAddExamQuestions: user.canAddExamQuestions || false, canRegisterEntranceExam: user.canRegisterEntranceExam || false, permissions: rolePermissions } });
 });
 
 // Helper function: Get permissions array for a role
@@ -1091,7 +1091,7 @@ app.post('/api/faculty/verify-otp', (req, res) => {
     
     res.json({
         success: true,
-        user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false, permissions: rolePermissions }
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false, canAddExamQuestions: user.canAddExamQuestions || false, canRegisterEntranceExam: user.canRegisterEntranceExam || false, permissions: rolePermissions }
     });
 });
 
@@ -1703,6 +1703,17 @@ app.patch('/api/faculty/:id/exam-question-access', (req, res) => {
     faculty[idx].canAddExamQuestions = newVal;
     writeData('faculty.json', faculty);
     logActivity('faculty.exam-question-access-toggle', { type: 'admin' }, { facultyId: faculty[idx].id, name: faculty[idx].name, canAddExamQuestions: newVal }, req);
+    res.json({ success: true, faculty: faculty[idx] });
+});
+
+app.patch('/api/faculty/:id/entrance-registration-access', (req, res) => {
+    const faculty = readData('faculty.json') || [];
+    const idx = faculty.findIndex(f => f.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Faculty not found' });
+    const newVal = req.body.canRegisterEntranceExam === true;
+    faculty[idx].canRegisterEntranceExam = newVal;
+    writeData('faculty.json', faculty);
+    logActivity('faculty.entrance-registration-access-toggle', { type: 'admin' }, { facultyId: faculty[idx].id, name: faculty[idx].name, canRegisterEntranceExam: newVal }, req);
     res.json({ success: true, faculty: faculty[idx] });
 });
 
@@ -6376,6 +6387,7 @@ app.get('/api/permissions', (req, res) => {
         { id: 'gallery', name: 'Gallery Management' },
         { id: 'blogs', name: 'Blog Management' },
         { id: 'entrance-exam', name: 'Entrance Exam Management' },
+        { id: 'entrance-registration', name: 'Entrance Exam Registration' },
         { id: 'admission', name: 'Admission Submission' },
         { id: 'videos', name: 'Video Learning' },
         { id: 'assignments', name: 'Assignments Management' },
@@ -10149,6 +10161,15 @@ app.get('/api/entrance-registrations', (req, res) => {
 });
 
 app.post('/api/entrance-registrations', (req, res) => {
+    // Check permission for faculty
+    if (req.user && req.user.role !== 'Super Admin' && req.user.role !== 'Admin') {
+        const faculty = readData('faculty.json') || [];
+        const user = faculty.find(f => f.id == req.user.id);
+        if (!user || !user.canRegisterEntranceExam) {
+            return res.status(403).json({ success: false, message: 'You do not have permission to register students for entrance exam' });
+        }
+    }
+    
     const regs = readData('entrance-registrations.json') || [];
     const exams = readData('entrance-exams.json') || [];
     const exam = exams.find(e => e.id == req.body.examId);

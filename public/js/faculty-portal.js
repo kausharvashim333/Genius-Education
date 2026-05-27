@@ -399,6 +399,11 @@ function loadFacultyMenu() {
         menuHTML += '<li><a href="#" onclick="showSection(\'entranceExam\')"><i class="fas fa-file-alt"></i> Entrance Exam</a></li>';
     }
     
+    // Entrance Exam Registration - permission via role OR individual toggle
+    if (currentFaculty.canRegisterEntranceExam || hasPermission('entrance-registration')) {
+        menuHTML += '<li><a href="#" onclick="showSection(\'entranceRegistration\')"><i class="fas fa-user-plus"></i> Entrance Registration</a></li>';
+    }
+    
     menu.innerHTML = menuHTML;
 }
 
