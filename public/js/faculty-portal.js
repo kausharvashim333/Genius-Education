@@ -539,23 +539,40 @@ async function loadCourses() {
     try {
         const courses = await fetch('/api/courses').then(r => r.json());
         const coursesList = document.getElementById('coursesList');
-        
+
         if (!courses.length) {
             coursesList.innerHTML = '<p style="color:rgba(255,255,255,0.7);text-align:center;padding:40px;">No courses found.</p>';
             return;
         }
-        
-        coursesList.innerHTML = '<div class="courses-grid">' + courses.map(course => `
+
+        coursesList.innerHTML = '<div class="courses-grid">' + courses.map(course => {
+            const isActive = course.status === 'active' || !course.status;
+            const badgeClass = isActive ? 'course-card-badge-active' : 'course-card-badge-inactive';
+            const badgeText = isActive ? 'Active' : 'Inactive';
+            return `
             <div class="course-card-glass">
-                <div class="course-card-icon"><i class="fas fa-book-open"></i></div>
-                <h4 class="course-card-title">${course.name || 'Untitled Course'}</h4>
-                ${course.duration ? `<div class="course-card-meta"><i class="fas fa-clock"></i> ${course.duration}</div>` : ''}
-                ${course.fees ? `<div class="course-card-meta"><i class="fas fa-rupee-sign"></i> ${course.fees}</div>` : ''}
+                <div class="course-card-header">
+                    <div class="course-card-icon"><i class="fas fa-book-open"></i></div>
+                    <div>
+                        <h4 class="course-card-title">${course.name || 'Untitled Course'}</h4>
+                        <span class="course-card-badge ${badgeClass}">${badgeText}</span>
+                    </div>
+                </div>
+                <div class="course-card-meta-row">
+                    ${course.duration ? `<div class="course-card-meta"><i class="fas fa-clock"></i> ${course.duration}</div>` : ''}
+                    ${course.fees ? `<div class="course-card-meta"><i class="fas fa-rupee-sign"></i> ${course.fees}</div>` : ''}
+                </div>
                 ${course.description ? `<p class="course-card-desc">${course.description}</p>` : ''}
+                <div class="course-card-actions">
+                    <button class="course-card-btn course-card-btn-primary" onclick="viewCourseDetails(${course.id})">View Details</button>
+                    <button class="course-card-btn course-card-btn-secondary" onclick="editCourse(${course.id})">Edit</button>
+                </div>
             </div>
-        `).join('') + '</div>';
+        `;
+        }).join('') + '</div>';
     } catch (e) {
         console.error('Error loading courses:', e);
+        document.getElementById('coursesList').innerHTML = '<p style="color:#ef4444;text-align:center;padding:40px;">Error loading courses.</p>';
     }
 }
 
