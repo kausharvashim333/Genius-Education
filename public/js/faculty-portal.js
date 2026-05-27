@@ -383,9 +383,20 @@ function loadFacultyMenu() {
         menuHTML += '<li><a href="#" onclick="showSection(\'notices\')"><i class="fas fa-bullhorn"></i> Notices</a></li>';
     }
     
-    // Blog management - only if faculty has permission
-    if (currentFaculty.canWriteBlogs) {
+    // Helper to check permission
+    const hasPermission = (perm) => {
+        const perms = currentFaculty.permissions || [];
+        return perms.includes('all') || perms.includes(perm);
+    };
+    
+    // Blog management - permission via role OR individual toggle
+    if (currentFaculty.canWriteBlogs || hasPermission('blogs')) {
         menuHTML += '<li><a href="#" onclick="showSection(\'blogs\')"><i class="fas fa-blog"></i> Blog Management</a></li>';
+    }
+    
+    // Entrance Exam - permission via role
+    if (hasPermission('entrance-exam')) {
+        menuHTML += '<li><a href="#" onclick="showSection(\'entranceExam\')"><i class="fas fa-file-alt"></i> Entrance Exam</a></li>';
     }
     
     menu.innerHTML = menuHTML;

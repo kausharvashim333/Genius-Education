@@ -983,8 +983,19 @@ app.post('/api/faculty/login', async (req, res) => {
 
     if (!passwordMatch) return res.json({ success: false, message: 'Invalid credentials' });
 
-    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false } });
+    // Get permissions for this user's role
+    const rolePermissions = getRolePermissions(user.role);
+    
+    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false, permissions: rolePermissions } });
 });
+
+// Helper function: Get permissions array for a role
+function getRolePermissions(roleName) {
+    const roles = readData('roles.json') || [];
+    const role = roles.find(r => r.name === roleName);
+    if (!role) return [];
+    return role.permissions || [];
+}
 
 // Faculty OTP Login
 app.post('/api/faculty/send-otp', async (req, res) => {
@@ -1076,9 +1087,11 @@ app.post('/api/faculty/verify-otp', (req, res) => {
     const filteredOtps = otps.filter(o => o.email !== email);
     writeData('faculty-otps.json', filteredOtps);
     
+    const rolePermissions = getRolePermissions(user.role);
+    
     res.json({
         success: true,
-        user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false }
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false, permissions: rolePermissions }
     });
 });
 
@@ -6351,6 +6364,8 @@ app.get('/api/permissions', (req, res) => {
         { id: 'tests', name: 'Tests Management' },
         { id: 'gallery', name: 'Gallery Management' },
         { id: 'blogs', name: 'Blog Management' },
+        { id: 'entrance-exam', name: 'Entrance Exam Management' },
+        { id: 'admission', name: 'Admission Submission' },
         { id: 'videos', name: 'Video Learning' },
         { id: 'assignments', name: 'Assignments Management' },
         { id: 'exam-results', name: 'Exam Results Management' },
