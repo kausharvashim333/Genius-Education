@@ -1842,8 +1842,8 @@ async function toggleFacultyAdmissionAccess(id, currentState) {
 async function toggleFacultyBlogAccess(id, currentState) {
     const newState = !currentState;
     try {
-        const res = await fetch(`/api/faculty/${id}`, {
-            method: 'PUT',
+        const res = await fetch(`/api/faculty/${id}/blog-access`, {
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ canWriteBlogs: newState })
         });
@@ -1859,6 +1859,26 @@ async function toggleFacultyBlogAccess(id, currentState) {
     }
 }
 
+async function toggleFacultyExamQuestionAccess(id, currentState) {
+    const newState = !currentState;
+    try {
+        const res = await fetch(`/api/faculty/${id}/exam-question-access`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ canAddExamQuestions: newState })
+        });
+        const data = await res.json();
+        if (data.success) {
+            loadFacultyTable();
+            showNotification(`Exam question access ${newState ? 'enabled' : 'disabled'} for ${data.faculty.name}`, 'success');
+        } else {
+            showNotification(data.message || 'Failed to toggle access', 'error');
+        }
+    } catch (err) {
+        showNotification('Error toggling exam question access', 'error');
+    }
+}
+
 async function loadFacultyTable() {
     try {
         const faculty = await fetch('/api/faculty').then(r => r.json());
@@ -1866,7 +1886,7 @@ async function loadFacultyTable() {
         if (!tbody) return;
         
         if (faculty.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No faculty members</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No faculty members</td></tr>';
             return;
         }
         
@@ -1889,6 +1909,12 @@ async function loadFacultyTable() {
             const canWrite = f.canWriteBlogs === true;
             html += '<button class="action-btn ' + (canWrite ? 'success-btn' : 'warning-btn') + '" onclick="toggleFacultyBlogAccess(' + f.id + ', ' + canWrite + ')" title="Toggle blog access">';
             html += canWrite ? '<i class="fas fa-check-circle"></i> Enabled' : '<i class="fas fa-times-circle"></i> Disabled';
+            html += '</button>';
+            html += '</td>';
+            html += '<td>';
+            const canAddQ = f.canAddExamQuestions === true;
+            html += '<button class="action-btn ' + (canAddQ ? 'success-btn' : 'warning-btn') + '" onclick="toggleFacultyExamQuestionAccess(' + f.id + ', ' + canAddQ + ')" title="Toggle exam question access">';
+            html += canAddQ ? '<i class="fas fa-check-circle"></i> Enabled' : '<i class="fas fa-times-circle"></i> Disabled';
             html += '</button>';
             html += '</td>';
             html += '<td>';

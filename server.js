@@ -1695,6 +1695,17 @@ app.patch('/api/faculty/:id/blog-access', (req, res) => {
     res.json({ success: true, faculty: faculty[idx] });
 });
 
+app.patch('/api/faculty/:id/exam-question-access', (req, res) => {
+    const faculty = readData('faculty.json') || [];
+    const idx = faculty.findIndex(f => f.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Faculty not found' });
+    const newVal = req.body.canAddExamQuestions === true;
+    faculty[idx].canAddExamQuestions = newVal;
+    writeData('faculty.json', faculty);
+    logActivity('faculty.exam-question-access-toggle', { type: 'admin' }, { facultyId: faculty[idx].id, name: faculty[idx].name, canAddExamQuestions: newVal }, req);
+    res.json({ success: true, faculty: faculty[idx] });
+});
+
 // Helper: validate apply verify token
 function consumeApplyVerifyToken(email, token) {
     if (!email || !token) return false;
@@ -9947,6 +9958,15 @@ app.get('/api/entrance-questions', (req, res) => {
 });
 
 app.post('/api/entrance-questions', (req, res) => {
+    // Check permission for faculty
+    if (req.user && req.user.role !== 'Super Admin' && req.user.role !== 'Admin') {
+        const faculty = readData('faculty.json') || [];
+        const user = faculty.find(f => f.id == req.user.id);
+        if (!user || !user.canAddExamQuestions) {
+            return res.status(403).json({ success: false, message: 'You do not have permission to add exam questions' });
+        }
+    }
+    
     const questions = readData('entrance-questions.json') || [];
     const question = {
         id: Date.now() + Math.floor(Math.random() * 1000),
@@ -9965,6 +9985,15 @@ app.post('/api/entrance-questions', (req, res) => {
 });
 
 app.put('/api/entrance-questions/:id', (req, res) => {
+    // Check permission for faculty
+    if (req.user && req.user.role !== 'Super Admin' && req.user.role !== 'Admin') {
+        const faculty = readData('faculty.json') || [];
+        const user = faculty.find(f => f.id == req.user.id);
+        if (!user || !user.canAddExamQuestions) {
+            return res.status(403).json({ success: false, message: 'You do not have permission to edit exam questions' });
+        }
+    }
+    
     const questions = readData('entrance-questions.json') || [];
     const idx = questions.findIndex(q => q.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Question not found' });
@@ -9974,6 +10003,15 @@ app.put('/api/entrance-questions/:id', (req, res) => {
 });
 
 app.post('/api/entrance-questions/bulk-delete', (req, res) => {
+    // Check permission for faculty
+    if (req.user && req.user.role !== 'Super Admin' && req.user.role !== 'Admin') {
+        const faculty = readData('faculty.json') || [];
+        const user = faculty.find(f => f.id == req.user.id);
+        if (!user || !user.canAddExamQuestions) {
+            return res.status(403).json({ success: false, message: 'You do not have permission to delete exam questions' });
+        }
+    }
+    
     const { ids } = req.body || {};
     if (!Array.isArray(ids) || !ids.length) return res.status(400).json({ success: false, message: 'No IDs provided' });
     let questions = readData('entrance-questions.json') || [];
@@ -9985,6 +10023,15 @@ app.post('/api/entrance-questions/bulk-delete', (req, res) => {
 });
 
 app.delete('/api/entrance-questions/:id', (req, res) => {
+    // Check permission for faculty
+    if (req.user && req.user.role !== 'Super Admin' && req.user.role !== 'Admin') {
+        const faculty = readData('faculty.json') || [];
+        const user = faculty.find(f => f.id == req.user.id);
+        if (!user || !user.canAddExamQuestions) {
+            return res.status(403).json({ success: false, message: 'You do not have permission to delete exam questions' });
+        }
+    }
+    
     let questions = readData('entrance-questions.json') || [];
     questions = questions.filter(q => q.id != req.params.id);
     writeData('entrance-questions.json', questions);
@@ -9993,6 +10040,15 @@ app.delete('/api/entrance-questions/:id', (req, res) => {
 
 // --- Bulk Question Upload (CSV/TSV) ---
 app.post('/api/entrance-questions/bulk-upload', uploadBulk.single('file'), (req, res) => {
+    // Check permission for faculty
+    if (req.user && req.user.role !== 'Super Admin' && req.user.role !== 'Admin') {
+        const faculty = readData('faculty.json') || [];
+        const user = faculty.find(f => f.id == req.user.id);
+        if (!user || !user.canAddExamQuestions) {
+            return res.status(403).json({ success: false, message: 'You do not have permission to upload exam questions' });
+        }
+    }
+    
     try {
         if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
         const examId = req.body.examId;
