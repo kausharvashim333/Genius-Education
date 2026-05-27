@@ -441,9 +441,6 @@ function loadFacultyMenu() {
                 </ul>
             </li>`;
     }
-
-    // Student Registration (Regular Exams)
-    menuHTML += '<li><a href="#" onclick="showSection(\'studentRegistration\'); return false;"><i class="fas fa-user-plus"></i> Student Registration</a></li>';
     
     menu.innerHTML = menuHTML;
 }
@@ -511,8 +508,7 @@ function showSection(section) {
         'entranceRegistrations': 'Exam Registrations',
         'entranceMonitor': 'Live Monitoring',
         'entranceResults': 'Exam Results',
-        'entranceStudentRegistration': 'Entrance Exam Student Registration',
-        'studentRegistration': 'Student Registration'
+        'entranceStudentRegistration': 'Entrance Exam Student Registration'
     };
     document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
 
@@ -535,7 +531,6 @@ function showSection(section) {
     if (section === 'entranceMonitor') loadEntranceMonitor();
     if (section === 'entranceResults') loadEntranceResults();
     if (section === 'entranceStudentRegistration') loadEntranceStudentRegistration();
-    if (section === 'studentRegistration') loadStudentRegistration();
 }
 
 async function loadFacultyStats() {
@@ -1151,225 +1146,6 @@ async function loadResultsData(examId) {
     } catch (e) {
         console.error('Error loading results data:', e);
         document.getElementById('resultsData').innerHTML = '<p style="color:red;">Error loading results data.</p>';
-    }
-}
-
-// ===== Student Registration Functions =====
-async function loadStudentRegistration() {
-    try {
-        const [registrations, students] = await Promise.all([
-            fetch('/api/exam-registrations').then(r => r.json()),
-            fetch('/api/students').then(r => r.json())
-        ]);
-
-        const studentsMap = {};
-        (students || []).forEach(s => { studentsMap[s.id] = s; });
-
-        const tbody = document.querySelector('#studentRegistrationTable tbody');
-
-        if (!registrations || registrations.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:20px;">No exam registrations found</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = registrations.map(reg => {
-            const student = studentsMap[reg.studentId] || {};
-            return `
-                <tr>
-                    <td>${student.name || 'Unknown'}</td>
-                    <td>${reg.examName || 'N/A'}</td>
-                    <td>${reg.course || 'N/A'}</td>
-                    <td>${reg.rollNo || 'N/A'}</td>
-                    <td><span style="color:${reg.status === 'Confirmed' ? '#16a34a' : reg.status === 'Rejected' ? '#ef4444' : '#f59e0b'};">${reg.status}</span></td>
-                    <td><span style="color:${reg.paymentStatus === 'Paid' ? '#16a34a' : reg.paymentStatus === 'Failed' ? '#ef4444' : '#f59e0b'};">${reg.paymentStatus}</span></td>
-                    <td>${formatDate(reg.registrationDate)}</td>
-                    <td>
-                        <button onclick="editRegistration(${reg.id})" class="btn btn-primary" style="padding:5px 10px;font-size:12px;margin-right:5px;"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteRegistration(${reg.id})" class="btn btn-danger" style="padding:5px 10px;font-size:12px;"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    } catch (e) {
-        console.error('Error loading student registrations:', e);
-        document.querySelector('#studentRegistrationTable tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:#ef4444;">Error loading registrations</td></tr>';
-    }
-}
-
-function openRegistrationModal(registrationId = null) {
-    document.getElementById('registrationModalTitle').textContent = registrationId ? 'Edit Registration' : 'Register Student';
-    document.getElementById('registrationId').value = registrationId || '';
-
-    // Load dropdowns
-    loadRegistrationDropdowns();
-
-    if (registrationId) {
-        // Load existing registration data
-        loadRegistrationForEdit(registrationId);
-    } else {
-        // Clear form
-        document.getElementById('registrationStudent').value = '';
-        document.getElementById('registrationExam').value = '';
-        document.getElementById('registrationCourse').value = '';
-        document.getElementById('registrationRollNo').value = '';
-        document.getElementById('registrationStatus').value = 'Pending';
-        document.getElementById('registrationPayment').value = 'Pending';
-    }
-
-    document.getElementById('registrationModal').classList.add('active');
-}
-
-function closeRegistrationModal() {
-    document.getElementById('registrationModal').classList.remove('active');
-    document.getElementById('registrationModal').querySelector('form')?.reset();
-}
-
-async function loadRegistrationDropdowns() {
-    try {
-        const [students, exams, courses] = await Promise.all([
-            fetch('/api/students').then(r => r.json()),
-            fetch('/api/exam-schedule').then(r => r.json()),
-            fetch('/api/courses').then(r => r.json())
-        ]);
-
-        // Populate students dropdown
-        const studentSelect = document.getElementById('registrationStudent');
-        studentSelect.innerHTML = '<option value="">Select Student</option>';
-        (students || []).forEach(s => {
-            studentSelect.innerHTML += `<option value="${s.id}">${s.name} (${s.email})</option>`;
-        });
-
-        // Populate exams dropdown
-        const examSelect = document.getElementById('registrationExam');
-        examSelect.innerHTML = '<option value="">Select Exam</option>';
-        (exams || []).forEach(e => {
-            examSelect.innerHTML += `<option value="${e.id}">${e.exam}</option>`;
-        });
-
-        // Populate courses dropdown
-        const courseSelect = document.getElementById('registrationCourse');
-        courseSelect.innerHTML = '<option value="">Select Course</option>';
-        (courses || []).forEach(c => {
-            courseSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-        });
-    } catch (e) {
-        console.error('Error loading dropdowns:', e);
-    }
-}
-
-async function loadRegistrationForEdit(id) {
-    try {
-        const res = await fetch('/api/exam-registrations');
-        const registrations = await res.json();
-        const reg = registrations.find(r => r.id === id);
-
-        if (reg) {
-            document.getElementById('registrationStudent').value = reg.studentId || '';
-            document.getElementById('registrationExam').value = reg.examId || '';
-            document.getElementById('registrationCourse').value = reg.course || '';
-            document.getElementById('registrationRollNo').value = reg.rollNo || '';
-            document.getElementById('registrationStatus').value = reg.status || 'Pending';
-            document.getElementById('registrationPayment').value = reg.paymentStatus || 'Pending';
-        }
-    } catch (e) {
-        console.error('Error loading registration:', e);
-    }
-}
-
-async function saveRegistration() {
-    const id = document.getElementById('registrationId').value;
-    const studentId = document.getElementById('registrationStudent').value;
-    const examId = document.getElementById('registrationExam').value;
-    const course = document.getElementById('registrationCourse').value;
-    const rollNo = document.getElementById('registrationRollNo').value;
-    const status = document.getElementById('registrationStatus').value;
-    const paymentStatus = document.getElementById('registrationPayment').value;
-
-    if (!studentId || !examId || !course || !rollNo) {
-        alert('Please fill all required fields');
-        return;
-    }
-
-    try {
-        const method = id ? 'PUT' : 'POST';
-        const url = id ? '/api/exam-registrations/' + id : '/api/exam-registrations';
-
-        const data = {
-            studentId: parseInt(studentId),
-            examId: parseInt(examId),
-            course,
-            rollNo,
-            status,
-            paymentStatus,
-            registrationDate: new Date().toISOString().split('T')[0]
-        };
-
-        const res = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-
-        const result = await res.json();
-
-        if (result.success) {
-            alert(id ? 'Registration updated!' : 'Student registered!');
-            closeRegistrationModal();
-            loadStudentRegistration();
-        } else {
-            alert(result.message || 'Error saving registration!');
-        }
-    } catch (e) {
-        console.error('Error saving registration:', e);
-        alert('Error saving registration!');
-    }
-}
-
-async function editRegistration(id) {
-    openRegistrationModal(id);
-}
-
-async function deleteRegistration(id) {
-    if (!confirm('Are you sure you want to delete this registration?')) return;
-
-    try {
-        const res = await fetch('/api/exam-registrations/' + id, { method: 'DELETE' });
-        const data = await res.json();
-
-        if (data.success) {
-            alert('Registration deleted!');
-            loadStudentRegistration();
-        } else {
-            alert('Error deleting registration!');
-        }
-    } catch (e) {
-        console.error('Error deleting registration:', e);
-        alert('Error deleting registration!');
-    }
-}
-
-async function generateRollNumber() {
-    const course = document.getElementById('registrationCourse').value;
-    if (!course) {
-        alert('Please select a course first');
-        return;
-    }
-
-    try {
-        const res = await fetch('/api/exam-registrations');
-        const registrations = await res.json();
-
-        const courseRegs = registrations.filter(r => r.course === course);
-        const maxRollNo = courseRegs.reduce((max, r) => {
-            const num = parseInt(r.rollNo);
-            return num > max ? num : max;
-        }, 0);
-
-        const newRollNo = String(maxRollNo + 1).padStart(4, '0');
-        document.getElementById('registrationRollNo').value = newRollNo;
-    } catch (e) {
-        console.error('Error generating roll number:', e);
-        alert('Error generating roll number');
     }
 }
 

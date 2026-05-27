@@ -438,18 +438,6 @@
                     <div id="entranceResultsList"></div>
                 </div>
 
-                <div id="studentRegistrationContent" class="faculty-content-section">
-                    <h3>Student Registration</h3>
-                    <p style="color:#94a3b8;margin-bottom:15px;">Yahan aap students ko exams ke liye register kar sakte hain.</p>
-                    <div style="margin-bottom:20px;">
-                        <button onclick="openRegistrationModal()" class="btn btn-primary"><i class="fas fa-plus"></i> Register Student</button>
-                    </div>
-                    <table class="data-table" id="studentRegistrationTable">
-                        <thead><tr><th>Student</th><th>Exam</th><th>Course</th><th>Roll No</th><th>Status</th><th>Fee Status</th><th>Registration Date</th><th>Action</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-
                 <div id="entranceStudentRegistrationContent" class="faculty-content-section">
                     <h3>Entrance Exam Student Registration</h3>
                     <p style="color:#94a3b8;margin-bottom:15px;">Yahan aap students ko entrance exams ke liye register kar sakte hain.</p>
@@ -575,63 +563,6 @@
                 <button class="btn-secondary" onclick="closeBlogEditor()">Cancel</button>
                 <button class="btn-draft" onclick="saveBlog('draft')"><i class="fas fa-save"></i> Save as Draft</button>
                 <button class="btn-primary" onclick="saveBlog('pending')"><i class="fas fa-paper-plane"></i> Submit for Approval</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Student Registration Modal -->
-    <div id="registrationModal" class="modal">
-        <div class="modal-content" style="max-width:700px;">
-            <div class="modal-header">
-                <h3 id="registrationModalTitle">Register Student</h3>
-                <button class="close-btn" onclick="closeRegistrationModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="registrationId">
-                <div style="margin-bottom:12px;">
-                    <label style="display:block;margin-bottom:4px;font-weight:600;">Student *</label>
-                    <select id="registrationStudent" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
-                        <option value="">Select Student</option>
-                    </select>
-                </div>
-                <div style="margin-bottom:12px;">
-                    <label style="display:block;margin-bottom:4px;font-weight:600;">Exam *</label>
-                    <select id="registrationExam" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
-                        <option value="">Select Exam</option>
-                    </select>
-                </div>
-                <div style="margin-bottom:12px;">
-                    <label style="display:block;margin-bottom:4px;font-weight:600;">Course *</label>
-                    <select id="registrationCourse" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
-                        <option value="">Select Course</option>
-                    </select>
-                </div>
-                <div style="margin-bottom:12px;">
-                    <label style="display:block;margin-bottom:4px;font-weight:600;">Roll Number *</label>
-                    <input type="text" id="registrationRollNo" placeholder="e.g., 2024001" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;">
-                    <button type="button" class="btn btn-secondary" onclick="generateRollNumber()" style="margin-top:5px;padding:4px 8px;font-size:12px;">Auto Generate</button>
-                </div>
-                <div style="margin-bottom:12px;">
-                    <label style="display:block;margin-bottom:4px;font-weight:600;">Status *</label>
-                    <select id="registrationStatus" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
-                        <option value="Pending">Pending</option>
-                        <option value="Confirmed">Confirmed</option>
-                        <option value="Rejected">Rejected</option>
-                        <option value="Completed">Completed</option>
-                    </select>
-                </div>
-                <div style="margin-bottom:12px;">
-                    <label style="display:block;margin-bottom:4px;font-weight:600;">Payment Status *</label>
-                    <select id="registrationPayment" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;height:40px;">
-                        <option value="Pending">Pending</option>
-                        <option value="Paid">Paid</option>
-                        <option value="Failed">Failed</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeRegistrationModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveRegistration()">Save Registration</button>
             </div>
         </div>
     </div>
