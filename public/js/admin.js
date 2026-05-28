@@ -1899,8 +1899,8 @@ function applyRolePreset() {
     deselectAllPermissions();
 
     const presets = {
-        Faculty: ['students', 'courses', 'batches', 'assignments', 'attendance', 'materials', 'results', 'online-exam', 'test'],
-        Staff: ['enquiries', 'attendance', 'materials', 'notices'],
+        Faculty: ['students', 'courses', 'batches', 'materials', 'results', 'online-exam', 'test'],
+        Staff: ['enquiries', 'attendance', 'materials', 'notices', 'admissions'],
         Admin: ['all']
     };
 
@@ -1980,12 +1980,12 @@ async function loadFacultyTable() {
         const faculty = await fetch('/api/faculty').then(r => r.json());
         const tbody = document.querySelector('#facultyTable tbody');
         if (!tbody) return;
-        
+
         if (faculty.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No faculty members</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No faculty members</td></tr>';
             return;
         }
-        
+
         tbody.innerHTML = faculty.map(f => {
             let html = '';
             html += '<tr>';
@@ -1995,24 +1995,8 @@ async function loadFacultyTable() {
             html += '<td>' + f.subject + '</td>';
             html += '<td>' + f.experience + '</td>';
             html += '<td>' + (f.role || 'Faculty') + '</td>';
-            html += '<td>';
-            const canSubmit = f.canSubmitAdmission === true;
-            html += '<button class="action-btn ' + (canSubmit ? 'success-btn' : 'warning-btn') + '" onclick="toggleFacultyAdmissionAccess(' + f.id + ', ' + canSubmit + ')" title="Toggle admission access">';
-            html += canSubmit ? '<i class="fas fa-check-circle"></i> Enabled' : '<i class="fas fa-times-circle"></i> Disabled';
-            html += '</button>';
-            html += '</td>';
-            html += '<td>';
-            const canWrite = f.canWriteBlogs === true;
-            html += '<button class="action-btn ' + (canWrite ? 'success-btn' : 'warning-btn') + '" onclick="toggleFacultyBlogAccess(' + f.id + ', ' + canWrite + ')" title="Toggle blog access">';
-            html += canWrite ? '<i class="fas fa-check-circle"></i> Enabled' : '<i class="fas fa-times-circle"></i> Disabled';
-            html += '</button>';
-            html += '</td>';
-            html += '<td>';
-            const canEntrance = f.canManageEntranceExam === true;
-            html += '<button class="action-btn ' + (canEntrance ? 'success-btn' : 'warning-btn') + '" onclick="toggleFacultyEntranceManagementAccess(' + f.id + ', ' + canEntrance + ')" title="Toggle full entrance exam management access">';
-            html += canEntrance ? '<i class="fas fa-check-circle"></i> Enabled' : '<i class="fas fa-times-circle"></i> Disabled';
-            html += '</button>';
-            html += '</td>';
+            const permCount = (f.permissions && f.permissions.length) ? f.permissions.length : 0;
+            html += '<td><span style="background:#3b82f6;color:#fff;padding:4px 10px;border-radius:12px;font-size:12px;">' + permCount + ' permissions</span></td>';
             html += '<td>';
             html += '<button class="action-btn edit-btn" onclick="openFacultyEditModal(' + f.id + ')"><i class="fas fa-edit"></i></button>';
             html += '<button class="action-btn delete-btn" onclick="deleteFaculty(' + f.id + ')"><i class="fas fa-trash"></i></button>';
