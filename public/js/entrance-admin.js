@@ -1127,9 +1127,10 @@ async function downloadEntranceResultPdf() {
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pageWidth = 210;
-        const imgWidth = pageWidth - 20;
+        const margin = 25.4; // 1 inch in mm
+        const imgWidth = pageWidth - (margin * 2);
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
         pdf.save('entrance-result-' + (currentPreviewResult.registrationNo || 'student') + '.pdf');
     } catch (e) { 
         console.error('PDF error:', e);
