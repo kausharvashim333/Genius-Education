@@ -882,6 +882,13 @@ app.get('/api/faculty', (req, res) => {
     res.json(readData('faculty.json') || []);
 });
 
+app.get('/api/faculty/:id', (req, res) => {
+    const faculty = readData('faculty.json') || [];
+    const facultyMember = faculty.find(f => f.id == req.params.id);
+    if (!facultyMember) return res.status(404).json({ success: false, message: 'Faculty not found' });
+    res.json(facultyMember);
+});
+
 app.post('/api/faculty', async (req, res) => {
     const faculty = readData('faculty.json') || [];
     const crypto = require('crypto');
