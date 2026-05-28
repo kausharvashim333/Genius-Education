@@ -792,7 +792,7 @@ function onWindowBlur() {
 
 function onFullscreenChange() {
     const isFs = document.fullscreenElement || document.webkitFullscreenElement;
-    if (!isFs && currentAttempt && !currentAttempt.submitted) {
+    if (!isFs && currentAttempt && !currentAttempt.submitted && securityEnabled) {
         reportViolation('fullscreen_exit', 'Exited fullscreen');
         // Try re-entering after a brief delay
         setTimeout(() => requestFullscreen(), 800);
