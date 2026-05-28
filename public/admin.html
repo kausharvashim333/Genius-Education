@@ -1291,6 +1291,14 @@
                         <p style="margin:6px 0;">For any queries, please contact the institute administration.</p>
                         <p style="margin:6px 0;font-size:12px;">Generated on: <span id="adminPrintGeneratedDate"></span></p>
                     </div>
+
+                    <!-- QR Code Section -->
+                    <div style="margin-top:25px;text-align:center;">
+                        <div id="adminPrintQRCode" style="display:inline-block;padding:15px;background:white;border:2px solid #1e40af;border-radius:8px;">
+                            <img id="adminPrintQRImage" src="" alt="QR Code" style="width:100px;height:100px;">
+                        </div>
+                        <p style="margin-top:8px;font-size:11px;color:#64748b;">Scan to verify admission</p>
+                    </div>
                 </div>
                 <div style="text-align:center;padding:25px;background:#f1f5f9;">
                     <button onclick="printAdminApplication()" style="padding:14px 35px;background:#1e40af;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:600;"><i class="fas fa-print"></i> Print Application</button>
@@ -4884,6 +4892,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://www.google.com/recaptcha/api.js?render=6LfDe_gsAAAAALle5tiQY_6WnVgp-wrRrhwlqk9t"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/entrance-admin.js"></script>
     <script>

@@ -9472,18 +9472,18 @@ async function checkAdminDuplicateAadhar() {
 async function populateAdminPrintSection(student, paymentMode, paymentType, amountPaid) {
     // Fetch settings for institute info
     const settings = await fetch('/api/settings').then(r => r.json());
-    
+
     // Institute info
     document.getElementById('adminPrintInstituteName').textContent = settings.name || 'Genius Computer Education';
     document.getElementById('adminPrintInstituteAddress').textContent = settings.address || 'Institute Address';
     document.getElementById('adminPrintInstitutePhone').textContent = 'Phone: ' + (settings.phone || 'XXXXXXXXXX') + ' | Email: ' + (settings.email || 'contact@institute.com');
-    
+
     // Logo
     if (settings.logo) {
         document.getElementById('adminPrintLogo').src = settings.logo;
         document.getElementById('adminPrintWatermark').src = settings.logo;
     }
-    
+
     // Personal info
     document.getElementById('adminPrintAppId').textContent = student.rollNo || '-';
     document.getElementById('adminPrintDate').textContent = formatDate(new Date());
@@ -9497,14 +9497,24 @@ async function populateAdminPrintSection(student, paymentMode, paymentType, amou
     document.getElementById('adminPrintEmail').textContent = student.email || '-';
     document.getElementById('adminPrintAadhar').textContent = student.aadhar || '-';
     document.getElementById('adminPrintIncome').textContent = student.familyIncome || '-';
-    
+
     // Course info
     document.getElementById('adminPrintCourse').textContent = student.course || '-';
     document.getElementById('adminPrintBatch').textContent = student.batch || '-';
-    
+
     // Photo and signature
     if (student.photo) document.getElementById('adminPrintPhoto').src = student.photo;
     if (student.signature) document.getElementById('adminPrintSignature').src = student.signature;
+
+    // Generate QR code for admission verification
+    try {
+        const verifyUrl = `${settings.websiteUrl || window.location.origin}/verify-admission?rollNo=${student.rollNo}`;
+        const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, { width: 100, margin: 1 });
+        document.getElementById('adminPrintQRImage').src = qrCodeDataUrl;
+    } catch (e) {
+        console.error('Error generating QR code:', e);
+        document.getElementById('adminPrintQRImage').src = '';
+    }
     
     // Qualification
     const qual = typeof student.qualification === 'string' ? JSON.parse(student.qualification) : student.qualification;
