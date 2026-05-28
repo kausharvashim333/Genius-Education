@@ -1003,76 +1003,91 @@ function insertTable() {
 
 function renderEntranceResultHtml(r) {
     const percentage = parseFloat(r.percentage) || 0;
-    const scoreColor = percentage >= 60 ? '#059669' : (percentage >= 40 ? '#d97706' : '#dc2626');
     const s = pdfCustomSettings;
     
     // Use institute logo from settings, fallback to default icon
     const logoUrl = instituteSettings && instituteSettings.logo ? instituteSettings.logo : '';
     const logoHtml = logoUrl 
-        ? '<img src="' + logoUrl + '" style="width:60px;height:60px;object-fit:contain;border:2px solid ' + s.headerColor + ';border-radius:6px;padding:3px;background:#fff;" alt="Logo">'
-        : '<div style="width:60px;height:60px;background:#f3f4f6;border:2px solid ' + s.headerColor + ';border-radius:6px;display:flex;align-items:center;justify-content:center;"><span style="font-size:28px;color:' + s.headerColor + ';">🎓</span></div>';
+        ? '<img src="' + logoUrl + '" style="width:80px;height:80px;object-fit:contain;border:3px solid ' + s.headerColor + ';border-radius:8px;padding:4px;background:#fff;" alt="Logo">'
+        : '<div style="width:80px;height:80px;background:linear-gradient(135deg,' + s.headerColor + '40,' + s.headerColor + '20);border:3px solid ' + s.headerColor + ';border-radius:8px;display:flex;align-items:center;justify-content:center;"><span style="font-size:36px;">🎓</span></div>';
     
     // Logo watermark
     const watermarkHtml = logoUrl 
-        ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.03;pointer-events:none;z-index:0;"><img src="' + logoUrl + '" style="width:250px;height:250px;object-fit:contain;" alt="Watermark"></div>'
+        ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.04;pointer-events:none;z-index:0;"><img src="' + logoUrl + '" style="width:300px;height:300px;object-fit:contain;" alt="Watermark"></div>'
         : '';
     
     // Generate course buttons
     const courseList = s.courses ? s.courses.split(',').map(c => c.trim()).filter(c => c) : [];
     const courseButtonsHtml = courseList.length > 0 
-        ? '<div style="margin-top:12px;"><h4 style="margin:0 0 5px 0;color:' + s.headerColor + ';font-size:11px;font-weight:bold;">Available Courses:</h4><div style="display:flex;flex-direction:column;gap:4px;">' +
-          courseList.map(course => '<span style="background:' + s.headerColor + ';color:#fff;padding:6px 12px;border-radius:4px;font-size:11px;font-weight:500;text-align:center;">' + course + '</span>').join('') +
+        ? '<div style="margin-top:15px;"><h4 style="margin:0 0 8px 0;color:' + s.headerColor + ';font-size:12px;font-weight:bold;letter-spacing:0.5px;">ELIGIBLE COURSES</h4><div style="display:flex;flex-direction:column;gap:6px;">' +
+          courseList.map(course => '<span style="background:linear-gradient(135deg,' + s.headerColor + ',' + s.headerColor + '80);color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.1);">' + course + '</span>').join('') +
           '</div></div>'
         : '';
     
-    // Instructions section - ensure table text is black and borders show
+    // Instructions section
     const instructionsHtml = s.instructions 
-        ? '<div style="margin-top:12px;padding:10px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;box-sizing:border-box;"><h4 style="margin:0 0 6px 0;color:#92400e;font-size:11px;font-weight:bold;">Instructions:</h4><div style="margin:0;color:#000;font-size:13px;line-height:1.6;word-wrap:break-word;overflow-wrap:break-word;">' + s.instructions + '</div></div>'
+        ? '<div style="margin-top:15px;padding:12px;background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;box-sizing:border-box;"><h4 style="margin:0 0 8px 0;color:#92400e;font-size:12px;font-weight:bold;letter-spacing:0.5px;">IMPORTANT NOTES</h4><div style="margin:0;color:#000;font-size:11px;line-height:1.7;word-wrap:break-word;overflow-wrap:break-word;">' + s.instructions + '</div></div>'
         : '';
     
-    return '<div id="entResultPdfArea" style="background:#fff;color:' + s.textColor + ';padding:10px;font-family:\'Arial\',\'Helvetica\',sans-serif;width:210mm;min-height:297mm;box-sizing:border-box;position:relative;">' +
+    return '<div id="entResultPdfArea" style="background:#fff;color:' + s.textColor + ';padding:15px;font-family:\'Arial\',\'Helvetica\',sans-serif;width:210mm;min-height:297mm;box-sizing:border-box;position:relative;">' +
         watermarkHtml +
-        '<div style="border:2px solid ' + s.headerColor + ';padding:10px;height:100%;position:relative;z-index:1;">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:2px solid ' + s.headerColor + ';padding-bottom:8px;">' +
+        '<div style="border:3px solid ' + s.headerColor + ';border-radius:12px;padding:20px;height:100%;position:relative;z-index:1;background:linear-gradient(to bottom,#ffffff,#fafafa);">' +
+        
+        // Header Section
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:15px;border-bottom:3px solid ' + s.headerColor + ';">' +
         '<div style="flex:1;">' + logoHtml + '</div>' +
         '<div style="flex:2;text-align:center;">' +
-        '<h1 style="margin:0;font-size:26px;color:' + s.headerColor + ';font-weight:bold;letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + s.instituteName + '</h1>' +
-        '<p style="margin:3px 0 0 0;color:' + s.textColor + ';font-size:12px;font-weight:500;">' + s.tagline + '</p>' +
-        (s.address ? '<p style="margin:2px 0 0 0;color:' + s.textColor + ';font-size:10px;">' + s.address + '</p>' : '') +
+        '<h1 style="margin:0;font-size:28px;color:' + s.headerColor + ';font-weight:bold;letter-spacing:1px;text-transform:uppercase;">' + s.instituteName + '</h1>' +
+        '<p style="margin:8px 0 0 0;color:' + s.textColor + ';font-size:13px;font-weight:600;letter-spacing:0.5px;">' + s.tagline + '</p>' +
+        (s.address ? '<p style="margin:4px 0 0 0;color:' + s.textColor + ';font-size:11px;opacity:0.8;">' + s.address + '</p>' : '') +
         '</div>' +
         '<div style="flex:1;"></div>' +
         '</div>' +
-        '<div style="text-align:center;margin-bottom:10px;">' +
-        '<p style="margin:0;color:' + s.textColor + ';font-size:11px;font-weight:500;">Official Examination Scorecard</p>' +
+        
+        // Title Section
+        '<div style="text-align:center;margin-bottom:25px;padding:15px;background:linear-gradient(135deg,' + s.headerColor + '20,' + s.headerColor + '10);border-radius:8px;border:2px solid ' + s.headerColor + ';">' +
+        '<h2 style="margin:0;color:' + s.headerColor + ';font-size:20px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">OFFICIAL EXAMINATION SCORECARD</h2>' +
         '</div>' +
-        '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;">' +
-        '<tr style="background:#f3f4f6;"><td style="padding:6px 8px;border:1px solid #d1d5db;font-weight:bold;color:' + s.textColor + ';width:40%;font-size:12px;">Registration No.</td><td style="padding:6px 8px;border:1px solid #d1d5db;color:' + s.headerColor + ';font-weight:bold;font-size:12px;">' + (r.registrationNo || '') + '</td></tr>' +
-        '<tr><td style="padding:6px 8px;border:1px solid #d1d5db;font-weight:bold;color:' + s.textColor + ';font-size:12px;">Student Name</td><td style="padding:6px 8px;border:1px solid #d1d5db;font-size:12px;color:' + s.textColor + ';text-transform:uppercase;">' + (r.studentName || '') + '</td></tr>' +
-        '<tr style="background:#f3f4f6;"><td style="padding:6px 8px;border:1px solid #d1d5db;font-weight:bold;color:' + s.textColor + ';font-size:12px;">Father\'s Name</td><td style="padding:6px 8px;border:1px solid #d1d5db;font-size:12px;color:' + s.textColor + ';text-transform:uppercase;">' + (r.fatherName || '-') + '</td></tr>' +
-        '<tr><td style="padding:6px 8px;border:1px solid #d1d5db;font-weight:bold;color:' + s.textColor + ';font-size:12px;">Examination</td><td style="padding:6px 8px;border:1px solid #d1d5db;font-size:12px;color:' + s.textColor + ';text-transform:uppercase;">' + (r.examName || '') + '</td></tr>' +
-        '<tr style="background:#f3f4f6;"><td style="padding:6px 8px;border:1px solid #d1d5db;font-weight:bold;color:' + s.textColor + ';font-size:12px;">Date of Exam</td><td style="padding:6px 8px;border:1px solid #d1d5db;font-size:12px;color:' + s.textColor + ';">' + (r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '-') + '</td></tr>' +
+        
+        // Student Details Table
+        '<div style="margin-bottom:20px;">' +
+        '<h3 style="margin:0 0 12px 0;color:' + s.headerColor + ';font-size:14px;font-weight:bold;letter-spacing:0.5px;border-left:4px solid ' + s.headerColor + ';padding-left:10px;">CANDIDATE INFORMATION</h3>' +
+        '<table style="width:100%;border-collapse:collapse;box-shadow:0 2px 8px rgba(0,0,0,0.1);border-radius:8px;overflow:hidden;">' +
+        '<tr style="background:linear-gradient(135deg,' + s.headerColor + ',' + s.headerColor + '80);"><td style="padding:10px 12px;border:1px solid ' + s.headerColor + ';font-weight:bold;color:#fff;width:40%;font-size:12px;">Registration Number</td><td style="padding:10px 12px;border:1px solid ' + s.headerColor + ';color:#fff;font-weight:bold;font-size:13px;">' + (r.registrationNo || '') + '</td></tr>' +
+        '<tr style="background:#fff;"><td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:bold;color:' + s.textColor + ';font-size:12px;">Student Name</td><td style="padding:10px 12px;border:1px solid #e5e7eb;font-size:13px;color:' + s.textColor + ';text-transform:uppercase;font-weight:600;">' + (r.studentName || '') + '</td></tr>' +
+        '<tr style="background:#f9fafb;"><td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:bold;color:' + s.textColor + ';font-size:12px;">Father\'s Name</td><td style="padding:10px 12px;border:1px solid #e5e7eb;font-size:13px;color:' + s.textColor + ';text-transform:uppercase;">' + (r.fatherName || '-') + '</td></tr>' +
+        '<tr style="background:#fff;"><td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:bold;color:' + s.textColor + ';font-size:12px;">Examination</td><td style="padding:10px 12px;border:1px solid #e5e7eb;font-size:13px;color:' + s.textColor + ';text-transform:uppercase;font-weight:600;">' + (r.examName || '') + '</td></tr>' +
+        '<tr style="background:#f9fafb;"><td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:bold;color:' + s.textColor + ';font-size:12px;">Date of Examination</td><td style="padding:10px 12px;border:1px solid #e5e7eb;font-size:13px;color:' + s.textColor + ';">' + (r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '-') + '</td></tr>' +
         '</table>' +
-        '<div style="background:#eff6ff;border:2px solid ' + s.headerColor + ';border-radius:6px;padding:12px;margin-bottom:10px;">' +
-        '<h3 style="margin:0 0 8px 0;color:' + s.headerColor + ';font-size:14px;border-bottom:2px solid ' + s.headerColor + ';padding-bottom:4px;">SCORE DETAILS</h3>' +
+        '</div>' +
+        
+        // Score Section
+        '<div style="background:linear-gradient(135deg,' + s.headerColor + '10,' + s.headerColor + '5);border:2px solid ' + s.headerColor + ';border-radius:10px;padding:20px;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,0,0,0.1);">' +
+        '<h3 style="margin:0 0 15px 0;color:' + s.headerColor + ';font-size:16px;font-weight:bold;letter-spacing:0.5px;text-align:center;border-bottom:2px solid ' + s.headerColor + ';padding-bottom:10px;">PERFORMANCE SUMMARY</h3>' +
         '<table style="width:100%;border-collapse:collapse;">' +
-        '<tr><td style="padding:8px;border:1px solid #d1d5db;font-weight:bold;color:' + s.textColor + ';width:45%;background:#fff;font-size:12px;">Marks Obtained</td><td style="padding:8px;border:1px solid #d1d5db;font-size:18px;font-weight:bold;color:' + s.headerColor + ';background:#fff;">' + r.marksObtained + ' / ' + r.totalMarks + '</td></tr>' +
-        '<tr><td style="padding:8px;border:1px solid #d1d5db;font-weight:bold;color:' + s.textColor + ';background:#f3f4f6;font-size:12px;">Percentage</td><td style="padding:8px;border:1px solid #d1d5db;font-size:18px;font-weight:bold;color:' + scoreColor + ';background:#f3f4f6;">' + r.percentage + '%</td></tr>' +
+        '<tr style="background:#fff;"><td style="padding:12px;border:1px solid #e5e7eb;font-weight:bold;color:' + s.textColor + ';width:45%;font-size:13px;">Total Marks Obtained</td><td style="padding:12px;border:1px solid #e5e7eb;font-size:22px;font-weight:bold;color:' + s.headerColor + ';background:#fff;">' + r.marksObtained + ' <span style="font-size:16px;color:#6b7280;">/ ' + r.totalMarks + '</span></td></tr>' +
+        '<tr style="background:#f9fafb;"><td style="padding:12px;border:1px solid #e5e7eb;font-weight:bold;color:' + s.textColor + ';font-size:13px;">Overall Percentage</td><td style="padding:12px;border:1px solid #e5e7eb;font-size:22px;font-weight:bold;color:' + s.headerColor + ';background:#f9fafb;">' + r.percentage + '<span style="font-size:16px;color:#6b7280;">%</span></td></tr>' +
         '</table>' +
         '</div>' +
-        '<div style="margin-top:20px;padding-top:10px;border-top:2px solid ' + s.headerColor + ';display:flex;justify-content:space-between;align-items:flex-start;gap:3%;">' +
-        '<div style="width:80%;box-sizing:border-box;">' +
-        '<p style="margin:0;font-size:10px;color:' + s.textColor + ';">This is a computer-generated document.</p>' +
+        
+        // Footer Section
+        '<div style="margin-top:25px;padding-top:15px;border-top:2px solid ' + s.headerColor + ';display:flex;justify-content:space-between;align-items:flex-start;gap:4%;">' +
+        '<div style="width:75%;box-sizing:border-box;">' +
+        '<p style="margin:0 0 10px 0;font-size:11px;color:' + s.textColor + ';font-weight:600;letter-spacing:0.5px;">DOCUMENT INFORMATION</p>' +
+        '<p style="margin:0;font-size:10px;color:' + s.textColor + ';opacity:0.8;">This is a computer-generated document. No manual signatures are required. This scorecard is valid for admission purposes only.</p>' +
         instructionsHtml +
         '</div>' +
-        '<div style="width:17%;text-align:center;box-sizing:border-box;">' +
-        '<p style="margin:0;font-size:10px;color:' + s.textColor + ';">Authorized Signature</p>' +
-        '<div style="width:75px;height:45px;border-bottom:2px solid ' + s.headerColor + ';margin:6px auto 0 auto;"></div>' +
-        '<p style="margin:4px 0 0 0;font-size:9px;color:' + s.textColor + ';">(' + s.signatureLabel + ')</p>' +
+        '<div style="width:21%;text-align:center;box-sizing:border-box;">' +
+        '<p style="margin:0 0 8px 0;font-size:11px;color:' + s.textColor + ';font-weight:600;letter-spacing:0.5px;">AUTHORIZATION</p>' +
+        '<div style="width:85px;height:50px;border-bottom:3px solid ' + s.headerColor + ';margin:8px auto 0 auto;"></div>' +
+        '<p style="margin:6px 0 0 0;font-size:10px;color:' + s.textColor + ';font-weight:600;">' + s.signatureLabel + '</p>' +
         courseButtonsHtml +
         '</div>' +
         '</div>' +
-        '<div style="text-align:center;margin-top:15px;padding-top:8px;border-top:1px solid #d1d5db;">' +
-        '<p style="margin:0;font-size:9px;color:' + s.textColor + ';">' + s.footerText + '</p>' +
+        
+        // Footer Text
+        '<div style="text-align:center;margin-top:20px;padding-top:12px;border-top:1px solid #e5e7eb;">' +
+        '<p style="margin:0;font-size:10px;color:' + s.textColor + ';opacity:0.7;letter-spacing:0.5px;">' + s.footerText + '</p>' +
         '</div>' +
         '</div>' +
         '</div>';
