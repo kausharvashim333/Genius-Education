@@ -10221,6 +10221,7 @@ app.post('/api/entrance-questions/bulk-upload', uploadBulk.single('file'), (req,
             }
         }
 
+        const language = req.body.language || 'english';
         const questions = readData('entrance-questions.json') || [];
         const errors = [];
         let added = 0;
@@ -10230,29 +10231,18 @@ app.post('/api/entrance-questions/bulk-upload', uploadBulk.single('file'), (req,
             const row = {};
             header.forEach((h, idx) => row[h] = cols[idx] || '');
 
-            // Validation: At least one language must be provided
-            const hasEnglish = row.question && row.question.trim();
-            const hasHindi = row.question_hindi && row.question_hindi.trim();
-
-            if (!hasEnglish && !hasHindi) {
-                errors.push(`Row ${i + 1}: Question required in at least one language (question or question_hindi)`);
+            // Validation: Question must be provided
+            if (!row.question || !row.question.trim()) {
+                errors.push(`Row ${i + 1}: Question is required`);
                 continue;
             }
 
-            // English options
+            // Options
             const options = [row.option_a, row.option_b, row.option_c, row.option_d].filter(o => o);
-            // Hindi options
-            const optionsHindi = [row.option_a_hindi, row.option_b_hindi, row.option_c_hindi, row.option_d_hindi].filter(o => o);
 
-            // If English question provided, English options must be provided
-            if (hasEnglish && options.length < 2) {
-                errors.push(`Row ${i + 1}: At least 2 English options required when English question is provided`);
-                continue;
-            }
-
-            // If Hindi question provided, Hindi options must be provided
-            if (hasHindi && optionsHindi.length < 2) {
-                errors.push(`Row ${i + 1}: At least 2 Hindi options required when Hindi question is provided`);
+            // At least 2 options required
+            if (options.length < 2) {
+                errors.push(`Row ${i + 1}: At least 2 options required`);
                 continue;
             }
 
@@ -10262,26 +10252,27 @@ app.post('/api/entrance-questions/bulk-upload', uploadBulk.single('file'), (req,
                 continue;
             }
 
-            // Validate against active language
-            const activeOpts = hasEnglish ? options : optionsHindi;
-            if (correctAns > activeOpts.length) {
+            if (correctAns > options.length) {
                 errors.push(`Row ${i + 1}: correct_answer ${correctAns} exceeds available options`);
                 continue;
             }
 
-            questions.push({
+            // Create question with language field
+            const questionData = {
                 id: Date.now() + Math.floor(Math.random() * 100000) + i,
                 examId: parseInt(examId),
                 question: row.question || '',
-                questionHindi: row.question_hindi || '',
+                questionHindi: language === 'hindi' ? row.question : '',
                 options: options,
-                optionsHindi: optionsHindi,
+                optionsHindi: language === 'hindi' ? options : [],
                 correctAnswer: correctAns - 1, // Convert 1-4 to 0-3 internally
                 marks: parseInt(row.marks) || 1,
                 subject: row.subject || '',
                 difficulty: row.difficulty || 'Medium',
+                language: language,
                 createdAt: new Date().toISOString()
-            });
+            };
+            questions.push(questionData);
             added++;
         }
 
@@ -10433,7 +10424,7 @@ app.get('/api/entrance/student-exam/:registrationId', (req, res) => {
 
 // --- Start Exam (calculates remaining time based on shift schedule) ---
 app.post('/api/entrance/start-exam', (req, res) => {
-    const { registrationId } = req.body;
+    const { registrationId, language } = req.body;
     const regs = readData('entrance-registrations.json') || [];
     const reg = regs.find(r => r.id == registrationId);
     if (!reg) return res.status(404).json({ success: false, message: 'Registration not found' });
@@ -10472,8 +10463,24 @@ app.post('/api/entrance/start-exam', (req, res) => {
     const remainingSeconds = Math.floor((endTime - now) / 1000);
 
     if (!attempt) {
-        // Get questions for this exam
+        // Get questions for this exam, filtered by language
         let questions = (readData('entrance-questions.json') || []).filter(q => q.examId == exam.id);
+        
+        // Filter by language if specified
+        if (language === 'hindi') {
+            questions = questions.filter(q => q.language === 'hindi' || (q.questionHindi && q.questionHindi.trim()));
+        } else {
+            questions = questions.filter(q => q.language === 'english' || !q.language || q.language === '');
+        }
+        
+        // Check if questions available for selected language
+        if (questions.length === 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'No questions available for selected language. Please contact admin.' 
+            });
+        }
+        
         // Always shuffle questions per student for fairness
         questions = questions.sort(() => Math.random() - 0.5);
         if (exam.questionsPerStudent && exam.questionsPerStudent > 0 && exam.questionsPerStudent < questions.length) {

@@ -2420,7 +2420,8 @@
                         <div><label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Option D (English)</label><input type="text" id="entOptD" placeholder="English option..." style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;"></div>
                         <div><label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Option D (Hindi)</label><input type="text" id="entOptDHindi" placeholder="Hindi option..." style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;"></div>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:18px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:12px;margin-bottom:18px;">
+                        <div><label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Language *</label><select id="entLanguage" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;"><option value="english">English</option><option value="hindi">Hindi</option></select></div>
                         <div><label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Correct (1-4) *</label><input type="number" id="entCorrect" min="1" max="4" value="1" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;"></div>
                         <div><label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Marks</label><input type="number" id="entMarks" value="1" min="1" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;"></div>
                         <div><label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Subject</label><input type="text" id="entSubject" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;"></div>
@@ -2438,10 +2439,17 @@
                 <div class="modal-content" style="max-width:600px;position:relative;">
                     <button class="modal-close-btn" onclick="closeModal('entranceBulkModal')">&times;</button>
                     <h3 style="margin-bottom:20px;color:#fff;"><i class="fas fa-upload" style="color:#667eea;"></i> Bulk Upload Questions</h3>
+                    <div style="margin-bottom:15px;">
+                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Language *</label>
+                        <select id="entBulkLanguage" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
+                            <option value="english">English</option>
+                            <option value="hindi">Hindi</option>
+                        </select>
+                    </div>
                     <div style="margin-bottom:15px;padding:15px;background:rgba(59,130,246,0.15);border-radius:8px;color:#fff;font-size:13px;line-height:1.7;">
                         <strong>File Format (CSV or TSV):</strong><br>
-                        Columns: <code>question, question_hindi, option_a, option_a_hindi, option_b, option_b_hindi, option_c, option_c_hindi, option_d, option_d_hindi, correct_answer, marks, subject, difficulty</code><br>
-                        <strong>At least one language required:</strong> Either English (question + options) or Hindi (question_hindi + options_hindi) or both<br>
+                        Columns: <code>question, option_a, option_b, option_c, option_d, correct_answer, marks, subject, difficulty</code><br>
+                        <strong>Note:</strong> Upload separate CSV files for English and Hindi questions. Select the language above before uploading.<br>
                         <strong>correct_answer</strong> must be 1-4 (1=Option A, 2=Option B, 3=Option C, 4=Option D)<br>
                         <a href="javascript:void(0)" onclick="downloadQuestionTemplate()" style="color:#fbbf24;"><i class="fas fa-download"></i> Download CSV Template</a>
                     </div>

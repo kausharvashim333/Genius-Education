@@ -358,6 +358,16 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
         <div style="margin-top: 14px; padding: 12px; background: #fef2f2; border-left: 4px solid var(--danger); border-radius: 6px; color: #7f1d1d;">
             <strong><i class="fas fa-exclamation-triangle"></i> Warning:</strong> After <strong>3 security violations</strong> (tab switch, fullscreen exit, dev tools, etc.) your registration will be <strong>auto-suspended</strong> and you cannot continue the exam.
         </div>
+        <div style="margin: 20px 0; padding: 15px; background: rgba(59,130,246,0.15); border-radius: 8px;">
+            <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--primary-dark);">
+                <i class="fas fa-language"></i> Select Exam Language:
+            </label>
+            <select id="examLanguageSelector" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; font-size: 14px; cursor: pointer;">
+                <option value="english">English</option>
+                <option value="hindi">हिंदी (Hindi)</option>
+            </select>
+            <p style="font-size: 12px; opacity: 0.7; margin-top: 8px;">Questions will be displayed in the selected language. Once selected, language cannot be changed during the exam.</p>
+        </div>
         <div style="margin: 20px 0; padding: 12px; background: rgba(59,130,246,0.15); border-radius: 8px;">
             <label style="display: flex; align-items: center; cursor: pointer;">
                 <input type="checkbox" id="acceptCheck" style="width: auto; margin-right: 10px;" onchange="toggleAcceptBtn()">
@@ -382,13 +392,6 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
                 <p style="font-size: 13px; opacity: 0.7;" id="examStudent"></p>
             </div>
             <div style="display:flex;align-items:center;gap:15px;">
-                <div style="display:flex;align-items:center;gap:8px;background:#f8fafc;padding:8px 16px;border-radius:8px;border:1px solid #e2e8f0;">
-                    <span style="font-size:13px;font-weight:600;color:#64748b;">Language:</span>
-                    <select id="languageSelector" style="padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;font-size:13px;cursor:pointer;">
-                        <option value="english">English</option>
-                        <option value="hindi">हिंदी</option>
-                    </select>
-                </div>
                 <div id="timerDisplay" class="timer">--:--:--</div>
             </div>
             <button class="btn btn-success" onclick="confirmSubmit()"><i class="fas fa-paper-plane"></i> Submit Exam</button>
@@ -603,10 +606,11 @@ function toggleAcceptBtn() {
 async function acceptAndStart() {
     closeInstructions();
     try {
+        const selectedLanguage = document.getElementById('examLanguageSelector').value;
         const res = await fetch('/api/entrance/start-exam', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ registrationId: currentRegistration.id })
+            body: JSON.stringify({ registrationId: currentRegistration.id, language: selectedLanguage })
         });
         const data = await res.json();
         if (!data.success) {
@@ -635,13 +639,6 @@ function showExamPage() {
     showPage('examPage');
     document.getElementById('examTitle').textContent = currentExam.name;
     document.getElementById('examStudent').textContent = currentRegistration.studentName + ' | ' + currentRegistration.registrationNo;
-    
-    // Add language selector event listener
-    const langSelector = document.getElementById('languageSelector');
-    if (langSelector) {
-        langSelector.addEventListener('change', changeLanguage);
-    }
-    
     renderQuestions();
     renderNav();
     startTimer();
@@ -797,14 +794,11 @@ function renderQuestions() {
 
     // Determine which language to use
     let questionText, options;
-    if (selectedLanguage === 'english') {
-        questionText = q.question;
-        options = q.options;
-    } else if (selectedLanguage === 'hindi' && q.questionHindi && q.questionHindi.trim()) {
+    if (q.language === 'hindi' && q.questionHindi && q.questionHindi.trim()) {
         questionText = q.questionHindi;
         options = (q.optionsHindi && q.optionsHindi.length) ? q.optionsHindi : q.options;
     } else {
-        // Fallback to English if Hindi not available
+        // Default to English
         questionText = q.question;
         options = q.options;
     }
