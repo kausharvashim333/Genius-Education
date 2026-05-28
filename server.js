@@ -10687,17 +10687,41 @@ app.post('/api/entrance/submit-exam', (req, res) => {
 // --- Entrance Results ---
 app.get('/api/entrance-results', (req, res) => {
     const results = readData('entrance-results.json') || [];
+    const regs = readData('entrance-registrations.json') || [];
+    
+    // Add course to results if missing (for backward compatibility)
+    const resultsWithCourse = results.map(r => {
+        if (!r.course && r.registrationId) {
+            const reg = regs.find(reg => reg.id == r.registrationId);
+            if (reg && reg.course) {
+                return { ...r, course: reg.course };
+            }
+        }
+        return r;
+    });
+    
     if (req.query.examId) {
-        return res.json(results.filter(r => r.examId == req.query.examId));
+        return res.json(resultsWithCourse.filter(r => r.examId == req.query.examId));
     }
-    res.json(results);
+    res.json(resultsWithCourse);
 });
 
 // Get result for a specific student (only if published)
 app.get('/api/entrance/my-result/:registrationId', (req, res) => {
     const results = readData('entrance-results.json') || [];
-    const result = results.find(r => r.registrationId == req.params.registrationId && r.published);
+    const regs = readData('entrance-registrations.json') || [];
+    let result = results.find(r => r.registrationId == req.params.registrationId && r.published);
+    
     if (!result) return res.status(404).json({ success: false, message: 'Result not yet published' });
+    
+    // Add course if missing (for backward compatibility)
+    if (!result.course && result.registrationId) {
+        const reg = regs.find(reg => reg.id == result.registrationId);
+        if (reg && reg.course) {
+            result = { ...result, course: reg.course };
+        }
+    }
+    
     res.json({ success: true, result });
 });
 
