@@ -390,6 +390,10 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
                     <i class="fas fa-redo" style="color:#ef4444;margin-top:2px;"></i>
                     <span style="font-size:13px;line-height:1.5;">Once submitted, <strong>no retake</strong> allowed.</span>
                 </div>
+                <div style="padding:12px;background:rgba(255,255,255,0.5);border-radius:8px;display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fas fa-sign-out-alt" style="color:#f59e0b;margin-top:2px;"></i>
+                    <span style="font-size:13px;line-height:1.5;">After submission, you will be <strong>auto-logged out</strong> in 5 seconds.</span>
+                </div>
             </div>
         </div>
         
@@ -1024,6 +1028,13 @@ async function submitExam(auto) {
             disableSecurity();
             showPage('resultPage');
             showToast('Exam submitted successfully!', 'success');
+            
+            // Auto-logout after 5 seconds
+            setTimeout(() => {
+                sessionStorage.removeItem('entranceReg');
+                sessionStorage.removeItem('entranceUser');
+                window.location.href = '/entrance-portal.html';
+            }, 5000);
         } else {
             showToast(data.message || 'Submit failed', 'error');
         }
