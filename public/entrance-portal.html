@@ -435,33 +435,6 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
     </div>
 </div>
 
-<!-- Exam Page -->
-<div id="examPage">
-    <div class="container">
-        <div class="exam-header">
-            <div>
-                <h3 id="examTitle">Exam</h3>
-                <p style="font-size: 13px; opacity: 0.7;" id="examStudent"></p>
-            </div>
-            <div style="display:flex;align-items:center;gap:15px;">
-                <div id="timerDisplay" class="timer">--:--:--</div>
-            </div>
-            <button class="btn btn-success" onclick="confirmSubmit()"><i class="fas fa-paper-plane"></i> Submit Exam</button>
-        </div>
-        <div class="exam-content">
-            <div id="questionsArea"></div>
-            <div class="question-nav">
-                <h4>Questions</h4>
-                <div class="nav-grid" id="navGrid"></div>
-                <div class="legend">
-                    <div class="legend-item"><div class="legend-box" style="background: rgba(16,185,129,0.4);"></div> Answered</div>
-                    <div class="legend-item"><div class="legend-box"></div> Not Answered</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Result Page -->
 <div id="resultPage">
     <div class="glass result-card">
@@ -657,44 +630,7 @@ function toggleAcceptBtn() {
 
 async function acceptAndStart() {
     closeInstructions();
-    try {
-        selectedLanguage = document.querySelector('input[name="examLanguage"]:checked').value;
-        const res = await fetch('/api/entrance/start-exam', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ registrationId: currentRegistration.id })
-        });
-        const data = await res.json();
-        if (!data.success) {
-            if (data.suspended) {
-                sessionStorage.removeItem('entranceReg');
-                alert('Your ID has been suspended. Reason: ' + (data.message || 'Suspicious activity') + '\n\nPlease contact the admin.');
-                window.location.reload();
-                return;
-            }
-            return showToast(data.message || 'Cannot start exam', 'error');
-        }
-
-        currentAttempt = data.attempt;
-        currentQuestions = data.questions;
-        currentAnswers = data.attempt.answers || {};
-        currentQuestionIndex = 0;
-        endTime = new Date(data.attempt.endTime);
-        serverTimeOffset = new Date(data.serverTime) - new Date();
-
-        if (dashboardInterval) clearInterval(dashboardInterval);
-        showExamPage();
-    } catch (e) { showToast('Error starting exam', 'error'); }
-}
-
-function showExamPage() {
-    showPage('examPage');
-    document.getElementById('examTitle').textContent = currentExam.name;
-    document.getElementById('examStudent').textContent = currentRegistration.studentName + ' | ' + currentRegistration.registrationNo;
-    renderQuestions();
-    renderNav();
-    startTimer();
-    enableSecurity();
+    showToast('Exam feature is currently disabled. Please contact admin.', 'error');
 }
 
 // =============== SECURITY / ANTI-CHEAT ===============
