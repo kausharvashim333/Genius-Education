@@ -384,7 +384,7 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
             <div style="display:flex;align-items:center;gap:15px;">
                 <div style="display:flex;align-items:center;gap:8px;background:#f8fafc;padding:8px 16px;border-radius:8px;border:1px solid #e2e8f0;">
                     <span style="font-size:13px;font-weight:600;color:#64748b;">Language:</span>
-                    <select id="languageSelector" onchange="changeLanguage()" style="padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;font-size:13px;cursor:pointer;">
+                    <select id="languageSelector" style="padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;font-size:13px;cursor:pointer;">
                         <option value="english">English</option>
                         <option value="hindi">हिंदी</option>
                     </select>
@@ -635,6 +635,13 @@ function showExamPage() {
     showPage('examPage');
     document.getElementById('examTitle').textContent = currentExam.name;
     document.getElementById('examStudent').textContent = currentRegistration.studentName + ' | ' + currentRegistration.registrationNo;
+    
+    // Add language selector event listener
+    const langSelector = document.getElementById('languageSelector');
+    if (langSelector) {
+        langSelector.addEventListener('change', changeLanguage);
+    }
+    
     renderQuestions();
     renderNav();
     startTimer();
