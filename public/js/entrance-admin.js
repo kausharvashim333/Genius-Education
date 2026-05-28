@@ -283,14 +283,20 @@ function openEntranceQuestionModal() {
     if (!examId) return entShowToast('Please select an exam first', 'error');
     document.getElementById('entQuestionId').value = '';
     document.getElementById('entQText').value = '';
+    document.getElementById('entQTextHindi').value = '';
     document.getElementById('entOptA').value = '';
+    document.getElementById('entOptAHindi').value = '';
     document.getElementById('entOptB').value = '';
+    document.getElementById('entOptBHindi').value = '';
     document.getElementById('entOptC').value = '';
+    document.getElementById('entOptCHindi').value = '';
     document.getElementById('entOptD').value = '';
+    document.getElementById('entOptDHindi').value = '';
     document.getElementById('entCorrect').value = 1;
     document.getElementById('entMarks').value = 1;
     document.getElementById('entSubject').value = '';
     document.getElementById('entDifficulty').value = 'Medium';
+    toggleTranslationButton();
     document.getElementById('entranceQuestionModal').classList.add('active');
 }
 
@@ -302,14 +308,20 @@ async function editEntranceQuestion(id) {
         if (!q) return;
         document.getElementById('entQuestionId').value = q.id;
         document.getElementById('entQText').value = q.question || '';
+        document.getElementById('entQTextHindi').value = q.questionHindi || '';
         document.getElementById('entOptA').value = (q.options || [])[0] || '';
+        document.getElementById('entOptAHindi').value = (q.optionsHindi || [])[0] || '';
         document.getElementById('entOptB').value = (q.options || [])[1] || '';
+        document.getElementById('entOptBHindi').value = (q.optionsHindi || [])[1] || '';
         document.getElementById('entOptC').value = (q.options || [])[2] || '';
+        document.getElementById('entOptCHindi').value = (q.optionsHindi || [])[2] || '';
         document.getElementById('entOptD').value = (q.options || [])[3] || '';
+        document.getElementById('entOptDHindi').value = (q.optionsHindi || [])[3] || '';
         document.getElementById('entCorrect').value = (q.correctAnswer || 0) + 1;
         document.getElementById('entMarks').value = q.marks || 1;
         document.getElementById('entSubject').value = q.subject || '';
         document.getElementById('entDifficulty').value = q.difficulty || 'Medium';
+        toggleTranslationButton();
         document.getElementById('entranceQuestionModal').classList.add('active');
     } catch (e) { console.error(e); }
 }
@@ -333,10 +345,19 @@ async function saveEntranceQuestion() {
     if (isNaN(correct) || correct < 1 || correct > 4) return entShowToast('Correct answer must be 1-4', 'error');
     if (correct > opts.length) return entShowToast('Correct answer exceeds available options', 'error');
 
+    const optsHindi = [
+        document.getElementById('entOptAHindi').value.trim(),
+        document.getElementById('entOptBHindi').value.trim(),
+        document.getElementById('entOptCHindi').value.trim(),
+        document.getElementById('entOptDHindi').value.trim()
+    ].filter(o => o);
+
     const body = {
         examId: parseInt(examId),
         question: text,
+        questionHindi: document.getElementById('entQTextHindi').value.trim(),
         options: opts,
+        optionsHindi: optsHindi,
         correctAnswer: correct - 1,
         marks: parseInt(document.getElementById('entMarks').value) || 1,
         subject: document.getElementById('entSubject').value.trim(),
@@ -362,6 +383,83 @@ async function deleteEntranceQuestion(id) {
     if (!confirm('Delete this question?')) return;
     await entApi('/api/entrance-questions/' + id, { method: 'DELETE' });
     loadEntranceQuestions();
+}
+
+// Toggle translation button based on subject
+function toggleTranslationButton() {
+    const subject = document.getElementById('entSubject').value;
+    const btn = document.getElementById('autoTranslateBtn');
+    if (btn) {
+        if (subject && subject.toLowerCase() === 'english') {
+            btn.style.display = 'none';
+        } else {
+            btn.style.display = 'inline-block';
+        }
+    }
+}
+
+// Auto-translate question and options to Hindi
+async function autoTranslateQuestion() {
+    const subject = document.getElementById('entSubject').value;
+    const questionText = document.getElementById('entQText').value.trim();
+    
+    if (!questionText) {
+        entShowToast('Please enter question text first', 'error');
+        return;
+    }
+    
+    if (subject && subject.toLowerCase() === 'english') {
+        entShowToast('English questions cannot be translated', 'error');
+        return;
+    }
+    
+    const btn = document.getElementById('autoTranslateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Translating...';
+    
+    try {
+        // Translate question
+        const qRes = await fetch('/api/translate-text', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: questionText, subject })
+        });
+        const qData = await qRes.json();
+        if (qData.success) {
+            document.getElementById('entQTextHindi').value = qData.translatedText;
+        }
+        
+        // Translate options
+        const opts = [
+            document.getElementById('entOptA').value.trim(),
+            document.getElementById('entOptB').value.trim(),
+            document.getElementById('entOptC').value.trim(),
+            document.getElementById('entOptD').value.trim()
+        ].filter(o => o);
+        
+        const optHindiFields = ['entOptAHindi', 'entOptBHindi', 'entOptCHindi', 'entOptDHindi'];
+        for (let i = 0; i < opts.length; i++) {
+            if (opts[i]) {
+                const oRes = await fetch('/api/translate-text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: opts[i], subject })
+                });
+                const oData = await oRes.json();
+                if (oData.success) {
+                    document.getElementById(optHindiFields[i]).value = oData.translatedText;
+                }
+            }
+        }
+        
+        entShowToast('Translation completed', 'success');
+    } catch (e) {
+        console.error('Translation error:', e);
+        entShowToast('Translation failed. Please try again.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-language"></i> Auto-Translate to Hindi';
+    }
 }
 
 function toggleAllEntranceQuestions() {

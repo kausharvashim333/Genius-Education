@@ -10081,6 +10081,49 @@ app.get('/api/entrance-questions', (req, res) => {
     res.json(questions);
 });
 
+// --- Translation Endpoint (MyMemory API) ---
+app.post('/api/translate-text', async (req, res) => {
+    try {
+        const { text, subject } = req.body;
+        
+        if (!text) {
+            return res.status(400).json({ success: false, message: 'Text is required' });
+        }
+        
+        // English subject should not be translated
+        if (subject && subject.toLowerCase() === 'english') {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'English subject questions cannot be translated to Hindi' 
+            });
+        }
+        
+        // Use MyMemory Translation API (free, no API key required)
+        const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|hi`;
+        
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        
+        if (data.responseStatus === 200 && data.responseData) {
+            res.json({ 
+                success: true, 
+                translatedText: data.responseData.translatedText 
+            });
+        } else {
+            res.status(500).json({ 
+                success: false, 
+                message: 'Translation failed. Please try again.' 
+            });
+        }
+    } catch (error) {
+        console.error('Translation error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Translation service error. Please try again.' 
+        });
+    }
+});
+
 app.post('/api/entrance-questions', (req, res) => {
     // Check permission for faculty
     if (req.user && req.user.role !== 'Super Admin' && req.user.role !== 'Admin') {
@@ -10090,13 +10133,15 @@ app.post('/api/entrance-questions', (req, res) => {
             return res.status(403).json({ success: false, message: 'You do not have permission to manage entrance exam' });
         }
     }
-    
+
     const questions = readData('entrance-questions.json') || [];
     const question = {
         id: Date.now() + Math.floor(Math.random() * 1000),
         examId: req.body.examId,
         question: req.body.question,
+        questionHindi: req.body.questionHindi || '',
         options: req.body.options || [],
+        optionsHindi: req.body.optionsHindi || [],
         correctAnswer: parseInt(req.body.correctAnswer),
         marks: parseInt(req.body.marks) || 1,
         subject: req.body.subject || '',
@@ -10487,10 +10532,17 @@ app.post('/api/entrance/start-exam', (req, res) => {
         if (!q) return null;
         const order = optionOrder[qid] || (q.options || []).map((_, i) => i);
         const shuffledOptions = order.map(origIdx => (q.options || [])[origIdx]);
+        // Also shuffle Hindi options if available
+        const shuffledOptionsHindi = (q.optionsHindi && q.optionsHindi.length > 0) 
+            ? order.map(origIdx => (q.optionsHindi || [])[origIdx]) 
+            : [];
         return {
             id: q.id,
             question: q.question,
+            questionHindi: q.questionHindi || '',
             options: shuffledOptions,
+            optionsHindi: shuffledOptionsHindi,
+            subject: q.subject || '',
             marks: q.marks
         };
     }).filter(Boolean);
