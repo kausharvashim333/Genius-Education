@@ -758,6 +758,8 @@ function warnReload(e) {
 
 function changeLanguage() {
     selectedLanguage = document.getElementById('languageSelector').value;
+    console.log('Language changed to:', selectedLanguage);
+    console.log('Current question data:', currentQuestions[0]);
     renderQuestions();
 }
 
@@ -773,16 +775,22 @@ function renderQuestions() {
 
     // Determine which language to use
     let questionText, options;
+    console.log('selectedLanguage:', selectedLanguage);
+    console.log('questionHindi:', q.questionHindi);
+    console.log('optionsHindi:', q.optionsHindi);
     if (selectedLanguage === 'english') {
         questionText = q.question;
         options = q.options;
+        console.log('Using English');
     } else if (selectedLanguage === 'hindi' && q.questionHindi && q.questionHindi.trim()) {
         questionText = q.questionHindi;
         options = (q.optionsHindi && q.optionsHindi.length) ? q.optionsHindi : q.options;
+        console.log('Using Hindi');
     } else {
         // Fallback to English if Hindi not available
         questionText = q.question;
         options = q.options;
+        console.log('Fallback to English');
     }
 
     let html = '';
