@@ -1848,10 +1848,10 @@ async function openFacultyEditModal(id) {
         const faculty = await res.json();
 
         document.getElementById('facultyId').value = faculty.id;
-        document.getElementById('facultyName').value = faculty.name;
-        document.getElementById('facultySubject').value = faculty.subject;
-        document.getElementById('facultyExperience').value = faculty.experience;
-        document.getElementById('facultyEmail').value = faculty.email;
+        document.getElementById('facultyName').value = faculty.name || '';
+        document.getElementById('facultySubject').value = faculty.subject || '';
+        document.getElementById('facultyExperience').value = faculty.experience || '';
+        document.getElementById('facultyEmail').value = faculty.email || '';
         document.getElementById('facultyRole').value = faculty.role || 'Faculty';
 
         // Load permissions
