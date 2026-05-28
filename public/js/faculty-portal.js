@@ -377,35 +377,45 @@ async function handlePasswordReset(event) {
 function loadFacultyMenu() {
     const menu = document.getElementById('facultyMenu');
     let menuHTML = '';
-    
-    // Dashboard - always visible
-    menuHTML += '<li><a href="#" onclick="showSection(\'dashboard\')"><i class="fas fa-home"></i> Dashboard</a></li>';
 
-    // Common options for all roles
-    menuHTML += '<li><a href="#" onclick="showSection(\'students\')"><i class="fas fa-users"></i> My Students</a></li>';
-    
-    // Role-specific options
-    if (currentFaculty.role === 'Admin' || currentFaculty.role === 'Faculty') {
-        menuHTML += '<li><a href="#" onclick="showSection(\'assignments\')"><i class="fas fa-tasks"></i> Assignments</a></li>';
-        menuHTML += '<li><a href="#" onclick="showSection(\'attendance\')"><i class="fas fa-calendar-check"></i> Attendance</a></li>';
-    }
-    
-    if (currentFaculty.role === 'Admin') {
-        menuHTML += '<li><a href="#" onclick="showSection(\'materials\')"><i class="fas fa-folder"></i> Study Materials</a></li>';
-        menuHTML += '<li><a href="#" onclick="showSection(\'results\')"><i class="fas fa-chart-line"></i> Exam Results</a></li>';
-    }
-    
-    if (currentFaculty.role === 'Staff') {
-        menuHTML += '<li><a href="#" onclick="showSection(\'enquiries\')"><i class="fas fa-envelope"></i> Enquiries</a></li>';
-        menuHTML += '<li><a href="#" onclick="showSection(\'notices\')"><i class="fas fa-bullhorn"></i> Notices</a></li>';
-    }
-    
     // Helper to check permission
     const hasPermission = (perm) => {
         const perms = currentFaculty.permissions || [];
         return perms.includes('all') || perms.includes(perm);
     };
-    
+
+    // Dashboard - always visible
+    menuHTML += '<li><a href="#" onclick="showSection(\'dashboard\')"><i class="fas fa-home"></i> Dashboard</a></li>';
+
+    // Permission-based menu items
+    if (hasPermission('students')) {
+        menuHTML += '<li><a href="#" onclick="showSection(\'students\')"><i class="fas fa-users"></i> My Students</a></li>';
+    }
+
+    if (hasPermission('assignments')) {
+        menuHTML += '<li><a href="#" onclick="showSection(\'assignments\')"><i class="fas fa-tasks"></i> Assignments</a></li>';
+    }
+
+    if (hasPermission('attendance')) {
+        menuHTML += '<li><a href="#" onclick="showSection(\'attendance\')"><i class="fas fa-calendar-check"></i> Attendance</a></li>';
+    }
+
+    if (hasPermission('materials')) {
+        menuHTML += '<li><a href="#" onclick="showSection(\'materials\')"><i class="fas fa-folder"></i> Study Materials</a></li>';
+    }
+
+    if (hasPermission('results')) {
+        menuHTML += '<li><a href="#" onclick="showSection(\'results\')"><i class="fas fa-chart-line"></i> Exam Results</a></li>';
+    }
+
+    if (hasPermission('enquiries')) {
+        menuHTML += '<li><a href="#" onclick="showSection(\'enquiries\')"><i class="fas fa-envelope"></i> Enquiries</a></li>';
+    }
+
+    if (hasPermission('notices')) {
+        menuHTML += '<li><a href="#" onclick="showSection(\'notices\')"><i class="fas fa-bullhorn"></i> Notices</a></li>';
+    }
+
     // Blog Management dropdown - permission via role OR individual toggle
     if (currentFaculty.canWriteBlogs || hasPermission('blogs')) {
         menuHTML += `
@@ -422,7 +432,7 @@ function loadFacultyMenu() {
                 </ul>
             </li>`;
     }
-    
+
     // Entrance Exam Management dropdown - faculty can access student registration
     if (currentFaculty.canManageEntranceExam || hasPermission('entrance-exam')) {
         menuHTML += `
@@ -436,7 +446,7 @@ function loadFacultyMenu() {
                 </ul>
             </li>`;
     }
-    
+
     menu.innerHTML = menuHTML;
 }
 
