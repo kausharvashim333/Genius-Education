@@ -430,28 +430,35 @@ async function deleteSelectedEntranceQuestions() {
 function openBulkQuestionModal() {
     const examId = document.getElementById('entQbExam').value;
     if (!examId) return entShowToast('Please select an exam first', 'error');
-    document.getElementById('entBulkFile').value = '';
+    document.getElementById('entBulkFileEnglish').value = '';
+    document.getElementById('entBulkFileHindi').value = '';
     document.getElementById('entBulkResult').innerHTML = '';
     document.getElementById('entranceBulkModal').classList.add('active');
 }
 
 async function uploadBulkQuestions() {
     const examId = document.getElementById('entQbExam').value;
-    const fileInput = document.getElementById('entBulkFile');
-    const language = document.getElementById('entBulkLanguage').value;
-    if (!examId || !fileInput.files[0]) return entShowToast('Select an exam and file', 'error');
+    const englishFile = document.getElementById('entBulkFileEnglish').files[0];
+    const hindiFile = document.getElementById('entBulkFileHindi').files[0];
+    
+    if (!examId) return entShowToast('Please select an exam first', 'error');
+    if (!englishFile && !hindiFile) return entShowToast('Please select at least one file (English or Hindi)', 'error');
 
     const fd = new FormData();
-    fd.append('file', fileInput.files[0]);
     fd.append('examId', examId);
-    fd.append('language', language);
+    if (englishFile) fd.append('englishFile', englishFile);
+    if (hindiFile) fd.append('hindiFile', hindiFile);
 
     try {
         const res = await fetch('/api/entrance-questions/bulk-upload', { method: 'POST', body: fd });
         const data = await res.json();
         if (data.success) {
             const errs = data.errors || [];
-            entShowToast('Imported ' + data.added + ' questions' + (errs.length ? ' (' + errs.length + ' errors skipped)' : ''), 'success');
+            let message = 'Imported ' + data.added + ' questions';
+            if (data.englishAdded) message += ' (' + data.englishAdded + ' English)';
+            if (data.hindiAdded) message += ' (' + data.hindiAdded + ' Hindi)';
+            if (errs.length) message += ' (' + errs.length + ' errors skipped)';
+            entShowToast(message, 'success');
             if (errs.length) {
                 // Show errors briefly before closing
                 document.getElementById('entBulkResult').innerHTML =
