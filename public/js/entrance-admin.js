@@ -331,13 +331,9 @@ async function saveEntranceQuestion() {
     const text = document.getElementById('entQText').value.trim();
     const textHindi = document.getElementById('entQTextHindi').value.trim();
 
-    // Validation: Both languages must be provided
-    if (!text) {
-        return entShowToast('English question is required', 'error');
-    }
-
-    if (!textHindi) {
-        return entShowToast('Hindi question is required', 'error');
+    // Validation: At least one language must be provided
+    if (!text && !textHindi) {
+        return entShowToast('Question is required in at least one language (English or Hindi)', 'error');
     }
 
     // English options
@@ -356,19 +352,21 @@ async function saveEntranceQuestion() {
         document.getElementById('entOptDHindi').value.trim()
     ].filter(o => o);
 
-    // English options must be provided
-    if (opts.length < 2) {
-        return entShowToast('At least 2 English options required', 'error');
+    // If English question is provided, English options must be provided
+    if (text && opts.length < 2) {
+        return entShowToast('At least 2 English options required when English question is provided', 'error');
     }
 
-    // Hindi options must be provided
-    if (optsHindi.length < 2) {
-        return entShowToast('At least 2 Hindi options required', 'error');
+    // If Hindi question is provided, Hindi options must be provided
+    if (textHindi && optsHindi.length < 2) {
+        return entShowToast('At least 2 Hindi options required when Hindi question is provided', 'error');
     }
 
+    // Determine which language to use for correct answer validation
+    const activeOpts = text ? opts : optsHindi;
     const correct = parseInt(document.getElementById('entCorrect').value);
     if (isNaN(correct) || correct < 1 || correct > 4) return entShowToast('Correct answer must be 1-4', 'error');
-    if (correct > opts.length) return entShowToast('Correct answer exceeds available options', 'error');
+    if (correct > activeOpts.length) return entShowToast('Correct answer exceeds available options', 'error');
 
     const body = {
         examId: parseInt(examId),

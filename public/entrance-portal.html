@@ -772,9 +772,18 @@ function renderQuestions() {
     const q = currentQuestions[idx];
 
     // Determine which language to use
-    const useHindi = selectedLanguage === 'hindi' && q.questionHindi && q.questionHindi.trim();
-    const questionText = useHindi ? q.questionHindi : q.question;
-    const options = useHindi && q.optionsHindi && q.optionsHindi.length ? q.optionsHindi : q.options;
+    let questionText, options;
+    if (selectedLanguage === 'english') {
+        questionText = q.question;
+        options = q.options;
+    } else if (selectedLanguage === 'hindi' && q.questionHindi && q.questionHindi.trim()) {
+        questionText = q.questionHindi;
+        options = (q.optionsHindi && q.optionsHindi.length) ? q.optionsHindi : q.options;
+    } else {
+        // Fallback to English if Hindi not available
+        questionText = q.question;
+        options = q.options;
+    }
 
     let html = '';
     html += '<div class="question-block" id="qb-' + idx + '">';

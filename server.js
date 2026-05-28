@@ -10230,17 +10230,12 @@ app.post('/api/entrance-questions/bulk-upload', uploadBulk.single('file'), (req,
             const row = {};
             header.forEach((h, idx) => row[h] = cols[idx] || '');
 
-            // Validation: Both languages must be provided
+            // Validation: At least one language must be provided
             const hasEnglish = row.question && row.question.trim();
             const hasHindi = row.question_hindi && row.question_hindi.trim();
 
-            if (!hasEnglish) {
-                errors.push(`Row ${i + 1}: English question (question) is required`);
-                continue;
-            }
-
-            if (!hasHindi) {
-                errors.push(`Row ${i + 1}: Hindi question (question_hindi) is required`);
+            if (!hasEnglish && !hasHindi) {
+                errors.push(`Row ${i + 1}: Question required in at least one language (question or question_hindi)`);
                 continue;
             }
 
@@ -10249,15 +10244,15 @@ app.post('/api/entrance-questions/bulk-upload', uploadBulk.single('file'), (req,
             // Hindi options
             const optionsHindi = [row.option_a_hindi, row.option_b_hindi, row.option_c_hindi, row.option_d_hindi].filter(o => o);
 
-            // English options must be provided
-            if (options.length < 2) {
-                errors.push(`Row ${i + 1}: At least 2 English options required`);
+            // If English question provided, English options must be provided
+            if (hasEnglish && options.length < 2) {
+                errors.push(`Row ${i + 1}: At least 2 English options required when English question is provided`);
                 continue;
             }
 
-            // Hindi options must be provided
-            if (optionsHindi.length < 2) {
-                errors.push(`Row ${i + 1}: At least 2 Hindi options required`);
+            // If Hindi question provided, Hindi options must be provided
+            if (hasHindi && optionsHindi.length < 2) {
+                errors.push(`Row ${i + 1}: At least 2 Hindi options required when Hindi question is provided`);
                 continue;
             }
 
@@ -10267,8 +10262,9 @@ app.post('/api/entrance-questions/bulk-upload', uploadBulk.single('file'), (req,
                 continue;
             }
 
-            // Validate against English options (since both languages are required)
-            if (correctAns > options.length) {
+            // Validate against active language
+            const activeOpts = hasEnglish ? options : optionsHindi;
+            if (correctAns > activeOpts.length) {
                 errors.push(`Row ${i + 1}: correct_answer ${correctAns} exceeds available options`);
                 continue;
             }
