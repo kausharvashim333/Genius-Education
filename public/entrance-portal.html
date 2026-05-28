@@ -382,12 +382,16 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
                 <p style="font-size: 13px; opacity: 0.7;" id="examStudent"></p>
             </div>
             <div style="display:flex;align-items:center;gap:15px;">
+                <div style="display:flex;align-items:center;gap:8px;background:#f8fafc;padding:8px 16px;border-radius:8px;border:1px solid #e2e8f0;">
+                    <span style="font-size:13px;font-weight:600;color:#64748b;">Language:</span>
+                    <select id="languageSelector" onchange="changeLanguage()" style="padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;font-size:13px;cursor:pointer;">
+                        <option value="english">English</option>
+                        <option value="hindi">हिंदी</option>
+                    </select>
+                </div>
                 <div id="timerDisplay" class="timer">--:--:--</div>
-                <button id="langToggleBtn" class="btn" style="display:none;padding:8px 16px;background:#f59e0b;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;" onclick="toggleLanguage()">
-                    <i class="fas fa-language"></i> <span id="langBtnText">हिंदी</span>
-                </button>
-                <button class="btn btn-success" onclick="confirmSubmit()"><i class="fas fa-paper-plane"></i> Submit Exam</button>
             </div>
+            <button class="btn btn-success" onclick="confirmSubmit()"><i class="fas fa-paper-plane"></i> Submit Exam</button>
         </div>
         <div class="exam-content">
             <div id="questionsArea"></div>
@@ -429,7 +433,7 @@ let serverTimeOffset = 0;
 let endTime = null;
 let timerInterval = null;
 let dashboardInterval = null;
-let currentLanguage = 'english'; // 'english' or 'hindi'
+let selectedLanguage = 'english';
 
 function showToast(msg, type) {
     const t = document.getElementById('toast');
@@ -631,22 +635,6 @@ function showExamPage() {
     showPage('examPage');
     document.getElementById('examTitle').textContent = currentExam.name;
     document.getElementById('examStudent').textContent = currentRegistration.studentName + ' | ' + currentRegistration.registrationNo;
-    
-    // Check if any question has Hindi translation and is not English subject
-    const hasHindiQuestions = currentQuestions.some(q => 
-        q.questionHindi && q.questionHindi.trim() !== '' && 
-        q.subject && q.subject.toLowerCase() !== 'english'
-    );
-    
-    const langBtn = document.getElementById('langToggleBtn');
-    if (langBtn) {
-        langBtn.style.display = hasHindiQuestions ? 'inline-block' : 'none';
-    }
-    
-    // Reset language to English
-    currentLanguage = 'english';
-    updateLanguageButton();
-    
     renderQuestions();
     renderNav();
     startTimer();
@@ -768,6 +756,11 @@ function warnReload(e) {
     }
 }
 
+function changeLanguage() {
+    selectedLanguage = document.getElementById('languageSelector').value;
+    renderQuestions();
+}
+
 function renderQuestions() {
     if (!currentQuestions.length) {
         document.getElementById('questionsArea').innerHTML = '';
@@ -777,12 +770,12 @@ function renderQuestions() {
     if (currentQuestionIndex >= currentQuestions.length) currentQuestionIndex = currentQuestions.length - 1;
     const idx = currentQuestionIndex;
     const q = currentQuestions[idx];
-    
-    // Determine which language to show
-    const showHindi = currentLanguage === 'hindi' && q.questionHindi && q.questionHindi.trim() !== '';
-    const questionText = showHindi ? q.questionHindi : q.question;
-    const options = showHindi && q.optionsHindi && q.optionsHindi.length > 0 ? q.optionsHindi : q.options;
-    
+
+    // Determine which language to use
+    const useHindi = selectedLanguage === 'hindi' && q.questionHindi && q.questionHindi.trim();
+    const questionText = useHindi ? q.questionHindi : q.question;
+    const options = useHindi && q.optionsHindi && q.optionsHindi.length ? q.optionsHindi : q.options;
+
     let html = '';
     html += '<div class="question-block" id="qb-' + idx + '">';
     html += '<h4>Question ' + (idx + 1) + ' of ' + currentQuestions.length + ' &bull; ' + (q.marks || 1) + ' marks</h4>';
@@ -827,21 +820,6 @@ function nextQuestion() {
 function escapeHtml(s) {
     if (!s) return '';
     return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-}
-
-// Toggle between English and Hindi
-function toggleLanguage() {
-    currentLanguage = currentLanguage === 'english' ? 'hindi' : 'english';
-    updateLanguageButton();
-    renderQuestions();
-}
-
-// Update language button text
-function updateLanguageButton() {
-    const btnText = document.getElementById('langBtnText');
-    if (btnText) {
-        btnText.textContent = currentLanguage === 'english' ? 'हिंदी' : 'English';
-    }
 }
 
 function renderNav() {

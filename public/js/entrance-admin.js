@@ -296,7 +296,6 @@ function openEntranceQuestionModal() {
     document.getElementById('entMarks').value = 1;
     document.getElementById('entSubject').value = '';
     document.getElementById('entDifficulty').value = 'Medium';
-    toggleTranslationButton();
     document.getElementById('entranceQuestionModal').classList.add('active');
 }
 
@@ -321,7 +320,6 @@ async function editEntranceQuestion(id) {
         document.getElementById('entMarks').value = q.marks || 1;
         document.getElementById('entSubject').value = q.subject || '';
         document.getElementById('entDifficulty').value = q.difficulty || 'Medium';
-        toggleTranslationButton();
         document.getElementById('entranceQuestionModal').classList.add('active');
     } catch (e) { console.error(e); }
 }
@@ -383,83 +381,6 @@ async function deleteEntranceQuestion(id) {
     if (!confirm('Delete this question?')) return;
     await entApi('/api/entrance-questions/' + id, { method: 'DELETE' });
     loadEntranceQuestions();
-}
-
-// Toggle translation button based on subject
-function toggleTranslationButton() {
-    const subject = document.getElementById('entSubject').value;
-    const btn = document.getElementById('autoTranslateBtn');
-    if (btn) {
-        if (subject && subject.toLowerCase() === 'english') {
-            btn.style.display = 'none';
-        } else {
-            btn.style.display = 'inline-block';
-        }
-    }
-}
-
-// Auto-translate question and options to Hindi
-async function autoTranslateQuestion() {
-    const subject = document.getElementById('entSubject').value;
-    const questionText = document.getElementById('entQText').value.trim();
-    
-    if (!questionText) {
-        entShowToast('Please enter question text first', 'error');
-        return;
-    }
-    
-    if (subject && subject.toLowerCase() === 'english') {
-        entShowToast('English questions cannot be translated', 'error');
-        return;
-    }
-    
-    const btn = document.getElementById('autoTranslateBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Translating...';
-    
-    try {
-        // Translate question
-        const qRes = await fetch('/api/translate-text', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: questionText, subject })
-        });
-        const qData = await qRes.json();
-        if (qData.success) {
-            document.getElementById('entQTextHindi').value = qData.translatedText;
-        }
-        
-        // Translate options
-        const opts = [
-            document.getElementById('entOptA').value.trim(),
-            document.getElementById('entOptB').value.trim(),
-            document.getElementById('entOptC').value.trim(),
-            document.getElementById('entOptD').value.trim()
-        ].filter(o => o);
-        
-        const optHindiFields = ['entOptAHindi', 'entOptBHindi', 'entOptCHindi', 'entOptDHindi'];
-        for (let i = 0; i < opts.length; i++) {
-            if (opts[i]) {
-                const oRes = await fetch('/api/translate-text', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: opts[i], subject })
-                });
-                const oData = await oRes.json();
-                if (oData.success) {
-                    document.getElementById(optHindiFields[i]).value = oData.translatedText;
-                }
-            }
-        }
-        
-        entShowToast('Translation completed', 'success');
-    } catch (e) {
-        console.error('Translation error:', e);
-        entShowToast('Translation failed. Please try again.', 'error');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-language"></i> Auto-Translate to Hindi';
-    }
 }
 
 function toggleAllEntranceQuestions() {
