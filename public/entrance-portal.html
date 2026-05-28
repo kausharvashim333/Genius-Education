@@ -359,10 +359,6 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
             </h3>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div style="padding:12px;background:rgba(255,255,255,0.5);border-radius:8px;display:flex;align-items:flex-start;gap:10px;">
-                    <i class="fas fa-expand" style="color:#6366f1;margin-top:2px;"></i>
-                    <span style="font-size:13px;line-height:1.5;">Exam runs in <strong>fullscreen mode</strong>. Do not exit.</span>
-                </div>
-                <div style="padding:12px;background:rgba(255,255,255,0.5);border-radius:8px;display:flex;align-items:flex-start;gap:10px;">
                     <i class="fas fa-window-restore" style="color:#8b5cf6;margin-top:2px;"></i>
                     <span style="font-size:13px;line-height:1.5;"><strong>No tab/window switching</strong> — detected & recorded.</span>
                 </div>
@@ -402,7 +398,7 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
                 <i class="fas fa-shield-alt"></i> Security Warning
             </h3>
             <p style="margin:0;font-size:13px;line-height:1.6;color:#7f1d1d;">
-                After <strong>3 security violations</strong> (tab switch, fullscreen exit, dev tools, etc.) your registration will be <strong>auto-suspended</strong> and you cannot continue the exam.
+                After <strong>3 security violations</strong> (tab switch, dev tools, etc.) your registration will be <strong>auto-suspended</strong> and you cannot continue the exam.
             </p>
         </div>
         
@@ -699,7 +695,6 @@ function showExamPage() {
     renderNav();
     startTimer();
     enableSecurity();
-    requestFullscreen();
 }
 
 // =============== SECURITY / ANTI-CHEAT ===============
@@ -718,8 +713,6 @@ function enableSecurity() {
     document.addEventListener('keydown', blockShortcuts, true);
     document.addEventListener('visibilitychange', onVisibilityChange);
     window.addEventListener('blur', onWindowBlur);
-    document.addEventListener('fullscreenchange', onFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
     window.addEventListener('beforeunload', warnReload);
 }
 
@@ -750,10 +743,6 @@ function disableSecurity() {
     document.removeEventListener('keydown', blockShortcuts, true);
     document.removeEventListener('visibilitychange', onVisibilityChange);
     window.removeEventListener('blur', onWindowBlur);
-    document.removeEventListener('fullscreenchange', onFullscreenChange);
-    document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
-    
-    // Don't exit fullscreen - let the user exit naturally or let the page reload handle it
 }
 
 function blockEvent(e) { e.preventDefault(); return false; }
@@ -796,25 +785,6 @@ function onWindowBlur() {
     if (currentAttempt && !currentAttempt.submitted && !document.hidden) {
         reportViolation('window_blur', 'Window lost focus');
     }
-}
-
-function onFullscreenChange() {
-    const isFs = document.fullscreenElement || document.webkitFullscreenElement;
-    if (!isFs && currentAttempt && !currentAttempt.submitted && securityEnabled) {
-        reportViolation('fullscreen_exit', 'Exited fullscreen');
-        // Try re-entering after a brief delay (only if security is still enabled)
-        setTimeout(() => {
-            if (securityEnabled) requestFullscreen();
-        }, 800);
-    }
-}
-
-function requestFullscreen() {
-    const el = document.documentElement;
-    try {
-        if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-    } catch (e) {}
 }
 
 async function reportViolation(type, detail) {
@@ -1046,14 +1016,6 @@ async function submitExam(auto) {
                 dashboardInterval = null;
             }
             window.removeEventListener('beforeunload', warnReload);
-            
-            // Exit fullscreen immediately
-            if (document.fullscreenElement) {
-                document.exitFullscreen().catch(() => {});
-            }
-            if (document.webkitFullscreenElement) {
-                document.webkitExitFullscreen().catch(() => {});
-            }
             
             // Show success message and redirect
             showToast('Exam submitted successfully! Redirecting...', 'success');
