@@ -885,27 +885,28 @@ app.get('/api/faculty', (req, res) => {
 app.post('/api/faculty', async (req, res) => {
     const faculty = readData('faculty.json') || [];
     const crypto = require('crypto');
-    
+
     // Generate random password
     const password = crypto.randomBytes(8).toString('hex');
-    
-    const member = { 
-        id: Date.now(), 
-        ...req.body, 
+
+    const member = {
+        id: Date.now(),
+        ...req.body,
         email: req.body.email,
         password: password,
         role: req.body.role || 'Faculty',
-        canWriteBlogs: false
+        canWriteBlogs: false,
+        permissions: req.body.permissions || []
     };
     faculty.push(member);
     writeData('faculty.json', faculty);
-    
+
     // Send email with credentials
     try {
         const nodemailer = require('nodemailer');
         const settings = readData('settings.json') || {};
         const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
-        
+
         const transporter = nodemailer.createTransport({
             host: smtpHost,
             port: smtpPort,
@@ -915,7 +916,7 @@ app.post('/api/faculty', async (req, res) => {
                 pass: smtpPass
             }
         });
-        
+
         const mailOptions = {
             from: smtpUser,
             to: member.email,
@@ -932,7 +933,7 @@ app.post('/api/faculty', async (req, res) => {
                 <p>Best regards,<br>Genius Computer Education</p>
             `
         };
-        
+
         await transporter.sendMail(mailOptions);
         res.json({ success: true, member, message: 'Faculty added and credentials sent via email' });
     } catch (e) {
@@ -952,9 +953,9 @@ app.put('/api/faculty/:id', (req, res) => {
     const faculty = readData('faculty.json') || [];
     const idx = faculty.findIndex(f => f.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Faculty not found' });
-    
+
     // Update allowed fields
-    const { name, email, subject, experience, role, admissionAccess, canWriteBlogs } = req.body;
+    const { name, email, subject, experience, role, admissionAccess, canWriteBlogs, permissions } = req.body;
     if (name !== undefined) faculty[idx].name = name;
     if (email !== undefined) faculty[idx].email = email;
     if (subject !== undefined) faculty[idx].subject = subject;
@@ -962,7 +963,8 @@ app.put('/api/faculty/:id', (req, res) => {
     if (role !== undefined) faculty[idx].role = role;
     if (admissionAccess !== undefined) faculty[idx].admissionAccess = admissionAccess;
     if (canWriteBlogs !== undefined) faculty[idx].canWriteBlogs = canWriteBlogs;
-    
+    if (permissions !== undefined) faculty[idx].permissions = permissions;
+
     writeData('faculty.json', faculty);
     res.json({ success: true, faculty: faculty[idx] });
 });
@@ -983,10 +985,10 @@ app.post('/api/faculty/login', async (req, res) => {
 
     if (!passwordMatch) return res.json({ success: false, message: 'Invalid credentials' });
 
-    // Get permissions for this user's role
-    const rolePermissions = getRolePermissions(user.role);
-    
-    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false, canManageEntranceExam: user.canManageEntranceExam || false, permissions: rolePermissions } });
+    // Use user-specific permissions, fallback to role permissions if empty
+    const userPermissions = user.permissions && user.permissions.length > 0 ? user.permissions : getRolePermissions(user.role);
+
+    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false, canManageEntranceExam: user.canManageEntranceExam || false, permissions: userPermissions } });
 });
 
 // Helper function: Get permissions array for a role
@@ -1068,30 +1070,31 @@ app.post('/api/faculty/send-otp', async (req, res) => {
 app.post('/api/faculty/verify-otp', (req, res) => {
     const { email, otp } = req.body;
     const otps = readData('faculty-otps.json') || [];
-    
+
     const otpRecord = otps.find(o => o.email === email && o.otp === otp && o.expiresAt > Date.now());
-    
+
     if (!otpRecord) {
         return res.json({ success: false, message: 'Invalid or expired OTP' });
     }
-    
+
     // Get faculty data
     const faculty = readData('faculty.json') || [];
     const user = faculty.find(f => f.id === otpRecord.facultyId);
-    
+
     if (!user) {
         return res.json({ success: false, message: 'Faculty not found' });
     }
-    
+
     // Remove used OTP
     const filteredOtps = otps.filter(o => o.email !== email);
     writeData('faculty-otps.json', filteredOtps);
-    
-    const rolePermissions = getRolePermissions(user.role);
-    
+
+    // Use user-specific permissions, fallback to role permissions if empty
+    const userPermissions = user.permissions && user.permissions.length > 0 ? user.permissions : getRolePermissions(user.role);
+
     res.json({
         success: true,
-        user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false, canManageEntranceExam: user.canManageEntranceExam || false, permissions: rolePermissions }
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false, canManageEntranceExam: user.canManageEntranceExam || false, permissions: userPermissions }
     });
 });
 
@@ -1700,7 +1703,10 @@ app.get('/api/faculty/:id/me', (req, res) => {
     const faculty = readData('faculty.json') || [];
     const user = faculty.find(f => f.id == req.params.id);
     if (!user) return res.status(404).json({ success: false, message: 'Faculty not found' });
-    const rolePermissions = getRolePermissions(user.role);
+
+    // Use user-specific permissions, fallback to role permissions if empty
+    const userPermissions = user.permissions && user.permissions.length > 0 ? user.permissions : getRolePermissions(user.role);
+
     res.json({
         success: true,
         user: {
@@ -1713,7 +1719,7 @@ app.get('/api/faculty/:id/me', (req, res) => {
             canWriteBlogs: user.canWriteBlogs || false,
             canSubmitAdmission: user.canSubmitAdmission || false,
             canManageEntranceExam: user.canManageEntranceExam || false,
-            permissions: rolePermissions
+            permissions: userPermissions
         }
     });
 });
