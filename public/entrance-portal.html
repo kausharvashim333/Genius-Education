@@ -764,8 +764,24 @@ function warnReload(e) {
 }
 
 function changeLanguage() {
-    selectedLanguage = document.getElementById('languageSelector').value;
-    showToast('Language: ' + selectedLanguage, 'info');
+    const newLanguage = document.getElementById('languageSelector').value;
+    
+    // Check if any question has the requested language translation
+    let hasTranslation = false;
+    if (newLanguage === 'hindi') {
+        hasTranslation = currentQuestions.some(q => q.questionHindi && q.questionHindi.trim());
+    } else {
+        hasTranslation = currentQuestions.some(q => q.question && q.question.trim());
+    }
+    
+    if (!hasTranslation) {
+        showToast('Translation not found for selected language', 'error');
+        // Revert language selector
+        document.getElementById('languageSelector').value = selectedLanguage;
+        return;
+    }
+    
+    selectedLanguage = newLanguage;
     renderQuestions();
 }
 
