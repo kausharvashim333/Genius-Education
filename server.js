@@ -10609,66 +10609,71 @@ app.post('/api/entrance/report-violation', (req, res) => {
 
 // --- Submit Exam ---
 app.post('/api/entrance/submit-exam', (req, res) => {
-    const { attemptId } = req.body;
-    const attempts = readData('entrance-attempts.json') || [];
-    const idx = attempts.findIndex(a => a.id == attemptId);
-    if (idx === -1) return res.status(404).json({ success: false, message: 'Attempt not found' });
+    try {
+        const { attemptId } = req.body;
+        const attempts = readData('entrance-attempts.json') || [];
+        const idx = attempts.findIndex(a => a.id == attemptId);
+        if (idx === -1) return res.status(404).json({ success: false, message: 'Attempt not found' });
 
-    const attempt = attempts[idx];
-    if (attempt.submitted) return res.status(400).json({ success: false, message: 'Already submitted' });
+        const attempt = attempts[idx];
+        if (attempt.submitted) return res.status(400).json({ success: false, message: 'Already submitted' });
 
-    const allQuestions = readData('entrance-questions.json') || [];
-    const exams = readData('entrance-exams.json') || [];
-    const exam = exams.find(e => e.id == attempt.examId);
+        const allQuestions = readData('entrance-questions.json') || [];
+        const exams = readData('entrance-exams.json') || [];
+        const exam = exams.find(e => e.id == attempt.examId);
 
-    // Auto-grade (map shuffled answer index back to original option index)
-    let marksObtained = 0;
-    let totalMarks = 0;
-    const optionOrder = attempt.optionOrder || {};
-    attempt.questionIds.forEach(qid => {
-        const q = allQuestions.find(qq => qq.id === qid);
-        if (!q) return;
-        totalMarks += q.marks || 1;
-        const studentAns = attempt.answers ? attempt.answers[qid] : undefined;
-        if (studentAns === undefined) return;
-        // Translate the student's selected (shuffled) index to the original index
-        const order = optionOrder[qid];
-        const originalSelectedIdx = order ? order[parseInt(studentAns)] : parseInt(studentAns);
-        if (originalSelectedIdx === q.correctAnswer) {
-            marksObtained += q.marks || 1;
-        }
-    });
+        // Auto-grade (map shuffled answer index back to original option index)
+        let marksObtained = 0;
+        let totalMarks = 0;
+        const optionOrder = attempt.optionOrder || {};
+        attempt.questionIds.forEach(qid => {
+            const q = allQuestions.find(qq => qq.id === qid);
+            if (!q) return;
+            totalMarks += q.marks || 1;
+            const studentAns = attempt.answers ? attempt.answers[qid] : undefined;
+            if (studentAns === undefined) return;
+            // Translate the student's selected (shuffled) index to the original index
+            const order = optionOrder[qid];
+            const originalSelectedIdx = order ? order[parseInt(studentAns)] : parseInt(studentAns);
+            if (originalSelectedIdx === q.correctAnswer) {
+                marksObtained += q.marks || 1;
+            }
+        });
 
-    attempt.submitted = true;
-    attempt.submittedAt = new Date().toISOString();
-    attempt.marksObtained = marksObtained;
-    attempt.totalMarks = totalMarks;
-    attempts[idx] = attempt;
-    writeData('entrance-attempts.json', attempts);
+        attempt.submitted = true;
+        attempt.submittedAt = new Date().toISOString();
+        attempt.marksObtained = marksObtained;
+        attempt.totalMarks = totalMarks;
+        attempts[idx] = attempt;
+        writeData('entrance-attempts.json', attempts);
 
-    // Save result
-    const results = readData('entrance-results.json') || [];
-    const regs = readData('entrance-registrations.json') || [];
-    const reg = regs.find(r => r.id == attempt.registrationId);
+        // Save result
+        const results = readData('entrance-results.json') || [];
+        const regs = readData('entrance-registrations.json') || [];
+        const reg = regs.find(r => r.id == attempt.registrationId);
 
-    const result = {
-        id: Date.now(),
-        attemptId: attempt.id,
-        registrationId: attempt.registrationId,
-        examId: attempt.examId,
-        registrationNo: reg ? reg.registrationNo : '',
-        studentName: reg ? reg.studentName : '',
-        examName: exam ? exam.name : '',
-        marksObtained,
-        totalMarks: totalMarks || (exam ? exam.totalMarks : 0),
-        percentage: totalMarks > 0 ? Math.round((marksObtained / totalMarks) * 100) : 0,
-        submittedAt: attempt.submittedAt,
-        published: false
-    };
-    results.push(result);
-    writeData('entrance-results.json', results);
+        const result = {
+            id: Date.now(),
+            attemptId: attempt.id,
+            registrationId: attempt.registrationId,
+            examId: attempt.examId,
+            registrationNo: reg ? reg.registrationNo : '',
+            studentName: reg ? reg.studentName : '',
+            examName: exam ? exam.name : '',
+            marksObtained,
+            totalMarks: totalMarks || (exam ? exam.totalMarks : 0),
+            percentage: totalMarks > 0 ? Math.round((marksObtained / totalMarks) * 100) : 0,
+            submittedAt: attempt.submittedAt,
+            published: false
+        };
+        results.push(result);
+        writeData('entrance-results.json', results);
 
-    res.json({ success: true, message: 'Exam submitted successfully' });
+        res.json({ success: true, message: 'Exam submitted successfully' });
+    } catch (err) {
+        console.error('Submit exam error:', err);
+        res.status(500).json({ success: false, message: 'Server error during submission: ' + err.message });
+    }
 });
 
 // --- Entrance Results ---
