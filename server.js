@@ -1567,15 +1567,21 @@ app.get('/api/check-aadhar', (req, res) => {
 });
 
 // ===== Staff OTP for Admission Submission (Cash/UPI mismanagement prevention) =====
-// Authorized staff = faculty.json entries with canSubmitAdmission === true.
+// Authorized staff = faculty.json entries with 'admissions' permission or canSubmitAdmission === true.
 
 function isAuthorizedStaff(email) {
     if (!email) return null;
     const faculty = readData('faculty.json') || [];
     const f = faculty.find(x => (x.email || '').toLowerCase() === email.toLowerCase());
     if (!f) return null;
-    if (f.canSubmitAdmission !== true) return null;
-    return f;
+
+    // Check new permissions system first
+    if (f.permissions && f.permissions.includes('admissions')) return f;
+
+    // Fallback to old canSubmitAdmission flag for backward compatibility
+    if (f.canSubmitAdmission === true) return f;
+
+    return null;
 }
 
 app.post('/api/staff/send-otp', async (req, res) => {
