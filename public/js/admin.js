@@ -1793,6 +1793,7 @@ async function openFacultyModal() {
 
 document.getElementById('facultyForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+    const facultyId = document.getElementById('facultyId').value;
     const data = {
         name: document.getElementById('facultyName').value,
         email: document.getElementById('facultyEmail').value,
@@ -1800,14 +1801,35 @@ document.getElementById('facultyForm').addEventListener('submit', async function
         experience: document.getElementById('facultyExperience').value,
         role: document.getElementById('facultyRole').value
     };
+
     try {
-        const res = await fetch('/api/faculty', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        const result = await res.json();
+        let res, result;
+        if (facultyId) {
+            // Update existing faculty
+            res = await fetch('/api/faculty/' + facultyId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            result = await res.json();
+            showNotification(result.message || 'Faculty updated!', 'success');
+        } else {
+            // Create new faculty
+            res = await fetch('/api/faculty', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            result = await res.json();
+            showNotification(result.message || 'Faculty added!', 'success');
+        }
+
         closeModal('facultyModal');
         loadFacultyTable();
         loadDashboard();
-        showNotification(result.message || 'Faculty added!', 'success');
-    } catch (err) { showNotification('Error adding faculty!', 'error'); }
+    } catch (err) {
+        showNotification(facultyId ? 'Error updating faculty!' : 'Error adding faculty!', 'error');
+    }
 });
 
 async function deleteFaculty(id) {
@@ -1817,6 +1839,36 @@ async function deleteFaculty(id) {
         loadFacultyTable();
         showNotification('Faculty deleted!', 'success');
     } catch (err) { showNotification('Error!', 'error'); }
+}
+
+async function openFacultyEditModal(id) {
+    try {
+        const res = await fetch('/api/faculty/' + id);
+        const faculty = await res.json();
+
+        document.getElementById('facultyId').value = faculty.id;
+        document.getElementById('facultyName').value = faculty.name;
+        document.getElementById('facultySubject').value = faculty.subject;
+        document.getElementById('facultyExperience').value = faculty.experience;
+        document.getElementById('facultyEmail').value = faculty.email;
+        document.getElementById('facultyRole').value = faculty.role || 'Faculty';
+
+        document.getElementById('facultyModalTitle').textContent = 'Edit Faculty';
+        document.getElementById('facultySaveBtn').textContent = 'Update Faculty';
+
+        document.getElementById('facultyModal').classList.add('active');
+    } catch (err) {
+        console.error('Error loading faculty:', err);
+        showNotification('Error loading faculty data!', 'error');
+    }
+}
+
+function openFacultyModal() {
+    document.getElementById('facultyForm').reset();
+    document.getElementById('facultyId').value = '';
+    document.getElementById('facultyModalTitle').textContent = 'Add Faculty';
+    document.getElementById('facultySaveBtn').textContent = 'Save Faculty';
+    document.getElementById('facultyModal').classList.add('active');
 }
 
 async function toggleFacultyAdmissionAccess(id, currentState) {
@@ -1918,6 +1970,7 @@ async function loadFacultyTable() {
             html += '</button>';
             html += '</td>';
             html += '<td>';
+            html += '<button class="action-btn edit-btn" onclick="openFacultyEditModal(' + f.id + ')"><i class="fas fa-edit"></i></button>';
             html += '<button class="action-btn delete-btn" onclick="deleteFaculty(' + f.id + ')"><i class="fas fa-trash"></i></button>';
             html += '</td>';
             html += '</tr>';

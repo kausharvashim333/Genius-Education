@@ -3233,7 +3233,7 @@
     <!-- Faculty Modal -->
     <div id="facultyModal" class="modal">
         <div class="modal-content">
-            <h3>Add Faculty</h3>
+            <h3 id="facultyModalTitle">Add Faculty</h3>
             <form id="facultyForm">
                 <input type="hidden" id="facultyId">
                 <div class="form-group">
@@ -3260,7 +3260,7 @@
                         <option value="Staff">Staff</option>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-primary">Save Faculty</button>
+                <button type="submit" class="btn btn-primary" id="facultySaveBtn">Save Faculty</button>
                 <button type="button" class="btn" onclick="closeModal('facultyModal')" style="margin-left: 10px;">Cancel</button>
             </form>
         </div>
