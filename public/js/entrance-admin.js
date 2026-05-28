@@ -486,6 +486,18 @@ function downloadQuestionTemplate() {
     URL.revokeObjectURL(url);
 }
 
+function updateFileLabel(inputId, labelId) {
+    const input = document.getElementById(inputId);
+    const label = document.getElementById(labelId);
+    if (input.files && input.files[0]) {
+        label.innerHTML = '<i class="fas fa-check"></i> ' + input.files[0].name;
+        label.style.background = '#10b981';
+    } else {
+        label.innerHTML = '<i class="fas fa-folder-open"></i> Choose File';
+        label.style.background = inputId.includes('English') ? '#4ade80' : '#f472b6';
+    }
+}
+
 // ---------- Registrations ----------
 async function loadEntranceRegistrations() {
     const examId = document.getElementById('entRegExam').value;

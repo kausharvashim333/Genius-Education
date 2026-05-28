@@ -340,44 +340,96 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
 
 <!-- Instructions Modal -->
 <div class="modal-overlay" id="instructionsModal">
-    <div class="modal-box">
-        <h2 style="margin-bottom: 20px;"><i class="fas fa-exclamation-triangle" style="color: #fbbf24;"></i> Exam Instructions</h2>
-        <div id="instructionsText" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; line-height: 1.7;"></div>
-        <h3 style="margin-bottom: 12px;">General Rules:</h3>
-        <ul class="instructions-list">
-            <li>The exam will run in <strong>fullscreen mode</strong>. Do not exit fullscreen.</li>
-            <li><strong>Do not switch tabs or windows</strong> — this will be detected and recorded.</li>
-            <li>Right-click, copy, paste, and keyboard shortcuts are <strong>disabled</strong>.</li>
-            <li>Developer tools (F12, Ctrl+Shift+I) are blocked and tracked.</li>
-            <li>The timer is synchronized with the server. Time will not pause.</li>
-            <li>If you log in late, you will get only the remaining time.</li>
-            <li>Your answers are saved automatically as you select them.</li>
-            <li>Click "Submit Exam" when done. Auto-submit happens when time ends.</li>
-            <li>Once submitted, you cannot retake the exam.</li>
-        </ul>
-        <div style="margin-top: 14px; padding: 12px; background: #fef2f2; border-left: 4px solid var(--danger); border-radius: 6px; color: #7f1d1d;">
-            <strong><i class="fas fa-exclamation-triangle"></i> Warning:</strong> After <strong>3 security violations</strong> (tab switch, fullscreen exit, dev tools, etc.) your registration will be <strong>auto-suspended</strong> and you cannot continue the exam.
+    <div class="modal-box" style="max-width:750px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+            <div style="width:56px;height:56px;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+                <i class="fas fa-exclamation-triangle" style="color:#fff;font-size:24px;"></i>
+            </div>
+            <div>
+                <h2 style="margin:0;color:var(--primary-dark);font-size:24px;">Exam Instructions</h2>
+                <p style="margin:4px 0 0;opacity:0.7;font-size:14px;">Please read all instructions carefully before starting</p>
+            </div>
         </div>
-        <div style="margin: 20px 0; padding: 15px; background: rgba(59,130,246,0.15); border-radius: 8px;">
-            <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--primary-dark);">
-                <i class="fas fa-language"></i> Select Exam Language:
+        
+        <div id="instructionsText" style="margin-bottom:20px;padding:16px;background:rgba(59,130,246,0.08);border-radius:10px;border-left:4px solid #3b82f6;line-height:1.7;font-size:14px;"></div>
+        
+        <div style="margin-bottom:20px;">
+            <h3 style="margin:0 0 16px;color:var(--primary-dark);font-size:16px;display:flex;align-items:center;gap:8px;">
+                <i class="fas fa-list-check" style="color:#3b82f6;"></i> General Rules
+            </h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div style="padding:12px;background:rgba(255,255,255,0.5);border-radius:8px;display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fas fa-expand" style="color:#6366f1;margin-top:2px;"></i>
+                    <span style="font-size:13px;line-height:1.5;">Exam runs in <strong>fullscreen mode</strong>. Do not exit.</span>
+                </div>
+                <div style="padding:12px;background:rgba(255,255,255,0.5);border-radius:8px;display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fas fa-window-restore" style="color:#8b5cf6;margin-top:2px;"></i>
+                    <span style="font-size:13px;line-height:1.5;"><strong>No tab/window switching</strong> — detected & recorded.</span>
+                </div>
+                <div style="padding:12px;background:rgba(255,255,255,0.5);border-radius:8px;display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fas fa-ban" style="color:#ec4899;margin-top:2px;"></i>
+                    <span style="font-size:13px;line-height:1.5;">Right-click, copy, paste, shortcuts <strong>disabled</strong>.</span>
+                </div>
+                <div style="padding:12px;background:rgba(255,255,255,0.5);border-radius:8px;display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fas fa-code" style="color:#14b8a6;margin-top:2px;"></i>
+                    <span style="font-size:13px;line-height:1.5;">Dev tools (F12) <strong>blocked</strong> & tracked.</span>
+                </div>
+                <div style="padding:12px;background:rgba(255,255,255,0.5);border-radius:8px;display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fas fa-clock" style="color:#f59e0b;margin-top:2px;"></i>
+                    <span style="font-size:13px;line-height:1.5;">Timer synced with server. <strong>No pause</strong>.</span>
+                </div>
+                <div style="padding:12px;background:rgba(255,255,255,0.5);border-radius:8px;display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fas fa-save" style="color:#10b981;margin-top:2px;"></i>
+                    <span style="font-size:13px;line-height:1.5;">Answers <strong>auto-saved</strong> as you select.</span>
+                </div>
+                <div style="padding:12px;background:rgba(255,255,255,0.5);border-radius:8px;display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fas fa-paper-plane" style="color:#3b82f6;margin-top:2px;"></i>
+                    <span style="font-size:13px;line-height:1.5;">Auto-submit when <strong>time ends</strong>.</span>
+                </div>
+                <div style="padding:12px;background:rgba(255,255,255,0.5);border-radius:8px;display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fas fa-redo" style="color:#ef4444;margin-top:2px;"></i>
+                    <span style="font-size:13px;line-height:1.5;">Once submitted, <strong>no retake</strong> allowed.</span>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom:20px;padding:16px;background:linear-gradient(135deg,rgba(239,68,68,0.1) 0%,rgba(220,38,38,0.1) 100%);border-radius:10px;border:1px solid rgba(239,68,68,0.2);">
+            <h3 style="margin:0 0 10px;color:#dc2626;font-size:15px;display:flex;align-items:center;gap:8px;">
+                <i class="fas fa-shield-alt"></i> Security Warning
+            </h3>
+            <p style="margin:0;font-size:13px;line-height:1.6;color:#7f1d1d;">
+                After <strong>3 security violations</strong> (tab switch, fullscreen exit, dev tools, etc.) your registration will be <strong>auto-suspended</strong> and you cannot continue the exam.
+            </p>
+        </div>
+        
+        <div style="margin-bottom:20px;padding:20px;background:linear-gradient(135deg,rgba(59,130,246,0.1) 0%,rgba(99,102,241,0.1) 100%);border-radius:12px;border:1px solid rgba(59,130,246,0.2);">
+            <label style="display:block;margin-bottom:12px;font-weight:600;color:var(--primary-dark);font-size:15px;">
+                <i class="fas fa-language" style="margin-right:8px;"></i> Select Exam Language
             </label>
-            <select id="examLanguageSelector" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; font-size: 14px; cursor: pointer;">
-                <option value="english">English</option>
-                <option value="hindi">हिंदी (Hindi)</option>
-            </select>
-            <p style="font-size: 12px; opacity: 0.7; margin-top: 8px;">Questions will be displayed in the selected language. Once selected, language cannot be changed during the exam.</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <label style="display:flex;align-items:center;gap:10px;padding:12px;background:#fff;border:2px solid #e2e8f0;border-radius:8px;cursor:pointer;transition:all 0.3s;">
+                    <input type="radio" name="examLanguage" value="english" checked style="width:auto;">
+                    <span style="font-size:14px;font-weight:500;">🇬🇧 English</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;padding:12px;background:#fff;border:2px solid #e2e8f0;border-radius:8px;cursor:pointer;transition:all 0.3s;">
+                    <input type="radio" name="examLanguage" value="hindi" style="width:auto;">
+                    <span style="font-size:14px;font-weight:500;">🇮🇳 हिंदी (Hindi)</span>
+                </label>
+            </div>
+            <p style="margin:10px 0 0;font-size:12px;opacity:0.7;">Questions will be displayed in the selected language. Language cannot be changed during the exam.</p>
         </div>
-        <div style="margin: 20px 0; padding: 12px; background: rgba(59,130,246,0.15); border-radius: 8px;">
-            <label style="display: flex; align-items: center; cursor: pointer;">
-                <input type="checkbox" id="acceptCheck" style="width: auto; margin-right: 10px;" onchange="toggleAcceptBtn()">
-                <span>I have read and agree to follow all the rules</span>
+        
+        <div style="margin-bottom:20px;padding:16px;background:rgba(16,185,129,0.1);border-radius:10px;border:1px solid rgba(16,185,129,0.2);">
+            <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
+                <input type="checkbox" id="acceptCheck" style="width:20px;height:20px;cursor:pointer;" onchange="toggleAcceptBtn()">
+                <span style="font-size:14px;font-weight:500;">I have read and agree to follow all the rules</span>
             </label>
         </div>
-        <div style="display: flex; gap: 12px; justify-content: flex-end;">
-            <button class="btn btn-light" onclick="closeInstructions()">Cancel</button>
-            <button class="btn btn-primary" id="acceptBtn" disabled onclick="acceptAndStart()">
-                <i class="fas fa-check"></i> Accept & Start Exam
+        
+        <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:16px;border-top:1px solid #e2e8f0;">
+            <button class="btn btn-light" onclick="closeInstructions()" style="padding:12px 28px;">Cancel</button>
+            <button class="btn btn-primary" id="acceptBtn" disabled onclick="acceptAndStart()" style="padding:12px 28px;">
+                <i class="fas fa-play"></i> Start Exam
             </button>
         </div>
     </div>
@@ -606,7 +658,7 @@ function toggleAcceptBtn() {
 async function acceptAndStart() {
     closeInstructions();
     try {
-        const selectedLanguage = document.getElementById('examLanguageSelector').value;
+        const selectedLanguage = document.querySelector('input[name="examLanguage"]:checked').value;
         const res = await fetch('/api/entrance/start-exam', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

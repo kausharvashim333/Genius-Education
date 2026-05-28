@@ -2436,28 +2436,59 @@
 
             <!-- Bulk Question Upload Modal -->
             <div id="entranceBulkModal" class="modal">
-                <div class="modal-content" style="max-width:600px;position:relative;">
+                <div class="modal-content" style="max-width:700px;position:relative;">
                     <button class="modal-close-btn" onclick="closeModal('entranceBulkModal')">&times;</button>
-                    <h3 style="margin-bottom:20px;color:#fff;"><i class="fas fa-upload" style="color:#667eea;"></i> Bulk Upload Questions</h3>
-                    <div style="margin-bottom:15px;padding:15px;background:rgba(59,130,246,0.15);border-radius:8px;color:#fff;font-size:13px;line-height:1.7;">
-                        <strong>File Format (CSV or TSV):</strong><br>
-                        Columns: <code>question, option_a, option_b, option_c, option_d, correct_answer, marks, subject, difficulty</code><br>
-                        <strong>Note:</strong> Upload separate CSV files for English and Hindi questions. Both files are optional - you can upload one or both.<br>
-                        <strong>correct_answer</strong> must be 1-4 (1=Option A, 2=Option B, 3=Option C, 4=Option D)<br>
-                        <a href="javascript:void(0)" onclick="downloadQuestionTemplate()" style="color:#fbbf24;"><i class="fas fa-download"></i> Download CSV Template</a>
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+                        <div style="width:48px;height:48px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                            <i class="fas fa-upload" style="color:#fff;font-size:20px;"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin:0;color:#fff;font-size:20px;">Bulk Upload Questions</h3>
+                            <p style="margin:4px 0 0;opacity:0.7;font-size:13px;">Upload English and Hindi questions in CSV format</p>
+                        </div>
                     </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">English Questions File (.csv or .tsv) <span style="font-size:12px;opacity:0.7;">(Optional)</span></label>
-                        <input type="file" id="entBulkFileEnglish" accept=".csv,.tsv,.txt" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
+                    
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+                        <div style="padding:20px;background:rgba(255,255,255,0.05);border:2px dashed rgba(255,255,255,0.2);border-radius:12px;text-align:center;transition:all 0.3s;">
+                            <i class="fas fa-file-csv" style="font-size:32px;color:#4ade80;margin-bottom:12px;"></i>
+                            <h4 style="margin:0 0 8px;color:#fff;font-size:15px;">English Questions</h4>
+                            <p style="margin:0 0 12px;opacity:0.6;font-size:12px;">.csv or .tsv file</p>
+                            <input type="file" id="entBulkFileEnglish" accept=".csv,.tsv,.txt" style="display:none;" onchange="updateFileLabel('entBulkFileEnglish', 'entBulkEnglishLabel')">
+                            <label for="entBulkFileEnglish" id="entBulkEnglishLabel" style="display:inline-block;padding:8px 16px;background:#4ade80;color:#fff;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">
+                                <i class="fas fa-folder-open"></i> Choose File
+                            </label>
+                        </div>
+                        <div style="padding:20px;background:rgba(255,255,255,0.05);border:2px dashed rgba(255,255,255,0.2);border-radius:12px;text-align:center;transition:all 0.3s;">
+                            <i class="fas fa-file-csv" style="font-size:32px;color:#f472b6;margin-bottom:12px;"></i>
+                            <h4 style="margin:0 0 8px;color:#fff;font-size:15px;">Hindi Questions</h4>
+                            <p style="margin:0 0 12px;opacity:0.6;font-size:12px;">.csv or .tsv file</p>
+                            <input type="file" id="entBulkFileHindi" accept=".csv,.tsv,.txt" style="display:none;" onchange="updateFileLabel('entBulkFileHindi', 'entBulkHindiLabel')">
+                            <label for="entBulkFileHindi" id="entBulkHindiLabel" style="display:inline-block;padding:8px 16px;background:#f472b6;color:#fff;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">
+                                <i class="fas fa-folder-open"></i> Choose File
+                            </label>
+                        </div>
                     </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Hindi Questions File (.csv or .tsv) <span style="font-size:12px;opacity:0.7;">(Optional)</span></label>
-                        <input type="file" id="entBulkFileHindi" accept=".csv,.tsv,.txt" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
+                    
+                    <div style="margin-bottom:20px;padding:16px;background:rgba(59,130,246,0.1);border-radius:10px;border-left:4px solid #3b82f6;">
+                        <h4 style="margin:0 0 10px;color:#fff;font-size:14px;"><i class="fas fa-info-circle"></i> File Format</h4>
+                        <p style="margin:0 0 8px;opacity:0.8;font-size:12px;"><strong>Required Columns:</strong> question, option_a, option_b, option_c, option_d, correct_answer, marks, subject, difficulty</p>
+                        <p style="margin:0 0 8px;opacity:0.8;font-size:12px;"><strong>Note:</strong> Upload separate files for each language. Both are optional.</p>
+                        <p style="margin:0;opacity:0.8;font-size:12px;"><strong>correct_answer:</strong> 1-4 (1=Option A, 2=Option B, 3=Option C, 4=Option D)</p>
                     </div>
+                    
+                    <div style="margin-bottom:20px;">
+                        <a href="javascript:void(0)" onclick="downloadQuestionTemplate()" style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.3);border-radius:8px;color:#fbbf24;text-decoration:none;font-size:13px;font-weight:600;transition:all 0.3s;">
+                            <i class="fas fa-download"></i> Download CSV Template
+                        </a>
+                    </div>
+                    
                     <div id="entBulkResult"></div>
-                    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:15px;">
-                        <button class="btn" onclick="closeModal('entranceBulkModal')">Cancel</button>
-                        <button class="btn btn-primary" onclick="uploadBulkQuestions()"><i class="fas fa-upload"></i> Upload</button>
+                    
+                    <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
+                        <button class="btn" onclick="closeModal('entranceBulkModal')" style="padding:10px 24px;">Cancel</button>
+                        <button class="btn btn-primary" onclick="uploadBulkQuestions()" style="padding:10px 24px;">
+                            <i class="fas fa-upload"></i> Upload Questions
+                        </button>
                     </div>
                 </div>
             </div>
