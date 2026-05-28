@@ -8879,7 +8879,22 @@ async function loadBatchesForCourse(courseName) {
 // ===== Document helpers =====
 function showSingleDoc(input, labelId) {
     const f = input.files[0];
-    document.getElementById(labelId).textContent = f ? '📎 ' + f.name : 'Click to upload';
+    if (!f) {
+        document.getElementById(labelId).textContent = 'Click to upload';
+        return;
+    }
+
+    // File size validation (5MB for documents like marksheet, Aadhar, etc.)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (f.size > maxSize) {
+        showNotification('File size exceeds 5MB limit. Please choose a smaller file.', 'error');
+        input.value = ''; // Clear the file input
+        document.getElementById(labelId).textContent = 'Click to upload';
+        return;
+    }
+
+    document.getElementById(labelId).textContent = '📎 ' + f.name;
 }
 
 // ===== Qualification / Marks Helpers =====
@@ -9334,6 +9349,17 @@ function calculatePaymentPercentage() {
 function previewDocFile(input, imgId, placeholderId) {
     const file = input.files[0];
     if (!file) return;
+
+    // File size validation (2MB for photo, 1MB for signature)
+    const maxSize = imgId === 'sPhotoPreview' ? 2 * 1024 * 1024 : 1 * 1024 * 1024;
+    const maxSizeMB = imgId === 'sPhotoPreview' ? 2 : 1;
+
+    if (file.size > maxSize) {
+        showNotification(`File size exceeds ${maxSizeMB}MB limit. Please choose a smaller file.`, 'error');
+        input.value = ''; // Clear the file input
+        return;
+    }
+
     const reader = new FileReader();
     reader.onload = e => {
         const img = document.getElementById(imgId);

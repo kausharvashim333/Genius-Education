@@ -1191,6 +1191,17 @@ function applyCalcCGPA() {
 
 function applyPreview(input, imgId, phId) {
     const f = input.files[0]; if (!f) return;
+
+    // File size validation (2MB for photo, 1MB for signature)
+    const maxSize = imgId === 'aPhotoPreview' ? 2 * 1024 * 1024 : 1 * 1024 * 1024;
+    const maxSizeMB = imgId === 'aPhotoPreview' ? 2 : 1;
+
+    if (f.size > maxSize) {
+        alert(`File size exceeds ${maxSizeMB}MB limit. Please choose a smaller file.`);
+        input.value = '';
+        return;
+    }
+
     const reader = new FileReader();
     reader.onload = e => {
         document.getElementById(imgId).src = e.target.result;
@@ -1202,6 +1213,21 @@ function applyPreview(input, imgId, phId) {
 
 function applySingleDoc(input, labelId) {
     const f = input.files[0];
+    if (!f) {
+        document.getElementById(labelId).textContent = 'Click to upload';
+        return;
+    }
+
+    // File size validation (5MB for documents)
+    const maxSize = 5 * 1024 * 1024;
+
+    if (f.size > maxSize) {
+        alert('File size exceeds 5MB limit. Please choose a smaller file.');
+        input.value = '';
+        document.getElementById(labelId).textContent = 'Click to upload';
+        return;
+    }
+
     document.getElementById(labelId).textContent = f ? '📎 '+f.name : 'Click to upload';
 }
 
