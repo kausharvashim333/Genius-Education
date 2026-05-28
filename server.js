@@ -2548,24 +2548,97 @@ async function sendLoginCredentials(student, password) {
     if (!smtpUser || !smtpPass || !student.email) return;
     const transporter = nodemailer.createTransport({ host: smtpHost, port: smtpPort, secure: smtpSecure, auth: { user: smtpUser, pass: smtpPass } });
     const inst = settings.name || 'Genius Computer Education';
+    const logo = getEmailLogo(settings);
+    const websiteUrl = settings.websiteUrl || 'http://localhost:3000';
+
     await transporter.sendMail({
         from: `"${inst}" <${smtpUser}>`,
         to: student.email,
-        subject: `Admission Confirmed - Login Credentials | ${inst}`,
-        html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
-<div style="background:#1e3a8a;color:#fff;padding:20px 24px;"><h2 style="margin:0;">${inst}</h2><p style="margin:4px 0 0;opacity:.85;">Admission Confirmed</p></div>
-<div style="padding:24px;">
-<p>Dear <strong>${student.name}</strong>,</p>
-<p>Aapka admission successfully ho gaya hai. Neeche aapke <strong>Student Portal Login Credentials</strong> hain:</p>
-<div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px 20px;margin:16px 0;">
-<p style="margin:0 0 8px;"><strong>Roll No:</strong> ${student.rollNo}</p>
-<p style="margin:0 0 8px;"><strong>Login Email:</strong> ${student.email}</p>
-<p style="margin:0;"><strong>Password:</strong> <code style="background:#e0e7ff;padding:2px 8px;border-radius:4px;font-size:1rem;">${password}</code></p>
-</div>
-<p>Student portal par login karne ke liye yahan click karein:</p>
-<a href="http://localhost:3000/student-portal.html" style="display:inline-block;background:#2563eb;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Student Portal Login</a>
-<p style="margin-top:20px;font-size:.85rem;color:#64748b;">Apna password change karna na bhoolein. Koi bhi samasya ho to humse sampark karein.</p>
-</div></div>`
+        subject: `Welcome to ${inst} - Your Admission is Confirmed!`,
+        html: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admission Confirmation</title>
+</head>
+<body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f4f4f4;">
+    <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%);padding:40px 30px;text-align:center;">
+            ${logo.html}
+            <h1 style="margin:20px 0 10px;color:#ffffff;font-size:28px;font-weight:700;">Welcome to ${inst}</h1>
+            <p style="margin:0;color:#ffffff;font-size:16px;opacity:0.9;">Your Admission is Confirmed!</p>
+        </div>
+
+        <!-- Content -->
+        <div style="padding:40px 30px;">
+            <p style="margin:0 0 20px;color:#333333;font-size:16px;line-height:1.6;">
+                Dear <strong>${student.name}</strong>,
+            </p>
+            <p style="margin:0 0 20px;color:#555555;font-size:15px;line-height:1.6;">
+                Congratulations! We are delighted to inform you that your admission has been successfully processed. You are now officially part of the ${inst} family.
+            </p>
+
+            <!-- Course Info -->
+            <div style="background:#f8fafc;border-left:4px solid #3b82f6;padding:20px;margin:25px 0;border-radius:0 8px 8px 0;">
+                <p style="margin:0 0 10px;color:#1e3a8a;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Enrolled Course</p>
+                <p style="margin:0;color:#333333;font-size:18px;font-weight:600;">${student.course}</p>
+                <p style="margin:5px 0 0;color:#666666;font-size:14px;">Batch: ${student.batch || 'To be assigned'}</p>
+            </div>
+
+            <!-- Login Credentials -->
+            <div style="background:#eff6ff;border:2px solid #bfdbfe;border-radius:8px;padding:25px;margin:25px 0;">
+                <p style="margin:0 0 15px;color:#1e3a8a;font-size:16px;font-weight:600;">Your Student Portal Login Credentials</p>
+                <div style="background:#ffffff;padding:15px;border-radius:6px;margin-bottom:12px;">
+                    <p style="margin:0 0 5px;color:#64748b;font-size:12px;font-weight:600;text-transform:uppercase;">Roll Number</p>
+                    <p style="margin:0;color:#1e3a8a;font-size:18px;font-weight:700;">${student.rollNo}</p>
+                </div>
+                <div style="background:#ffffff;padding:15px;border-radius:6px;margin-bottom:12px;">
+                    <p style="margin:0 0 5px;color:#64748b;font-size:12px;font-weight:600;text-transform:uppercase;">Login Email</p>
+                    <p style="margin:0;color:#333333;font-size:15px;">${student.email}</p>
+                </div>
+                <div style="background:#ffffff;padding:15px;border-radius:6px;">
+                    <p style="margin:0 0 5px;color:#64748b;font-size:12px;font-weight:600;text-transform:uppercase;">Password</p>
+                    <p style="margin:0;color:#dc2626;font-size:18px;font-weight:700;letter-spacing:2px;">${password}</p>
+                </div>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin:30px 0;">
+                <a href="${websiteUrl}/student-portal.html" style="display:inline-block;background:#3b82f6;color:#ffffff;padding:15px 40px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;box-shadow:0 4px 6px rgba(59,130,246,0.3);">Access Student Portal</a>
+            </div>
+
+            <!-- Important Notice -->
+            <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:15px;margin:25px 0;">
+                <p style="margin:0 0 8px;color:#c2410c;font-size:14px;font-weight:600;"><i style="margin-right:5px;">⚠️</i> Important Security Notice</p>
+                <p style="margin:0;color:#9a3412;font-size:13px;line-height:1.5;">Please change your password immediately after your first login for security purposes. Do not share these credentials with anyone.</p>
+            </div>
+
+            <p style="margin:20px 0 0;color:#555555;font-size:14px;line-height:1.6;">
+                If you have any questions or need assistance, please don't hesitate to contact our administration team.
+            </p>
+            <p style="margin:10px 0 0;color:#555555;font-size:14px;line-height:1.6;">
+                We look forward to seeing you in class!
+            </p>
+            <p style="margin:20px 0 0;color:#333333;font-size:15px;font-weight:600;">
+                Best regards,<br>
+                <span style="color:#3b82f6;">${inst} Team</span>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background:#f8fafc;padding:30px;text-align:center;border-top:1px solid #e2e8f0;">
+            <p style="margin:0 0 10px;color:#64748b;font-size:13px;">&copy; ${new Date().getFullYear()} ${inst}. All rights reserved.</p>
+            <p style="margin:0;color:#94a3b8;font-size:12px;">
+                <a href="${websiteUrl}" style="color:#3b82f6;text-decoration:none;margin:0 10px;">Website</a> | 
+                <a href="mailto:${settings.email || smtpUser}" style="color:#3b82f6;text-decoration:none;margin:0 10px;">Contact Us</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>`,
+        attachments: logo.attachments
     });
 }
 
