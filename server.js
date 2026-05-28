@@ -10666,6 +10666,7 @@ app.post('/api/entrance/submit-exam', (req, res) => {
             examId: attempt.examId,
             registrationNo: reg ? reg.registrationNo : '',
             studentName: reg ? reg.studentName : '',
+            course: reg ? reg.course : '',
             examName: exam ? exam.name : '',
             marksObtained,
             totalMarks: totalMarks || (exam ? exam.totalMarks : 0),
