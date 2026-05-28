@@ -331,9 +331,9 @@ async function saveEntranceQuestion() {
     const text = document.getElementById('entQText').value.trim();
     const textHindi = document.getElementById('entQTextHindi').value.trim();
 
-    // Validation: At least one language must be provided
-    if (!text && !textHindi) {
-        return entShowToast('Question is required in at least one language (English or Hindi)', 'error');
+    // Validation: English question is required
+    if (!text) {
+        return entShowToast('English question is required', 'error');
     }
 
     // English options
@@ -344,7 +344,7 @@ async function saveEntranceQuestion() {
         document.getElementById('entOptD').value.trim()
     ].filter(o => o);
 
-    // Hindi options
+    // Hindi options (optional)
     const optsHindi = [
         document.getElementById('entOptAHindi').value.trim(),
         document.getElementById('entOptBHindi').value.trim(),
@@ -352,9 +352,9 @@ async function saveEntranceQuestion() {
         document.getElementById('entOptDHindi').value.trim()
     ].filter(o => o);
 
-    // If English question is provided, English options must be provided
-    if (text && opts.length < 2) {
-        return entShowToast('At least 2 English options required when English question is provided', 'error');
+    // At least 2 English options required
+    if (opts.length < 2) {
+        return entShowToast('At least 2 English options required', 'error');
     }
 
     // If Hindi question is provided, Hindi options must be provided
@@ -362,23 +362,20 @@ async function saveEntranceQuestion() {
         return entShowToast('At least 2 Hindi options required when Hindi question is provided', 'error');
     }
 
-    // Determine which language to use for correct answer validation
-    const activeOpts = text ? opts : optsHindi;
     const correct = parseInt(document.getElementById('entCorrect').value);
     if (isNaN(correct) || correct < 1 || correct > 4) return entShowToast('Correct answer must be 1-4', 'error');
-    if (correct > activeOpts.length) return entShowToast('Correct answer exceeds available options', 'error');
+    if (correct > opts.length) return entShowToast('Correct answer exceeds available options', 'error');
 
     const body = {
         examId: parseInt(examId),
         question: text,
-        questionHindi: textHindi,
+        questionHindi: textHindi || '',
         options: opts,
         optionsHindi: optsHindi,
         correctAnswer: correct - 1,
         marks: parseInt(document.getElementById('entMarks').value) || 1,
         subject: document.getElementById('entSubject').value.trim(),
-        difficulty: document.getElementById('entDifficulty').value,
-        language: document.getElementById('entLanguage').value
+        difficulty: document.getElementById('entDifficulty').value
     };
     const id = document.getElementById('entQuestionId').value;
     try {
@@ -430,24 +427,21 @@ async function deleteSelectedEntranceQuestions() {
 function openBulkQuestionModal() {
     const examId = document.getElementById('entQbExam').value;
     if (!examId) return entShowToast('Please select an exam first', 'error');
-    document.getElementById('entBulkFileEnglish').value = '';
-    document.getElementById('entBulkFileHindi').value = '';
+    document.getElementById('entBulkFile').value = '';
     document.getElementById('entBulkResult').innerHTML = '';
     document.getElementById('entranceBulkModal').classList.add('active');
 }
 
 async function uploadBulkQuestions() {
     const examId = document.getElementById('entQbExam').value;
-    const englishFile = document.getElementById('entBulkFileEnglish').files[0];
-    const hindiFile = document.getElementById('entBulkFileHindi').files[0];
+    const file = document.getElementById('entBulkFile').files[0];
     
     if (!examId) return entShowToast('Please select an exam first', 'error');
-    if (!englishFile && !hindiFile) return entShowToast('Please select at least one file (English or Hindi)', 'error');
+    if (!file) return entShowToast('Please select a CSV file', 'error');
 
     const fd = new FormData();
+    fd.append('file', file);
     fd.append('examId', examId);
-    if (englishFile) fd.append('englishFile', englishFile);
-    if (hindiFile) fd.append('hindiFile', hindiFile);
 
     try {
         const res = await fetch('/api/entrance-questions/bulk-upload', { method: 'POST', body: fd });
@@ -455,8 +449,6 @@ async function uploadBulkQuestions() {
         if (data.success) {
             const errs = data.errors || [];
             let message = 'Imported ' + data.added + ' questions';
-            if (data.englishAdded) message += ' (' + data.englishAdded + ' English)';
-            if (data.hindiAdded) message += ' (' + data.hindiAdded + ' Hindi)';
             if (errs.length) message += ' (' + errs.length + ' errors skipped)';
             entShowToast(message, 'success');
             if (errs.length) {
@@ -475,9 +467,9 @@ async function uploadBulkQuestions() {
 }
 
 function downloadQuestionTemplate() {
-    const csv = 'question,option_a,option_b,option_c,option_d,correct_answer,marks,subject,difficulty\n' +
-        '"What is the full form of CPU?","Central Processing Unit","Computer Personal Unit","Central Program Unit","None of the above",1,1,Computer Science,Easy\n' +
-        '"Which is a programming language?","HTML","Python","CSS","XML",2,1,Computer Science,Medium\n';
+    const csv = 'question,question_hindi,option_a,option_a_hindi,option_b,option_b_hindi,option_c,option_c_hindi,option_d,option_d_hindi,correct_answer,marks,subject,difficulty\n' +
+        '"What is the full form of CPU?","CPU का पूरा नाम क्या है?","Central Processing Unit","सेंट्रल प्रोसेसिंग यूनिट","Computer Personal Unit","कंप्यूटर पर्सनल यूनिट","Central Program Unit","सेंट्रल प्रोग्राम यूनिट","None of the above","इनमें से कोई नहीं",1,1,Computer Science,Easy\n' +
+        '"Which is a programming language?","निम्न में से कौन सी प्रोग्रामिंग भाषा है?","HTML","HTML","Python","Python","CSS","CSS","XML","XML",2,1,Computer Science,Medium\n';
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -494,7 +486,7 @@ function updateFileLabel(inputId, labelId) {
         label.style.background = '#10b981';
     } else {
         label.innerHTML = '<i class="fas fa-folder-open"></i> Choose File';
-        label.style.background = inputId.includes('English') ? '#4ade80' : '#f472b6';
+        label.style.background = '#4ade80';
     }
 }
 

@@ -658,11 +658,11 @@ function toggleAcceptBtn() {
 async function acceptAndStart() {
     closeInstructions();
     try {
-        const selectedLanguage = document.querySelector('input[name="examLanguage"]:checked').value;
+        selectedLanguage = document.querySelector('input[name="examLanguage"]:checked').value;
         const res = await fetch('/api/entrance/start-exam', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ registrationId: currentRegistration.id, language: selectedLanguage })
+            body: JSON.stringify({ registrationId: currentRegistration.id })
         });
         const data = await res.json();
         if (!data.success) {
@@ -869,9 +869,9 @@ function renderQuestions() {
     const idx = currentQuestionIndex;
     const q = currentQuestions[idx];
 
-    // Determine which language to use
+    // Determine which language to use based on selected language
     let questionText, options;
-    if (q.language === 'hindi' && q.questionHindi && q.questionHindi.trim()) {
+    if (selectedLanguage === 'hindi' && q.questionHindi && q.questionHindi.trim()) {
         questionText = q.questionHindi;
         options = (q.optionsHindi && q.optionsHindi.length) ? q.optionsHindi : q.options;
     } else {

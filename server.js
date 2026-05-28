@@ -10168,10 +10168,7 @@ app.delete('/api/entrance-questions/:id', (req, res) => {
 });
 
 // --- Bulk Question Upload (CSV/TSV) ---
-app.post('/api/entrance-questions/bulk-upload', uploadBulk.fields([
-    { name: 'englishFile', maxCount: 1 },
-    { name: 'hindiFile', maxCount: 1 }
-]), (req, res) => {
+app.post('/api/entrance-questions/bulk-upload', uploadBulk.single('file'), (req, res) => {
     // Check permission for faculty
     if (req.user && req.user.role !== 'Super Admin' && req.user.role !== 'Admin') {
         const faculty = readData('faculty.json') || [];
@@ -10182,136 +10179,114 @@ app.post('/api/entrance-questions/bulk-upload', uploadBulk.fields([
     }
     
     try {
-        if (!req.files || (!req.files.englishFile && !req.files.hindiFile)) {
-            return res.status(400).json({ success: false, message: 'No file uploaded' });
-        }
+        if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
         const examId = req.body.examId;
         if (!examId) return res.status(400).json({ success: false, message: 'examId is required' });
 
-        // Helper function to process a single file
-        const processFile = (file, language) => {
-            if (!file) return { added: 0, errors: [] };
-            
-            const filePath = file[0].path;
-            const ext = path.extname(file[0].originalname).toLowerCase();
-            const content = fs.readFileSync(filePath, 'utf8');
-            const delimiter = ext === '.tsv' ? '\t' : ',';
+        const filePath = req.file.path;
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        const content = fs.readFileSync(filePath, 'utf8');
+        const delimiter = ext === '.tsv' ? '\t' : ',';
 
-            // Simple CSV/TSV parser supporting quoted fields with commas
-            const parseLine = (line, delim) => {
-                const out = [];
-                let cur = '';
-                let inQuotes = false;
-                for (let i = 0; i < line.length; i++) {
-                    const ch = line[i];
-                    if (ch === '"') {
-                        if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
-                        else inQuotes = !inQuotes;
-                    } else if (ch === delim && !inQuotes) {
-                        out.push(cur); cur = '';
-                    } else { cur += ch; }
-                }
-                out.push(cur);
-                return out.map(s => s.trim());
-            };
-
-            const lines = content.split(/\r?\n/).filter(l => l.trim());
-            if (lines.length < 2) {
-                fs.unlinkSync(filePath);
-                return { added: 0, errors: [`File must contain header row and at least one question`] };
+        // Simple CSV/TSV parser supporting quoted fields with commas
+        const parseLine = (line, delim) => {
+            const out = [];
+            let cur = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                if (ch === '"') {
+                    if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+                    else inQuotes = !inQuotes;
+                } else if (ch === delim && !inQuotes) {
+                    out.push(cur); cur = '';
+                } else { cur += ch; }
             }
-
-            const header = parseLine(lines[0], delimiter).map(h => h.toLowerCase().trim());
-            const required = ['question', 'option_a', 'option_b', 'correct_answer'];
-            for (const r of required) {
-                if (!header.includes(r)) {
-                    fs.unlinkSync(filePath);
-                    return { added: 0, errors: [`Missing required column: ${r}`] };
-                }
-            }
-
-            const errors = [];
-            let added = 0;
-            const questions = [];
-
-            for (let i = 1; i < lines.length; i++) {
-                const cols = parseLine(lines[i], delimiter);
-                const row = {};
-                header.forEach((h, idx) => row[h] = cols[idx] || '');
-
-                // Validation: Question must be provided
-                if (!row.question || !row.question.trim()) {
-                    errors.push(`Row ${i + 1}: Question is required`);
-                    continue;
-                }
-
-                // Options
-                const options = [row.option_a, row.option_b, row.option_c, row.option_d].filter(o => o);
-
-                // At least 2 options required
-                if (options.length < 2) {
-                    errors.push(`Row ${i + 1}: At least 2 options required`);
-                    continue;
-                }
-
-                const correctAns = parseInt(row.correct_answer);
-                if (isNaN(correctAns) || correctAns < 1 || correctAns > 4) {
-                    errors.push(`Row ${i + 1}: correct_answer must be 1-4`);
-                    continue;
-                }
-
-                if (correctAns > options.length) {
-                    errors.push(`Row ${i + 1}: correct_answer ${correctAns} exceeds available options`);
-                    continue;
-                }
-
-                // Create question with language field
-                const questionData = {
-                    id: Date.now() + Math.floor(Math.random() * 100000) + i,
-                    examId: parseInt(examId),
-                    question: row.question || '',
-                    questionHindi: language === 'hindi' ? row.question : '',
-                    options: options,
-                    optionsHindi: language === 'hindi' ? options : [],
-                    correctAnswer: correctAns - 1, // Convert 1-4 to 0-3 internally
-                    marks: parseInt(row.marks) || 1,
-                    subject: row.subject || '',
-                    difficulty: row.difficulty || 'Medium',
-                    language: language,
-                    createdAt: new Date().toISOString()
-                };
-                questions.push(questionData);
-                added++;
-            }
-
-            try { fs.unlinkSync(filePath); } catch (e) {}
-
-            return { added, errors, questions };
+            out.push(cur);
+            return out.map(s => s.trim());
         };
 
-        // Process both files
-        const englishResult = processFile(req.files.englishFile, 'english');
-        const hindiResult = processFile(req.files.hindiFile, 'hindi');
+        const lines = content.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length < 2) {
+            fs.unlinkSync(filePath);
+            return res.status(400).json({ success: false, message: 'File must contain header row and at least one question' });
+        }
 
-        // Save all questions
-        const allQuestions = readData('entrance-questions.json') || [];
-        allQuestions.push(...englishResult.questions);
-        allQuestions.push(...hindiResult.questions);
-        writeData('entrance-questions.json', allQuestions);
+        const header = parseLine(lines[0], delimiter).map(h => h.toLowerCase().trim());
+        const required = ['question', 'option_a', 'option_b', 'correct_answer'];
+        for (const r of required) {
+            if (!header.includes(r)) {
+                fs.unlinkSync(filePath);
+                return res.status(400).json({ success: false, message: `Missing required column: ${r}` });
+            }
+        }
 
-        // Combine errors
-        const allErrors = [
-            ...englishResult.errors.map(e => `English: ${e}`),
-            ...hindiResult.errors.map(e => `Hindi: ${e}`)
-        ];
+        const questions = readData('entrance-questions.json') || [];
+        const errors = [];
+        let added = 0;
 
-        res.json({ 
-            success: true, 
-            added: englishResult.added + hindiResult.added,
-            englishAdded: englishResult.added,
-            hindiAdded: hindiResult.added,
-            errors: allErrors 
-        });
+        for (let i = 1; i < lines.length; i++) {
+            const cols = parseLine(lines[i], delimiter);
+            const row = {};
+            header.forEach((h, idx) => row[h] = cols[idx] || '');
+
+            // Validation: At least English question must be provided
+            if (!row.question || !row.question.trim()) {
+                errors.push(`Row ${i + 1}: English question is required`);
+                continue;
+            }
+
+            // English options
+            const options = [row.option_a, row.option_b, row.option_c, row.option_d].filter(o => o);
+
+            // At least 2 English options required
+            if (options.length < 2) {
+                errors.push(`Row ${i + 1}: At least 2 English options required`);
+                continue;
+            }
+
+            // Hindi options (optional)
+            const optionsHindi = [row.option_a_hindi, row.option_b_hindi, row.option_c_hindi, row.option_d_hindi].filter(o => o);
+
+            // If Hindi question provided, Hindi options must be provided
+            if (row.question_hindi && row.question_hindi.trim() && optionsHindi.length < 2) {
+                errors.push(`Row ${i + 1}: At least 2 Hindi options required when Hindi question is provided`);
+                continue;
+            }
+
+            const correctAns = parseInt(row.correct_answer);
+            if (isNaN(correctAns) || correctAns < 1 || correctAns > 4) {
+                errors.push(`Row ${i + 1}: correct_answer must be 1-4`);
+                continue;
+            }
+
+            if (correctAns > options.length) {
+                errors.push(`Row ${i + 1}: correct_answer ${correctAns} exceeds available options`);
+                continue;
+            }
+
+            // Create bilingual question
+            const questionData = {
+                id: Date.now() + Math.floor(Math.random() * 100000) + i,
+                examId: parseInt(examId),
+                question: row.question || '',
+                questionHindi: row.question_hindi || '',
+                options: options,
+                optionsHindi: optionsHindi,
+                correctAnswer: correctAns - 1, // Convert 1-4 to 0-3 internally
+                marks: parseInt(row.marks) || 1,
+                subject: row.subject || '',
+                difficulty: row.difficulty || 'Medium',
+                createdAt: new Date().toISOString()
+            };
+            questions.push(questionData);
+            added++;
+        }
+
+        writeData('entrance-questions.json', questions);
+        try { fs.unlinkSync(filePath); } catch (e) {}
+
+        res.json({ success: true, added, errors, total: lines.length - 1 });
     } catch (err) {
         console.error('Bulk upload error:', err);
         res.status(500).json({ success: false, message: err.message });
@@ -10495,21 +10470,14 @@ app.post('/api/entrance/start-exam', (req, res) => {
     const remainingSeconds = Math.floor((endTime - now) / 1000);
 
     if (!attempt) {
-        // Get questions for this exam, filtered by language
+        // Get questions for this exam (bilingual - contains both English and Hindi)
         let questions = (readData('entrance-questions.json') || []).filter(q => q.examId == exam.id);
         
-        // Filter by language if specified
-        if (language === 'hindi') {
-            questions = questions.filter(q => q.language === 'hindi' || (q.questionHindi && q.questionHindi.trim()));
-        } else {
-            questions = questions.filter(q => q.language === 'english' || !q.language || q.language === '');
-        }
-        
-        // Check if questions available for selected language
+        // Check if questions available
         if (questions.length === 0) {
             return res.status(400).json({ 
                 success: false, 
-                message: 'No questions available for selected language. Please contact admin.' 
+                message: 'No questions available for this exam. Please contact admin.' 
             });
         }
         
