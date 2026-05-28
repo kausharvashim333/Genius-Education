@@ -917,6 +917,7 @@ async function autoSubmit() {
 
 async function submitExam(auto) {
     try {
+        showToast('Submitting exam...', 'info');
         const res = await fetch('/api/entrance/submit-exam', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -927,10 +928,14 @@ async function submitExam(auto) {
             currentAttempt.submitted = true;
             window.removeEventListener('beforeunload', warnReload);
             showPage('resultPage');
+            showToast('Exam submitted successfully!', 'success');
         } else {
             showToast(data.message || 'Submit failed', 'error');
         }
-    } catch (e) { showToast('Submit error', 'error'); }
+    } catch (e) {
+        console.error('Submit error:', e);
+        showToast('Network error. Please try again.', 'error');
+    }
 }
 
 function goDashboard() {
