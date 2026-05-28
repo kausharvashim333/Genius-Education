@@ -726,6 +726,21 @@ function enableSecurity() {
 function disableSecurity() {
     if (!securityEnabled) return;
     securityEnabled = false;
+    
+    // Clear all intervals first
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    if (dashboardInterval) {
+        clearInterval(dashboardInterval);
+        dashboardInterval = null;
+    }
+    
+    // Remove beforeunload listener immediately to prevent blocking
+    window.removeEventListener('beforeunload', warnReload);
+    
+    // Remove other event listeners
     document.removeEventListener('contextmenu', blockEvent);
     document.removeEventListener('copy', blockEvent);
     document.removeEventListener('cut', blockEvent);
@@ -737,15 +752,8 @@ function disableSecurity() {
     window.removeEventListener('blur', onWindowBlur);
     document.removeEventListener('fullscreenchange', onFullscreenChange);
     document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
-    window.removeEventListener('beforeunload', warnReload);
     
-    // Exit fullscreen
-    if (document.fullscreenElement) {
-        document.exitFullscreen().catch(err => console.log('Fullscreen exit error:', err));
-    }
-    if (document.webkitFullscreenElement) {
-        document.webkitExitFullscreen().catch(err => console.log('Fullscreen exit error:', err));
-    }
+    // Don't exit fullscreen - let the user exit naturally or let the page reload handle it
 }
 
 function blockEvent(e) { e.preventDefault(); return false; }
@@ -794,8 +802,10 @@ function onFullscreenChange() {
     const isFs = document.fullscreenElement || document.webkitFullscreenElement;
     if (!isFs && currentAttempt && !currentAttempt.submitted && securityEnabled) {
         reportViolation('fullscreen_exit', 'Exited fullscreen');
-        // Try re-entering after a brief delay
-        setTimeout(() => requestFullscreen(), 800);
+        // Try re-entering after a brief delay (only if security is still enabled)
+        setTimeout(() => {
+            if (securityEnabled) requestFullscreen();
+        }, 800);
     }
 }
 
@@ -1025,16 +1035,35 @@ async function submitExam(auto) {
         const data = await res.json();
         if (data.success) {
             currentAttempt.submitted = true;
-            disableSecurity();
-            showPage('resultPage');
-            showToast('Exam submitted successfully!', 'success');
             
-            // Auto-logout after 5 seconds
+            // Clear intervals and remove event listeners immediately
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            if (dashboardInterval) {
+                clearInterval(dashboardInterval);
+                dashboardInterval = null;
+            }
+            window.removeEventListener('beforeunload', warnReload);
+            
+            // Exit fullscreen immediately
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
+            if (document.webkitFullscreenElement) {
+                document.webkitExitFullscreen().catch(() => {});
+            }
+            
+            // Show success message and redirect
+            showToast('Exam submitted successfully! Redirecting...', 'success');
+            
+            // Redirect after 2 seconds
             setTimeout(() => {
                 sessionStorage.removeItem('entranceReg');
                 sessionStorage.removeItem('entranceUser');
                 window.location.href = '/entrance-portal.html';
-            }, 5000);
+            }, 2000);
         } else {
             showToast(data.message || 'Submit failed', 'error');
         }
