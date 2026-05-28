@@ -667,6 +667,31 @@ function enableSecurity() {
     window.addEventListener('beforeunload', warnReload);
 }
 
+function disableSecurity() {
+    if (!securityEnabled) return;
+    securityEnabled = false;
+    document.removeEventListener('contextmenu', blockEvent);
+    document.removeEventListener('copy', blockEvent);
+    document.removeEventListener('cut', blockEvent);
+    document.removeEventListener('paste', blockEvent);
+    document.removeEventListener('selectstart', blockSelect);
+    document.removeEventListener('dragstart', blockEvent);
+    document.removeEventListener('keydown', blockShortcuts, true);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    window.removeEventListener('blur', onWindowBlur);
+    document.removeEventListener('fullscreenchange', onFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
+    window.removeEventListener('beforeunload', warnReload);
+    
+    // Exit fullscreen
+    if (document.fullscreenElement) {
+        document.exitFullscreen().catch(err => console.log('Fullscreen exit error:', err));
+    }
+    if (document.webkitFullscreenElement) {
+        document.webkitExitFullscreen().catch(err => console.log('Fullscreen exit error:', err));
+    }
+}
+
 function blockEvent(e) { e.preventDefault(); return false; }
 function blockSelect(e) {
     // Allow selection inside option labels (radio inputs) but not text
@@ -944,7 +969,7 @@ async function submitExam(auto) {
         const data = await res.json();
         if (data.success) {
             currentAttempt.submitted = true;
-            window.removeEventListener('beforeunload', warnReload);
+            disableSecurity();
             showPage('resultPage');
             showToast('Exam submitted successfully!', 'success');
         } else {
