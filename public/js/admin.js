@@ -1799,7 +1799,8 @@ document.getElementById('facultyForm').addEventListener('submit', async function
         email: document.getElementById('facultyEmail').value,
         subject: document.getElementById('facultySubject').value,
         experience: document.getElementById('facultyExperience').value,
-        role: document.getElementById('facultyRole').value
+        role: document.getElementById('facultyRole').value,
+        permissions: getSelectedPermissions()
     };
 
     try {
@@ -1853,6 +1854,14 @@ async function openFacultyEditModal(id) {
         document.getElementById('facultyEmail').value = faculty.email;
         document.getElementById('facultyRole').value = faculty.role || 'Faculty';
 
+        // Load permissions
+        deselectAllPermissions();
+        const permissions = faculty.permissions || [];
+        permissions.forEach(perm => {
+            const checkbox = document.querySelector(`.faculty-permission[value="${perm}"]`);
+            if (checkbox) checkbox.checked = true;
+        });
+
         document.getElementById('facultyModalTitle').textContent = 'Edit Faculty';
         document.getElementById('facultySaveBtn').textContent = 'Update Faculty';
 
@@ -1868,7 +1877,42 @@ function openFacultyModal() {
     document.getElementById('facultyId').value = '';
     document.getElementById('facultyModalTitle').textContent = 'Add Faculty';
     document.getElementById('facultySaveBtn').textContent = 'Save Faculty';
+    deselectAllPermissions();
     document.getElementById('facultyModal').classList.add('active');
+}
+
+function getSelectedPermissions() {
+    const checkboxes = document.querySelectorAll('.faculty-permission:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+}
+
+function selectAllPermissions() {
+    document.querySelectorAll('.faculty-permission').forEach(cb => cb.checked = true);
+}
+
+function deselectAllPermissions() {
+    document.querySelectorAll('.faculty-permission').forEach(cb => cb.checked = false);
+}
+
+function applyRolePreset() {
+    const role = document.getElementById('facultyRole').value;
+    deselectAllPermissions();
+
+    const presets = {
+        Faculty: ['students', 'courses', 'batches', 'assignments', 'attendance', 'materials', 'results', 'online-exam', 'test'],
+        Staff: ['enquiries', 'attendance', 'materials', 'notices'],
+        Admin: ['all']
+    };
+
+    if (role === 'Admin') {
+        selectAllPermissions();
+    } else {
+        const permissions = presets[role] || [];
+        permissions.forEach(perm => {
+            const checkbox = document.querySelector(`.faculty-permission[value="${perm}"]`);
+            if (checkbox) checkbox.checked = true;
+        });
+    }
 }
 
 async function toggleFacultyAdmissionAccess(id, currentState) {
