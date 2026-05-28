@@ -465,9 +465,9 @@ async function uploadBulkQuestions() {
 }
 
 function downloadQuestionTemplate() {
-    const csv = 'question,option_a,option_b,option_c,option_d,correct_answer,marks,subject,difficulty\n' +
-        '"What is the full form of CPU?","Central Processing Unit","Computer Personal Unit","Central Program Unit","None of the above",1,1,Computer Science,Easy\n' +
-        '"Which is a programming language?","HTML","Python","CSS","XML",2,1,Computer Science,Medium\n';
+    const csv = 'question,question_hindi,option_a,option_a_hindi,option_b,option_b_hindi,option_c,option_c_hindi,option_d,option_d_hindi,correct_answer,marks,subject,difficulty\n' +
+        '"What is the full form of CPU?","CPU का पूरा नाम क्या है?","Central Processing Unit","सेंट्रल प्रोसेसिंग यूनिट","Computer Personal Unit","कंप्यूटर पर्सनल यूनिट","Central Program Unit","सेंट्रल प्रोग्राम यूनिट","None of the above","इनमें से कोई नहीं",1,1,Computer Science,Easy\n' +
+        '"Which is a programming language?","निम्न में से कौन सी प्रोग्रामिंग भाषा है?","HTML","HTML","Python","Python","CSS","CSS","XML","XML",2,1,Computer Science,Medium\n';
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

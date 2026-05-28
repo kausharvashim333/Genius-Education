@@ -2440,7 +2440,8 @@
                     <h3 style="margin-bottom:20px;color:#fff;"><i class="fas fa-upload" style="color:#667eea;"></i> Bulk Upload Questions</h3>
                     <div style="margin-bottom:15px;padding:15px;background:rgba(59,130,246,0.15);border-radius:8px;color:#fff;font-size:13px;line-height:1.7;">
                         <strong>File Format (CSV or TSV):</strong><br>
-                        Columns: <code>question, option_a, option_b, option_c, option_d, correct_answer, marks, subject, difficulty</code><br>
+                        Columns: <code>question, question_hindi, option_a, option_a_hindi, option_b, option_b_hindi, option_c, option_c_hindi, option_d, option_d_hindi, correct_answer, marks, subject, difficulty</code><br>
+                        <strong>At least one language required:</strong> Either English (question + options) or Hindi (question_hindi + options_hindi) or both<br>
                         <strong>correct_answer</strong> must be 1-4 (1=Option A, 2=Option B, 3=Option C, 4=Option D)<br>
                         <a href="javascript:void(0)" onclick="downloadQuestionTemplate()" style="color:#fbbf24;"><i class="fas fa-download"></i> Download CSV Template</a>
                     </div>

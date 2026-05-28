@@ -10230,16 +10230,41 @@ app.post('/api/entrance-questions/bulk-upload', uploadBulk.single('file'), (req,
             const row = {};
             header.forEach((h, idx) => row[h] = cols[idx] || '');
 
-            if (!row.question) { errors.push(`Row ${i + 1}: Missing question`); continue; }
+            // Validation: At least one language must be provided
+            const hasEnglish = row.question && row.question.trim();
+            const hasHindi = row.question_hindi && row.question_hindi.trim();
+
+            if (!hasEnglish && !hasHindi) {
+                errors.push(`Row ${i + 1}: Question required in at least one language (question or question_hindi)`);
+                continue;
+            }
+
+            // English options
             const options = [row.option_a, row.option_b, row.option_c, row.option_d].filter(o => o);
-            if (options.length < 2) { errors.push(`Row ${i + 1}: Need at least 2 options`); continue; }
+            // Hindi options
+            const optionsHindi = [row.option_a_hindi, row.option_b_hindi, row.option_c_hindi, row.option_d_hindi].filter(o => o);
+
+            // If English question provided, English options must be provided
+            if (hasEnglish && options.length < 2) {
+                errors.push(`Row ${i + 1}: At least 2 English options required when English question is provided`);
+                continue;
+            }
+
+            // If Hindi question provided, Hindi options must be provided
+            if (hasHindi && optionsHindi.length < 2) {
+                errors.push(`Row ${i + 1}: At least 2 Hindi options required when Hindi question is provided`);
+                continue;
+            }
 
             const correctAns = parseInt(row.correct_answer);
             if (isNaN(correctAns) || correctAns < 1 || correctAns > 4) {
                 errors.push(`Row ${i + 1}: correct_answer must be 1-4`);
                 continue;
             }
-            if (correctAns > options.length) {
+
+            // Validate against active language
+            const activeOpts = hasEnglish ? options : optionsHindi;
+            if (correctAns > activeOpts.length) {
                 errors.push(`Row ${i + 1}: correct_answer ${correctAns} exceeds available options`);
                 continue;
             }
@@ -10247,8 +10272,10 @@ app.post('/api/entrance-questions/bulk-upload', uploadBulk.single('file'), (req,
             questions.push({
                 id: Date.now() + Math.floor(Math.random() * 100000) + i,
                 examId: parseInt(examId),
-                question: row.question,
+                question: row.question || '',
+                questionHindi: row.question_hindi || '',
                 options: options,
+                optionsHindi: optionsHindi,
                 correctAnswer: correctAns - 1, // Convert 1-4 to 0-3 internally
                 marks: parseInt(row.marks) || 1,
                 subject: row.subject || '',
