@@ -1007,9 +1007,23 @@ async function loadEntranceSubmissionSettings() {
         document.getElementById('entAutoLogout').checked = settings.autoLogout || false;
         document.getElementById('entShowScore').checked = settings.showScore || false;
         document.getElementById('entConfirmMessage').value = settings.confirmMessage || '';
+        
+        // Update toggle sliders
+        updateToggleSlider('entAutoLogout', 'entAutoLogoutSlider');
+        updateToggleSlider('entShowScore', 'entShowScoreSlider');
     } catch (e) {
         console.error('Error loading submission settings', e);
     }
+}
+
+function updateToggleSlider(checkboxId, sliderId) {
+    const checkbox = document.getElementById(checkboxId);
+    const slider = document.getElementById(sliderId);
+    if (!checkbox || !slider) return;
+    
+    const isChecked = checkbox.checked;
+    slider.style.background = isChecked ? '#10b981' : '#374151';
+    slider.innerHTML = '<span style="position:absolute;top:2px;left:' + (isChecked ? '26px' : '2px') + ';width:24px;height:24px;background:#fff;border-radius:50%;transition:.3s;"></span>';
 }
 
 function formatDoc(cmd, value = null) {

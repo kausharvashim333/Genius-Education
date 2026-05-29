@@ -2285,8 +2285,8 @@
                             <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Automatically logout student after exam submission</p>
                         </div>
                         <label style="position:relative;display:inline-block;width:50px;height:28px;">
-                            <input type="checkbox" id="entAutoLogout" style="opacity:0;width:0;height:0;">
-                            <span style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
+                            <input type="checkbox" id="entAutoLogout" onchange="updateToggleSlider('entAutoLogout', 'entAutoLogoutSlider')" style="opacity:0;width:0;height:0;">
+                            <span id="entAutoLogoutSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
                         </label>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
@@ -2295,8 +2295,8 @@
                             <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display marks/percentage on confirmation page</p>
                         </div>
                         <label style="position:relative;display:inline-block;width:50px;height:28px;">
-                            <input type="checkbox" id="entShowScore" style="opacity:0;width:0;height:0;">
-                            <span style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
+                            <input type="checkbox" id="entShowScore" onchange="updateToggleSlider('entShowScore', 'entShowScoreSlider')" style="opacity:0;width:0;height:0;">
+                            <span id="entShowScoreSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
                         </label>
                     </div>
                     <div style="margin-bottom:15px;">
