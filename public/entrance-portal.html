@@ -467,10 +467,19 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
     <div class="glass result-card">
         <i class="fas fa-check-circle"></i>
         <h1>Exam Submitted Successfully</h1>
-        <p style="margin: 15px 0; opacity: 0.85;">Your responses have been recorded. Results will be published by the institute. You will be able to view and download your scorecard once results are published.</p>
-        <button class="btn btn-primary" onclick="goDashboard()" style="margin-top: 15px;">
-            <i class="fas fa-tachometer-alt"></i> Back to Dashboard
-        </button>
+        <div id="submissionDetails" style="margin: 20px 0; opacity: 0.85;"></div>
+        <div id="scoreDisplay" style="margin: 20px 0; padding: 20px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; display: none;">
+            <h3 style="margin: 0 0 10px 0; color: #059669;">Your Score</h3>
+            <div id="scoreContent"></div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-primary" onclick="goDashboard()" style="flex: 1;">
+                <i class="fas fa-tachometer-alt"></i> Back to Dashboard
+            </button>
+            <button class="btn btn-light" onclick="logout()" style="flex: 1;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
     </div>
 </div>
 
@@ -1017,15 +1026,42 @@ async function submitExam(auto) {
             }
             window.removeEventListener('beforeunload', warnReload);
             
-            // Show success message and redirect
-            showToast('Exam submitted successfully! Redirecting...', 'success');
+            // Get submission settings from admin
+            const settingsRes = await fetch('/api/entrance-submission-settings');
+            const settings = await settingsRes.json();
             
-            // Redirect after 2 seconds
-            setTimeout(() => {
-                sessionStorage.removeItem('entranceReg');
-                sessionStorage.removeItem('entranceUser');
-                window.location.href = '/entrance-portal.html';
-            }, 2000);
+            // Show confirmation page
+            showPage('resultPage');
+            
+            // Display submission details
+            const detailsHtml = `
+                <p><strong>Exam:</strong> ${currentExam.name}</p>
+                <p><strong>Submitted At:</strong> ${new Date().toLocaleString('en-IN')}</p>
+                ${settings.resultPublishDate ? `<p><strong>Results will be published on:</strong> ${new Date(settings.resultPublishDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>` : ''}
+                <p style="margin-top: 15px;">${settings.confirmMessage || 'Your responses have been recorded. Results will be published by the institute.'}</p>
+            `;
+            document.getElementById('submissionDetails').innerHTML = detailsHtml;
+            
+            // Show score if enabled
+            if (settings.showScore && data.marksObtained !== undefined) {
+                document.getElementById('scoreDisplay').style.display = 'block';
+                document.getElementById('scoreContent').innerHTML = `
+                    <p style="font-size: 24px; font-weight: bold; color: #059669;">${data.marksObtained} / ${data.totalMarks}</p>
+                    <p style="font-size: 18px; color: #059669;">${data.percentage}%</p>
+                `;
+            } else {
+                document.getElementById('scoreDisplay').style.display = 'none';
+            }
+            
+            // Auto-logout if enabled
+            if (settings.autoLogout) {
+                showToast('Auto-logging out in 5 seconds...', 'info');
+                setTimeout(() => {
+                    sessionStorage.removeItem('entranceReg');
+                    sessionStorage.removeItem('entranceUser');
+                    window.location.href = '/entrance-portal.html';
+                }, 5000);
+            }
         } else {
             showToast(data.message || 'Submit failed', 'error');
         }
@@ -1037,6 +1073,12 @@ async function submitExam(auto) {
 
 function goDashboard() {
     showDashboard();
+}
+
+function logout() {
+    sessionStorage.removeItem('entranceReg');
+    sessionStorage.removeItem('entranceUser');
+    window.location.href = '/entrance-portal.html';
 }
 
 document.addEventListener('DOMContentLoaded', init);

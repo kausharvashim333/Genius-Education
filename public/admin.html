@@ -2273,6 +2273,38 @@
                         <a href="/entrance-portal.html" target="_blank" style="color:#fbbf24;margin-left:8px;">/entrance-portal.html</a>
                     </div>
                 </div>
+                <div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:25px;max-width:700px;margin-bottom:25px;">
+                    <h3 style="color:#fff;margin-bottom:20px;"><i class="fas fa-clock" style="color:#667eea;margin-right:8px;"></i> Exam Submission Settings</h3>
+                    <div style="margin-bottom:15px;">
+                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Result Publication Date</label>
+                        <input type="date" id="entResultPublishDate" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
+                        <div>
+                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Auto-logout after submission</h4>
+                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Automatically logout student after exam submission</p>
+                        </div>
+                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
+                            <input type="checkbox" id="entAutoLogout" style="opacity:0;width:0;height:0;">
+                            <span style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
+                        </label>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
+                        <div>
+                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show score immediately</h4>
+                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display marks/percentage on confirmation page</p>
+                        </div>
+                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
+                            <input type="checkbox" id="entShowScore" style="opacity:0;width:0;height:0;">
+                            <span style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
+                        </label>
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Confirmation Message</label>
+                        <textarea id="entConfirmMessage" rows="3" placeholder="Message shown to students after submission" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;resize:vertical;"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveEntranceSubmissionSettings()" style="width:100%;padding:12px;"><i class="fas fa-save"></i> Save Settings</button>
+                </div>
                 <div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:25px;max-width:700px;">
                     <h3 style="color:#fff;margin-bottom:20px;"><i class="fas fa-file-pdf" style="color:#667eea;margin-right:8px;"></i> Result PDF Template</h3>
                     <div style="margin-bottom:15px;">

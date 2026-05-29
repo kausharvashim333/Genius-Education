@@ -10677,10 +10677,45 @@ app.post('/api/entrance/submit-exam', (req, res) => {
         results.push(result);
         writeData('entrance-results.json', results);
 
-        res.json({ success: true, message: 'Exam submitted successfully' });
+        res.json({ 
+            success: true, 
+            message: 'Exam submitted successfully',
+            marksObtained,
+            totalMarks: totalMarks || (exam ? exam.totalMarks : 0),
+            percentage: totalMarks > 0 ? Math.round((marksObtained / totalMarks) * 100) : 0
+        });
     } catch (err) {
         console.error('Submit exam error:', err);
         res.status(500).json({ success: false, message: 'Server error during submission: ' + err.message });
+    }
+});
+
+// --- Entrance Submission Settings ---
+app.get('/api/entrance-submission-settings', (req, res) => {
+    // Default settings
+    const defaultSettings = {
+        resultPublishDate: '',
+        autoLogout: false,
+        showScore: false,
+        confirmMessage: 'Your responses have been recorded. Results will be published by the institute.'
+    };
+    
+    // Try to read from settings file
+    const settings = readData('entrance-submission-settings.json');
+    if (settings) {
+        res.json(settings);
+    } else {
+        res.json(defaultSettings);
+    }
+});
+
+app.post('/api/entrance-submission-settings', (req, res) => {
+    try {
+        const settings = req.body;
+        writeData('entrance-submission-settings.json', settings);
+        res.json({ success: true, message: 'Settings saved' });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error saving settings' });
     }
 });
 

@@ -44,6 +44,9 @@ async function loadEntranceSettings() {
     
     // Load PDF settings to form
     loadPdfSettingsToForm();
+    
+    // Load submission settings
+    loadEntranceSubmissionSettings();
 }
 
 async function toggleEntranceFeature() {
@@ -975,6 +978,38 @@ function loadPdfSettingsToForm() {
     document.getElementById('pdfFooterText').value = pdfCustomSettings.footerText;
     document.getElementById('pdfInstructions').innerHTML = pdfCustomSettings.instructions;
     document.getElementById('pdfCourses').value = pdfCustomSettings.courses;
+}
+
+async function saveEntranceSubmissionSettings() {
+    const settings = {
+        resultPublishDate: document.getElementById('entResultPublishDate').value,
+        autoLogout: document.getElementById('entAutoLogout').checked,
+        showScore: document.getElementById('entShowScore').checked,
+        confirmMessage: document.getElementById('entConfirmMessage').value
+    };
+    
+    try {
+        await entApi('/api/entrance-submission-settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(settings)
+        });
+        entShowToast('Submission settings saved', 'success');
+    } catch (e) {
+        entShowToast('Error saving settings', 'error');
+    }
+}
+
+async function loadEntranceSubmissionSettings() {
+    try {
+        const settings = await entApi('/api/entrance-submission-settings');
+        document.getElementById('entResultPublishDate').value = settings.resultPublishDate || '';
+        document.getElementById('entAutoLogout').checked = settings.autoLogout || false;
+        document.getElementById('entShowScore').checked = settings.showScore || false;
+        document.getElementById('entConfirmMessage').value = settings.confirmMessage || '';
+    } catch (e) {
+        console.error('Error loading submission settings', e);
+    }
 }
 
 function formatDoc(cmd, value = null) {
