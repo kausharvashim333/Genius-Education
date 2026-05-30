@@ -1193,6 +1193,11 @@ function printEntranceResult() {
     if (!area) return;
     
     const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert('Please allow popups to print the result');
+        return;
+    }
+    
     printWindow.document.write('<html><head><title>Entrance Result</title>');
     printWindow.document.write('<style>');
     printWindow.document.write('@media print {');
@@ -1207,9 +1212,10 @@ function printEntranceResult() {
     printWindow.document.write(area.innerHTML);
     printWindow.document.write('</body></html>');
     printWindow.document.close();
-    printWindow.onload = function() {
+    
+    setTimeout(function() {
         printWindow.print();
-    };
+    }, 500);
 }
 
 async function downloadEntranceResultPdf() {
