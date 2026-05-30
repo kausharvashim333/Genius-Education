@@ -11153,8 +11153,8 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         
         // Instructions section with proper styling - larger box to show full content
         if (instructions) {
-            doc.rect(30, y, 535.28, 230).fill('#fffbeb');
-            doc.rect(30, y, 535.28, 230).stroke('#f59e0b').lineWidth(1);
+            doc.rect(30, y, 535.28, 250).fill('#fffbeb');
+            doc.rect(30, y, 535.28, 250).stroke('#f59e0b').lineWidth(1);
             
             doc.fontSize(11).fillColor('#92400e').font('Helvetica-Bold').text('Important Instructions', 45, y + 12);
             doc.moveTo(45, y + 28).lineTo(520, y + 28).stroke('#f59e0b').lineWidth(1);
@@ -11163,11 +11163,11 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             const instructionLines = instructions.split('\n').filter(line => line.trim());
             let bulletY = y + 38;
             instructionLines.forEach((line, index) => {
-                if (index > 0) bulletY += 22; // Increased spacing to prevent overlapping
-                doc.fontSize(9).fillColor('#1f2937').font('Helvetica').text('• ' + line.trim(), 45, bulletY, { width: 470 });
+                if (index > 0) bulletY += 16; // Reduced spacing for better alignment
+                doc.fontSize(9).fillColor('#1f2937').font('Helvetica').text('• ' + line.trim(), 45, bulletY, { width: 470, align: 'left' });
             });
             
-            y += 245;
+            y += 265;
         }
         
         // Verification section - positioned lower
