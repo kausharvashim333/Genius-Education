@@ -11104,7 +11104,19 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         y += 15;
         doc.rect(30, y, 535.28, 100).fill(headerColor);
         
-        doc.fontSize(14).fillColor('#ffffff').font('Helvetica-Bold').text('Performance Summary', 30, y + 15, { align: 'center', width: 535.28 });
+        // Add small logo in performance summary
+        if (settings.logo) {
+            try {
+                doc.image(settings.logo, 45, y + 12, { width: 30, height: 30 });
+            } catch (e) {
+                doc.fontSize(20).text('🎓', 45, y + 15);
+            }
+        } else {
+            doc.fontSize(20).text('🎓', 45, y + 15);
+        }
+        
+        doc.fontSize(14).fillColor('#ffffff').font('Helvetica-Bold').text('Performance Summary', 85, y + 15);
+        doc.fontSize(9).fillColor('rgba(255,255,255,0.85)').font('Helvetica').text(instituteName.toUpperCase(), 85, y + 28);
         y += 40;
         
         // Marks display
@@ -11115,11 +11127,6 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         // Percentage display
         doc.fontSize(11).fillColor('rgba(255,255,255,0.95)').font('Helvetica-Bold').text('Overall Percentage', 45, y);
         doc.fontSize(28).fillColor('#ffffff').font('Helvetica-Bold').text(`${percentage}%`, 250, y - 10);
-        
-        // Grade badge
-        doc.circle(480, y + 8, 28).fill(gradeColor);
-        doc.fontSize(20).fillColor('#ffffff').font('Helvetica-Bold').text(grade, 480, y - 6, { align: 'center', width: 56 });
-        doc.fontSize(8).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text('GRADE', 480, y + 20, { align: 'center', width: 56 });
         
         // Instructions with icon
         y += 40;
