@@ -1102,7 +1102,7 @@ function renderEntranceResultHtml(r) {
         ? '<div style="text-align:center;margin-top:12px;"><a href="' + s.website + '" style="color:' + s.headerColor + ';font-size:11px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">' + s.website + '</a></div>'
         : '';
     
-    return '<div id="entResultPdfArea" style="background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);color:' + s.textColor + ';padding:12mm;font-family:\'Segoe UI\',\'Roboto\',\'Helvetica\',sans-serif;width:210mm;height:297mm;box-sizing:border-box;position:relative;overflow:visible;">' +
+    return '<div id="entResultPdfArea" style="background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);color:' + s.textColor + ';padding:10mm;font-family:\'Segoe UI\',\'Roboto\',\'Helvetica\',sans-serif;width:210mm;height:297mm;box-sizing:border-box;position:relative;overflow:visible;">' +
         watermarkHtml +
         '<div style="border:3px solid ' + s.headerColor + ';border-radius:12px;padding:20px;height:100%;position:relative;z-index:1;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.1);display:flex;flex-direction:column;">' +
         
@@ -1153,8 +1153,8 @@ function renderEntranceResultHtml(r) {
         '<div style="position:absolute;top:-50%;right:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,0.15) 0%,transparent 70%);"></div>' +
         '<h3 style="margin:0 0 18px 0;color:#fff;font-size:16px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;text-align:center;position:relative;border-bottom:2px solid rgba(255,255,255,0.3);padding-bottom:12px;">Performance Summary</h3>' +
         '<table style="width:100%;border-collapse:collapse;position:relative;">' +
-        '<tr><td style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.25);font-weight:700;color:rgba(255,255,255,0.95);width:42%;font-size:13px;letter-spacing:0.4px;">Total Marks Obtained</td><td style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.25);font-size:28px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,0.3);">' + r.marksObtained + ' <span style="font-size:16px;color:rgba(255,255,255,0.85);font-weight:700;">/ ' + r.totalMarks + '</span></td></tr>' +
-        '<tr><td style="padding:14px;font-weight:700;color:rgba(255,255,255,0.95);font-size:13px;letter-spacing:0.4px;">Overall Percentage</td><td style="padding:14px;font-size:28px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,0.3);">' + r.percentage + '<span style="font-size:16px;color:rgba(255,255,255,0.85);font-weight:700;">%</span></td></tr>' +
+        '<tr><td style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.25);font-weight:700;color:rgba(255,255,255,0.95);width:42%;font-size:13px;letter-spacing:0.4px;">Total Marks Obtained</td><td style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.25);font-size:28px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,0.3);">' + (r.marksObtained || 0) + ' <span style="font-size:16px;color:rgba(255,255,255,0.85);font-weight:700;">/ ' + (r.totalMarks || 0) + '</span></td></tr>' +
+        '<tr><td style="padding:14px;font-weight:700;color:rgba(255,255,255,0.95);font-size:13px;letter-spacing:0.4px;">Overall Percentage</td><td style="padding:14px;font-size:28px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,0.3);">' + (r.percentage || 0) + '<span style="font-size:16px;color:rgba(255,255,255,0.85);font-weight:700;">%</span></td></tr>' +
         '</table>' +
         '</div>' +
         
@@ -1207,7 +1207,7 @@ function printEntranceResult() {
     printWindow.document.write('body { margin: 0; padding: 0; background: #fff; }');
     printWindow.document.write('@media print {');
     printWindow.document.write('  body { margin: 0; padding: 0; }');
-    printWindow.document.write('  @page { margin: 0; size: A4 portrait; }');
+    printWindow.document.write('  @page { margin: 10mm; size: A4 portrait; }');
     printWindow.document.write('  #entResultPdfArea { width: 210mm !important; height: 297mm !important; max-width: 210mm !important; max-height: 297mm !important; overflow: hidden !important; page-break-inside: avoid; page-break-after: always; }');
     printWindow.document.write('  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }');
     printWindow.document.write('}');
