@@ -11057,11 +11057,24 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         // Header - clean and professional
         doc.rect(20, 20, 555.28, 80).fill(headerColor);
         
-        // Institute info (centered in header)
-        doc.fontSize(20).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), 20, 30, { align: 'center', width: 555.28 });
-        doc.fontSize(10).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, 20, 52, { align: 'center', width: 555.28 });
+        // Logo on left side of header
+        if (showLogo && settings.logo) {
+            try {
+                doc.image(settings.logo, 30, 25, { width: 50, height: 50 });
+            } catch (e) {
+                doc.fontSize(30).text('🎓', 30, 25);
+            }
+        } else if (showLogo) {
+            doc.fontSize(30).text('🎓', 30, 25);
+        }
+        
+        // Institute info (positioned to the right of logo)
+        const textX = showLogo ? 90 : 30;
+        const textWidth = showLogo ? 485.28 : 555.28;
+        doc.fontSize(20).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), textX, 30, { align: 'center', width: textWidth });
+        doc.fontSize(10).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, textX, 52, { align: 'center', width: textWidth });
         if (address) {
-            doc.fontSize(8).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, 20, 68, { align: 'center', width: 555.28 });
+            doc.fontSize(8).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, textX, 68, { align: 'center', width: textWidth });
         }
         
         // Reference number
@@ -11069,19 +11082,8 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             doc.fontSize(9).fillColor('#ffffff').font('Helvetica-Bold').text('Ref: ' + refNumber, 35, 85);
         }
         
-        // Title with logo on left
+        // Title section
         let y = 115;
-        
-        // Logo next to title
-        if (showLogo && settings.logo) {
-            try {
-                doc.image(settings.logo, 30, y - 5, { width: 50, height: 50 });
-            } catch (e) {
-                doc.fontSize(30).text('🎓', 30, y);
-            }
-        } else if (showLogo) {
-            doc.fontSize(30).text('🎓', 30, y);
-        }
         
         // Title text (centered on full page)
         doc.fontSize(16).fillColor(headerColor).font('Helvetica-Bold').text('EXAMINATION RESULT', 20, y + 10, { align: 'center', width: 555.28 });
