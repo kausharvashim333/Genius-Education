@@ -2321,143 +2321,121 @@
 
             <!-- Settings -->
             <div id="page-entrance-settings" class="page-content hidden">
-                <h2 style="margin-bottom:20px;color:#fff;"><i class="fas fa-toggle-on"></i> Entrance Exam Settings</h2>
-                <div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:25px;max-width:700px;margin-bottom:25px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                        <div>
-                            <h3 style="color:#fff;margin-bottom:6px;">Enable Entrance Exam Feature</h3>
-                            <p style="color:#fff;opacity:0.7;font-size:14px;">When enabled, students can access the entrance exam portal and the login button will appear on the homepage.</p>
+                <h2 style="margin-bottom:20px;color:#fff;"><i class="fas fa-cog"></i> Entrance Exam Settings</h2>
+                
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:20px;">
+                    <!-- PDF Template Settings -->
+                    <div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:25px;">
+                        <h3 style="color:#fff;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+                            <i class="fas fa-file-pdf" style="color:#667eea;"></i> PDF Template
+                        </h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">
+                            <div>
+                                <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;font-size:13px;">Institute Name</label>
+                                <input type="text" id="pdfInstituteName" style="width:100%;height:38px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:13px;">
+                            </div>
+                            <div>
+                                <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;font-size:13px;">Header Color</label>
+                                <input type="color" id="pdfHeaderColor" style="width:100%;height:38px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:6px;">
+                            </div>
                         </div>
-                        <label style="position:relative;display:inline-block;width:60px;height:32px;">
-                            <input type="checkbox" id="entranceEnableToggle" onchange="toggleEntranceFeature()" style="opacity:0;width:0;height:0;">
-                            <span id="entranceToggleSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:32px;"></span>
-                        </label>
+                        <div style="margin-bottom:15px;">
+                            <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;font-size:13px;">Tagline</label>
+                            <input type="text" id="pdfTagline" style="width:100%;height:38px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:13px;">
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;font-size:13px;">Address</label>
+                            <textarea id="pdfAddress" rows="2" placeholder="Enter institute address" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:13px;resize:vertical;"></textarea>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">
+                            <div>
+                                <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;font-size:13px;">Signature Label</label>
+                                <input type="text" id="pdfSignatureLabel" style="width:100%;height:38px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:13px;">
+                            </div>
+                            <div>
+                                <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;font-size:13px;">Footer Text</label>
+                                <input type="text" id="pdfFooterText" style="width:100%;height:38px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:13px;">
+                            </div>
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;font-size:13px;">Eligible Courses</label>
+                            <textarea id="pdfCourses" rows="2" placeholder="DCA, PGDCA, BCA, Tally, Busy, Corel Draw" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:13px;resize:vertical;"></textarea>
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;font-size:13px;">Instructions</label>
+                            <textarea id="pdfInstructions" rows="2" placeholder="This scorecard is valid for admission purposes only." style="width:100%;padding:10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:13px;resize:vertical;"></textarea>
+                        </div>
+                        <button class="btn btn-primary" onclick="savePdfSettings()" style="width:100%;padding:10px;font-size:14px;"><i class="fas fa-save"></i> Save PDF Template</button>
+                        <small style="color:#9ca3af;font-size:11px;display:block;margin-top:10px;text-align:center;">These settings are saved in General Settings → Result PDF tab</small>
                     </div>
-                    <div id="entranceSettingsInfo" style="padding:15px;background:rgba(255,255,255,0.05);border-radius:8px;color:#fff;font-size:13px;">Loading...</div>
-                    <div style="margin-top:20px;padding:15px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);border-radius:8px;color:#fff;">
-                        <strong><i class="fas fa-info-circle"></i> Portal URL:</strong>
-                        <a href="/entrance-portal.html" target="_blank" style="color:#fbbf24;margin-left:8px;">/entrance-portal.html</a>
+                    
+                    <!-- PDF Display Options -->
+                    <div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:25px;">
+                        <h3 style="color:#fff;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+                            <i class="fas fa-sliders-h" style="color:#667eea;"></i> PDF Display Options
+                        </h3>
+                        <div style="display:flex;flex-direction:column;gap:12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
+                                <div>
+                                    <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Institute Logo</h4>
+                                    <p style="color:#fff;opacity:0.6;font-size:12px;margin:0;">Display logo next to result title</p>
+                                </div>
+                                <label style="position:relative;display:inline-block;width:48px;height:26px;">
+                                    <input type="checkbox" id="pdfShowLogo" onchange="updateToggleSlider('pdfShowLogo', 'pdfShowLogoSlider')" style="opacity:0;width:0;height:0;">
+                                    <span id="pdfShowLogoSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:26px;"></span>
+                                </label>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
+                                <div>
+                                    <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Reference Number</h4>
+                                    <p style="color:#fff;opacity:0.6;font-size:12px;margin:0;">Display reference number in header</p>
+                                </div>
+                                <label style="position:relative;display:inline-block;width:48px;height:26px;">
+                                    <input type="checkbox" id="pdfShowRef" onchange="updateToggleSlider('pdfShowRef', 'pdfShowRefSlider')" style="opacity:0;width:0;height:0;">
+                                    <span id="pdfShowRefSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:26px;"></span>
+                                </label>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
+                                <div>
+                                    <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Eligible Courses</h4>
+                                    <p style="color:#fff;opacity:0.6;font-size:12px;margin:0;">Display eligible courses section</p>
+                                </div>
+                                <label style="position:relative;display:inline-block;width:48px;height:26px;">
+                                    <input type="checkbox" id="pdfShowCourses" onchange="updateToggleSlider('pdfShowCourses', 'pdfShowCoursesSlider')" style="opacity:0;width:0;height:0;">
+                                    <span id="pdfShowCoursesSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:26px;"></span>
+                                </label>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
+                                <div>
+                                    <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Verification QR Code</h4>
+                                    <p style="color:#fff;opacity:0.6;font-size:12px;margin:0;">Display QR code for document verification</p>
+                                </div>
+                                <label style="position:relative;display:inline-block;width:48px;height:26px;">
+                                    <input type="checkbox" id="pdfShowQR" onchange="updateToggleSlider('pdfShowQR', 'pdfShowQRSlider')" style="opacity:0;width:0;height:0;">
+                                    <span id="pdfShowQRSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:26px;"></span>
+                                </label>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
+                                <div>
+                                    <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Signature Area</h4>
+                                    <p style="color:#fff;opacity:0.6;font-size:12px;margin:0;">Display signature line in footer</p>
+                                </div>
+                                <label style="position:relative;display:inline-block;width:48px;height:26px;">
+                                    <input type="checkbox" id="pdfShowSignature" onchange="updateToggleSlider('pdfShowSignature', 'pdfShowSignatureSlider')" style="opacity:0;width:0;height:0;">
+                                    <span id="pdfShowSignatureSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:26px;"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="savePdfDisplayOptions()" style="width:100%;padding:10px;font-size:14px;margin-top:20px;"><i class="fas fa-save"></i> Save Display Options</button>
                     </div>
                 </div>
-                <div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:25px;max-width:700px;margin-bottom:25px;">
-                    <h3 style="color:#fff;margin-bottom:20px;"><i class="fas fa-clock" style="color:#667eea;margin-right:8px;"></i> Exam Submission Settings</h3>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Result Publication Date</label>
-                        <input type="date" id="entResultPublishDate" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
-                        <div>
-                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Auto-logout after submission</h4>
-                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Automatically logout student after exam submission</p>
-                        </div>
-                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
-                            <input type="checkbox" id="entAutoLogout" onchange="updateToggleSlider('entAutoLogout', 'entAutoLogoutSlider')" style="opacity:0;width:0;height:0;">
-                            <span id="entAutoLogoutSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
-                        </label>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
-                        <div>
-                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show score immediately</h4>
-                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display marks/percentage on confirmation page</p>
-                        </div>
-                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
-                            <input type="checkbox" id="entShowScore" onchange="updateToggleSlider('entShowScore', 'entShowScoreSlider')" style="opacity:0;width:0;height:0;">
-                            <span id="entShowScoreSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
-                        </label>
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Confirmation Message</label>
-                        <textarea id="entConfirmMessage" rows="3" placeholder="Message shown to students after submission" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;resize:vertical;"></textarea>
-                    </div>
-                    <button class="btn btn-primary" onclick="saveEntranceSubmissionSettings()" style="width:100%;padding:12px;"><i class="fas fa-save"></i> Save Settings</button>
-                </div>
-                <div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:25px;max-width:700px;">
-                    <h3 style="color:#fff;margin-bottom:20px;"><i class="fas fa-file-pdf" style="color:#667eea;margin-right:8px;"></i> Result PDF Template</h3>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Institute Name</label>
-                        <input type="text" id="pdfInstituteName" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Tagline</label>
-                        <input type="text" id="pdfTagline" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Address</label>
-                        <input type="text" id="pdfAddress" placeholder="Enter institute address" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Header Color</label>
-                        <input type="color" id="pdfHeaderColor" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;">
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Signature Label</label>
-                        <input type="text" id="pdfSignatureLabel" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Footer Text</label>
-                        <input type="text" id="pdfFooterText" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Courses (comma separated)</label>
-                        <textarea id="pdfCourses" rows="2" placeholder="DCA, PGDCA, BCA, Tally, Busy, Corel Draw" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;resize:vertical;"></textarea>
-                        <small style="color:#9ca3af;font-size:11px;margin-top:4px;display:block;">These will be shown as eligible courses for admission</small>
-                    </div>
-                    <small style="color:#9ca3af;font-size:11px;display:block;margin-top:10px;">Note: These settings are saved in the main Settings tab. Changes here will reflect globally.</small>
-                </div>
-                <div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:25px;max-width:700px;">
-                    <h3 style="color:#fff;margin-bottom:20px;"><i class="fas fa-sliders-h" style="color:#667eea;margin-right:8px;"></i> PDF Display Options</h3>
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
-                        <div>
-                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Institute Logo</h4>
-                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display logo in PDF header</p>
-                        </div>
-                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
-                            <input type="checkbox" id="pdfShowLogo" onchange="updateToggleSlider('pdfShowLogo', 'pdfShowLogoSlider')" style="opacity:0;width:0;height:0;">
-                            <span id="pdfShowLogoSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
-                        </label>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
-                        <div>
-                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Reference Number</h4>
-                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display reference number in header</p>
-                        </div>
-                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
-                            <input type="checkbox" id="pdfShowRef" onchange="updateToggleSlider('pdfShowRef', 'pdfShowRefSlider')" style="opacity:0;width:0;height:0;">
-                            <span id="pdfShowRefSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
-                        </label>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
-                        <div>
-                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Eligible Courses</h4>
-                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display eligible courses section</p>
-                        </div>
-                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
-                            <input type="checkbox" id="pdfShowCourses" onchange="updateToggleSlider('pdfShowCourses', 'pdfShowCoursesSlider')" style="opacity:0;width:0;height:0;">
-                            <span id="pdfShowCoursesSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
-                        </label>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
-                        <div>
-                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Verification QR Code</h4>
-                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display QR code for document verification</p>
-                        </div>
-                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
-                            <input type="checkbox" id="pdfShowQR" onchange="updateToggleSlider('pdfShowQR', 'pdfShowQRSlider')" style="opacity:0;width:0;height:0;">
-                            <span id="pdfShowQRSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
-                        </label>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
-                        <div>
-                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Signature Area</h4>
-                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display signature line in footer</p>
-                        </div>
-                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
-                            <input type="checkbox" id="pdfShowSignature" onchange="updateToggleSlider('pdfShowSignature', 'pdfShowSignatureSlider')" style="opacity:0;width:0;height:0;">
-                            <span id="pdfShowSignatureSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
-                        </label>
-                    </div>
-                    <div style="display:flex;gap:12px;justify-content:flex-end;">
-                        <button class="btn btn-primary" onclick="savePdfDisplayOptions()"><i class="fas fa-save"></i> Save Options</button>
+                
+                <!-- Quick Links -->
+                <div style="margin-top:25px;padding:20px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:12px;">
+                    <h4 style="color:#fff;margin:0 0 15px 0;font-size:14px;"><i class="fas fa-link"></i> Quick Links</h4>
+                    <div style="display:flex;gap:15px;flex-wrap:wrap;">
+                        <a href="#" onclick="document.querySelector('[data-page=settings]').click(); setTimeout(()=>document.querySelector('.settings-tab[data-tab=pdf]').click(),300)" style="color:#fbbf24;text-decoration:none;font-size:13px;padding:8px 16px;background:rgba(255,255,255,0.1);border-radius:6px;">General Settings → Result PDF</a>
+                        <a href="/entrance-portal.html" target="_blank" style="color:#fbbf24;text-decoration:none;font-size:13px;padding:8px 16px;background:rgba(255,255,255,0.1);border-radius:6px;">View Entrance Portal</a>
                     </div>
                 </div>
             </div>

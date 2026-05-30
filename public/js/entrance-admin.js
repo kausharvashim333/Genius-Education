@@ -24,27 +24,27 @@ function entFmtDateTime(iso) {
 
 // ---------- Settings (Enable/Disable) ----------
 async function loadEntranceSettings() {
-    try {
-        const data = await entApi('/api/entrance-settings');
-        const toggle = document.getElementById('entranceEnableToggle');
-        const slider = document.getElementById('entranceToggleSlider');
-        const info = document.getElementById('entranceSettingsInfo');
-        if (!toggle) return;
-        toggle.checked = !!data.enabled;
-        if (slider) {
-            slider.style.background = data.enabled ? '#10b981' : '#374151';
-            slider.innerHTML = '<span style="position:absolute;top:4px;left:' + (data.enabled ? '32px' : '4px') + ';width:24px;height:24px;background:#fff;border-radius:50%;transition:.3s;"></span>';
-        }
-        if (info) {
-            info.innerHTML = data.enabled
-                ? '<i class="fas fa-check-circle" style="color:#10b981;"></i> <strong>Feature is currently ENABLED.</strong><br>Enabled at: ' + entFmtDateTime(data.enabledAt) + (data.enabledBy ? ' by ' + data.enabledBy : '')
-                : '<i class="fas fa-times-circle" style="color:#ef4444;"></i> <strong>Feature is currently DISABLED.</strong><br>Students cannot access the entrance portal and the homepage button is hidden.';
-        }
-    } catch (e) { console.error(e); }
-    
-    // Load submission settings
-    loadEntranceSubmissionSettings();
+    // Load PDF display options
     loadPdfDisplayOptions();
+    // Load PDF template settings
+    loadPdfTemplateSettings();
+}
+
+async function loadPdfTemplateSettings() {
+    try {
+        const settings = await fetch('/api/settings').then(r => r.json());
+        
+        document.getElementById('pdfInstituteName').value = settings.instituteName || '';
+        document.getElementById('pdfTagline').value = settings.tagline || '';
+        document.getElementById('pdfAddress').value = settings.address || '';
+        document.getElementById('pdfHeaderColor').value = settings.headerColor || '#1e3a8a';
+        document.getElementById('pdfSignatureLabel').value = settings.signatureLabel || '';
+        document.getElementById('pdfFooterText').value = settings.footerText || '';
+        document.getElementById('pdfCourses').value = settings.eligibleCourses || '';
+        document.getElementById('pdfInstructions').value = settings.entranceInstructions || '';
+    } catch (e) {
+        console.error('Error loading PDF template settings:', e);
+    }
 }
 
 async function toggleEntranceFeature() {
@@ -1029,6 +1029,36 @@ function updateToggleSlider(checkboxId, sliderId) {
     const isChecked = checkbox.checked;
     slider.style.background = isChecked ? '#10b981' : '#374151';
     slider.innerHTML = '<span style="position:absolute;top:2px;left:' + (isChecked ? '26px' : '2px') + ';width:24px;height:24px;background:#fff;border-radius:50%;transition:.3s;"></span>';
+}
+
+async function savePdfSettings() {
+    // Get current settings to preserve other fields
+    const currentSettings = await fetch('/api/settings').then(r => r.json());
+    
+    const pdfData = {
+        instituteName: document.getElementById('pdfInstituteName').value,
+        tagline: document.getElementById('pdfTagline').value,
+        address: document.getElementById('pdfAddress').value,
+        headerColor: document.getElementById('pdfHeaderColor').value,
+        signatureLabel: document.getElementById('pdfSignatureLabel').value,
+        footerText: document.getElementById('pdfFooterText').value,
+        eligibleCourses: document.getElementById('pdfCourses').value,
+        entranceInstructions: document.getElementById('pdfInstructions').value
+    };
+    
+    // Merge with current settings to preserve other fields
+    const data = { ...currentSettings, ...pdfData };
+    
+    try {
+        await fetch('/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        entShowToast('PDF template saved', 'success');
+    } catch (e) {
+        entShowToast('Error saving PDF template', 'error');
+    }
 }
 
 async function savePdfDisplayOptions() {
