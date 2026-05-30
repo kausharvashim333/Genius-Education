@@ -11144,46 +11144,61 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         
         y += 100;
         
-        // Instructions - use text directly (already plain text)
+        // Instructions section with proper styling
         if (instructions) {
-            doc.fontSize(9).fillColor('#6b7280').font('Helvetica').text(instructions, 30, y, { width: 535.28 });
-            y += 40;
+            doc.rect(30, y, 535.28, 80).fill('#fffbeb');
+            doc.rect(30, y, 535.28, 80).stroke('#f59e0b').lineWidth(1);
+            
+            doc.fontSize(11).fillColor('#92400e').font('Helvetica-Bold').text('Important Instructions', 45, y + 12);
+            doc.moveTo(45, y + 28).lineTo(520, y + 28).stroke('#f59e0b').lineWidth(1);
+            
+            doc.fontSize(9).fillColor('#1f2937').font('Helvetica').text(instructions, 45, y + 38, { width: 480 });
+            
+            y += 95;
         }
         
-        // Eligible courses
+        // Eligible courses section
         if (showCourses) {
-            doc.fontSize(11).fillColor('#374151').font('Helvetica-Bold').text('Eligible Courses', 30, y);
-            y += 20;
+            doc.rect(30, y, 535.28, 60).fill('#f0fdf4');
+            doc.rect(30, y, 535.28, 60).stroke('#22c55e').lineWidth(1);
+            
+            doc.fontSize(11).fillColor('#166534').font('Helvetica-Bold').text('Eligible Courses', 45, y + 12);
+            doc.moveTo(45, y + 28).lineTo(520, y + 28).stroke('#22c55e').lineWidth(1);
             
             const courseList = courses.split(',').map(c => c.trim()).filter(c => c);
-            doc.fontSize(10).fillColor('#1f293b').font('Helvetica').text(courseList.join(' • '), 30, y, { width: 535.28 });
+            doc.fontSize(10).fillColor('#1f2937').font('Helvetica').text(courseList.join(' • '), 45, y + 38, { width: 480 });
             
-            y += 30;
+            y += 75;
         }
         
         // Verification section
         if (showQR) {
-            doc.rect(30, y, 535.28, 70).fill('#f0f9ff');
-            doc.rect(30, y, 535.28, 70).stroke('#3b82f6').lineWidth(1);
+            doc.rect(30, y, 535.28, 80).fill('#f0f9ff');
+            doc.rect(30, y, 535.28, 80).stroke('#3b82f6').lineWidth(1);
             
             doc.fontSize(11).fillColor('#1e40af').font('Helvetica-Bold').text('Document Verification', 45, y + 12);
-            doc.fontSize(9).fillColor('#1e3a8a').font('Helvetica').text('Scan QR code to verify this document online', 45, y + 30, { width: 380 });
-            doc.fontSize(8).fillColor('#3b82f6').font('Helvetica').text(verificationUrl, 45, y + 45, { width: 380 });
+            doc.moveTo(45, y + 28).lineTo(520, y + 28).stroke('#3b82f6').lineWidth(1);
+            
+            doc.fontSize(9).fillColor('#1e3a8a').font('Helvetica').text('Scan QR code to verify this document online', 45, y + 38, { width: 380 });
+            doc.fontSize(8).fillColor('#3b82f6').font('Helvetica').text(verificationUrl, 45, y + 52, { width: 380 });
             
             // QR code
             try {
                 const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
-                doc.image(qrBuffer, 440, y + 10, { width: 50, height: 50 });
+                doc.image(qrBuffer, 440, y + 15, { width: 50, height: 50 });
             } catch (e) {
-                doc.rect(440, y + 10, 50, 50).fill('#e5e7eb');
-                doc.fontSize(8).fillColor('#6b7280').font('Helvetica').text('QR', 440, y + 35, { align: 'center', width: 50 });
+                doc.rect(440, y + 15, 50, 50).fill('#e5e7eb');
+                doc.fontSize(8).fillColor('#6b7280').font('Helvetica').text('QR', 440, y + 40, { align: 'center', width: 50 });
             }
             
-            y += 80;
+            y += 95;
         }
         
-        // Footer
-        y = 760;
+        // Footer section
+        y = 730;
+        doc.moveTo(30, y).lineTo(565.28, y).stroke('#e5e7eb').lineWidth(1);
+        y += 15;
+        
         doc.fontSize(8).fillColor('#9ca3af').font('Helvetica').text('Issue Date: ' + new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }), 30, y);
         doc.fontSize(8).fillColor('#9ca3af').font('Helvetica').text(footerText, 30, y + 12, { width: 535.28, align: 'center' });
         
