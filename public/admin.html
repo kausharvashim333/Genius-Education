@@ -1871,7 +1871,6 @@
                     <!-- Settings Tabs -->
                     <div class="settings-tabs">
                         <button class="settings-tab active" data-tab="institute"><i class="fas fa-building"></i> Institute</button>
-                        <button class="settings-tab" data-tab="pdf"><i class="fas fa-file-pdf"></i> Result PDF</button>
                         <button class="settings-tab" data-tab="email"><i class="fas fa-envelope"></i> Email</button>
                         <button class="settings-tab" data-tab="payment"><i class="fas fa-credit-card"></i> Payment</button>
                         <button class="settings-tab" data-tab="security"><i class="fas fa-shield-alt"></i> Security</button>
@@ -1994,71 +1993,6 @@
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Institute Settings</button>
-                            </form>
-                        </div>
-                    </div>
-                    
-                    <!-- Result PDF Settings Tab -->
-                    <div id="tab-pdf" class="settings-tab-content">
-                        <div class="data-table" style="max-width: 600px;">
-                            <h4 style="margin-bottom: 20px; color: #3b82f6;"><i class="fas fa-file-pdf"></i> Result PDF Customization</h4>
-                            <form id="pdfSettingsForm">
-                                <div class="form-group">
-                                    <label>Institute Name (for PDF)</label>
-                                    <input type="text" id="pdfInstituteName" placeholder="Enter institute name for PDF">
-                                </div>
-                                <div class="form-group">
-                                    <label>Tagline</label>
-                                    <input type="text" id="pdfTagline" placeholder="Enter tagline">
-                                </div>
-                                <div class="form-group">
-                                    <label>Address</label>
-                                    <textarea id="pdfAddress" rows="2" placeholder="Enter institute address"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label>Header Color</label>
-                                    <input type="color" id="pdfHeaderColor" value="#1e3a8a" style="width: 100%; height: 40px;">
-                                </div>
-                                <div class="form-group">
-                                    <label>Signature Label</label>
-                                    <input type="text" id="pdfSignatureLabel" placeholder="Principal / Director">
-                                </div>
-                                <div class="form-group">
-                                    <label>Footer Text</label>
-                                    <input type="text" id="pdfFooterText" placeholder="© Genius Computer Education. All Rights Reserved.">
-                                </div>
-                                <div class="form-group">
-                                    <label>Eligible Courses (comma separated)</label>
-                                    <textarea id="pdfCourses" rows="2" placeholder="DCA, PGDCA, BCA, Tally, Busy, Corel Draw"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label>Instructions (shown at bottom of PDF)</label>
-                                    <textarea id="pdfInstructions" rows="3" placeholder="This scorecard is valid for admission purposes only."></textarea>
-                                </div>
-                                <div style="border-top: 2px solid rgba(255,255,255,0.1); padding-top: 20px; margin-top: 20px;">
-                                    <label style="font-weight: 700; font-size: 16px; color: #667eea; margin-bottom: 15px; display: block;"><i class="fas fa-sliders-h"></i> PDF Display Options</label>
-                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                                        <input type="checkbox" id="pdfShowLogo" style="width: 20px; height: 20px;">
-                                        <label for="pdfShowLogo" style="margin: 0; font-weight: 600;">Show Institute Logo</label>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                                        <input type="checkbox" id="pdfShowRef" style="width: 20px; height: 20px;">
-                                        <label for="pdfShowRef" style="margin: 0; font-weight: 600;">Show Reference Number</label>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                                        <input type="checkbox" id="pdfShowCourses" style="width: 20px; height: 20px;">
-                                        <label for="pdfShowCourses" style="margin: 0; font-weight: 600;">Show Eligible Courses</label>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                                        <input type="checkbox" id="pdfShowQR" style="width: 20px; height: 20px;">
-                                        <label for="pdfShowQR" style="margin: 0; font-weight: 600;">Show Verification QR Code</label>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                                        <input type="checkbox" id="pdfShowSignature" style="width: 20px; height: 20px;">
-                                        <label for="pdfShowSignature" style="margin: 0; font-weight: 600;">Show Signature Area</label>
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save PDF Settings</button>
                             </form>
                         </div>
                     </div>
@@ -2434,7 +2368,6 @@
                 <div style="margin-top:25px;padding:20px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:12px;">
                     <h4 style="color:#fff;margin:0 0 15px 0;font-size:14px;"><i class="fas fa-link"></i> Quick Links</h4>
                     <div style="display:flex;gap:15px;flex-wrap:wrap;">
-                        <a href="#" onclick="document.querySelector('[data-page=settings]').click(); setTimeout(()=>document.querySelector('.settings-tab[data-tab=pdf]').click(),300)" style="color:#fbbf24;text-decoration:none;font-size:13px;padding:8px 16px;background:rgba(255,255,255,0.1);border-radius:6px;">General Settings → Result PDF</a>
                         <a href="/entrance-portal.html" target="_blank" style="color:#fbbf24;text-decoration:none;font-size:13px;padding:8px 16px;background:rgba(255,255,255,0.1);border-radius:6px;">View Entrance Portal</a>
                     </div>
                 </div>
