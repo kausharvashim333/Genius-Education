@@ -44,27 +44,6 @@ async function loadEntranceSettings() {
     
     // Load submission settings
     loadEntranceSubmissionSettings();
-    // Load PDF display options
-    loadPdfDisplayOptions();
-    // Load PDF template settings
-    loadPdfTemplateSettings();
-}
-
-async function loadPdfTemplateSettings() {
-    try {
-        const settings = await fetch('/api/settings').then(r => r.json());
-        
-        document.getElementById('pdfInstituteName').value = settings.instituteName || '';
-        document.getElementById('pdfTagline').value = settings.tagline || '';
-        document.getElementById('pdfAddress').value = settings.address || '';
-        document.getElementById('pdfHeaderColor').value = settings.headerColor || '#1e3a8a';
-        document.getElementById('pdfSignatureLabel').value = settings.signatureLabel || '';
-        document.getElementById('pdfFooterText').value = settings.footerText || '';
-        document.getElementById('pdfCourses').value = settings.eligibleCourses || '';
-        document.getElementById('pdfInstructions').value = settings.entranceInstructions || '';
-    } catch (e) {
-        console.error('Error loading PDF template settings:', e);
-    }
 }
 
 async function toggleEntranceFeature() {
@@ -1050,78 +1029,6 @@ function updateToggleSlider(checkboxId, sliderId) {
     slider.style.background = isChecked ? '#10b981' : '#374151';
     slider.innerHTML = '<span style="position:absolute;top:2px;left:' + (isChecked ? '26px' : '2px') + ';width:24px;height:24px;background:#fff;border-radius:50%;transition:.3s;"></span>';
 }
-
-async function savePdfSettings() {
-    // Get current settings to preserve other fields
-    const currentSettings = await fetch('/api/settings').then(r => r.json());
-    
-    const pdfData = {
-        instituteName: document.getElementById('pdfInstituteName').value,
-        tagline: document.getElementById('pdfTagline').value,
-        address: document.getElementById('pdfAddress').value,
-        headerColor: document.getElementById('pdfHeaderColor').value,
-        signatureLabel: document.getElementById('pdfSignatureLabel').value,
-        footerText: document.getElementById('pdfFooterText').value,
-        eligibleCourses: document.getElementById('pdfCourses').value,
-        entranceInstructions: document.getElementById('pdfInstructions').value
-    };
-    
-    // Merge with current settings to preserve other fields
-    const data = { ...currentSettings, ...pdfData };
-    
-    try {
-        await fetch('/api/settings', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        entShowToast('PDF template saved', 'success');
-    } catch (e) {
-        entShowToast('Error saving PDF template', 'error');
-    }
-}
-
-async function savePdfDisplayOptions() {
-    const options = {
-        showLogo: document.getElementById('pdfShowLogo').checked,
-        showRef: document.getElementById('pdfShowRef').checked,
-        showCourses: document.getElementById('pdfShowCourses').checked,
-        showQR: document.getElementById('pdfShowQR').checked,
-        showSignature: document.getElementById('pdfShowSignature').checked
-    };
-    
-    try {
-        await entApi('/api/pdf-display-options', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(options)
-        });
-        entShowToast('PDF display options saved', 'success');
-    } catch (e) {
-        entShowToast('Error saving options', 'error');
-    }
-}
-
-async function loadPdfDisplayOptions() {
-    try {
-        const options = await entApi('/api/pdf-display-options');
-        document.getElementById('pdfShowLogo').checked = options.showLogo !== false;
-        document.getElementById('pdfShowRef').checked = options.showRef !== false;
-        document.getElementById('pdfShowCourses').checked = options.showCourses !== false;
-        document.getElementById('pdfShowQR').checked = options.showQR !== false;
-        document.getElementById('pdfShowSignature').checked = options.showSignature !== false;
-        
-        // Update toggle sliders
-        updateToggleSlider('pdfShowLogo', 'pdfShowLogoSlider');
-        updateToggleSlider('pdfShowRef', 'pdfShowRefSlider');
-        updateToggleSlider('pdfShowCourses', 'pdfShowCoursesSlider');
-        updateToggleSlider('pdfShowQR', 'pdfShowQRSlider');
-        updateToggleSlider('pdfShowSignature', 'pdfShowSignatureSlider');
-    } catch (e) {
-        console.error('Error loading PDF display options', e);
-    }
-}
-
 
 function exportEntranceResults() {
     if (!entranceCurrentResults.length) return entShowToast('No results loaded', 'error');
