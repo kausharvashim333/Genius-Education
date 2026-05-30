@@ -946,10 +946,7 @@ async function loadInstituteSettings() {
 function previewEntranceResult(id) {
     const r = entranceCurrentResults.find(x => x.id == id);
     if (!r) return;
-    console.log('Preview result data:', r);
-    console.log('Marks obtained:', r.marksObtained);
-    console.log('Total marks:', r.totalMarks);
-    console.log('Percentage:', r.percentage);
+    alert('Result data: ' + JSON.stringify(r, null, 2));
     currentPreviewResult = r;
     document.getElementById('entResultPreviewContent').innerHTML = renderEntranceResultHtml(r);
     document.getElementById('entranceResultViewModal').classList.add('active');
