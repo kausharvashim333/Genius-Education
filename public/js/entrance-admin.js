@@ -924,7 +924,7 @@ function downloadEntranceResultPDF(id) {
 }
 
 // Preview entrance result PDF
-async function previewEntranceResultPDF(id) {
+window.previewEntranceResultPDF = async function(id) {
     try {
         const response = await fetch('/api/entrance-result-pdf/' + id);
         if (!response.ok) {
@@ -934,27 +934,27 @@ async function previewEntranceResultPDF(id) {
         const pdfUrl = URL.createObjectURL(blob);
         
         const modal = document.createElement('div');
-        modal.className = 'modal-overlay active';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
         modal.id = 'pdfPreviewModal';
         modal.innerHTML = `
-            <div class="modal-box" style="max-width: 900px; height: 90vh; display: flex; flex-direction: column;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 style="margin: 0; color: var(--primary-dark);">Result PDF Preview</h2>
-                    <button onclick="closePdfPreview()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">
+            <div style="max-width:900px;width:90%;height:90vh;background:#fff;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid #e5e7eb;">
+                    <h2 style="margin:0;color:#1e3a8a;">Result PDF Preview</h2>
+                    <button onclick="window.closePdfPreview()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#6b7280;padding:5px;">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <div style="flex: 1; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; background: #f3f4f6;">
-                    <iframe src="${pdfUrl}" style="width: 100%; height: 100%; border: none;"></iframe>
+                <div style="flex:1;overflow:auto;border:1px solid #e5e7eb;background:#f3f4f6;">
+                    <iframe src="${pdfUrl}" style="width:100%;height:100%;border:none;"></iframe>
                 </div>
-                <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
-                    <button class="btn btn-light" onclick="closePdfPreview()">
+                <div style="display:flex;gap:10px;padding:20px;border-top:1px solid #e5e7eb;justify-content:flex-end;">
+                    <button onclick="window.closePdfPreview()" style="padding:10px 20px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;">
                         <i class="fas fa-times"></i> Close
                     </button>
-                    <button class="btn btn-primary" onclick="printPdfPreview('${pdfUrl}')">
+                    <button onclick="window.printPdfPreview('${pdfUrl}')" style="padding:10px 20px;background:#1e3a8a;color:#fff;border:none;border-radius:6px;cursor:pointer;">
                         <i class="fas fa-print"></i> Print
                     </button>
-                    <button class="btn btn-success" onclick="downloadEntranceResultPDF(${id})">
+                    <button onclick="window.downloadEntranceResultPDF(${id})" style="padding:10px 20px;background:#10b981;color:#fff;border:none;border-radius:6px;cursor:pointer;">
                         <i class="fas fa-download"></i> Download
                     </button>
                 </div>
@@ -965,23 +965,23 @@ async function previewEntranceResultPDF(id) {
         console.error('Error previewing PDF:', error);
         entShowToast('Failed to preview PDF', 'error');
     }
-}
+};
 
-function closePdfPreview() {
+window.closePdfPreview = function() {
     const modal = document.getElementById('pdfPreviewModal');
     if (modal) {
         modal.remove();
     }
-}
+};
 
-function printPdfPreview(pdfUrl) {
+window.printPdfPreview = function(pdfUrl) {
     const printWindow = window.open(pdfUrl, '_blank');
     if (printWindow) {
         printWindow.onload = function() {
             printWindow.print();
         };
     }
-}
+};
 
 
 async function saveEntranceSubmissionSettings() {
