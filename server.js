@@ -11144,10 +11144,10 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         
         y += 100;
         
-        // Instructions section with proper styling
+        // Instructions section with proper styling - larger box to show full content
         if (instructions) {
-            doc.rect(30, y, 535.28, 100).fill('#fffbeb');
-            doc.rect(30, y, 535.28, 100).stroke('#f59e0b').lineWidth(1);
+            doc.rect(30, y, 535.28, 150).fill('#fffbeb');
+            doc.rect(30, y, 535.28, 150).stroke('#f59e0b').lineWidth(1);
             
             doc.fontSize(11).fillColor('#92400e').font('Helvetica-Bold').text('Important Instructions', 45, y + 12);
             doc.moveTo(45, y + 28).lineTo(520, y + 28).stroke('#f59e0b').lineWidth(1);
@@ -11160,24 +11160,10 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
                 doc.fontSize(9).fillColor('#1f2937').font('Helvetica').text('• ' + line.trim(), 45, bulletY, { width: 480 });
             });
             
-            y += 115;
+            y += 165;
         }
         
-        // Eligible courses section
-        if (showCourses) {
-            doc.rect(30, y, 535.28, 60).fill('#f0fdf4');
-            doc.rect(30, y, 535.28, 60).stroke('#22c55e').lineWidth(1);
-            
-            doc.fontSize(11).fillColor('#166534').font('Helvetica-Bold').text('Eligible Courses', 45, y + 12);
-            doc.moveTo(45, y + 28).lineTo(520, y + 28).stroke('#22c55e').lineWidth(1);
-            
-            const courseList = courses.split(',').map(c => c.trim()).filter(c => c);
-            doc.fontSize(10).fillColor('#1f2937').font('Helvetica').text(courseList.join(' • '), 45, y + 38, { width: 480 });
-            
-            y += 75;
-        }
-        
-        // Verification section
+        // Verification section - moved to bottom after instructions
         if (showQR) {
             doc.rect(30, y, 535.28, 80).fill('#f0f9ff');
             doc.rect(30, y, 535.28, 80).stroke('#3b82f6').lineWidth(1);
