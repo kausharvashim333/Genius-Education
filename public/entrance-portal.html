@@ -335,6 +335,11 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
             <h2 style="margin-bottom: 12px;"><i class="fas fa-clipboard-list" style="color: #fbbf24;"></i> Your Scheduled Exam</h2>
             <div id="examInfo">Loading...</div>
         </div>
+
+        <div class="glass" style="margin-top: 20px;">
+            <h2 style="margin-bottom: 12px;"><i class="fas fa-chart-bar" style="color: #10b981;"></i> Your Result</h2>
+            <div id="resultInfo">Loading...</div>
+        </div>
     </div>
 </div>
 
@@ -586,6 +591,7 @@ async function showDashboard() {
     document.getElementById('welcomeName').textContent = 'Welcome, ' + currentRegistration.studentName;
     document.getElementById('welcomeRegNo').textContent = 'Reg No: ' + currentRegistration.registrationNo;
     await loadExamInfo();
+    await loadResultInfo();
     if (dashboardInterval) clearInterval(dashboardInterval);
     dashboardInterval = setInterval(loadExamInfo, 15000);
 }
@@ -647,6 +653,40 @@ async function loadExamInfo() {
         console.error(e);
         document.getElementById('examInfo').innerHTML = '<p>Error loading exam info</p>';
     }
+}
+
+async function loadResultInfo() {
+    try {
+        const res = await fetch('/api/entrance/my-result/' + currentRegistration.registrationNo);
+        const data = await res.json();
+        
+        if (!data.success) {
+            document.getElementById('resultInfo').innerHTML = '<p style="color: #fbbf24;">' + (data.message || 'Result not yet published') + '</p>';
+            return;
+        }
+        
+        const result = data.result;
+        document.getElementById('resultInfo').innerHTML =
+            '<div class="exam-card">' +
+            '<h3>Performance Summary</h3>' +
+            '<div class="exam-info">' +
+            '<div class="info-item"><label>Marks Obtained</label><span>' + (result.marksObtained || 0) + ' / ' + (result.totalMarks || 0) + '</span></div>' +
+            '<div class="info-item"><label>Percentage</label><span>' + (result.percentage || 0) + '%</span></div>' +
+            '<div class="info-item"><label>Course</label><span>' + (result.course || '-') + '</span></div>' +
+            '<div class="info-item"><label>Exam Date</label><span>' + (result.submittedAt ? new Date(result.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '-') + '</span></div>' +
+            '</div>' +
+            '<div style="margin-top: 20px;">' +
+            '<button class="btn btn-primary" onclick="downloadResultPDF(' + result.id + ')" style="font-size: 16px; padding: 14px 28px;"><i class="fas fa-file-pdf"></i> Download Result PDF</button>' +
+            '</div>' +
+            '</div>';
+    } catch (e) {
+        console.error(e);
+        document.getElementById('resultInfo').innerHTML = '<p>Error loading result</p>';
+    }
+}
+
+function downloadResultPDF(resultId) {
+    window.location.href = '/api/entrance-result-pdf/' + resultId;
 }
 
 function openInstructions() {
