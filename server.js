@@ -10994,25 +10994,38 @@ function generateEntranceResultHTML(result) {
 // Generate PDF for entrance result using Puppeteer
 app.get('/api/entrance-result-pdf/:id', async (req, res) => {
     try {
+        console.log('=== PDF Request Start ===');
+        console.log('PDF request received for id:', req.params.id);
+        
         const results = readData('entrance-results.json') || [];
+        console.log('Total results:', results.length);
+        
         const result = results.find(r => r.id == req.params.id);
         
         if (!result) {
+            console.log('Result not found');
             return res.status(404).json({ success: false, message: 'Result not found' });
         }
         
-        console.log('Generating PDF for result:', result.id);
+        console.log('Result found:', result.id);
         
         // Use Puppeteer for better font support (including Hindi)
         const html = generateEntranceResultHTML(result);
         console.log('HTML generated, length:', html.length);
         
+        console.log('Getting browser...');
         const browser = await getBrowser();
+        console.log('Browser obtained');
+        
         const page = await browser.newPage();
+        console.log('New page created');
+        
         try {
+            console.log('Setting page content...');
             await page.setContent(html, { waitUntil: 'domcontentloaded' });
             console.log('Page content set');
             
+            console.log('Generating PDF...');
             const pdfBuffer = await page.pdf({
                 format: 'A4',
                 printBackground: true,
@@ -11023,11 +11036,17 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', `attachment; filename="entrance-result-${result.registrationNo || 'student'}.pdf"`);
             res.send(pdfBuffer);
+            console.log('=== PDF Request Complete ===');
         } finally {
+            console.log('Closing page...');
             await page.close();
+            console.log('Page closed');
         }
     } catch (error) {
-        console.error('PDF generation error:', error);
+        console.error('=== PDF Generation Error ===');
+        console.error('Error:', error);
+        console.error('Error stack:', error.stack);
+        console.error('=== End Error ===');
         res.status(500).json({ success: false, message: 'Failed to generate PDF: ' + error.message });
     }
 });
