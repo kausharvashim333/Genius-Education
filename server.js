@@ -11134,11 +11134,11 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         doc.circle(circleX, circleY, radius).fill('rgba(255,255,255,0.2)');
         doc.circle(circleX, circleY, radius).stroke('rgba(255,255,255,0.5)').lineWidth(2);
         
-        // Progress arc (simplified representation)
-        const progressAngle = (percentage / 100) * 360;
-        doc.save();
-        doc.path().moveTo(circleX, circleY).arc(circleX, circleY, radius, 0, progressAngle * Math.PI / 180).lineTo(circleX, circleY).fill(percentage >= 60 ? '#10b981' : percentage >= 40 ? '#f59e0b' : '#ef4444');
-        doc.restore();
+        // Progress circle (simplified - just a colored circle based on percentage)
+        const progressRadius = radius * (percentage / 100);
+        if (progressRadius > 0) {
+            doc.circle(circleX, circleY, progressRadius).fill(percentage >= 60 ? '#10b981' : percentage >= 40 ? '#f59e0b' : '#ef4444');
+        }
         
         // Percentage in circle
         doc.fontSize(16).fillColor('#ffffff').font('Helvetica-Bold').text(`${percentage}%`, circleX, circleY - 10, { align: 'center', width: 70 });
