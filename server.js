@@ -11153,8 +11153,8 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         
         // Instructions section with proper styling - larger box to show full content
         if (instructions) {
-            doc.rect(30, y, 535.28, 150).fill('#fffbeb');
-            doc.rect(30, y, 535.28, 150).stroke('#f59e0b').lineWidth(1);
+            doc.rect(30, y, 535.28, 200).fill('#fffbeb');
+            doc.rect(30, y, 535.28, 200).stroke('#f59e0b').lineWidth(1);
             
             doc.fontSize(11).fillColor('#92400e').font('Helvetica-Bold').text('Important Instructions', 45, y + 12);
             doc.moveTo(45, y + 28).lineTo(520, y + 28).stroke('#f59e0b').lineWidth(1);
@@ -11167,11 +11167,12 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
                 doc.fontSize(9).fillColor('#1f2937').font('Helvetica').text('• ' + line.trim(), 45, bulletY, { width: 480 });
             });
             
-            y += 165;
+            y += 215;
         }
         
-        // Verification section - just above footer, no blank space
+        // Verification section - positioned lower
         if (showQR) {
+            y += 30; // Extra spacing to push verification lower
             doc.rect(30, y, 535.28, 80).fill('#f0f9ff');
             doc.rect(30, y, 535.28, 80).stroke('#3b82f6').lineWidth(1);
             
@@ -11193,8 +11194,8 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             y += 80;
         }
         
-        // Footer section - positioned right after verification
-        y += 10;
+        // Footer section - positioned lower
+        y += 15;
         doc.moveTo(30, y).lineTo(565.28, y).stroke('#e5e7eb').lineWidth(1);
         y += 15;
         
