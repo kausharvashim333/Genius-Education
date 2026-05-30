@@ -11170,9 +11170,9 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             y += 265;
         }
         
-        // Verification section - positioned lower
+        // Verification section - positioned closer to instructions
         if (showQR) {
-            y += 5; // Reduced spacing to move footer up
+            y += 2; // Minimal spacing between instructions and verification
             doc.rect(30, y, 535.28, 80).fill('#f0f9ff');
             doc.rect(30, y, 535.28, 80).stroke('#3b82f6').lineWidth(1);
             
