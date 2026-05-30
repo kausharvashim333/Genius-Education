@@ -1102,9 +1102,9 @@ function renderEntranceResultHtml(r) {
         ? '<div style="text-align:center;margin-top:12px;"><a href="' + s.website + '" style="color:' + s.headerColor + ';font-size:11px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">' + s.website + '</a></div>'
         : '';
     
-    return '<div id="entResultPdfArea" style="background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);color:' + s.textColor + ';padding:12mm;font-family:\'Segoe UI\',\'Roboto\',\'Helvetica\',sans-serif;width:210mm;height:297mm;box-sizing:border-box;position:relative;overflow:hidden;">' +
+    return '<div id="entResultPdfArea" style="background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);color:' + s.textColor + ';padding:12mm;font-family:\'Segoe UI\',\'Roboto\',\'Helvetica\',sans-serif;width:210mm;height:297mm;box-sizing:border-box;position:relative;overflow:visible;">' +
         watermarkHtml +
-        '<div style="border:3px solid ' + s.headerColor + ';border-radius:12px;padding:20px;height:100%;position:relative;z-index:1;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.1);">' +
+        '<div style="border:3px solid ' + s.headerColor + ';border-radius:12px;padding:20px;height:100%;position:relative;z-index:1;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.1);display:flex;flex-direction:column;">' +
         
         // Decorative top bar
         '<div style="position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,' + s.headerColor + '0%,' + s.headerColor + '50%,' + s.headerColor + '100%);border-radius:9px 9px 0 0;"></div>' +
