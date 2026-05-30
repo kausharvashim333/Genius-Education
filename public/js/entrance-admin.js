@@ -815,6 +815,7 @@ async function loadEntranceResults() {
             '<td>' + entFmtDateTime(r.submittedAt) + '</td>' +
             '<td><span class="badge" style="background:' + (r.published ? '#10b981' : '#6b7280') + ';color:#fff;cursor:pointer;" onclick="toggleEntranceResultPublish(' + r.id + ')" title="Click to toggle">' + (r.published ? 'Published' : 'Hidden') + '</span></td>' +
             '<td>' +
+            '<button class="action-btn" title="Preview PDF" onclick="previewEntranceResultPDF(' + r.id + ')"><i class="fas fa-eye"></i></button> ' +
             '<button class="action-btn" title="Download PDF" onclick="downloadEntranceResultPDF(' + r.id + ')"><i class="fas fa-file-pdf"></i></button> ' +
             '<button class="action-btn" title="Edit Marks" onclick="editEntranceResultMarks(' + r.id + ')"><i class="fas fa-edit"></i></button> ' +
             '<button class="action-btn" title="Toggle Publish" onclick="toggleEntranceResultPublish(' + r.id + ')"><i class="fas fa-' + (r.published ? 'eye-slash' : 'check') + '"></i></button> ' +
@@ -920,6 +921,66 @@ async function loadInstituteSettings() {
 // Download entrance result PDF
 function downloadEntranceResultPDF(id) {
     window.location.href = '/api/entrance-result-pdf/' + id;
+}
+
+// Preview entrance result PDF
+async function previewEntranceResultPDF(id) {
+    try {
+        const response = await fetch('/api/entrance-result-pdf/' + id);
+        if (!response.ok) {
+            throw new Error('Failed to generate PDF');
+        }
+        const blob = await response.blob();
+        const pdfUrl = URL.createObjectURL(blob);
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay active';
+        modal.id = 'pdfPreviewModal';
+        modal.innerHTML = `
+            <div class="modal-box" style="max-width: 900px; height: 90vh; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; color: var(--primary-dark);">Result PDF Preview</h2>
+                    <button onclick="closePdfPreview()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div style="flex: 1; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; background: #f3f4f6;">
+                    <iframe src="${pdfUrl}" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+                    <button class="btn btn-light" onclick="closePdfPreview()">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                    <button class="btn btn-primary" onclick="printPdfPreview('${pdfUrl}')">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="btn btn-success" onclick="downloadEntranceResultPDF(${id})">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    } catch (error) {
+        console.error('Error previewing PDF:', error);
+        entShowToast('Failed to preview PDF', 'error');
+    }
+}
+
+function closePdfPreview() {
+    const modal = document.getElementById('pdfPreviewModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function printPdfPreview(pdfUrl) {
+    const printWindow = window.open(pdfUrl, '_blank');
+    if (printWindow) {
+        printWindow.onload = function() {
+            printWindow.print();
+        };
+    }
 }
 
 
