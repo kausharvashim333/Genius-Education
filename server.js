@@ -11041,48 +11041,48 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         doc.restore();
         
         // Header with gradient effect
-        doc.rect(20, 20, 555.28, 140).fill(headerColor);
+        doc.rect(20, 20, 555.28, 100).fill(headerColor);
         
         // Logo placeholder
         if (settings.logo) {
             try {
-                doc.image(settings.logo, 35, 35, { width: 100, height: 100 });
+                doc.image(settings.logo, 35, 30, { width: 70, height: 70 });
             } catch (e) {
-                doc.fontSize(50).text('🎓', 35, 45);
+                doc.fontSize(40).text('🎓', 35, 40);
             }
         } else {
-            doc.fontSize(50).text('🎓', 35, 45);
+            doc.fontSize(40).text('🎓', 35, 40);
         }
         
         // Institute name with shadow effect
-        doc.fontSize(28).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), 150, 40, { align: 'center', width: 305 });
-        doc.fontSize(14).fillColor('rgba(255,255,255,0.95)').font('Helvetica').text(tagline, 150, 75, { align: 'center', width: 305 });
+        doc.fontSize(22).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), 120, 30, { align: 'center', width: 335 });
+        doc.fontSize(11).fillColor('rgba(255,255,255,0.95)').font('Helvetica').text(tagline, 120, 58, { align: 'center', width: 335 });
         if (address) {
-            doc.fontSize(11).fillColor('rgba(255,255,255,0.85)').font('Helvetica').text(address, 150, 95, { align: 'center', width: 305 });
+            doc.fontSize(9).fillColor('rgba(255,255,255,0.85)').font('Helvetica').text(address, 120, 75, { align: 'center', width: 335 });
         }
         
         // Reference number badge
-        doc.rect(200, 120, 205, 25).fill('rgba(255,255,255,0.2)');
-        doc.rect(200, 120, 205, 25).stroke('rgba(255,255,255,0.5)').lineWidth(1);
-        doc.fontSize(11).fillColor('#ffffff').font('Helvetica-Bold').text('REF: ' + refNumber, 200, 127, { align: 'center', width: 205 });
+        doc.rect(200, 90, 175, 20).fill('rgba(255,255,255,0.2)');
+        doc.rect(200, 90, 175, 20).stroke('rgba(255,255,255,0.5)').lineWidth(1);
+        doc.fontSize(9).fillColor('#ffffff').font('Helvetica-Bold').text('REF: ' + refNumber, 200, 96, { align: 'center', width: 175 });
         
         // Title with decorative line
-        doc.rect(147.64, 175, 300, 50).fill('#ffffff');
-        doc.rect(147.64, 175, 300, 50).stroke(headerColor).lineWidth(3);
-        doc.fontSize(14).fillColor(headerColor).font('Helvetica-Bold').text('OFFICIAL EXAMINATION SCORECARD', 147.64, 195, { align: 'center', width: 300 });
+        doc.rect(147.64, 130, 300, 35).fill('#ffffff');
+        doc.rect(147.64, 130, 300, 35).stroke(headerColor).lineWidth(2);
+        doc.fontSize(12).fillColor(headerColor).font('Helvetica-Bold').text('OFFICIAL EXAMINATION SCORECARD', 147.64, 148, { align: 'center', width: 300 });
         
         // Decorative line under title
-        doc.moveTo(147.64, 225).lineTo(447.64, 225).stroke(headerColor).lineWidth(2);
+        doc.moveTo(147.64, 165).lineTo(447.64, 165).stroke(headerColor).lineWidth(1);
         
         // Student Details in card style
-        let y = 245;
-        doc.rect(30, y, 535.28, 220).fill('#f8fafc');
-        doc.rect(30, y, 535.28, 220).stroke('#e5e7eb').lineWidth(1);
+        let y = 175;
+        doc.rect(30, y, 535.28, 165).fill('#f8fafc');
+        doc.rect(30, y, 535.28, 165).stroke('#e5e7eb').lineWidth(1);
         
-        doc.fontSize(14).fillColor(headerColor).font('Helvetica-Bold').text('Candidate Information', 45, y + 15);
-        doc.moveTo(45, y + 35).lineTo(550, y + 35).stroke(headerColor).lineWidth(1);
+        doc.fontSize(12).fillColor(headerColor).font('Helvetica-Bold').text('Candidate Information', 45, y + 12);
+        doc.moveTo(45, y + 28).lineTo(550, y + 28).stroke(headerColor).lineWidth(1);
         
-        y += 50;
+        y += 40;
         
         const details = [
             ['Reference Number', refNumber],
@@ -11094,95 +11094,95 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         ];
         
         details.forEach((detail, index) => {
-            doc.rect(45, y, 505.28, 28).fill(index % 2 === 0 ? '#ffffff' : '#f1f5f9');
-            doc.fontSize(11).fillColor('#64748b').font('Helvetica-Bold').text(detail[0], 55, y + 8);
-            doc.fontSize(12).fillColor('#1e293b').font('Helvetica').text(detail[1], 220, y + 8);
-            y += 28;
+            doc.rect(45, y, 505.28, 22).fill(index % 2 === 0 ? '#ffffff' : '#f1f5f9');
+            doc.fontSize(10).fillColor('#64748b').font('Helvetica-Bold').text(detail[0], 55, y + 6);
+            doc.fontSize(11).fillColor('#1e293b').font('Helvetica').text(detail[1], 200, y + 6);
+            y += 22;
         });
         
         // Performance Summary with grade badge
-        y += 20;
-        doc.rect(30, y, 535.28, 140).fill(headerColor);
+        y += 15;
+        doc.rect(30, y, 535.28, 100).fill(headerColor);
         
-        doc.fontSize(16).fillColor('#ffffff').font('Helvetica-Bold').text('Performance Summary', 30, y + 20, { align: 'center', width: 535.28 });
-        y += 55;
+        doc.fontSize(14).fillColor('#ffffff').font('Helvetica-Bold').text('Performance Summary', 30, y + 15, { align: 'center', width: 535.28 });
+        y += 40;
         
         // Marks display
-        doc.fontSize(13).fillColor('rgba(255,255,255,0.95)').font('Helvetica-Bold').text('Total Marks Obtained', 45, y);
-        doc.fontSize(36).fillColor('#ffffff').font('Helvetica-Bold').text(`${result.marksObtained !== undefined && result.marksObtained !== null ? result.marksObtained : 0} / ${result.totalMarks !== undefined && result.totalMarks !== null ? result.totalMarks : 0}`, 280, y - 12);
-        y += 45;
+        doc.fontSize(11).fillColor('rgba(255,255,255,0.95)').font('Helvetica-Bold').text('Total Marks Obtained', 45, y);
+        doc.fontSize(28).fillColor('#ffffff').font('Helvetica-Bold').text(`${result.marksObtained !== undefined && result.marksObtained !== null ? result.marksObtained : 0} / ${result.totalMarks !== undefined && result.totalMarks !== null ? result.totalMarks : 0}`, 250, y - 10);
+        y += 32;
         
         // Percentage display
-        doc.fontSize(13).fillColor('rgba(255,255,255,0.95)').font('Helvetica-Bold').text('Overall Percentage', 45, y);
-        doc.fontSize(36).fillColor('#ffffff').font('Helvetica-Bold').text(`${percentage}%`, 280, y - 12);
+        doc.fontSize(11).fillColor('rgba(255,255,255,0.95)').font('Helvetica-Bold').text('Overall Percentage', 45, y);
+        doc.fontSize(28).fillColor('#ffffff').font('Helvetica-Bold').text(`${percentage}%`, 250, y - 10);
         
         // Grade badge
-        doc.circle(480, y + 10, 35).fill(gradeColor);
-        doc.fontSize(24).fillColor('#ffffff').font('Helvetica-Bold').text(grade, 480, y - 8, { align: 'center', width: 70 });
-        doc.fontSize(9).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text('GRADE', 480, y + 25, { align: 'center', width: 70 });
+        doc.circle(480, y + 8, 28).fill(gradeColor);
+        doc.fontSize(20).fillColor('#ffffff').font('Helvetica-Bold').text(grade, 480, y - 6, { align: 'center', width: 56 });
+        doc.fontSize(8).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text('GRADE', 480, y + 20, { align: 'center', width: 56 });
         
         // Instructions with icon
-        y += 55;
-        doc.rect(30, y, 535.28, 75).fill('#fffbeb');
-        doc.rect(30, y, 535.28, 75).stroke('#f59e0b').lineWidth(2);
-        doc.fontSize(13).fillColor('#92400e').font('Helvetica-Bold').text('⚠ Important Instructions', 45, y + 15);
-        doc.fontSize(10).fillColor('#1f2937').font('Helvetica').text(instructions, 45, y + 35, { width: 505.28 });
+        y += 40;
+        doc.rect(30, y, 535.28, 55).fill('#fffbeb');
+        doc.rect(30, y, 535.28, 55).stroke('#f59e0b').lineWidth(1);
+        doc.fontSize(11).fillColor('#92400e').font('Helvetica-Bold').text('⚠ Important Instructions', 45, y + 12);
+        doc.fontSize(9).fillColor('#1f2937').font('Helvetica').text(instructions, 45, y + 28, { width: 505.28 });
         
         // Eligible Courses section
-        y += 95;
-        doc.rect(30, y, 535.28, 60).fill('#f0fdf4');
-        doc.rect(30, y, 535.28, 60).stroke('#22c55e').lineWidth(1);
-        doc.fontSize(13).fillColor('#166534').font('Helvetica-Bold').text('✓ Eligible Courses for Admission', 45, y + 15);
+        y += 65;
+        doc.rect(30, y, 535.28, 45).fill('#f0fdf4');
+        doc.rect(30, y, 535.28, 45).stroke('#22c55e').lineWidth(1);
+        doc.fontSize(11).fillColor('#166534').font('Helvetica-Bold').text('✓ Eligible Courses for Admission', 45, y + 12);
         
-        y += 35;
+        y += 28;
         const courseList = courses.split(',').map(c => c.trim()).filter(c => c);
         let courseX = 45;
         courseList.forEach(course => {
-            const width = doc.widthOfString(course) + 30;
+            const width = doc.widthOfString(course) + 25;
             if (courseX + width > 565.28) {
                 courseX = 45;
-                y += 28;
+                y += 22;
             }
-            doc.rect(courseX, y, width, 26).fill('#ffffff');
-            doc.rect(courseX, y, width, 26).stroke('#22c55e').lineWidth(1);
-            doc.fontSize(11).fillColor('#166534').font('Helvetica-Bold').text(course, courseX + 15, y + 7);
-            courseX += width + 15;
+            doc.rect(courseX, y, width, 20).fill('#ffffff');
+            doc.rect(courseX, y, width, 20).stroke('#22c55e').lineWidth(1);
+            doc.fontSize(10).fillColor('#166534').font('Helvetica-Bold').text(course, courseX + 12, y + 5);
+            courseX += width + 12;
         });
         
         // Verification Section
-        y += 55;
-        doc.rect(30, y, 535.28, 85).fill('#eff6ff');
-        doc.rect(30, y, 535.28, 85).stroke('#3b82f6').lineWidth(1);
-        doc.fontSize(13).fillColor('#1e40af').font('Helvetica-Bold').text('🔍 Document Verification', 45, y + 15);
-        doc.fontSize(10).fillColor('#1e3a8a').font('Helvetica').text('Scan the QR code to verify the authenticity of this document online.', 45, y + 35, { width: 380 });
-        doc.fontSize(9).fillColor('#3b82f6').font('Helvetica').text('Verification URL: ' + verificationUrl, 45, y + 55, { width: 380 });
+        y += 40;
+        doc.rect(30, y, 535.28, 65).fill('#eff6ff');
+        doc.rect(30, y, 535.28, 65).stroke('#3b82f6').lineWidth(1);
+        doc.fontSize(11).fillColor('#1e40af').font('Helvetica-Bold').text('🔍 Document Verification', 45, y + 12);
+        doc.fontSize(9).fillColor('#1e3a8a').font('Helvetica').text('Scan the QR code to verify the authenticity of this document online.', 45, y + 28, { width: 380 });
+        doc.fontSize(8).fillColor('#3b82f6').font('Helvetica').text('Verification URL: ' + verificationUrl, 45, y + 42, { width: 380 });
         
         // Add QR code
         try {
             const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
-            doc.image(qrBuffer, 435, y + 10, { width: 65, height: 65 });
+            doc.image(qrBuffer, 440, y + 8, { width: 50, height: 50 });
         } catch (e) {
-            doc.rect(435, y + 10, 65, 65).fill('#e5e7eb');
-            doc.fontSize(8).fillColor('#6b7280').font('Helvetica').text('QR Code', 435, y + 42, { align: 'center', width: 65 });
+            doc.rect(440, y + 8, 50, 50).fill('#e5e7eb');
+            doc.fontSize(7).fillColor('#6b7280').font('Helvetica').text('QR Code', 440, y + 33, { align: 'center', width: 50 });
         }
         
         // Footer
-        y = 745;
-        doc.rect(20, y, 555.28, 52).fill('#f8fafc');
-        doc.rect(20, y, 555.28, 52).stroke('#e5e7eb').lineWidth(1);
+        y = 760;
+        doc.rect(20, y, 555.28, 42).fill('#f8fafc');
+        doc.rect(20, y, 555.28, 42).stroke('#e5e7eb').lineWidth(1);
         
-        doc.fontSize(9).fillColor('#64748b').font('Helvetica').text('This is a computer-generated document. No manual signatures are required. This scorecard is valid for admission purposes only.', 35, y + 12, { width: 350 });
-        doc.fontSize(9).fillColor('#64748b').font('Helvetica').text('Issue Date: ' + new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }), 35, y + 28, { width: 350 });
+        doc.fontSize(8).fillColor('#64748b').font('Helvetica').text('This is a computer-generated document. No manual signatures are required. This scorecard is valid for admission purposes only.', 35, y + 10, { width: 350 });
+        doc.fontSize(8).fillColor('#64748b').font('Helvetica').text('Issue Date: ' + new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }), 35, y + 24, { width: 350 });
         
         // Authorization box
-        doc.rect(400, y + 6, 165, 40).fill('#ffffff');
-        doc.rect(400, y + 6, 165, 40).stroke(headerColor).lineWidth(2);
-        doc.fontSize(10).fillColor(headerColor).font('Helvetica-Bold').text('Authorization', 400, y + 14, { align: 'center', width: 165 });
-        doc.moveTo(440, y + 30).lineTo(525, y + 30).stroke(headerColor).lineWidth(2);
-        doc.fontSize(8).fillColor('#374151').font('Helvetica').text(signatureLabel, 400, y + 36, { align: 'center', width: 165 });
+        doc.rect(400, y + 5, 165, 32).fill('#ffffff');
+        doc.rect(400, y + 5, 165, 32).stroke(headerColor).lineWidth(2);
+        doc.fontSize(9).fillColor(headerColor).font('Helvetica-Bold').text('Authorization', 400, y + 12, { align: 'center', width: 165 });
+        doc.moveTo(440, y + 24).lineTo(525, y + 24).stroke(headerColor).lineWidth(2);
+        doc.fontSize(7).fillColor('#374151').font('Helvetica').text(signatureLabel, 400, y + 29, { align: 'center', width: 165 });
         
         // Footer text
-        doc.fontSize(8).fillColor('#94a3b8').font('Helvetica').text(footerText, 20, 803, { align: 'center', width: 555.28 });
+        doc.fontSize(7).fillColor('#94a3b8').font('Helvetica').text(footerText, 20, 805, { align: 'center', width: 555.28 });
         
         doc.end();
     } catch (error) {
