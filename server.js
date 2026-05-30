@@ -11170,9 +11170,8 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             y += 165;
         }
         
-        // Verification section - moved to bottom after instructions
+        // Verification section - just above footer, no blank space
         if (showQR) {
-            y += 20; // Extra spacing before verification
             doc.rect(30, y, 535.28, 80).fill('#f0f9ff');
             doc.rect(30, y, 535.28, 80).stroke('#3b82f6').lineWidth(1);
             
@@ -11182,20 +11181,20 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             doc.fontSize(9).fillColor('#1e3a8a').font('Helvetica').text('Scan QR code to verify this document online', 45, y + 38, { width: 380 });
             doc.fontSize(8).fillColor('#3b82f6').font('Helvetica').text(verificationUrl, 45, y + 52, { width: 380 });
             
-            // QR code
+            // QR code - larger size for better visibility
             try {
                 const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
-                doc.image(qrBuffer, 440, y + 15, { width: 50, height: 50 });
+                doc.image(qrBuffer, 430, y + 10, { width: 60, height: 60 });
             } catch (e) {
-                doc.rect(440, y + 15, 50, 50).fill('#e5e7eb');
-                doc.fontSize(8).fillColor('#6b7280').font('Helvetica').text('QR', 440, y + 40, { align: 'center', width: 50 });
+                doc.rect(430, y + 10, 60, 60).fill('#e5e7eb');
+                doc.fontSize(8).fillColor('#6b7280').font('Helvetica').text('QR', 430, y + 40, { align: 'center', width: 60 });
             }
             
-            y += 95;
+            y += 80;
         }
         
-        // Footer section - moved lower
-        y = 770;
+        // Footer section - positioned right after verification
+        y += 10;
         doc.moveTo(30, y).lineTo(565.28, y).stroke('#e5e7eb').lineWidth(1);
         y += 15;
         
