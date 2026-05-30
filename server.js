@@ -11055,22 +11055,22 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         doc.rect(20, 20, 555.28, 801.28).stroke('#e5e7eb');
         
         // Header - clean and professional
-        doc.rect(20, 20, 555.28, 100).fill(headerColor);
+        doc.rect(20, 20, 555.28, 80).fill(headerColor);
         
         // Institute info (centered in header)
-        doc.fontSize(22).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), 20, 32, { align: 'center', width: 555.28 });
-        doc.fontSize(11).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, 20, 58, { align: 'center', width: 555.28 });
+        doc.fontSize(20).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), 20, 30, { align: 'center', width: 555.28 });
+        doc.fontSize(10).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, 20, 52, { align: 'center', width: 555.28 });
         if (address) {
-            doc.fontSize(9).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, 20, 75, { align: 'center', width: 555.28 });
+            doc.fontSize(8).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, 20, 68, { align: 'center', width: 555.28 });
         }
         
         // Reference number
         if (showRef) {
-            doc.fontSize(9).fillColor('#ffffff').font('Helvetica-Bold').text('Ref: ' + refNumber, 35, 95);
+            doc.fontSize(9).fillColor('#ffffff').font('Helvetica-Bold').text('Ref: ' + refNumber, 35, 85);
         }
         
         // Title with logo on left
-        let y = 135;
+        let y = 115;
         
         // Logo next to title
         if (showLogo && settings.logo) {
@@ -11083,12 +11083,10 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             doc.fontSize(30).text('🎓', 30, y);
         }
         
-        // Title text (offset if logo is shown)
-        const titleX = showLogo ? 90 : 20;
-        const titleWidth = showLogo ? 485.28 : 555.28;
-        doc.fontSize(16).fillColor(headerColor).font('Helvetica-Bold').text('EXAMINATION RESULT', titleX, y + 10, { align: 'center', width: titleWidth });
+        // Title text (centered on full page)
+        doc.fontSize(16).fillColor(headerColor).font('Helvetica-Bold').text('EXAMINATION RESULT', 20, y + 10, { align: 'center', width: 555.28 });
         y += 35;
-        doc.moveTo(titleX, y).lineTo(titleX + titleWidth, y).stroke(headerColor).lineWidth(2);
+        doc.moveTo(20, y).lineTo(575.28, y).stroke(headerColor).lineWidth(2);
         y += 20;
         
         // Student details - improved table format
@@ -11195,9 +11193,9 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         }
         
         // Footer section - positioned higher
-        y += 5;
+        y += 3;
         doc.moveTo(30, y).lineTo(565.28, y).stroke('#e5e7eb').lineWidth(1);
-        y += 10;
+        y += 8;
         
         doc.fontSize(8).fillColor('#9ca3af').font('Helvetica').text(footerText, 30, y, { width: 535.28, align: 'center' });
         
