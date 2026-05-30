@@ -1198,18 +1198,22 @@ function printEntranceResult() {
         return;
     }
     
-    printWindow.document.write('<html><head><title>Entrance Result</title>');
+    const content = area.outerHTML;
+    
+    printWindow.document.write('<!DOCTYPE html><html><head><title>Entrance Result</title>');
+    printWindow.document.write('<meta charset="UTF-8">');
     printWindow.document.write('<style>');
+    printWindow.document.write('* { margin: 0; padding: 0; box-sizing: border-box; }');
+    printWindow.document.write('body { margin: 0; padding: 0; background: #fff; }');
     printWindow.document.write('@media print {');
     printWindow.document.write('  body { margin: 0; padding: 0; }');
-    printWindow.document.write('  @page { margin: 0; size: A4; }');
-    printWindow.document.write('  #entResultPdfArea { width: 210mm !important; height: 297mm !important; max-width: 210mm !important; max-height: 297mm !important; overflow: hidden !important; page-break-inside: avoid; }');
+    printWindow.document.write('  @page { margin: 0; size: A4 portrait; }');
+    printWindow.document.write('  #entResultPdfArea { width: 210mm !important; height: 297mm !important; max-width: 210mm !important; max-height: 297mm !important; overflow: hidden !important; page-break-inside: avoid; page-break-after: always; }');
     printWindow.document.write('  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }');
     printWindow.document.write('}');
-    printWindow.document.write('body { font-family: Arial, sans-serif; margin: 0; padding: 0; }');
     printWindow.document.write('</style>');
     printWindow.document.write('</head><body>');
-    printWindow.document.write(area.innerHTML);
+    printWindow.document.write(content);
     printWindow.document.write('</body></html>');
     printWindow.document.close();
     
