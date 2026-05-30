@@ -961,6 +961,9 @@ function savePdfSettings() {
     pdfCustomSettings.footerText = document.getElementById('pdfFooterText').value;
     pdfCustomSettings.instructions = document.getElementById('pdfInstructions').innerHTML;
     pdfCustomSettings.courses = document.getElementById('pdfCourses').value;
+    pdfCustomSettings.motto = document.getElementById('pdfMotto').value;
+    pdfCustomSettings.website = document.getElementById('pdfWebsite').value;
+    pdfCustomSettings.accreditations = document.getElementById('pdfAccreditations').value;
     
     // Save to localStorage
     localStorage.setItem('pdfCustomSettings', JSON.stringify(pdfCustomSettings));
@@ -978,6 +981,9 @@ function loadPdfSettingsToForm() {
     document.getElementById('pdfFooterText').value = pdfCustomSettings.footerText;
     document.getElementById('pdfInstructions').innerHTML = pdfCustomSettings.instructions;
     document.getElementById('pdfCourses').value = pdfCustomSettings.courses;
+    document.getElementById('pdfMotto').value = pdfCustomSettings.motto || '';
+    document.getElementById('pdfWebsite').value = pdfCustomSettings.website || '';
+    document.getElementById('pdfAccreditations').value = pdfCustomSettings.accreditations || '';
 }
 
 async function saveEntranceSubmissionSettings() {
@@ -1078,6 +1084,24 @@ function renderEntranceResultHtml(r) {
         ? '<div style="margin-top:10px;padding:8px;background:#fef3c7;border:1px solid #f59e0b;border-radius:4px;box-sizing:border-box;"><h4 style="margin:0 0 6px 0;color:#92400e;font-size:10px;font-weight:bold;letter-spacing:0.3px;">IMPORTANT NOTES</h4><div style="margin:0;color:#000;font-size:9px;line-height:1.5;word-wrap:break-word;overflow-wrap:break-word;">' + s.instructions + '</div></div>'
         : '';
     
+    // Accreditation logos
+    const accreditationList = s.accreditations ? s.accreditations.split(',').map(c => c.trim()).filter(c => c) : [];
+    const accreditationHtml = accreditationList.length > 0
+        ? '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #e5e7eb;"><h4 style="margin:0 0 8px 0;color:' + s.headerColor + ';font-size:9px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;">Accreditations</h4><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">' +
+          accreditationList.map(url => '<img src="' + url + '" style="height:25px;object-fit:contain;" alt="Accreditation">').join('') +
+          '</div></div>'
+        : '';
+    
+    // Motto section
+    const mottoHtml = s.motto
+        ? '<div style="margin-bottom:12px;padding:10px;background:linear-gradient(135deg,' + s.headerColor + '08,' + s.headerColor + '03);border-radius:8px;border-left:3px solid ' + s.headerColor + ';"><p style="margin:0;font-size:10px;color:' + s.headerColor + ';font-style:italic;font-weight:600;text-align:center;letter-spacing:0.4px;">"' + s.motto + '"</p></div>'
+        : '';
+    
+    // Website URL
+    const websiteHtml = s.website
+        ? '<div style="text-align:center;margin-top:8px;"><a href="' + s.website + '" style="color:' + s.headerColor + ';font-size:9px;font-weight:600;text-decoration:none;letter-spacing:0.3px;">' + s.website + '</a></div>'
+        : '';
+    
     return '<div id="entResultPdfArea" style="background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);color:' + s.textColor + ';padding:12px;font-family:\'Segoe UI\',\'Roboto\',\'Helvetica\',sans-serif;width:210mm;height:297mm;box-sizing:border-box;position:relative;overflow:hidden;">' +
         watermarkHtml +
         '<div style="border:3px solid ' + s.headerColor + ';border-radius:12px;padding:18px;height:100%;position:relative;z-index:1;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.1);">' +
@@ -1095,6 +1119,9 @@ function renderEntranceResultHtml(r) {
         '</div>' +
         '<div style="flex:0 0 75px;"></div>' +
         '</div>' +
+        
+        // Motto Section
+        mottoHtml +
         
         // Title Section with modern badge style
         '<div style="text-align:center;margin-bottom:18px;position:relative;">' +
@@ -1154,6 +1181,8 @@ function renderEntranceResultHtml(r) {
         // Footer Text with modern style
         '<div style="text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid #e5e7eb;position:relative;">' +
         '<p style="margin:0;font-size:9px;color:' + s.textColor + ';opacity:0.6;letter-spacing:0.6px;font-weight:500;">' + s.footerText + '</p>' +
+        websiteHtml +
+        accreditationHtml +
         '</div>' +
         '</div>' +
         '</div>';
@@ -1168,11 +1197,11 @@ function printEntranceResult() {
     printWindow.document.write('<style>');
     printWindow.document.write('@media print {');
     printWindow.document.write('  body { margin: 0; padding: 0; }');
-    printWindow.document.write('  @page { margin: 10mm; size: A4; }');
-    printWindow.document.write('  #entResultPdfArea { width: 100% !important; max-width: 100% !important; }');
+    printWindow.document.write('  @page { margin: 0; size: A4; }');
+    printWindow.document.write('  #entResultPdfArea { width: 210mm !important; height: 297mm !important; max-width: 210mm !important; max-height: 297mm !important; overflow: hidden !important; page-break-inside: avoid; }');
     printWindow.document.write('  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }');
     printWindow.document.write('}');
-    printWindow.document.write('body { font-family: Arial, sans-serif; }');
+    printWindow.document.write('body { font-family: Arial, sans-serif; margin: 0; padding: 0; }');
     printWindow.document.write('</style>');
     printWindow.document.write('</head><body>');
     printWindow.document.write(area.innerHTML);
