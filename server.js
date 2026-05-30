@@ -11206,6 +11206,104 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
     }
 });
 
+// Entrance result verification page for QR code scanning
+app.get('/verify-result/:refNumber', (req, res) => {
+    const refNumber = req.params.refNumber;
+    const results = readData('entrance-results.json') || [];
+    const settings = readData('settings.json') || {};
+    
+    // Find result by reference number
+    const result = results.find(r => {
+        const expectedRef = 'GCE-' + new Date().getFullYear() + '-' + String(r.id).padStart(6, '0');
+        return expectedRef === refNumber;
+    });
+    
+    if (!result) {
+        return res.send(`
+            <!DOCTYPE html>
+            <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+            <title>Result Verification</title>
+            <style>
+                body { font-family: Arial, sans-serif; background: #f1f5f9; padding: 20px; text-align: center; }
+                .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+                h1 { color: #dc2626; margin-bottom: 10px; }
+                p { color: #64748b; }
+            </style></head><body>
+            <div class="container"><h1>❌ Invalid Link</h1><p>No result found for this reference number. Please scan the QR code from the original result document.</p></div>
+            </body></html>
+        `);
+    }
+    
+    const percentage = result.percentage !== undefined && result.percentage !== null ? result.percentage : 0;
+    let grade = 'F';
+    let gradeColor = '#ef4444';
+    if (percentage >= 90) { grade = 'A+'; gradeColor = '#10b981'; }
+    else if (percentage >= 80) { grade = 'A'; gradeColor = '#22c55e'; }
+    else if (percentage >= 70) { grade = 'B+'; gradeColor = '#84cc16'; }
+    else if (percentage >= 60) { grade = 'B'; gradeColor = '#eab308'; }
+    else if (percentage >= 50) { grade = 'C'; gradeColor = '#f97316'; }
+    else if (percentage >= 40) { grade = 'D'; gradeColor = '#f59e0b'; }
+    
+    const instituteName = settings.instituteName || 'Genius Computer Education';
+    const headerColor = settings.headerColor || '#1e3a8a';
+    
+    res.send(`
+        <!DOCTYPE html>
+        <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Result Verification - ${instituteName}</title>
+        <style>
+            body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; margin: 0; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            .header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; }
+            .header h1 { color: ${headerColor}; margin: 0 0 10px 0; font-size: 24px; }
+            .header p { color: #64748b; margin: 0; }
+            .status { text-align: center; padding: 20px; background: #f0f9ff; border-radius: 8px; margin-bottom: 20px; }
+            .status .grade { font-size: 48px; font-weight: bold; color: ${gradeColor}; }
+            .status .percentage { font-size: 24px; color: #1e40af; }
+            .details { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+            .detail-item { background: #f8fafc; padding: 15px; border-radius: 8px; }
+            .detail-item label { display: block; color: #64748b; font-size: 12px; margin-bottom: 5px; }
+            .detail-item span { color: #1e293b; font-weight: 600; font-size: 14px; }
+            .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #64748b; font-size: 12px; }
+            .verified { display: inline-flex; align-items: center; background: #dcfce7; color: #166534; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px; }
+        </style></head><body>
+        <div class="container">
+            <div class="header">
+                <div class="verified">✓ Verified Document</div>
+                <h1>${instituteName}</h1>
+                <p>Entrance Examination Result</p>
+            </div>
+            <div class="status">
+                <div class="grade">${grade}</div>
+                <div class="percentage">${percentage}%</div>
+            </div>
+            <div class="details">
+                <div class="detail-item">
+                    <label>Student Name</label>
+                    <span>${result.studentName || 'N/A'}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Registration No</label>
+                    <span>${result.registrationNo || 'N/A'}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Marks Obtained</label>
+                    <span>${result.marksObtained || 0} / ${result.totalMarks || 0}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Reference Number</label>
+                    <span>${refNumber}</span>
+                </div>
+            </div>
+            <div class="footer">
+                <p>This document has been verified as authentic from ${instituteName}</p>
+                <p>Verification Date: ${new Date().toLocaleDateString()}</p>
+            </div>
+        </div>
+        </body></html>
+    `);
+});
+
 // --- Live Monitoring ---
 app.get('/api/entrance/monitor/:examId', (req, res) => {
     const attempts = readData('entrance-attempts.json') || [];
