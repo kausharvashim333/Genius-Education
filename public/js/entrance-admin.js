@@ -818,6 +818,7 @@ async function loadEntranceResults() {
             '<td>' + entFmtDateTime(r.submittedAt) + '</td>' +
             '<td><span class="badge" style="background:' + (r.published ? '#10b981' : '#6b7280') + ';color:#fff;cursor:pointer;" onclick="toggleEntranceResultPublish(' + r.id + ')" title="Click to toggle">' + (r.published ? 'Published' : 'Hidden') + '</span></td>' +
             '<td>' +
+            '<button class="action-btn" title="Print Result" onclick="printEntranceResult(' + r.id + ')"><i class="fas fa-print"></i></button> ' +
             '<button class="action-btn" title="Edit Marks" onclick="editEntranceResultMarks(' + r.id + ')"><i class="fas fa-edit"></i></button> ' +
             '<button class="action-btn" title="Toggle Publish" onclick="toggleEntranceResultPublish(' + r.id + ')"><i class="fas fa-' + (r.published ? 'eye-slash' : 'check') + '"></i></button> ' +
             '<button class="action-btn" title="Delete & Allow Retake" onclick="deleteEntranceResult(' + r.id + ', true)" style="color:#fca5a5;"><i class="fas fa-redo"></i></button> ' +
@@ -910,6 +911,17 @@ async function reEvaluateEntranceResults() {
 
 let instituteSettings = null;
 
+// PDF settings for result printing
+let pdfSettings = {
+    instituteName: 'GENIUS COMPUTER EDUCATION',
+    tagline: 'Excellence in Computer Education',
+    address: '',
+    headerColor: '#1e3a8a',
+    textColor: '#000000',
+    signatureLabel: 'Principal / Director',
+    footerText: '© Genius Computer Education. All Rights Reserved.'
+};
+
 // Load institute settings for logo
 async function loadInstituteSettings() {
     try {
@@ -917,6 +929,125 @@ async function loadInstituteSettings() {
     } catch (e) {
         console.error('Failed to load institute settings', e);
     }
+}
+
+// Generate HTML for entrance result print
+function generateEntranceResultHtml(r) {
+    const s = pdfSettings;
+    const percentage = parseFloat(r.percentage) || 0;
+    
+    // Calculate grade
+    let grade = 'F';
+    if (percentage >= 90) grade = 'A+';
+    else if (percentage >= 80) grade = 'A';
+    else if (percentage >= 70) grade = 'B+';
+    else if (percentage >= 60) grade = 'B';
+    else if (percentage >= 50) grade = 'C';
+    else if (percentage >= 40) grade = 'D';
+    
+    const gradeColor = percentage >= 50 ? '#10b981' : percentage >= 40 ? '#f59e0b' : '#ef4444';
+    
+    // Logo
+    const logoUrl = instituteSettings && instituteSettings.logo ? instituteSettings.logo : '';
+    const logoHtml = logoUrl 
+        ? '<img src="' + logoUrl + '" style="width:80px;height:80px;object-fit:contain;border:3px solid ' + s.headerColor + ';border-radius:10px;padding:5px;background:#fff;" alt="Logo">'
+        : '<div style="width:80px;height:80px;background:linear-gradient(135deg,' + s.headerColor + '40,' + s.headerColor + '20);border:3px solid ' + s.headerColor + ';border-radius:10px;display:flex;align-items:center;justify-content:center;"><span style="font-size:40px;">🎓</span></div>';
+    
+    return '<div style="width:210mm;height:297mm;padding:15mm;background:#fff;font-family:\'Segoe UI\',\'Roboto\',\'Helvetica\',sans-serif;box-sizing:border-box;margin:0;">' +
+        '<div style="border:4px solid ' + s.headerColor + ';border-radius:16px;padding:25px;height:100%;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,0.1);">' +
+        
+        // Header
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;padding:20px;background:linear-gradient(135deg,' + s.headerColor + '15,' + s.headerColor + '08);border-radius:14px;border:3px solid ' + s.headerColor + '35;">' +
+        '<div style="flex:0 0 100px;">' + logoHtml + '</div>' +
+        '<div style="flex:1;text-align:center;padding:0 25px;">' +
+        '<h1 style="margin:0;font-size:26px;color:' + s.headerColor + ';font-weight:900;letter-spacing:1.2px;text-transform:uppercase;text-shadow:0 3px 6px rgba(0,0,0,0.1);">' + s.instituteName + '</h1>' +
+        '<p style="margin:12px 0 0 0;color:#333;font-size:14px;font-weight:700;letter-spacing:0.6px;">' + s.tagline + '</p>' +
+        (s.address ? '<p style="margin:8px 0 0 0;color:#666;font-size:12px;">' + s.address + '</p>' : '') +
+        '</div>' +
+        '<div style="flex:0 0 100px;"></div>' +
+        '</div>' +
+        
+        // Title
+        '<div style="text-align:center;margin-bottom:25px;">' +
+        '<div style="display:inline-block;padding:18px 60px;background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);border-radius:50px;box-shadow:0 10px 30px rgba(0,0,0,0.2);">' +
+        '<h2 style="margin:0;color:#fff;font-size:16px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;">OFFICIAL EXAMINATION SCORECARD</h2>' +
+        '</div>' +
+        '</div>' +
+        
+        // Student Details
+        '<div style="margin-bottom:25px;">' +
+        '<h3 style="margin:0 0 15px 0;color:' + s.headerColor + ';font-size:16px;font-weight:900;letter-spacing:0.8px;text-transform:uppercase;border-left:6px solid ' + s.headerColor + ';padding-left:12px;">Candidate Information</h3>' +
+        '<table style="width:100%;border-collapse:collapse;">' +
+        '<tr style="background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);"><td style="padding:15px 20px;font-weight:900;color:#fff;width:42%;font-size:13px;">Registration Number</td><td style="padding:15px 20px;color:#fff;font-weight:800;font-size:16px;background:rgba(255,255,255,0.2);">' + (r.registrationNo || '') + '</td></tr>' +
+        '<tr style="background:#fff;"><td style="padding:14px 20px;font-weight:700;color:#333;font-size:13px;">Student Name</td><td style="padding:14px 20px;font-size:16px;color:#333;font-weight:700;text-transform:uppercase;">' + (r.studentName || '') + '</td></tr>' +
+        '<tr style="background:#f8fafc;"><td style="padding:14px 20px;font-weight:700;color:#333;font-size:13px;">Applied Course</td><td style="padding:14px 20px;font-size:16px;color:' + s.headerColor + ';font-weight:900;text-transform:uppercase;">' + (r.course || '-') + '</td></tr>' +
+        '<tr style="background:#fff;"><td style="padding:14px 20px;font-weight:700;color:#333;font-size:13px;">Examination</td><td style="padding:14px 20px;font-size:16px;color:#333;font-weight:700;text-transform:uppercase;">' + (r.examName || '') + '</td></tr>' +
+        '<tr style="background:#f8fafc;"><td style="padding:14px 20px;font-weight:700;color:#333;font-size:13px;">Date of Examination</td><td style="padding:14px 20px;font-size:16px;color:#333;">' + (r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '-') + '</td></tr>' +
+        '</table>' +
+        '</div>' +
+        
+        // Performance Summary
+        '<div style="background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);border-radius:16px;padding:25px;margin-bottom:25px;box-shadow:0 12px 40px rgba(0,0,0,0.2);">' +
+        '<h3 style="margin:0 0 22px 0;color:#fff;font-size:17px;font-weight:900;letter-spacing:0.9px;text-transform:uppercase;text-align:center;border-bottom:3px solid rgba(255,255,255,0.35);padding-bottom:15px;">Performance Summary</h3>' +
+        '<table style="width:100%;border-collapse:collapse;">' +
+        '<tr><td style="padding:18px;border-bottom:2px solid rgba(255,255,255,0.3);font-weight:800;color:rgba(255,255,255,0.98);width:48%;font-size:14px;">Total Marks Obtained</td><td style="padding:18px;border-bottom:2px solid rgba(255,255,255,0.3);font-size:36px;font-weight:900;color:#fff;text-shadow:0 4px 12px rgba(0,0,0,0.3);">' + (r.marksObtained !== undefined && r.marksObtained !== null ? r.marksObtained : 0) + ' <span style="font-size:20px;color:rgba(255,255,255,0.9);font-weight:800;">/ ' + (r.totalMarks !== undefined && r.totalMarks !== null ? r.totalMarks : 0) + '</span></td></tr>' +
+        '<tr><td style="padding:18px;border-bottom:2px solid rgba(255,255,255,0.3);font-weight:800;color:rgba(255,255,255,0.98);font-size:14px;">Overall Percentage</td><td style="padding:18px;border-bottom:2px solid rgba(255,255,255,0.3);font-size:36px;font-weight:900;color:#fff;text-shadow:0 4px 12px rgba(0,0,0,0.3);">' + (r.percentage !== undefined && r.percentage !== null ? r.percentage : 0) + '<span style="font-size:20px;color:rgba(255,255,255,0.9);font-weight:800;">%</span></td></tr>' +
+        '<tr><td style="padding:18px;font-weight:800;color:rgba(255,255,255,0.98);font-size:14px;">Grade</td><td style="padding:18px;font-size:36px;font-weight:900;color:' + gradeColor + ';text-shadow:0 4px 12px rgba(0,0,0,0.3);">' + grade + '</td></tr>' +
+        '</table>' +
+        '</div>' +
+        
+        // Footer
+        '<div style="margin-top:auto;padding-top:25px;border-top:4px solid ' + s.headerColor + '30;display:flex;justify-content:space-between;align-items:flex-start;gap:6%;">' +
+        '<div style="width:65%;">' +
+        '<p style="margin:0;font-size:12px;color:#666;line-height:1.7;">This is a computer-generated document. No manual signatures are required. This scorecard is valid for admission purposes only.</p>' +
+        '</div>' +
+        '<div style="width:30%;text-align:center;padding:18px;background:linear-gradient(135deg,' + s.headerColor + '12,' + s.headerColor + '06);border-radius:14px;border:3px solid ' + s.headerColor + '30;">' +
+        '<p style="margin:0 0 15px 0;font-size:12px;color:' + s.headerColor + ';font-weight:900;letter-spacing:0.7px;text-transform:uppercase;">Authorization</p>' +
+        '<div style="width:100px;height:60px;border-bottom:5px solid ' + s.headerColor + ';margin:15px auto 0 auto;"></div>' +
+        '<p style="margin:15px 0 0 0;font-size:12px;color:#333;font-weight:800;">' + s.signatureLabel + '</p>' +
+        '</div>' +
+        '</div>' +
+        
+        // Footer Text
+        '<div style="text-align:center;margin-top:25px;padding-top:18px;border-top:3px solid #e5e7eb;">' +
+        '<p style="margin:0;font-size:11px;color:#666;letter-spacing:0.8px;font-weight:700;">' + s.footerText + '</p>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+}
+
+// Print entrance result
+function printEntranceResult(id) {
+    const r = entranceCurrentResults.find(x => x.id == id);
+    if (!r) return entShowToast('Result not found', 'error');
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert('Please allow popups to print the result');
+        return;
+    }
+    
+    const html = generateEntranceResultHtml(r);
+    
+    printWindow.document.write('<!DOCTYPE html><html><head><title>Entrance Result - ' + (r.registrationNo || 'Student') + '</title>');
+    printWindow.document.write('<meta charset="UTF-8">');
+    printWindow.document.write('<style>');
+    printWindow.document.write('* { margin: 0; padding: 0; box-sizing: border-box; }');
+    printWindow.document.write('body { margin: 0; padding: 0; background: #fff; }');
+    printWindow.document.write('@media print {');
+    printWindow.document.write('  body { margin: 0; padding: 0; }');
+    printWindow.document.write('  @page { margin: 0; size: A4 portrait; }');
+    printWindow.document.write('  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }');
+    printWindow.document.write('}');
+    printWindow.document.write('</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write(html);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    
+    setTimeout(function() {
+        printWindow.print();
+    }, 500);
 }
 
 
