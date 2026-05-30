@@ -818,6 +818,7 @@ async function loadEntranceResults() {
             '<td>' + entFmtDateTime(r.submittedAt) + '</td>' +
             '<td><span class="badge" style="background:' + (r.published ? '#10b981' : '#6b7280') + ';color:#fff;cursor:pointer;" onclick="toggleEntranceResultPublish(' + r.id + ')" title="Click to toggle">' + (r.published ? 'Published' : 'Hidden') + '</span></td>' +
             '<td>' +
+            '<button class="action-btn" title="Download PDF" onclick="downloadEntranceResultPDF(' + r.id + ')"><i class="fas fa-file-pdf"></i></button> ' +
             '<button class="action-btn" title="Edit Marks" onclick="editEntranceResultMarks(' + r.id + ')"><i class="fas fa-edit"></i></button> ' +
             '<button class="action-btn" title="Toggle Publish" onclick="toggleEntranceResultPublish(' + r.id + ')"><i class="fas fa-' + (r.published ? 'eye-slash' : 'check') + '"></i></button> ' +
             '<button class="action-btn" title="Delete & Allow Retake" onclick="deleteEntranceResult(' + r.id + ', true)" style="color:#fca5a5;"><i class="fas fa-redo"></i></button> ' +
@@ -917,6 +918,11 @@ async function loadInstituteSettings() {
     } catch (e) {
         console.error('Failed to load institute settings', e);
     }
+}
+
+// Download entrance result PDF
+function downloadEntranceResultPDF(id) {
+    window.location.href = '/api/entrance-result-pdf/' + id;
 }
 
 

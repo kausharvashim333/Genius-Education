@@ -10859,6 +10859,155 @@ app.post('/api/entrance-results/re-evaluate', (req, res) => {
     res.json({ success: true, updated });
 });
 
+// Generate HTML template for entrance result PDF
+function generateEntranceResultHTML(result) {
+    const settings = readData('settings.json') || {};
+    const instituteName = settings.instituteName || 'GENIUS COMPUTER EDUCATION';
+    const tagline = settings.tagline || 'Excellence in Computer Education';
+    const address = settings.address || '';
+    const headerColor = settings.headerColor || '#1e3a8a';
+    const signatureLabel = settings.signatureLabel || 'Principal / Director';
+    const footerText = settings.footerText || '© Genius Computer Education. All Rights Reserved.';
+    const instructions = settings.entranceInstructions || 'This scorecard is valid for admission purposes only. Please verify the authenticity of this document with the institute administration.';
+    const courses = settings.eligibleCourses || 'DCA, PGDCA, BCA, Tally, Busy, Corel Draw';
+    
+    const logoUrl = settings.logo || '';
+    const logoHtml = logoUrl 
+        ? `<img src="${logoUrl}" style="width:90px;height:90px;object-fit:contain;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.1);" alt="Logo">`
+        : `<div style="width:90px;height:90px;background:linear-gradient(135deg,${headerColor}15,${headerColor}08);border:2px solid ${headerColor}30;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(0,0,0,0.1);"><span style="font-size:45px;">🎓</span></div>`;
+    
+    const courseList = courses.split(',').map(c => c.trim()).filter(c => c);
+    const coursesHtml = courseList.length > 0 
+        ? `<div style="margin-bottom:18px;">
+        <h4 style="margin:0 0 12px 0;color:${headerColor};font-size:12px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;">Eligible Courses</h4>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${courseList.map(course => `<span style="background:#fff;border:2px solid ${headerColor}40;color:${headerColor};padding:8px 16px;border-radius:6px;font-size:11px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.08);">${course}</span>`).join('')}
+        </div></div>`
+        : '';
+    
+    const instructionsHtml = instructions
+        ? `<div style="margin-bottom:18px;padding:14px;background:#fffbe6;border:2px solid #fbbf24;border-radius:8px;box-shadow:0 2px 8px rgba(251,191,36,0.15);">
+        <h4 style="margin:0 0 10px 0;color:#92400e;font-size:12px;font-weight:800;letter-spacing:0.7px;text-transform:uppercase;">Important Instructions</h4>
+        <p style="margin:0;color:#1f2937;font-size:10px;line-height:1.6;">${instructions}</p>
+        </div>`
+        : '';
+    
+    return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Entrance Result - ${result.registrationNo || 'Student'}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Roboto', 'Helvetica', sans-serif; }
+    </style>
+</head>
+<body>
+    <div style="width:210mm;height:297mm;padding:0;background:#fff;margin:0;">
+        <div style="height:100%;display:flex;flex-direction:column;">
+            <div style="background:linear-gradient(135deg,${headerColor} 0%,${headerColor} 100%);padding:25px 30px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:-50%;right:-30%;width:400px;height:400px;background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%);border-radius:50%;"></div>
+                <div style="position:absolute;bottom:-30%;left:-20%;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);border-radius:50%;"></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;">
+                    <div style="flex:0 0 110px;">${logoHtml}</div>
+                    <div style="flex:1;text-align:center;padding:0 30px;">
+                        <h1 style="margin:0;font-size:28px;color:#fff;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;text-shadow:0 2px 10px rgba(0,0,0,0.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${instituteName}</h1>
+                        <p style="margin:8px 0 0 0;color:rgba(255,255,255,0.95);font-size:14px;font-weight:600;letter-spacing:0.8px;">${tagline}</p>
+                        ${address ? `<p style="margin:5px 0 0 0;color:rgba(255,255,255,0.85);font-size:11px;">${address}</p>` : ''}
+                    </div>
+                    <div style="flex:0 0 110px;"></div>
+                </div>
+            </div>
+            <div style="flex:1;padding:30px;display:flex;flex-direction:column;">
+                <div style="text-align:center;margin-bottom:25px;">
+                    <div style="display:inline-block;padding:12px 40px;background:#f8fafc;border:2px solid ${headerColor}30;border-radius:30px;box-shadow:0 4px 15px rgba(0,0,0,0.08);">
+                        <h2 style="margin:0;color:${headerColor};font-size:14px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;">Official Examination Scorecard</h2>
+                    </div>
+                </div>
+                <div style="background:#fff;border:2px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 4px 15px rgba(0,0,0,0.06);">
+                    <h3 style="margin:0 0 16px 0;color:${headerColor};font-size:14px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;border-bottom:2px solid ${headerColor}20;padding-bottom:10px;">Candidate Information</h3>
+                    <table style="width:100%;border-collapse:collapse;">
+                        <tr><td style="padding:12px 15px;font-weight:700;color:#6b7280;font-size:11px;width:40%;border-bottom:1px solid #f3f4f6;">Registration Number</td><td style="padding:12px 15px;color:#1f2937;font-weight:700;font-size:13px;border-bottom:1px solid #f3f4f6;">${result.registrationNo || ''}</td></tr>
+                        <tr><td style="padding:12px 15px;font-weight:700;color:#6b7280;font-size:11px;border-bottom:1px solid #f3f4f6;">Student Name</td><td style="padding:12px 15px;color:#1f2937;font-weight:700;font-size:13px;text-transform:uppercase;border-bottom:1px solid #f3f4f6;">${result.studentName || ''}</td></tr>
+                        <tr><td style="padding:12px 15px;font-weight:700;color:#6b7280;font-size:11px;border-bottom:1px solid #f3f4f6;">Applied Course</td><td style="padding:12px 15px;color:${headerColor};font-weight:800;font-size:13px;text-transform:uppercase;border-bottom:1px solid #f3f4f6;">${result.course || '-'}</td></tr>
+                        <tr><td style="padding:12px 15px;font-weight:700;color:#6b7280;font-size:11px;border-bottom:1px solid #f3f4f6;">Examination</td><td style="padding:12px 15px;color:#1f2937;font-weight:700;font-size:13px;text-transform:uppercase;border-bottom:1px solid #f3f4f6;">${result.examName || ''}</td></tr>
+                        <tr><td style="padding:12px 15px;font-weight:700;color:#6b7280;font-size:11px;">Date of Examination</td><td style="padding:12px 15px;color:#1f2937;font-weight:700;font-size:13px;">${result.submittedAt ? new Date(result.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'}</td></tr>
+                    </table>
+                </div>
+                <div style="background:linear-gradient(135deg,${headerColor} 0%,${headerColor} 100%);border-radius:12px;padding:25px;margin-bottom:20px;box-shadow:0 8px 25px rgba(0,0,0,0.15);position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-40%;right:-20%;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,0.15) 0%,transparent 70%);border-radius:50%;"></div>
+                    <h3 style="margin:0 0 20px 0;color:#fff;font-size:15px;font-weight:900;letter-spacing:0.9px;text-transform:uppercase;text-align:center;border-bottom:2px solid rgba(255,255,255,0.3);padding-bottom:12px;position:relative;">Performance Summary</h3>
+                    <table style="width:100%;border-collapse:collapse;position:relative;">
+                        <tr><td style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.2);font-weight:700;color:rgba(255,255,255,0.95);width:45%;font-size:12px;">Total Marks Obtained</td><td style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.2);font-size:32px;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">${result.marksObtained !== undefined && result.marksObtained !== null ? result.marksObtained : 0} <span style="font-size:18px;color:rgba(255,255,255,0.85);font-weight:700;">/ ${result.totalMarks !== undefined && result.totalMarks !== null ? result.totalMarks : 0}</span></td></tr>
+                        <tr><td style="padding:14px;font-weight:700;color:rgba(255,255,255,0.95);font-size:12px;">Overall Percentage</td><td style="padding:14px;font-size:32px;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">${result.percentage !== undefined && result.percentage !== null ? result.percentage : 0}<span style="font-size:18px;color:rgba(255,255,255,0.85);font-weight:700;">%</span></td></tr>
+                    </table>
+                </div>
+                ${instructionsHtml}
+                ${coursesHtml}
+            </div>
+            <div style="background:#f8fafc;padding:20px 30px;border-top:2px solid #e5e7eb;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:30px;">
+                    <div style="flex:1;">
+                        <p style="margin:0;font-size:10px;color:#6b7280;line-height:1.5;">This is a computer-generated document. No manual signatures are required. This scorecard is valid for admission purposes only.</p>
+                    </div>
+                    <div style="flex:0 0 200px;text-align:center;padding:15px;background:#fff;border:2px solid ${headerColor}30;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                        <p style="margin:0 0 12px 0;font-size:10px;color:${headerColor};font-weight:800;letter-spacing:0.7px;text-transform:uppercase;">Authorization</p>
+                        <div style="width:80px;height:50px;border-bottom:3px solid ${headerColor};margin:12px auto 0 auto;"></div>
+                        <p style="margin:12px 0 0 0;font-size:10px;color:#374151;font-weight:700;">${signatureLabel}</p>
+                    </div>
+                </div>
+                <div style="text-align:center;margin-top:15px;padding-top:15px;border-top:1px solid #e5e7eb;">
+                    <p style="margin:0;font-size:9px;color:#9ca3af;letter-spacing:0.6px;font-weight:600;">${footerText}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+}
+
+// Generate PDF for entrance result
+app.get('/api/entrance-result-pdf/:id', async (req, res) => {
+    try {
+        const results = readData('entrance-results.json') || [];
+        const result = results.find(r => r.id == req.params.id);
+        
+        if (!result) {
+            return res.status(404).json({ success: false, message: 'Result not found' });
+        }
+        
+        const html = generateEntranceResultHTML(result);
+        
+        const browser = await puppeteer.launch({
+            headless: 'new',
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+        const page = await browser.newPage();
+        
+        await page.setContent(html, { waitUntil: 'networkidle0' });
+        
+        const pdfBuffer = await page.pdf({
+            format: 'A4',
+            printBackground: true,
+            margin: {
+                top: '0mm',
+                right: '0mm',
+                bottom: '0mm',
+                left: '0mm'
+            }
+        });
+        
+        await browser.close();
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="entrance-result-${result.registrationNo || 'student'}.pdf"`);
+        res.send(pdfBuffer);
+    } catch (error) {
+        console.error('PDF generation error:', error);
+        res.status(500).json({ success: false, message: 'Failed to generate PDF' });
+    }
+});
+
 // --- Live Monitoring ---
 app.get('/api/entrance/monitor/:examId', (req, res) => {
     const attempts = readData('entrance-attempts.json') || [];
