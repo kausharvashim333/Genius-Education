@@ -10968,6 +10968,7 @@ function generateEntranceResultHTML(result) {
 
 // Generate PDF for entrance result
 app.get('/api/entrance-result-pdf/:id', async (req, res) => {
+    let browser = null;
     try {
         const results = readData('entrance-results.json') || [];
         const result = results.find(r => r.id == req.params.id);
@@ -10978,13 +10979,22 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         
         const html = generateEntranceResultHTML(result);
         
-        const browser = await puppeteer.launch({
+        browser = await puppeteer.launch({
             headless: 'new',
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-gpu'
+            ]
         });
         const page = await browser.newPage();
         
-        await page.setContent(html, { waitUntil: 'networkidle0' });
+        await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 30000 });
         
         const pdfBuffer = await page.pdf({
             format: 'A4',
@@ -10994,7 +11004,8 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
                 right: '0mm',
                 bottom: '0mm',
                 left: '0mm'
-            }
+            },
+            timeout: 30000
         });
         
         await browser.close();
@@ -11004,7 +11015,10 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         res.send(pdfBuffer);
     } catch (error) {
         console.error('PDF generation error:', error);
-        res.status(500).json({ success: false, message: 'Failed to generate PDF' });
+        if (browser) {
+            await browser.close().catch(e => console.error('Error closing browser:', e));
+        }
+        res.status(500).json({ success: false, message: 'Failed to generate PDF: ' + error.message });
     }
 });
 
