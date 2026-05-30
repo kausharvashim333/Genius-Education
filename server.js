@@ -11163,7 +11163,7 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             const instructionLines = instructions.split('\n').filter(line => line.trim());
             let bulletY = y + 38;
             instructionLines.forEach((line, index) => {
-                if (index > 0) bulletY += 16; // Reduced spacing for better alignment
+                if (index > 0) bulletY += 20; // Increased spacing to prevent overriding
                 doc.fontSize(9).fillColor('#1f2937').font('Helvetica').text('• ' + line.trim(), 45, bulletY, { width: 470, align: 'left' });
             });
             
