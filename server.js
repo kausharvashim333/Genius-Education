@@ -11144,10 +11144,12 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         
         y += 100;
         
-        // Instructions
-        doc.fontSize(9).fillColor('#6b7280').font('Helvetica').text(instructions, 30, y, { width: 535.28 });
-        
-        y += 40;
+        // Instructions - strip HTML tags for PDF
+        const plainInstructions = instructions.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+        if (plainInstructions) {
+            doc.fontSize(9).fillColor('#6b7280').font('Helvetica').text(plainInstructions, 30, y, { width: 535.28 });
+            y += 40;
+        }
         
         // Eligible courses
         if (showCourses) {
