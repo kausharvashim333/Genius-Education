@@ -1102,7 +1102,7 @@ function renderEntranceResultHtml(r) {
         ? '<div style="text-align:center;margin-top:8px;"><a href="' + s.website + '" style="color:' + s.headerColor + ';font-size:9px;font-weight:600;text-decoration:none;letter-spacing:0.3px;">' + s.website + '</a></div>'
         : '';
     
-    return '<div id="entResultPdfArea" style="background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);color:' + s.textColor + ';padding:12px;font-family:\'Segoe UI\',\'Roboto\',\'Helvetica\',sans-serif;width:210mm;height:297mm;box-sizing:border-box;position:relative;overflow:hidden;">' +
+    return '<div id="entResultPdfArea" style="background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);color:' + s.textColor + ';padding:25mm;font-family:\'Segoe UI\',\'Roboto\',\'Helvetica\',sans-serif;width:210mm;height:297mm;box-sizing:border-box;position:relative;overflow:hidden;">' +
         watermarkHtml +
         '<div style="border:3px solid ' + s.headerColor + ';border-radius:12px;padding:18px;height:100%;position:relative;z-index:1;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.1);">' +
         
