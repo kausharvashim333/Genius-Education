@@ -946,10 +946,6 @@ async function loadInstituteSettings() {
 function previewEntranceResult(id) {
     const r = entranceCurrentResults.find(x => x.id == id);
     if (!r) return;
-    console.log('Result data for PDF:', r);
-    console.log('Marks obtained:', r.marksObtained);
-    console.log('Total marks:', r.totalMarks);
-    console.log('Percentage:', r.percentage);
     currentPreviewResult = r;
     document.getElementById('entResultPreviewContent').innerHTML = renderEntranceResultHtml(r);
     document.getElementById('entranceResultViewModal').classList.add('active');
@@ -1063,6 +1059,12 @@ function insertTable() {
 function renderEntranceResultHtml(r) {
     const percentage = parseFloat(r.percentage) || 0;
     const s = pdfCustomSettings;
+    
+    // Debug: log marks data
+    console.log('PDF Render - Marks obtained:', r.marksObtained);
+    console.log('PDF Render - Total marks:', r.totalMarks);
+    console.log('PDF Render - Percentage:', r.percentage);
+    console.log('PDF Render - Full result object:', r);
     
     // Use institute logo from settings, fallback to default icon
     const logoUrl = instituteSettings && instituteSettings.logo ? instituteSettings.logo : '';
