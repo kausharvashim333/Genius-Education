@@ -2369,10 +2369,66 @@
                     <div style="margin-bottom:15px;">
                         <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Courses (comma separated)</label>
                         <textarea id="pdfCourses" rows="2" placeholder="DCA, PGDCA, BCA, Tally, Busy, Corel Draw" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;resize:vertical;"></textarea>
-                        <small style="color:#9ca3af;font-size:11px;margin-top:4px;display:block;">These will be shown as buttons at bottom right</small>
+                        <small style="color:#9ca3af;font-size:11px;margin-top:4px;display:block;">These will be shown as eligible courses for admission</small>
                     </div>
                     <div style="display:flex;gap:12px;justify-content:flex-end;">
                         <button class="btn btn-primary" onclick="savePdfSettings()"><i class="fas fa-save"></i> Save Settings</button>
+                    </div>
+                </div>
+                <div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:25px;max-width:700px;">
+                    <h3 style="color:#fff;margin-bottom:20px;"><i class="fas fa-sliders-h" style="color:#667eea;margin-right:8px;"></i> PDF Display Options</h3>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
+                        <div>
+                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Institute Logo</h4>
+                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display logo in PDF header</p>
+                        </div>
+                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
+                            <input type="checkbox" id="pdfShowLogo" onchange="updateToggleSlider('pdfShowLogo', 'pdfShowLogoSlider')" style="opacity:0;width:0;height:0;">
+                            <span id="pdfShowLogoSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
+                        </label>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
+                        <div>
+                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Reference Number</h4>
+                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display reference number in header</p>
+                        </div>
+                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
+                            <input type="checkbox" id="pdfShowRef" onchange="updateToggleSlider('pdfShowRef', 'pdfShowRefSlider')" style="opacity:0;width:0;height:0;">
+                            <span id="pdfShowRefSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
+                        </label>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
+                        <div>
+                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Eligible Courses</h4>
+                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display eligible courses section</p>
+                        </div>
+                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
+                            <input type="checkbox" id="pdfShowCourses" onchange="updateToggleSlider('pdfShowCourses', 'pdfShowCoursesSlider')" style="opacity:0;width:0;height:0;">
+                            <span id="pdfShowCoursesSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
+                        </label>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
+                        <div>
+                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Verification QR Code</h4>
+                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display QR code for document verification</p>
+                        </div>
+                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
+                            <input type="checkbox" id="pdfShowQR" onchange="updateToggleSlider('pdfShowQR', 'pdfShowQRSlider')" style="opacity:0;width:0;height:0;">
+                            <span id="pdfShowQRSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
+                        </label>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">
+                        <div>
+                            <h4 style="color:#fff;margin:0 0 4px 0;font-size:14px;">Show Signature Area</h4>
+                            <p style="color:#fff;opacity:0.7;font-size:12px;margin:0;">Display signature line in footer</p>
+                        </div>
+                        <label style="position:relative;display:inline-block;width:50px;height:28px;">
+                            <input type="checkbox" id="pdfShowSignature" onchange="updateToggleSlider('pdfShowSignature', 'pdfShowSignatureSlider')" style="opacity:0;width:0;height:0;">
+                            <span id="pdfShowSignatureSlider" style="position:absolute;cursor:pointer;inset:0;background:#374151;transition:.3s;border-radius:28px;"></span>
+                        </label>
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:flex-end;">
+                        <button class="btn btn-primary" onclick="savePdfDisplayOptions()"><i class="fas fa-save"></i> Save Options</button>
                     </div>
                 </div>
             </div>

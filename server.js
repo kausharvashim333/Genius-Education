@@ -10720,6 +10720,30 @@ app.post('/api/entrance-submission-settings', (req, res) => {
     }
 });
 
+// --- PDF Display Options ---
+app.get('/api/pdf-display-options', (req, res) => {
+    const defaultOptions = {
+        showLogo: true,
+        showRef: true,
+        showCourses: true,
+        showQR: true,
+        showSignature: true
+    };
+    
+    const options = readData('pdf-display-options.json');
+    res.json(options || defaultOptions);
+});
+
+app.post('/api/pdf-display-options', (req, res) => {
+    try {
+        const options = req.body;
+        writeData('pdf-display-options.json', options);
+        res.json({ success: true, message: 'Options saved' });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error saving options' });
+    }
+});
+
 // --- Entrance Results ---
 app.get('/api/entrance-results', (req, res) => {
     const results = readData('entrance-results.json') || [];
@@ -10978,6 +11002,8 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         }
         
         const settings = readData('settings.json') || {};
+        const pdfOptions = readData('pdf-display-options.json') || {};
+        
         const instituteName = settings.instituteName || 'GENIUS COMPUTER EDUCATION';
         const tagline = settings.tagline || 'Excellence in Computer Education';
         const address = settings.address || '';
@@ -10986,6 +11012,12 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         const footerText = settings.footerText || '© Genius Computer Education. All Rights Reserved.';
         const instructions = settings.entranceInstructions || 'This scorecard is valid for admission purposes only. Please verify the authenticity of this document with the institute administration.';
         const courses = settings.eligibleCourses || 'DCA, PGDCA, BCA, Tally, Busy, Corel Draw';
+        
+        const showLogo = pdfOptions.showLogo !== false;
+        const showRef = pdfOptions.showRef !== false;
+        const showCourses = pdfOptions.showCourses !== false;
+        const showQR = pdfOptions.showQR !== false;
+        const showSignature = pdfOptions.showSignature !== false;
         
         // Generate unique reference number
         const refNumber = 'GCE-' + new Date().getFullYear() + '-' + String(result.id).padStart(6, '0');
@@ -11026,25 +11058,29 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         doc.rect(20, 20, 555.28, 100).fill(headerColor);
         
         // Logo
-        if (settings.logo) {
+        if (showLogo && settings.logo) {
             try {
                 doc.image(settings.logo, 35, 35, { width: 70, height: 70 });
             } catch (e) {
                 doc.fontSize(40).text('🎓', 35, 45);
             }
-        } else {
+        } else if (showLogo) {
             doc.fontSize(40).text('🎓', 35, 45);
         }
         
         // Institute info
-        doc.fontSize(22).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), 120, 32, { align: 'center', width: 435 });
-        doc.fontSize(11).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, 120, 58, { align: 'center', width: 435 });
+        const instituteX = showLogo ? 120 : 35;
+        const instituteWidth = showLogo ? 435 : 555.28;
+        doc.fontSize(22).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), instituteX, 32, { align: 'center', width: instituteWidth });
+        doc.fontSize(11).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, instituteX, 58, { align: 'center', width: instituteWidth });
         if (address) {
-            doc.fontSize(9).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, 120, 75, { align: 'center', width: 435 });
+            doc.fontSize(9).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, instituteX, 75, { align: 'center', width: instituteWidth });
         }
         
         // Reference number
-        doc.fontSize(9).fillColor('#ffffff').font('Helvetica-Bold').text('Ref: ' + refNumber, 35, 95);
+        if (showRef) {
+            doc.fontSize(9).fillColor('#ffffff').font('Helvetica-Bold').text('Ref: ' + refNumber, 35, 95);
+        }
         
         // Title
         let y = 135;
@@ -11053,25 +11089,38 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         doc.moveTo(50, y).lineTo(545, y).stroke(headerColor).lineWidth(2);
         y += 20;
         
-        // Student details - simple table
-        doc.fontSize(11).fillColor('#374151').font('Helvetica-Bold').text('Student Details', 30, y);
-        y += 20;
+        // Student details - improved table format
+        doc.rect(30, y, 535.28, 120).fill('#f8fafc');
+        doc.rect(30, y, 535.28, 120).stroke('#e5e7eb').lineWidth(1);
+        
+        doc.fontSize(12).fillColor(headerColor).font('Helvetica-Bold').text('Student Details', 45, y + 12);
+        doc.moveTo(45, y + 30).lineTo(550, y + 30).stroke(headerColor).lineWidth(1);
+        
+        y += 40;
         
         const studentDetails = [
             ['Name', (result.studentName || '').toUpperCase()],
             ['Registration No', result.registrationNo || '-'],
             ['Course', (result.course || '-').toUpperCase()],
             ['Exam', (result.examName || '').toUpperCase()],
-            ['Date', result.submittedAt ? new Date(result.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '-']
+            ['Date', result.submittedAt ? new Date(result.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'],
+            ['Reference No', refNumber]
         ];
         
+        // Two-column layout for better space utilization
+        const col1X = 45;
+        const col2X = 310;
+        const rowHeight = 18;
+        
         studentDetails.forEach((detail, index) => {
-            const rowY = y + index * 22;
-            doc.fontSize(10).fillColor('#6b7280').font('Helvetica').text(detail[0] + ':', 30, rowY);
-            doc.fontSize(10).fillColor('#1f2937').font('Helvetica-Bold').text(detail[1], 150, rowY);
+            const rowY = y + Math.floor(index / 2) * rowHeight;
+            const colX = index % 2 === 0 ? col1X : col2X;
+            
+            doc.fontSize(9).fillColor('#6b7280').font('Helvetica-Bold').text(detail[0] + ':', colX, rowY);
+            doc.fontSize(10).fillColor('#1f293b').font('Helvetica').text(detail[1], colX + 100, rowY);
         });
         
-        y += studentDetails.length * 22 + 15;
+        y += 80;
         
         // Performance section
         doc.rect(30, y, 535.28, 80).fill('#f8fafc');
@@ -11094,13 +11143,15 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         y += 100;
         
         // Eligible courses
-        doc.fontSize(11).fillColor('#374151').font('Helvetica-Bold').text('Eligible Courses', 30, y);
-        y += 20;
-        
-        const courseList = courses.split(',').map(c => c.trim()).filter(c => c);
-        doc.fontSize(10).fillColor('#1f2937').font('Helvetica').text(courseList.join(' • '), 30, y, { width: 535.28 });
-        
-        y += 30;
+        if (showCourses) {
+            doc.fontSize(11).fillColor('#374151').font('Helvetica-Bold').text('Eligible Courses', 30, y);
+            y += 20;
+            
+            const courseList = courses.split(',').map(c => c.trim()).filter(c => c);
+            doc.fontSize(10).fillColor('#1f293b').font('Helvetica').text(courseList.join(' • '), 30, y, { width: 535.28 });
+            
+            y += 30;
+        }
         
         // Instructions
         doc.fontSize(9).fillColor('#6b7280').font('Helvetica').text(instructions, 30, y, { width: 535.28 });
@@ -11108,20 +11159,24 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         y += 40;
         
         // Verification section
-        doc.rect(30, y, 535.28, 70).fill('#f0f9ff');
-        doc.rect(30, y, 535.28, 70).stroke('#3b82f6').lineWidth(1);
-        
-        doc.fontSize(11).fillColor('#1e40af').font('Helvetica-Bold').text('Document Verification', 45, y + 12);
-        doc.fontSize(9).fillColor('#1e3a8a').font('Helvetica').text('Scan QR code to verify this document online', 45, y + 30, { width: 380 });
-        doc.fontSize(8).fillColor('#3b82f6').font('Helvetica').text(verificationUrl, 45, y + 45, { width: 380 });
-        
-        // QR code
-        try {
-            const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
-            doc.image(qrBuffer, 440, y + 10, { width: 50, height: 50 });
-        } catch (e) {
-            doc.rect(440, y + 10, 50, 50).fill('#e5e7eb');
-            doc.fontSize(8).fillColor('#6b7280').font('Helvetica').text('QR', 440, y + 35, { align: 'center', width: 50 });
+        if (showQR) {
+            doc.rect(30, y, 535.28, 70).fill('#f0f9ff');
+            doc.rect(30, y, 535.28, 70).stroke('#3b82f6').lineWidth(1);
+            
+            doc.fontSize(11).fillColor('#1e40af').font('Helvetica-Bold').text('Document Verification', 45, y + 12);
+            doc.fontSize(9).fillColor('#1e3a8a').font('Helvetica').text('Scan QR code to verify this document online', 45, y + 30, { width: 380 });
+            doc.fontSize(8).fillColor('#3b82f6').font('Helvetica').text(verificationUrl, 45, y + 45, { width: 380 });
+            
+            // QR code
+            try {
+                const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
+                doc.image(qrBuffer, 440, y + 10, { width: 50, height: 50 });
+            } catch (e) {
+                doc.rect(440, y + 10, 50, 50).fill('#e5e7eb');
+                doc.fontSize(8).fillColor('#6b7280').font('Helvetica').text('QR', 440, y + 35, { align: 'center', width: 50 });
+            }
+            
+            y += 80;
         }
         
         // Footer
@@ -11130,8 +11185,10 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         doc.fontSize(8).fillColor('#9ca3af').font('Helvetica').text(footerText, 30, y + 12, { width: 535.28, align: 'center' });
         
         // Signature area
-        doc.moveTo(400, y + 35).lineTo(520, y + 35).stroke('#374151').lineWidth(1);
-        doc.fontSize(9).fillColor('#374151').font('Helvetica').text(signatureLabel, 400, y + 40, { width: 120, align: 'center' });
+        if (showSignature) {
+            doc.moveTo(400, y + 35).lineTo(520, y + 35).stroke('#374151').lineWidth(1);
+            doc.fontSize(9).fillColor('#374151').font('Helvetica').text(signatureLabel, 400, y + 40, { width: 120, align: 'center' });
+        }
         
         doc.end();
     } catch (error) {
