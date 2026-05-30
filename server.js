@@ -11146,15 +11146,21 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         
         // Instructions section with proper styling
         if (instructions) {
-            doc.rect(30, y, 535.28, 80).fill('#fffbeb');
-            doc.rect(30, y, 535.28, 80).stroke('#f59e0b').lineWidth(1);
+            doc.rect(30, y, 535.28, 100).fill('#fffbeb');
+            doc.rect(30, y, 535.28, 100).stroke('#f59e0b').lineWidth(1);
             
             doc.fontSize(11).fillColor('#92400e').font('Helvetica-Bold').text('Important Instructions', 45, y + 12);
             doc.moveTo(45, y + 28).lineTo(520, y + 28).stroke('#f59e0b').lineWidth(1);
             
-            doc.fontSize(9).fillColor('#1f2937').font('Helvetica').text(instructions, 45, y + 38, { width: 480 });
+            // Split instructions by newlines and render as bullet points
+            const instructionLines = instructions.split('\n').filter(line => line.trim());
+            let bulletY = y + 38;
+            instructionLines.forEach((line, index) => {
+                if (index > 0) bulletY += 14;
+                doc.fontSize(9).fillColor('#1f2937').font('Helvetica').text('• ' + line.trim(), 45, bulletY, { width: 480 });
+            });
             
-            y += 95;
+            y += 115;
         }
         
         // Eligible courses section
