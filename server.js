@@ -10887,13 +10887,13 @@ app.post('/api/entrance-results/re-evaluate', (req, res) => {
 // Generate HTML template for entrance result PDF
 function generateEntranceResultHTML(result) {
     const settings = readData('settings.json') || {};
-    const instituteName = settings.instituteName || 'GENIUS COMPUTER EDUCATION';
-    const tagline = settings.tagline || 'Excellence in Computer Education';
-    const address = settings.address || '';
+    const instituteName = settings.entrancePdfInstituteName || settings.instituteName || 'GENIUS COMPUTER EDUCATION';
+    const tagline = settings.entrancePdfTagline || settings.tagline || 'Excellence in Computer Education';
+    const address = settings.entrancePdfAddress || settings.address || '';
     const headerColor = settings.headerColor || '#1e3a8a';
     const signatureLabel = settings.signatureLabel || 'Principal / Director';
-    const footerText = settings.footerText || '© Genius Computer Education. All Rights Reserved.';
-    const instructions = settings.entranceInstructions || 'This scorecard is valid for admission purposes only. Please verify the authenticity of this document with the institute administration.';
+    const footerText = settings.entrancePdfFooter || settings.footerText || '© Genius Computer Education. All Rights Reserved.';
+    const instructions = settings.entrancePdfInstructions || settings.entranceInstructions || 'This scorecard is valid for admission purposes only. Please verify the authenticity of this document with the institute administration.';
     const courses = settings.eligibleCourses || 'DCA, PGDCA, BCA, Tally, Busy, Corel Draw';
     
     const logoUrl = settings.logo || '';
@@ -11004,13 +11004,13 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         const settings = readData('settings.json') || {};
         const pdfOptions = readData('pdf-display-options.json') || {};
         
-        const instituteName = settings.instituteName || 'GENIUS COMPUTER EDUCATION';
-        const tagline = settings.tagline || 'Excellence in Computer Education';
-        const address = settings.address || '';
+        const instituteName = settings.entrancePdfInstituteName || settings.instituteName || 'GENIUS COMPUTER EDUCATION';
+        const tagline = settings.entrancePdfTagline || settings.tagline || 'Excellence in Computer Education';
+        const address = settings.entrancePdfAddress || settings.address || '';
         const headerColor = settings.headerColor || '#1e3a8a';
         const signatureLabel = settings.signatureLabel || 'Principal / Director';
-        const footerText = settings.footerText || '© Genius Computer Education. All Rights Reserved.';
-        const instructions = settings.entranceInstructions || 'This scorecard is valid for admission purposes only. Please verify the authenticity of this document with the institute administration.';
+        const footerText = settings.entrancePdfFooter || settings.footerText || '© Genius Computer Education. All Rights Reserved.';
+        const instructions = settings.entrancePdfInstructions || settings.entranceInstructions || 'This scorecard is valid for admission purposes only. Please verify the authenticity of this document with the institute administration.';
         const courses = settings.eligibleCourses || 'DCA, PGDCA, BCA, Tally, Busy, Corel Draw';
         
         const showLogo = pdfOptions.showLogo !== false;
