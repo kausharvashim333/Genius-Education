@@ -928,11 +928,18 @@ function downloadEntranceResultPDF(id) {
 // Preview entrance result PDF
 window.previewEntranceResultPDF = async function(id) {
     try {
+        console.log('Previewing PDF for id:', id);
         const response = await fetch('/api/entrance-result-pdf/' + id);
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
-            throw new Error('Failed to generate PDF');
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
+            throw new Error('Failed to generate PDF: ' + errorText);
         }
+        
         const blob = await response.blob();
+        console.log('Blob size:', blob.size);
         const pdfUrl = URL.createObjectURL(blob);
         
         const modal = document.createElement('div');
@@ -965,7 +972,7 @@ window.previewEntranceResultPDF = async function(id) {
         document.body.appendChild(modal);
     } catch (error) {
         console.error('Error previewing PDF:', error);
-        entShowToast('Failed to preview PDF', 'error');
+        entShowToast('Failed to preview PDF: ' + error.message, 'error');
     }
 };
 
