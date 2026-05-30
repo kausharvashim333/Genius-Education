@@ -11144,6 +11144,13 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         
         y += 100;
         
+        // Signature area - moved before instructions
+        if (showSignature) {
+            doc.fontSize(9).fillColor('#374151').font('Helvetica').text(signatureLabel, 400, y + 10, { width: 120, align: 'center' });
+            doc.moveTo(400, y + 25).lineTo(520, y + 25).stroke('#374151').lineWidth(1);
+            y += 40;
+        }
+        
         // Instructions section with proper styling - larger box to show full content
         if (instructions) {
             doc.rect(30, y, 535.28, 150).fill('#fffbeb');
@@ -11152,11 +11159,11 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             doc.fontSize(11).fillColor('#92400e').font('Helvetica-Bold').text('Important Instructions', 45, y + 12);
             doc.moveTo(45, y + 28).lineTo(520, y + 28).stroke('#f59e0b').lineWidth(1);
             
-            // Split instructions by newlines and render as bullet points
+            // Split instructions by newlines and render as bullet points with proper spacing
             const instructionLines = instructions.split('\n').filter(line => line.trim());
             let bulletY = y + 38;
             instructionLines.forEach((line, index) => {
-                if (index > 0) bulletY += 14;
+                if (index > 0) bulletY += 18; // Increased spacing to prevent overwriting
                 doc.fontSize(9).fillColor('#1f2937').font('Helvetica').text('• ' + line.trim(), 45, bulletY, { width: 480 });
             });
             
@@ -11165,6 +11172,7 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         
         // Verification section - moved to bottom after instructions
         if (showQR) {
+            y += 20; // Extra spacing before verification
             doc.rect(30, y, 535.28, 80).fill('#f0f9ff');
             doc.rect(30, y, 535.28, 80).stroke('#3b82f6').lineWidth(1);
             
@@ -11193,12 +11201,6 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         
         doc.fontSize(8).fillColor('#9ca3af').font('Helvetica').text('Issue Date: ' + new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }), 30, y);
         doc.fontSize(8).fillColor('#9ca3af').font('Helvetica').text(footerText, 30, y + 12, { width: 535.28, align: 'center' });
-        
-        // Signature area
-        if (showSignature) {
-            doc.moveTo(400, y + 35).lineTo(520, y + 35).stroke('#374151').lineWidth(1);
-            doc.fontSize(9).fillColor('#374151').font('Helvetica').text(signatureLabel, 400, y + 40, { width: 120, align: 'center' });
-        }
         
         doc.end();
     } catch (error) {
