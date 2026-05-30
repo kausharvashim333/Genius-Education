@@ -11067,24 +11067,24 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
                 const logoPath = fs.existsSync(absPath) ? absPath : (fs.existsSync(publicPath) ? publicPath : null);
                 
                 if (logoPath) {
-                    doc.image(logoPath, 30, 25, { width: 50, height: 50 });
+                    doc.image(logoPath, 30, 20, { width: 60, height: 60 });
                 } else {
-                    doc.fontSize(30).text('🎓', 30, 25);
+                    doc.fontSize(36).text('🎓', 30, 20);
                 }
             } catch (e) {
-                doc.fontSize(30).text('🎓', 30, 25);
+                doc.fontSize(36).text('🎓', 30, 20);
             }
         } else if (showLogo) {
-            doc.fontSize(30).text('🎓', 30, 25);
+            doc.fontSize(36).text('🎓', 30, 20);
         }
         
         // Institute info (positioned to the right of logo)
-        const textX = showLogo ? 90 : 30;
-        const textWidth = showLogo ? 485.28 : 555.28;
-        doc.fontSize(20).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), textX, 30, { align: 'center', width: textWidth });
-        doc.fontSize(10).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, textX, 52, { align: 'center', width: textWidth });
+        const textX = showLogo ? 100 : 30;
+        const textWidth = showLogo ? 475.28 : 555.28;
+        doc.fontSize(24).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), textX, 25, { align: 'center', width: textWidth });
+        doc.fontSize(12).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, textX, 48, { align: 'center', width: textWidth });
         if (address) {
-            doc.fontSize(8).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, textX, 68, { align: 'center', width: textWidth });
+            doc.fontSize(10).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, textX, 65, { align: 'center', width: textWidth });
         }
         
         // Reference number
