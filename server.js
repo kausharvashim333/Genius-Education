@@ -11163,7 +11163,7 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             const instructionLines = instructions.split('\n').filter(line => line.trim());
             let bulletY = y + 38;
             instructionLines.forEach((line, index) => {
-                if (index > 0) bulletY += 18; // Increased spacing to prevent overwriting
+                if (index > 0) bulletY += 22; // Increased spacing to prevent overlapping
                 doc.fontSize(9).fillColor('#1f2937').font('Helvetica').text('• ' + line.trim(), 45, bulletY, { width: 470 });
             });
             
@@ -11172,7 +11172,7 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         
         // Verification section - positioned lower
         if (showQR) {
-            y += 10; // Reduced spacing to move footer up
+            y += 5; // Reduced spacing to move footer up
             doc.rect(30, y, 535.28, 80).fill('#f0f9ff');
             doc.rect(30, y, 535.28, 80).stroke('#3b82f6').lineWidth(1);
             
@@ -11195,12 +11195,11 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         }
         
         // Footer section - positioned higher
-        y += 10;
+        y += 5;
         doc.moveTo(30, y).lineTo(565.28, y).stroke('#e5e7eb').lineWidth(1);
-        y += 12;
+        y += 10;
         
-        doc.fontSize(8).fillColor('#9ca3af').font('Helvetica').text('Issue Date: ' + new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }), 30, y);
-        doc.fontSize(8).fillColor('#9ca3af').font('Helvetica').text(footerText, 30, y + 12, { width: 535.28, align: 'center' });
+        doc.fontSize(8).fillColor('#9ca3af').font('Helvetica').text(footerText, 30, y, { width: 535.28, align: 'center' });
         
         doc.end();
     } catch (error) {
