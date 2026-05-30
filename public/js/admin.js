@@ -11325,7 +11325,11 @@ document.getElementById('smtpForm').addEventListener('submit', async function(e)
 
 document.getElementById('pdfSettingsForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const data = {
+    
+    // Get current settings to preserve other fields
+    const currentSettings = await fetch('/api/settings').then(r => r.json());
+    
+    const pdfData = {
         instituteName: document.getElementById('pdfInstituteName').value,
         tagline: document.getElementById('pdfTagline').value,
         address: document.getElementById('pdfAddress').value,
@@ -11335,6 +11339,9 @@ document.getElementById('pdfSettingsForm').addEventListener('submit', async func
         eligibleCourses: document.getElementById('pdfCourses').value,
         entranceInstructions: document.getElementById('pdfInstructions').value
     };
+    
+    // Merge with current settings to preserve other fields
+    const data = { ...currentSettings, ...pdfData };
     
     const displayOptions = {
         showLogo: document.getElementById('pdfShowLogo').checked,
