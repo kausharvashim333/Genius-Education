@@ -1204,7 +1204,7 @@ function printEntranceResult() {
     printWindow.document.write('<meta charset="UTF-8">');
     printWindow.document.write('<style>');
     printWindow.document.write('* { margin: 0; padding: 0; box-sizing: border-box; }');
-    printWindow.document.write('body { margin: 0; padding: 20px 0; background: #fff; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }');
+    printWindow.document.write('body { margin: 0; padding: 0; background: #fff; }');
     printWindow.document.write('@media print {');
     printWindow.document.write('  body { margin: 0; padding: 0; }');
     printWindow.document.write('  @page { margin: 0; size: A4 portrait; }');
