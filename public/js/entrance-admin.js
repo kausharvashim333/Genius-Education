@@ -1060,12 +1060,6 @@ function renderEntranceResultHtml(r) {
     const percentage = parseFloat(r.percentage) || 0;
     const s = pdfCustomSettings;
     
-    // Debug: log marks data
-    console.log('PDF Render - Marks obtained:', r.marksObtained);
-    console.log('PDF Render - Total marks:', r.totalMarks);
-    console.log('PDF Render - Percentage:', r.percentage);
-    console.log('PDF Render - Full result object:', r);
-    
     // Use institute logo from settings, fallback to default icon
     const logoUrl = instituteSettings && instituteSettings.logo ? instituteSettings.logo : '';
     const logoHtml = logoUrl 
