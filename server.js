@@ -11060,7 +11060,17 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         // Logo on left side of header
         if (showLogo && settings.logo) {
             try {
-                doc.image(settings.logo, 30, 25, { width: 50, height: 50 });
+                // Resolve logo path to absolute path
+                const relPath = settings.logo.startsWith('/') ? settings.logo.slice(1) : settings.logo;
+                const absPath = path.join(__dirname, relPath);
+                const publicPath = path.join(__dirname, 'public', relPath);
+                const logoPath = fs.existsSync(absPath) ? absPath : (fs.existsSync(publicPath) ? publicPath : null);
+                
+                if (logoPath) {
+                    doc.image(logoPath, 30, 25, { width: 50, height: 50 });
+                } else {
+                    doc.fontSize(30).text('🎓', 30, 25);
+                }
             } catch (e) {
                 doc.fontSize(30).text('🎓', 30, 25);
             }
