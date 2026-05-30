@@ -10991,62 +10991,211 @@ function generateEntranceResultHTML(result) {
 </html>`;
 }
 
-// Generate PDF for entrance result using Puppeteer
+// Generate PDF for entrance result using PDFKit
 app.get('/api/entrance-result-pdf/:id', async (req, res) => {
     try {
-        console.log('=== PDF Request Start ===');
-        console.log('PDF request received for id:', req.params.id);
-        
         const results = readData('entrance-results.json') || [];
-        console.log('Total results:', results.length);
-        
         const result = results.find(r => r.id == req.params.id);
         
         if (!result) {
-            console.log('Result not found');
             return res.status(404).json({ success: false, message: 'Result not found' });
         }
         
-        console.log('Result found:', result.id);
+        const settings = readData('settings.json') || {};
+        const pdfOptions = readData('pdf-display-options.json') || {};
         
-        // Use Puppeteer for better font support (including Hindi)
-        const html = generateEntranceResultHTML(result);
-        console.log('HTML generated, length:', html.length);
+        const instituteName = settings.entrancePdfInstituteName || settings.instituteName || 'GENIUS COMPUTER EDUCATION';
+        const tagline = settings.entrancePdfTagline || settings.tagline || 'Excellence in Computer Education';
+        const address = settings.entrancePdfAddress || settings.address || '';
+        const headerColor = settings.headerColor || '#1e3a8a';
+        const signatureLabel = settings.signatureLabel || 'Principal / Director';
+        const footerText = settings.entrancePdfFooter || settings.footerText || '© Genius Computer Education. All Rights Reserved.';
+        const instructions = settings.entrancePdfInstructions || settings.entranceInstructions || 'This scorecard is valid for admission purposes only. Please verify the authenticity of this document with the institute administration.';
+        const courses = settings.eligibleCourses || 'DCA, PGDCA, BCA, Tally, Busy, Corel Draw';
         
-        console.log('Getting browser...');
-        const browser = await getBrowser();
-        console.log('Browser obtained');
+        const showLogo = pdfOptions.showLogo !== false;
+        const showRef = pdfOptions.showRef !== false;
+        const showCourses = pdfOptions.showCourses !== false;
+        const showQR = pdfOptions.showQR !== false;
+        const showSignature = pdfOptions.showSignature !== false;
         
-        const page = await browser.newPage();
-        console.log('New page created');
+        // Generate unique reference number
+        const refNumber = 'GCE-' + new Date().getFullYear() + '-' + String(result.id).padStart(6, '0');
         
-        try {
-            console.log('Setting page content...');
-            await page.setContent(html, { waitUntil: 'domcontentloaded' });
-            console.log('Page content set');
-            
-            console.log('Generating PDF...');
-            const pdfBuffer = await page.pdf({
-                format: 'A4',
-                printBackground: true,
-                margin: { top: '0', bottom: '0', left: '0', right: '0' }
-            });
-            console.log('PDF generated, size:', pdfBuffer.length);
-            
+        // Generate QR code for verification
+        const verificationUrl = `${req.protocol}://${req.get('host')}/verify-result/${refNumber}`;
+        const qrCodeDataUrl = await qrcode.toDataURL(verificationUrl, { width: 100 });
+        
+        // Calculate grade
+        const percentage = result.percentage !== undefined && result.percentage !== null ? result.percentage : 0;
+        let grade = 'F';
+        let gradeColor = '#ef4444';
+        if (percentage >= 90) { grade = 'A+'; gradeColor = '#10b981'; }
+        else if (percentage >= 80) { grade = 'A'; gradeColor = '#22c55e'; }
+        else if (percentage >= 70) { grade = 'B+'; gradeColor = '#84cc16'; }
+        else if (percentage >= 60) { grade = 'B'; gradeColor = '#eab308'; }
+        else if (percentage >= 50) { grade = 'C'; gradeColor = '#f97316'; }
+        else if (percentage >= 40) { grade = 'D'; gradeColor = '#f59e0b'; }
+        
+        const doc = new PDFDocument({ size: 'A4', margin: 0 });
+        const chunks = [];
+        
+        doc.on('data', chunk => chunks.push(chunk));
+        doc.on('end', () => {
+            const pdfBuffer = Buffer.concat(chunks);
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', `attachment; filename="entrance-result-${result.registrationNo || 'student'}.pdf"`);
             res.send(pdfBuffer);
-            console.log('=== PDF Request Complete ===');
-        } finally {
-            console.log('Closing page...');
-            await page.close();
-            console.log('Page closed');
+        });
+        
+        // Simple border
+        doc.lineWidth(2);
+        doc.rect(15, 15, 565.28, 811.28).stroke(headerColor);
+        doc.lineWidth(1);
+        doc.rect(20, 20, 555.28, 801.28).stroke('#e5e7eb');
+        
+        // Header - clean and professional
+        doc.rect(20, 20, 555.28, 100).fill(headerColor);
+        
+        // Institute info (centered in header)
+        doc.fontSize(22).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), 20, 32, { align: 'center', width: 555.28 });
+        doc.fontSize(11).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, 20, 58, { align: 'center', width: 555.28 });
+        if (address) {
+            doc.fontSize(9).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, 20, 75, { align: 'center', width: 555.28 });
         }
+        
+        // Reference number
+        if (showRef) {
+            doc.fontSize(9).fillColor('#ffffff').font('Helvetica-Bold').text('Ref: ' + refNumber, 35, 95);
+        }
+        
+        // Title with logo on left
+        let y = 135;
+        
+        // Logo next to title
+        if (showLogo && settings.logo) {
+            try {
+                doc.image(settings.logo, 30, y - 5, { width: 50, height: 50 });
+            } catch (e) {
+                doc.fontSize(30).text('🎓', 30, y);
+            }
+        } else if (showLogo) {
+            doc.fontSize(30).text('🎓', 30, y);
+        }
+        
+        // Title text (offset if logo is shown)
+        const titleX = showLogo ? 90 : 20;
+        const titleWidth = showLogo ? 485.28 : 555.28;
+        doc.fontSize(16).fillColor(headerColor).font('Helvetica-Bold').text('EXAMINATION RESULT', titleX, y + 10, { align: 'center', width: titleWidth });
+        y += 35;
+        doc.moveTo(titleX, y).lineTo(titleX + titleWidth, y).stroke(headerColor).lineWidth(2);
+        y += 20;
+        
+        // Student details - improved table format
+        doc.rect(30, y, 535.28, 120).fill('#f8fafc');
+        doc.rect(30, y, 535.28, 120).stroke('#e5e7eb').lineWidth(1);
+        
+        doc.fontSize(12).fillColor(headerColor).font('Helvetica-Bold').text('Student Details', 45, y + 12);
+        doc.moveTo(45, y + 30).lineTo(550, y + 30).stroke(headerColor).lineWidth(1);
+        
+        y += 40;
+        
+        const studentDetails = [
+            ['Name', (result.studentName || '').toUpperCase()],
+            ['Registration No', result.registrationNo || '-'],
+            ['Course', (result.course || '-').toUpperCase()],
+            ['Exam', (result.examName || '').toUpperCase()],
+            ['Date', result.submittedAt ? new Date(result.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'],
+            ['Reference No', refNumber]
+        ];
+        
+        // Two-column layout for better space utilization
+        const col1X = 45;
+        const col2X = 310;
+        const rowHeight = 18;
+        
+        studentDetails.forEach((detail, index) => {
+            const rowY = y + Math.floor(index / 2) * rowHeight;
+            const colX = index % 2 === 0 ? col1X : col2X;
+            
+            doc.fontSize(9).fillColor('#6b7280').font('Helvetica-Bold').text(detail[0] + ':', colX, rowY);
+            doc.fontSize(10).fillColor('#1f293b').font('Helvetica').text(detail[1], colX + 100, rowY);
+        });
+        
+        y += 80;
+        
+        // Performance section
+        doc.rect(30, y, 535.28, 80).fill('#f8fafc');
+        doc.rect(30, y, 535.28, 80).stroke('#e5e7eb').lineWidth(1);
+        
+        doc.fontSize(12).fillColor(headerColor).font('Helvetica-Bold').text('Performance', 45, y + 12);
+        
+        // Marks
+        doc.fontSize(10).fillColor('#6b7280').font('Helvetica').text('Marks Obtained', 45, y + 35);
+        doc.fontSize(24).fillColor(headerColor).font('Helvetica-Bold').text(`${result.marksObtained || 0} / ${result.totalMarks || 0}`, 45, y + 50);
+        
+        // Percentage
+        doc.fontSize(10).fillColor('#6b7280').font('Helvetica').text('Percentage', 200, y + 35);
+        doc.fontSize(24).fillColor(percentage >= 60 ? '#10b981' : percentage >= 40 ? '#f59e0b' : '#ef4444').font('Helvetica-Bold').text(`${percentage}%`, 200, y + 50);
+        
+        // Status
+        doc.fontSize(10).fillColor('#6b7280').font('Helvetica').text('Status', 350, y + 35);
+        doc.fontSize(14).fillColor(percentage >= 60 ? '#10b981' : '#ef4444').font('Helvetica-Bold').text(percentage >= 60 ? 'QUALIFIED' : 'NOT QUALIFIED', 350, y + 50);
+        
+        y += 100;
+        
+        // Instructions - use text directly (already plain text)
+        if (instructions) {
+            doc.fontSize(9).fillColor('#6b7280').font('Helvetica').text(instructions, 30, y, { width: 535.28 });
+            y += 40;
+        }
+        
+        // Eligible courses
+        if (showCourses) {
+            doc.fontSize(11).fillColor('#374151').font('Helvetica-Bold').text('Eligible Courses', 30, y);
+            y += 20;
+            
+            const courseList = courses.split(',').map(c => c.trim()).filter(c => c);
+            doc.fontSize(10).fillColor('#1f293b').font('Helvetica').text(courseList.join(' • '), 30, y, { width: 535.28 });
+            
+            y += 30;
+        }
+        
+        // Verification section
+        if (showQR) {
+            doc.rect(30, y, 535.28, 70).fill('#f0f9ff');
+            doc.rect(30, y, 535.28, 70).stroke('#3b82f6').lineWidth(1);
+            
+            doc.fontSize(11).fillColor('#1e40af').font('Helvetica-Bold').text('Document Verification', 45, y + 12);
+            doc.fontSize(9).fillColor('#1e3a8a').font('Helvetica').text('Scan QR code to verify this document online', 45, y + 30, { width: 380 });
+            doc.fontSize(8).fillColor('#3b82f6').font('Helvetica').text(verificationUrl, 45, y + 45, { width: 380 });
+            
+            // QR code
+            try {
+                const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
+                doc.image(qrBuffer, 440, y + 10, { width: 50, height: 50 });
+            } catch (e) {
+                doc.rect(440, y + 10, 50, 50).fill('#e5e7eb');
+                doc.fontSize(8).fillColor('#6b7280').font('Helvetica').text('QR', 440, y + 35, { align: 'center', width: 50 });
+            }
+            
+            y += 80;
+        }
+        
+        // Footer
+        y = 760;
+        doc.fontSize(8).fillColor('#9ca3af').font('Helvetica').text('Issue Date: ' + new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }), 30, y);
+        doc.fontSize(8).fillColor('#9ca3af').font('Helvetica').text(footerText, 30, y + 12, { width: 535.28, align: 'center' });
+        
+        // Signature area
+        if (showSignature) {
+            doc.moveTo(400, y + 35).lineTo(520, y + 35).stroke('#374151').lineWidth(1);
+            doc.fontSize(9).fillColor('#374151').font('Helvetica').text(signatureLabel, 400, y + 40, { width: 120, align: 'center' });
+        }
+        
+        doc.end();
     } catch (error) {
-        console.error('=== PDF Generation Error ===');
-        console.error('Error:', error);
-        console.error('Error stack:', error.stack);
-        console.error('=== End Error ===');
+        console.error('PDF generation error:', error);
         res.status(500).json({ success: false, message: 'Failed to generate PDF: ' + error.message });
     }
 });
