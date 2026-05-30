@@ -11194,8 +11194,8 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             y += 95;
         }
         
-        // Footer section
-        y = 730;
+        // Footer section - moved lower
+        y = 770;
         doc.moveTo(30, y).lineTo(565.28, y).stroke('#e5e7eb').lineWidth(1);
         y += 15;
         
