@@ -11043,11 +11043,6 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         // Header with gradient effect
         doc.rect(20, 20, 555.28, 140).fill(headerColor);
         
-        // Decorative header pattern
-        doc.circle(565, 90, 100).fill('rgba(255,255,255,0.08)');
-        doc.circle(30, 90, 70).fill('rgba(255,255,255,0.06)');
-        doc.circle(500, 40, 40).fill('rgba(255,255,255,0.1)');
-        
         // Logo placeholder
         if (settings.logo) {
             try {
@@ -11108,10 +11103,6 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         // Performance Summary with grade badge
         y += 20;
         doc.rect(30, y, 535.28, 140).fill(headerColor);
-        
-        // Decorative circles
-        doc.circle(565, y + 70, 80).fill('rgba(255,255,255,0.12)');
-        doc.circle(30, y + 70, 60).fill('rgba(255,255,255,0.08)');
         
         doc.fontSize(16).fillColor('#ffffff').font('Helvetica-Bold').text('Performance Summary', 30, y + 20, { align: 'center', width: 535.28 });
         y += 55;
