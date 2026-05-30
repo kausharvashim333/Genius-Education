@@ -949,7 +949,7 @@ function generateEntranceResultHtml(r) {
         ? '<div style="margin-bottom:20px;">' +
         '<h3 style="margin:0 0 15px 0;color:' + s.headerColor + ';font-size:14px;font-weight:900;letter-spacing:0.7px;text-transform:uppercase;border-left:6px solid ' + s.headerColor + ';padding-left:12px;">Eligible Courses</h3>' +
         '<div style="display:flex;flex-wrap:wrap;gap:10px;">' +
-        courseList.map(course => '<span style="background:linear-gradient(135deg,' + s.headerColor + ',' + s.headerColor + '85);color:#fff;padding:10px 18px;border-radius:8px;font-size:12px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,0.15);">' + course + '</span>').join('') +
+        courseList.map(course => '<span style="background:#f8fafc;border:2px solid ' + s.headerColor + ';color:' + s.headerColor + ';padding:10px 18px;border-radius:8px;font-size:12px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,0.1);">' + course + '</span>').join('') +
         '</div></div>'
         : '';
     
@@ -965,10 +965,10 @@ function generateEntranceResultHtml(r) {
         '<div style="border:4px solid ' + s.headerColor + ';border-radius:16px;padding:22px;height:100%;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,0.1);">' +
         
         // Header
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;padding:18px;background:linear-gradient(135deg,' + s.headerColor + '15,' + s.headerColor + '08);border-radius:14px;border:3px solid ' + s.headerColor + '35;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;padding:18px;background:#f8fafc;border-radius:14px;border:3px solid ' + s.headerColor + ';">' +
         '<div style="flex:0 0 100px;">' + logoHtml + '</div>' +
         '<div style="flex:1;text-align:center;padding:0 22px;">' +
-        '<h1 style="margin:0;font-size:24px;color:' + s.headerColor + ';font-weight:900;letter-spacing:1.1px;text-transform:uppercase;text-shadow:0 3px 6px rgba(0,0,0,0.1);">' + s.instituteName + '</h1>' +
+        '<h1 style="margin:0;font-size:24px;color:' + s.headerColor + ';font-weight:900;letter-spacing:1.1px;text-transform:uppercase;text-shadow:0 3px 6px rgba(0,0,0,0.1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + s.instituteName + '</h1>' +
         '<p style="margin:10px 0 0 0;color:#333;font-size:13px;font-weight:700;letter-spacing:0.5px;">' + s.tagline + '</p>' +
         (s.address ? '<p style="margin:6px 0 0 0;color:#666;font-size:11px;">' + s.address + '</p>' : '') +
         '</div>' +
@@ -977,8 +977,8 @@ function generateEntranceResultHtml(r) {
         
         // Title
         '<div style="text-align:center;margin-bottom:22px;">' +
-        '<div style="display:inline-block;padding:16px 55px;background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);border-radius:50px;box-shadow:0 10px 30px rgba(0,0,0,0.2);">' +
-        '<h2 style="margin:0;color:#fff;font-size:15px;font-weight:900;letter-spacing:1.3px;text-transform:uppercase;">OFFICIAL EXAMINATION SCORECARD</h2>' +
+        '<div style="display:inline-block;padding:16px 55px;background:#f8fafc;border:3px solid ' + s.headerColor + ';border-radius:50px;box-shadow:0 10px 30px rgba(0,0,0,0.1);">' +
+        '<h2 style="margin:0;color:' + s.headerColor + ';font-size:15px;font-weight:900;letter-spacing:1.3px;text-transform:uppercase;">OFFICIAL EXAMINATION SCORECARD</h2>' +
         '</div>' +
         '</div>' +
         
@@ -986,7 +986,7 @@ function generateEntranceResultHtml(r) {
         '<div style="margin-bottom:22px;">' +
         '<h3 style="margin:0 0 14px 0;color:' + s.headerColor + ';font-size:15px;font-weight:900;letter-spacing:0.7px;text-transform:uppercase;border-left:6px solid ' + s.headerColor + ';padding-left:12px;">Candidate Information</h3>' +
         '<table style="width:100%;border-collapse:collapse;">' +
-        '<tr style="background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);"><td style="padding:14px 18px;font-weight:900;color:#fff;width:42%;font-size:12px;">Registration Number</td><td style="padding:14px 18px;color:#fff;font-weight:800;font-size:15px;background:rgba(255,255,255,0.2);">' + (r.registrationNo || '') + '</td></tr>' +
+        '<tr style="background:#f8fafc;"><td style="padding:14px 18px;font-weight:900;color:' + s.headerColor + ';width:42%;font-size:12px;">Registration Number</td><td style="padding:14px 18px;color:#333;font-weight:800;font-size:15px;">' + (r.registrationNo || '') + '</td></tr>' +
         '<tr style="background:#fff;"><td style="padding:13px 18px;font-weight:700;color:#333;font-size:12px;">Student Name</td><td style="padding:13px 18px;font-size:15px;color:#333;font-weight:700;text-transform:uppercase;">' + (r.studentName || '') + '</td></tr>' +
         '<tr style="background:#f8fafc;"><td style="padding:13px 18px;font-weight:700;color:#333;font-size:12px;">Applied Course</td><td style="padding:13px 18px;font-size:15px;color:' + s.headerColor + ';font-weight:900;text-transform:uppercase;">' + (r.course || '-') + '</td></tr>' +
         '<tr style="background:#fff;"><td style="padding:13px 18px;font-weight:700;color:#333;font-size:12px;">Examination</td><td style="padding:13px 18px;font-size:15px;color:#333;font-weight:700;text-transform:uppercase;">' + (r.examName || '') + '</td></tr>' +
@@ -995,11 +995,11 @@ function generateEntranceResultHtml(r) {
         '</div>' +
         
         // Performance Summary
-        '<div style="background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);border-radius:16px;padding:22px;margin-bottom:22px;box-shadow:0 12px 40px rgba(0,0,0,0.2);">' +
-        '<h3 style="margin:0 0 20px 0;color:#fff;font-size:16px;font-weight:900;letter-spacing:0.8px;text-transform:uppercase;text-align:center;border-bottom:3px solid rgba(255,255,255,0.35);padding-bottom:14px;">Performance Summary</h3>' +
+        '<div style="background:#f8fafc;border:3px solid ' + s.headerColor + ';border-radius:16px;padding:22px;margin-bottom:22px;box-shadow:0 12px 40px rgba(0,0,0,0.1);">' +
+        '<h3 style="margin:0 0 20px 0;color:' + s.headerColor + ';font-size:16px;font-weight:900;letter-spacing:0.8px;text-transform:uppercase;text-align:center;border-bottom:3px solid ' + s.headerColor + '30;padding-bottom:14px;">Performance Summary</h3>' +
         '<table style="width:100%;border-collapse:collapse;">' +
-        '<tr><td style="padding:16px;border-bottom:2px solid rgba(255,255,255,0.3);font-weight:800;color:rgba(255,255,255,0.98);width:48%;font-size:13px;">Total Marks Obtained</td><td style="padding:16px;border-bottom:2px solid rgba(255,255,255,0.3);font-size:34px;font-weight:900;color:#fff;text-shadow:0 4px 12px rgba(0,0,0,0.3);">' + (r.marksObtained !== undefined && r.marksObtained !== null ? r.marksObtained : 0) + ' <span style="font-size:19px;color:rgba(255,255,255,0.9);font-weight:800;">/ ' + (r.totalMarks !== undefined && r.totalMarks !== null ? r.totalMarks : 0) + '</span></td></tr>' +
-        '<tr><td style="padding:16px;font-weight:800;color:rgba(255,255,255,0.98);font-size:13px;">Overall Percentage</td><td style="padding:16px;font-size:34px;font-weight:900;color:#fff;text-shadow:0 4px 12px rgba(0,0,0,0.3);">' + (r.percentage !== undefined && r.percentage !== null ? r.percentage : 0) + '<span style="font-size:19px;color:rgba(255,255,255,0.9);font-weight:800;">%</span></td></tr>' +
+        '<tr><td style="padding:16px;border-bottom:2px solid #e5e7eb;font-weight:800;color:#333;width:48%;font-size:13px;">Total Marks Obtained</td><td style="padding:16px;border-bottom:2px solid #e5e7eb;font-size:34px;font-weight:900;color:' + s.headerColor + ';">' + (r.marksObtained !== undefined && r.marksObtained !== null ? r.marksObtained : 0) + ' <span style="font-size:19px;color:#666;font-weight:800;">/ ' + (r.totalMarks !== undefined && r.totalMarks !== null ? r.totalMarks : 0) + '</span></td></tr>' +
+        '<tr><td style="padding:16px;font-weight:800;color:#333;font-size:13px;">Overall Percentage</td><td style="padding:16px;font-size:34px;font-weight:900;color:' + s.headerColor + ';">' + (r.percentage !== undefined && r.percentage !== null ? r.percentage : 0) + '<span style="font-size:19px;color:#666;font-weight:800;">%</span></td></tr>' +
         '</table>' +
         '</div>' +
         
