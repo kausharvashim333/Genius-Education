@@ -11144,6 +11144,11 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         
         y += 100;
         
+        // Instructions
+        doc.fontSize(9).fillColor('#6b7280').font('Helvetica').text(instructions, 30, y, { width: 535.28 });
+        
+        y += 40;
+        
         // Eligible courses
         if (showCourses) {
             doc.fontSize(11).fillColor('#374151').font('Helvetica-Bold').text('Eligible Courses', 30, y);
@@ -11154,11 +11159,6 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             
             y += 30;
         }
-        
-        // Instructions
-        doc.fontSize(9).fillColor('#6b7280').font('Helvetica').text(instructions, 30, y, { width: 535.28 });
-        
-        y += 40;
         
         // Verification section
         if (showQR) {
