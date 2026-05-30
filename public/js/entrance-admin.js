@@ -1059,13 +1059,18 @@ function insertTable() {
 }
 
 async function saveEntrancePdfSettings() {
+    const instructionsDiv = document.getElementById('entPdfInstructions');
+    const instructionsText = instructionsDiv.innerText || instructionsDiv.textContent || '';
+    
     const pdfData = {
         entrancePdfInstituteName: document.getElementById('entPdfInstituteName').value,
         entrancePdfTagline: document.getElementById('entPdfTagline').value,
         entrancePdfAddress: document.getElementById('entPdfAddress').value,
-        entrancePdfInstructions: document.getElementById('entPdfInstructions').innerHTML,
+        entrancePdfInstructions: instructionsText,
         entrancePdfFooter: document.getElementById('entPdfFooter').value
     };
+    
+    console.log('Saving PDF settings:', pdfData);
     
     try {
         await entApi('/api/settings', {
@@ -1086,7 +1091,7 @@ async function loadEntrancePdfSettings() {
         document.getElementById('entPdfInstituteName').value = settings.entrancePdfInstituteName || '';
         document.getElementById('entPdfTagline').value = settings.entrancePdfTagline || '';
         document.getElementById('entPdfAddress').value = settings.entrancePdfAddress || '';
-        document.getElementById('entPdfInstructions').innerHTML = settings.entrancePdfInstructions || '';
+        document.getElementById('entPdfInstructions').innerText = settings.entrancePdfInstructions || '';
         document.getElementById('entPdfFooter').value = settings.entrancePdfFooter || '';
     } catch (e) {
         console.error('Error loading PDF settings:', e);
