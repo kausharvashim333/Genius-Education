@@ -2310,6 +2310,50 @@
                     <button class="btn btn-primary" onclick="saveEntranceSubmissionSettings()" style="width:100%;padding:12px;"><i class="fas fa-save"></i> Save Settings</button>
                 </div>
                 
+                <!-- Result PDF Customization -->
+                <div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:25px;max-width:700px;margin-bottom:25px;">
+                    <h3 style="color:#fff;margin-bottom:20px;"><i class="fas fa-file-pdf" style="color:#667eea;margin-right:8px;"></i> Result PDF Customization</h3>
+                    <div style="margin-bottom:15px;">
+                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Institute Name</label>
+                        <input type="text" id="entPdfInstituteName" placeholder="Enter institute name for PDF" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Tagline</label>
+                        <input type="text" id="entPdfTagline" placeholder="Enter tagline/slogan" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Address</label>
+                        <textarea id="entPdfAddress" rows="2" placeholder="Enter institute address" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;resize:vertical;"></textarea>
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Instructions</label>
+                        <div style="border:1px solid rgba(255,255,255,0.3);border-radius:8px;overflow:hidden;">
+                            <div style="background:rgba(255,255,255,0.1);padding:8px;border-bottom:1px solid rgba(255,255,255,0.2);display:flex;gap:5px;flex-wrap:wrap;">
+                                <button type="button" onclick="formatText('bold')" style="padding:6px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:#fff;cursor:pointer;font-weight:bold;">B</button>
+                                <button type="button" onclick="formatText('italic')" style="padding:6px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:#fff;cursor:pointer;font-style:italic;">I</button>
+                                <button type="button" onclick="formatText('underline')" style="padding:6px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:#fff;cursor:pointer;text-decoration:underline;">U</button>
+                                <button type="button" onclick="formatText('justifyLeft')" style="padding:6px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:#fff;cursor:pointer;"><i class="fas fa-align-left"></i></button>
+                                <button type="button" onclick="formatText('justifyCenter')" style="padding:6px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:#fff;cursor:pointer;"><i class="fas fa-align-center"></i></button>
+                                <button type="button" onclick="formatText('justifyRight')" style="padding:6px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:#fff;cursor:pointer;"><i class="fas fa-align-right"></i></button>
+                                <button type="button" onclick="formatText('insertUnorderedList')" style="padding:6px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:#fff;cursor:pointer;"><i class="fas fa-list-ul"></i></button>
+                                <button type="button" onclick="formatText('insertOrderedList')" style="padding:6px 10px;background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:#fff;cursor:pointer;"><i class="fas fa-list-ol"></i></button>
+                                <select onchange="formatText('fontSize', this.value)" style="padding:6px;background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:#fff;">
+                                    <option value="1">Small</option>
+                                    <option value="3" selected>Normal</option>
+                                    <option value="5">Large</option>
+                                    <option value="7">X-Large</option>
+                                </select>
+                            </div>
+                            <div id="entPdfInstructions" contenteditable="true" style="min-height:120px;padding:12px;background:rgba(255,255,255,0.05);color:#fff;outline:none;" placeholder="Enter instructions with formatting..."></div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Footer Text</label>
+                        <input type="text" id="entPdfFooter" placeholder="Enter footer text" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveEntrancePdfSettings()" style="width:100%;padding:12px;"><i class="fas fa-save"></i> Save PDF Settings</button>
+                </div>
+                
                 <!-- Quick Links -->
                 <div style="margin-top:25px;padding:20px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:12px;">
                     <h4 style="color:#fff;margin:0 0 15px 0;font-size:14px;"><i class="fas fa-link"></i> Quick Links</h4>

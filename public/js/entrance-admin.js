@@ -44,6 +44,8 @@ async function loadEntranceSettings() {
     
     // Load submission settings
     loadEntranceSubmissionSettings();
+    // Load PDF settings
+    loadEntrancePdfSettings();
 }
 
 async function toggleEntranceFeature() {
@@ -1028,6 +1030,47 @@ function updateToggleSlider(checkboxId, sliderId) {
     const isChecked = checkbox.checked;
     slider.style.background = isChecked ? '#10b981' : '#374151';
     slider.innerHTML = '<span style="position:absolute;top:2px;left:' + (isChecked ? '26px' : '2px') + ';width:24px;height:24px;background:#fff;border-radius:50%;transition:.3s;"></span>';
+}
+
+// Rich text editor for instructions
+function formatText(command, value = null) {
+    document.execCommand(command, false, value);
+    document.getElementById('entPdfInstructions').focus();
+}
+
+async function saveEntrancePdfSettings() {
+    const pdfData = {
+        entrancePdfInstituteName: document.getElementById('entPdfInstituteName').value,
+        entrancePdfTagline: document.getElementById('entPdfTagline').value,
+        entrancePdfAddress: document.getElementById('entPdfAddress').value,
+        entrancePdfInstructions: document.getElementById('entPdfInstructions').innerHTML,
+        entrancePdfFooter: document.getElementById('entPdfFooter').value
+    };
+    
+    try {
+        await entApi('/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pdfData)
+        });
+        entShowToast('PDF settings saved', 'success');
+    } catch (e) {
+        entShowToast('Error saving PDF settings', 'error');
+    }
+}
+
+async function loadEntrancePdfSettings() {
+    try {
+        const settings = await fetch('/api/settings').then(r => r.json());
+        
+        document.getElementById('entPdfInstituteName').value = settings.entrancePdfInstituteName || '';
+        document.getElementById('entPdfTagline').value = settings.entrancePdfTagline || '';
+        document.getElementById('entPdfAddress').value = settings.entrancePdfAddress || '';
+        document.getElementById('entPdfInstructions').innerHTML = settings.entrancePdfInstructions || '';
+        document.getElementById('entPdfFooter').value = settings.entrancePdfFooter || '';
+    } catch (e) {
+        console.error('Error loading PDF settings:', e);
+    }
 }
 
 function exportEntranceResults() {
