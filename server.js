@@ -11057,24 +11057,11 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         // Header - clean and professional
         doc.rect(20, 20, 555.28, 100).fill(headerColor);
         
-        // Logo
-        if (showLogo && settings.logo) {
-            try {
-                doc.image(settings.logo, 35, 35, { width: 70, height: 70 });
-            } catch (e) {
-                doc.fontSize(40).text('🎓', 35, 45);
-            }
-        } else if (showLogo) {
-            doc.fontSize(40).text('🎓', 35, 45);
-        }
-        
-        // Institute info
-        const instituteX = showLogo ? 120 : 35;
-        const instituteWidth = showLogo ? 435 : 555.28;
-        doc.fontSize(22).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), instituteX, 32, { align: 'center', width: instituteWidth });
-        doc.fontSize(11).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, instituteX, 58, { align: 'center', width: instituteWidth });
+        // Institute info (centered in header)
+        doc.fontSize(22).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), 20, 32, { align: 'center', width: 555.28 });
+        doc.fontSize(11).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, 20, 58, { align: 'center', width: 555.28 });
         if (address) {
-            doc.fontSize(9).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, instituteX, 75, { align: 'center', width: instituteWidth });
+            doc.fontSize(9).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, 20, 75, { align: 'center', width: 555.28 });
         }
         
         // Reference number
@@ -11082,11 +11069,26 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             doc.fontSize(9).fillColor('#ffffff').font('Helvetica-Bold').text('Ref: ' + refNumber, 35, 95);
         }
         
-        // Title
+        // Title with logo on left
         let y = 135;
-        doc.fontSize(16).fillColor(headerColor).font('Helvetica-Bold').text('EXAMINATION RESULT', 20, y, { align: 'center', width: 555.28 });
-        y += 25;
-        doc.moveTo(50, y).lineTo(545, y).stroke(headerColor).lineWidth(2);
+        
+        // Logo next to title
+        if (showLogo && settings.logo) {
+            try {
+                doc.image(settings.logo, 30, y - 5, { width: 50, height: 50 });
+            } catch (e) {
+                doc.fontSize(30).text('🎓', 30, y);
+            }
+        } else if (showLogo) {
+            doc.fontSize(30).text('🎓', 30, y);
+        }
+        
+        // Title text (offset if logo is shown)
+        const titleX = showLogo ? 90 : 20;
+        const titleWidth = showLogo ? 485.28 : 555.28;
+        doc.fontSize(16).fillColor(headerColor).font('Helvetica-Bold').text('EXAMINATION RESULT', titleX, y + 10, { align: 'center', width: titleWidth });
+        y += 35;
+        doc.moveTo(titleX, y).lineTo(titleX + titleWidth, y).stroke(headerColor).lineWidth(2);
         y += 20;
         
         // Student details - improved table format

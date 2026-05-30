@@ -11323,6 +11323,58 @@ document.getElementById('smtpForm').addEventListener('submit', async function(e)
     } catch (err) { showNotification('Error saving email settings!', 'error'); }
 });
 
+document.getElementById('pdfSettingsForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const data = {
+        instituteName: document.getElementById('pdfInstituteName').value,
+        tagline: document.getElementById('pdfTagline').value,
+        address: document.getElementById('pdfAddress').value,
+        headerColor: document.getElementById('pdfHeaderColor').value,
+        signatureLabel: document.getElementById('pdfSignatureLabel').value,
+        footerText: document.getElementById('pdfFooterText').value,
+        eligibleCourses: document.getElementById('pdfCourses').value,
+        entranceInstructions: document.getElementById('pdfInstructions').value
+    };
+    
+    const displayOptions = {
+        showLogo: document.getElementById('pdfShowLogo').checked,
+        showRef: document.getElementById('pdfShowRef').checked,
+        showCourses: document.getElementById('pdfShowCourses').checked,
+        showQR: document.getElementById('pdfShowQR').checked,
+        showSignature: document.getElementById('pdfShowSignature').checked
+    };
+    
+    try {
+        await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        await fetch('/api/pdf-display-options', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(displayOptions) });
+        showNotification('PDF settings saved!', 'success');
+    } catch (err) { showNotification('Error saving PDF settings!', 'error'); }
+});
+
+async function loadPdfSettings() {
+    try {
+        const settings = await fetch('/api/settings').then(r => r.json());
+        const displayOptions = await fetch('/api/pdf-display-options').then(r => r.json());
+        
+        document.getElementById('pdfInstituteName').value = settings.instituteName || '';
+        document.getElementById('pdfTagline').value = settings.tagline || '';
+        document.getElementById('pdfAddress').value = settings.address || '';
+        document.getElementById('pdfHeaderColor').value = settings.headerColor || '#1e3a8a';
+        document.getElementById('pdfSignatureLabel').value = settings.signatureLabel || '';
+        document.getElementById('pdfFooterText').value = settings.footerText || '';
+        document.getElementById('pdfCourses').value = settings.eligibleCourses || '';
+        document.getElementById('pdfInstructions').value = settings.entranceInstructions || '';
+        
+        document.getElementById('pdfShowLogo').checked = displayOptions.showLogo !== false;
+        document.getElementById('pdfShowRef').checked = displayOptions.showRef !== false;
+        document.getElementById('pdfShowCourses').checked = displayOptions.showCourses !== false;
+        document.getElementById('pdfShowQR').checked = displayOptions.showQR !== false;
+        document.getElementById('pdfShowSignature').checked = displayOptions.showSignature !== false;
+    } catch (err) {
+        console.error('Error loading PDF settings:', err);
+    }
+}
+
 // ===== Utilities =====
 function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('active');
@@ -13578,6 +13630,14 @@ async function exportExamResultsToExcel() {
         if (securityTab) {
             securityTab.addEventListener('click', function() {
                 checkTOTPStatus();
+            });
+        }
+        
+        // Add event listener for PDF tab
+        const pdfTab = document.querySelector('.settings-tab[data-tab="pdf"]');
+        if (pdfTab) {
+            pdfTab.addEventListener('click', function() {
+                loadPdfSettings();
             });
         }
     });
