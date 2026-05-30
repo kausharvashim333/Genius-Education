@@ -2324,10 +2324,6 @@
                         <input type="color" id="pdfHeaderColor" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;">
                     </div>
                     <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Text Color</label>
-                        <input type="color" id="pdfTextColor" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;">
-                    </div>
-                    <div style="margin-bottom:15px;">
                         <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Signature Label</label>
                         <input type="text" id="pdfSignatureLabel" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
                     </div>
@@ -2336,44 +2332,11 @@
                         <input type="text" id="pdfFooterText" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
                     </div>
                     <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Institute Motto / Mission</label>
-                        <input type="text" id="pdfMotto" placeholder="Enter institute motto or mission statement" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Website URL</label>
-                        <input type="text" id="pdfWebsite" placeholder="https://www.example.com" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Accreditation Logos (comma-separated URLs)</label>
-                        <textarea id="pdfAccreditations" rows="2" placeholder="https://example.com/logo1.png, https://example.com/logo2.png" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;resize:vertical;"></textarea>
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Instructions (shown at bottom)</label>
-                        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;">
-                            <div style="display:flex;gap:4px;padding:8px;border-bottom:1px solid rgba(255,255,255,0.2);flex-wrap:wrap;">
-                                <button type="button" onclick="formatDoc('bold')" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:12px;"><b>B</b></button>
-                                <button type="button" onclick="formatDoc('italic')" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:12px;"><i>I</i></button>
-                                <button type="button" onclick="formatDoc('underline')" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:12px;"><u>U</u></button>
-                                <button type="button" onclick="formatDoc('insertUnorderedList')" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:12px;">• List</button>
-                                <button type="button" onclick="formatDoc('insertOrderedList')" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:12px;">1. List</button>
-                                <button type="button" onclick="insertTable()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:12px;">Table</button>
-                                <button type="button" onclick="formatDoc('justifyLeft')" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:12px;">Left</button>
-                                <button type="button" onclick="formatDoc('justifyCenter')" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:12px;">Center</button>
-                                <button type="button" onclick="formatDoc('justifyRight')" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:12px;">Right</button>
-                                <button type="button" onclick="formatDoc('outdent')" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:12px;">←</button>
-                                <button type="button" onclick="formatDoc('indent')" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:12px;">→</button>
-                            </div>
-                            <div id="pdfInstructions" contenteditable="true" style="min-height:80px;padding:12px;color:#fff;outline:none;" placeholder="Enter instructions for students..."></div>
-                        </div>
-                    </div>
-                    <div style="margin-bottom:15px;">
                         <label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Courses (comma separated)</label>
                         <textarea id="pdfCourses" rows="2" placeholder="DCA, PGDCA, BCA, Tally, Busy, Corel Draw" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;resize:vertical;"></textarea>
                         <small style="color:#9ca3af;font-size:11px;margin-top:4px;display:block;">These will be shown as eligible courses for admission</small>
                     </div>
-                    <div style="display:flex;gap:12px;justify-content:flex-end;">
-                        <button class="btn btn-primary" onclick="savePdfSettings()"><i class="fas fa-save"></i> Save Settings</button>
-                    </div>
+                    <small style="color:#9ca3af;font-size:11px;display:block;margin-top:10px;">Note: These settings are saved in the main Settings tab. Changes here will reflect globally.</small>
                 </div>
                 <div style="background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:25px;max-width:700px;">
                     <h3 style="color:#fff;margin-bottom:20px;"><i class="fas fa-sliders-h" style="color:#667eea;margin-right:8px;"></i> PDF Display Options</h3>
