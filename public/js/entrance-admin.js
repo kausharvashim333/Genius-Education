@@ -1102,85 +1102,85 @@ function renderEntranceResultHtml(r) {
         ? '<div style="text-align:center;margin-top:8px;"><a href="' + s.website + '" style="color:' + s.headerColor + ';font-size:9px;font-weight:600;text-decoration:none;letter-spacing:0.3px;">' + s.website + '</a></div>'
         : '';
     
-    return '<div id="entResultPdfArea" style="background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);color:' + s.textColor + ';padding:25mm;font-family:\'Segoe UI\',\'Roboto\',\'Helvetica\',sans-serif;width:210mm;height:297mm;box-sizing:border-box;position:relative;overflow:hidden;">' +
+    return '<div id="entResultPdfArea" style="background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);color:' + s.textColor + ';padding:15mm;font-family:\'Segoe UI\',\'Roboto\',\'Helvetica\',sans-serif;width:210mm;height:297mm;box-sizing:border-box;position:relative;overflow:hidden;">' +
         watermarkHtml +
-        '<div style="border:3px solid ' + s.headerColor + ';border-radius:12px;padding:18px;height:100%;position:relative;z-index:1;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.1);">' +
+        '<div style="border:3px solid ' + s.headerColor + ';border-radius:12px;padding:15px;height:100%;position:relative;z-index:1;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.1);">' +
         
         // Decorative top bar
         '<div style="position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,' + s.headerColor + '0%,' + s.headerColor + '50%,' + s.headerColor + '100%);border-radius:9px 9px 0 0;"></div>' +
         
         // Header Section with card style
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:16px;background:linear-gradient(135deg,' + s.headerColor + '08,' + s.headerColor + '03);border-radius:10px;border:1px solid ' + s.headerColor + '20;box-shadow:0 4px 12px rgba(0,0,0,0.05);">' +
-        '<div style="flex:0 0 75px;">' + logoHtml + '</div>' +
-        '<div style="flex:1;text-align:center;padding:0 15px;">' +
-        '<h1 style="margin:0;font-size:20px;color:' + s.headerColor + ';font-weight:800;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 4px rgba(0,0,0,0.1);">' + s.instituteName + '</h1>' +
-        '<p style="margin:6px 0 0 0;color:' + s.textColor + ';font-size:11px;font-weight:600;letter-spacing:0.4px;opacity:0.9;">' + s.tagline + '</p>' +
-        (s.address ? '<p style="margin:4px 0 0 0;color:' + s.textColor + ';font-size:9px;opacity:0.7;">' + s.address + '</p>' : '') +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:12px;background:linear-gradient(135deg,' + s.headerColor + '08,' + s.headerColor + '03);border-radius:10px;border:1px solid ' + s.headerColor + '20;box-shadow:0 4px 12px rgba(0,0,0,0.05);">' +
+        '<div style="flex:0 0 65px;">' + logoHtml + '</div>' +
+        '<div style="flex:1;text-align:center;padding:0 12px;">' +
+        '<h1 style="margin:0;font-size:18px;color:' + s.headerColor + ';font-weight:800;letter-spacing:0.6px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 4px rgba(0,0,0,0.1);">' + s.instituteName + '</h1>' +
+        '<p style="margin:5px 0 0 0;color:' + s.textColor + ';font-size:10px;font-weight:600;letter-spacing:0.3px;opacity:0.9;">' + s.tagline + '</p>' +
+        (s.address ? '<p style="margin:3px 0 0 0;color:' + s.textColor + ';font-size:8px;opacity:0.7;">' + s.address + '</p>' : '') +
         '</div>' +
-        '<div style="flex:0 0 75px;"></div>' +
+        '<div style="flex:0 0 65px;"></div>' +
         '</div>' +
         
         // Motto Section
         mottoHtml +
         
         // Title Section with modern badge style
-        '<div style="text-align:center;margin-bottom:18px;position:relative;">' +
-        '<div style="display:inline-block;padding:12px 30px;background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);border-radius:30px;box-shadow:0 6px 20px rgba(0,0,0,0.15);position:relative;">' +
+        '<div style="text-align:center;margin-bottom:14px;position:relative;">' +
+        '<div style="display:inline-block;padding:10px 25px;background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);border-radius:30px;box-shadow:0 6px 20px rgba(0,0,0,0.15);position:relative;">' +
         '<div style="position:absolute;top:-2px;left:-2px;right:-2px;bottom:-2px;background:linear-gradient(135deg,' + s.headerColor + '40,' + s.headerColor + '20);border-radius:32px;opacity:0.3;filter:blur(8px);"></div>' +
-        '<h2 style="margin:0;position:relative;color:#fff;font-size:15px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;">OFFICIAL EXAMINATION SCORECARD</h2>' +
+        '<h2 style="margin:0;position:relative;color:#fff;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">OFFICIAL EXAMINATION SCORECARD</h2>' +
         '</div>' +
         '</div>' +
         
         // Student Details Table with modern card
-        '<div style="margin-bottom:16px;">' +
-        '<div style="display:flex;align-items:center;margin-bottom:10px;">' +
-        '<div style="width:4px;height:20px;background:linear-gradient(180deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);border-radius:2px;margin-right:10px;"></div>' +
-        '<h3 style="margin:0;color:' + s.headerColor + ';font-size:13px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;">Candidate Information</h3>' +
+        '<div style="margin-bottom:12px;">' +
+        '<div style="display:flex;align-items:center;margin-bottom:8px;">' +
+        '<div style="width:4px;height:18px;background:linear-gradient(180deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);border-radius:2px;margin-right:8px;"></div>' +
+        '<h3 style="margin:0;color:' + s.headerColor + ';font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Candidate Information</h3>' +
         '</div>' +
         '<div style="background:#fff;border-radius:10px;border:1px solid #e5e7eb;box-shadow:0 4px 12px rgba(0,0,0,0.05);overflow:hidden;">' +
         '<table style="width:100%;border-collapse:collapse;">' +
-        '<tr style="background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);"><td style="padding:10px 12px;font-weight:700;color:#fff;width:38%;font-size:11px;letter-spacing:0.3px;">Registration Number</td><td style="padding:10px 12px;color:#fff;font-weight:600;font-size:12px;background:rgba(255,255,255,0.1);">' + (r.registrationNo || '') + '</td></tr>' +
-        '<tr style="background:#fff;"><td style="padding:9px 12px;font-weight:600;color:' + s.textColor + ';font-size:11px;letter-spacing:0.2px;">Student Name</td><td style="padding:9px 12px;font-size:12px;color:' + s.textColor + ';text-transform:uppercase;font-weight:600;letter-spacing:0.3px;">' + (r.studentName || '') + '</td></tr>' +
-        '<tr style="background:#f8fafc;"><td style="padding:9px 12px;font-weight:600;color:' + s.textColor + ';font-size:11px;letter-spacing:0.2px;">Applied Course</td><td style="padding:9px 12px;font-size:12px;color:' + s.headerColor + ';text-transform:uppercase;font-weight:700;letter-spacing:0.3px;">' + (r.course || '-') + '</td></tr>' +
-        '<tr style="background:#fff;"><td style="padding:9px 12px;font-weight:600;color:' + s.textColor + ';font-size:11px;letter-spacing:0.2px;">Examination</td><td style="padding:9px 12px;font-size:12px;color:' + s.textColor + ';text-transform:uppercase;font-weight:600;letter-spacing:0.3px;">' + (r.examName || '') + '</td></tr>' +
-        '<tr style="background:#f8fafc;"><td style="padding:9px 12px;font-weight:600;color:' + s.textColor + ';font-size:11px;letter-spacing:0.2px;">Date of Examination</td><td style="padding:9px 12px;font-size:12px;color:' + s.textColor + ';">' + (r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '-') + '</td></tr>' +
+        '<tr style="background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);"><td style="padding:8px 10px;font-weight:700;color:#fff;width:38%;font-size:10px;letter-spacing:0.2px;">Registration Number</td><td style="padding:8px 10px;color:#fff;font-weight:600;font-size:11px;background:rgba(255,255,255,0.1);">' + (r.registrationNo || '') + '</td></tr>' +
+        '<tr style="background:#fff;"><td style="padding:7px 10px;font-weight:600;color:' + s.textColor + ';font-size:10px;letter-spacing:0.2px;">Student Name</td><td style="padding:7px 10px;font-size:11px;color:' + s.textColor + ';text-transform:uppercase;font-weight:600;letter-spacing:0.2px;">' + (r.studentName || '') + '</td></tr>' +
+        '<tr style="background:#f8fafc;"><td style="padding:7px 10px;font-weight:600;color:' + s.textColor + ';font-size:10px;letter-spacing:0.2px;">Applied Course</td><td style="padding:7px 10px;font-size:11px;color:' + s.headerColor + ';text-transform:uppercase;font-weight:700;letter-spacing:0.2px;">' + (r.course || '-') + '</td></tr>' +
+        '<tr style="background:#fff;"><td style="padding:7px 10px;font-weight:600;color:' + s.textColor + ';font-size:10px;letter-spacing:0.2px;">Examination</td><td style="padding:7px 10px;font-size:11px;color:' + s.textColor + ';text-transform:uppercase;font-weight:600;letter-spacing:0.2px;">' + (r.examName || '') + '</td></tr>' +
+        '<tr style="background:#f8fafc;"><td style="padding:7px 10px;font-weight:600;color:' + s.textColor + ';font-size:10px;letter-spacing:0.2px;">Date of Examination</td><td style="padding:7px 10px;font-size:11px;color:' + s.textColor + ';">' + (r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '-') + '</td></tr>' +
         '</table>' +
         '</div>' +
         '</div>' +
         
         // Score Section with modern gradient card
-        '<div style="background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,0,0,0.15);position:relative;overflow:hidden;">' +
+        '<div style="background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 8px 24px rgba(0,0,0,0.15);position:relative;overflow:hidden;">' +
         '<div style="position:absolute;top:-50%;right:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%);"></div>' +
-        '<h3 style="margin:0 0 14px 0;color:#fff;font-size:14px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;text-align:center;position:relative;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:10px;">Performance Summary</h3>' +
+        '<h3 style="margin:0 0 12px 0;color:#fff;font-size:13px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;text-align:center;position:relative;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:8px;">Performance Summary</h3>' +
         '<table style="width:100%;border-collapse:collapse;position:relative;">' +
-        '<tr><td style="padding:12px;border-bottom:1px solid rgba(255,255,255,0.2);font-weight:600;color:rgba(255,255,255,0.9);width:42%;font-size:11px;letter-spacing:0.3px;">Total Marks Obtained</td><td style="padding:12px;border-bottom:1px solid rgba(255,255,255,0.2);font-size:24px;font-weight:800;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">' + r.marksObtained + ' <span style="font-size:14px;color:rgba(255,255,255,0.8);font-weight:600;">/ ' + r.totalMarks + '</span></td></tr>' +
-        '<tr><td style="padding:12px;font-weight:600;color:rgba(255,255,255,0.9);font-size:11px;letter-spacing:0.3px;">Overall Percentage</td><td style="padding:12px;font-size:24px;font-weight:800;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">' + r.percentage + '<span style="font-size:14px;color:rgba(255,255,255,0.8);font-weight:600;">%</span></td></tr>' +
+        '<tr><td style="padding:10px;border-bottom:1px solid rgba(255,255,255,0.2);font-weight:600;color:rgba(255,255,255,0.9);width:42%;font-size:10px;letter-spacing:0.2px;">Total Marks Obtained</td><td style="padding:10px;border-bottom:1px solid rgba(255,255,255,0.2);font-size:22px;font-weight:800;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">' + r.marksObtained + ' <span style="font-size:13px;color:rgba(255,255,255,0.8);font-weight:600;">/ ' + r.totalMarks + '</span></td></tr>' +
+        '<tr><td style="padding:10px;font-weight:600;color:rgba(255,255,255,0.9);font-size:10px;letter-spacing:0.2px;">Overall Percentage</td><td style="padding:10px;font-size:22px;font-weight:800;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">' + r.percentage + '<span style="font-size:13px;color:rgba(255,255,255,0.8);font-weight:600;">%</span></td></tr>' +
         '</table>' +
         '</div>' +
         
         // Footer Section with modern layout
-        '<div style="margin-top:auto;padding-top:14px;border-top:2px solid ' + s.headerColor + '20;display:flex;justify-content:space-between;align-items:flex-start;gap:4%;">' +
+        '<div style="margin-top:auto;padding-top:12px;border-top:2px solid ' + s.headerColor + '20;display:flex;justify-content:space-between;align-items:flex-start;gap:4%;">' +
         '<div style="width:70%;box-sizing:border-box;">' +
-        '<div style="display:flex;align-items:center;margin-bottom:8px;">' +
-        '<div style="width:3px;height:16px;background:' + s.headerColor + ';border-radius:2px;margin-right:8px;"></div>' +
-        '<p style="margin:0;font-size:10px;color:' + s.headerColor + ';font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Document Information</p>' +
+        '<div style="display:flex;align-items:center;margin-bottom:6px;">' +
+        '<div style="width:3px;height:14px;background:' + s.headerColor + ';border-radius:2px;margin-right:6px;"></div>' +
+        '<p style="margin:0;font-size:9px;color:' + s.headerColor + ';font-weight:700;letter-spacing:0.4px;text-transform:uppercase;">Document Information</p>' +
         '</div>' +
-        '<p style="margin:0;font-size:9px;color:' + s.textColor + ';opacity:0.7;line-height:1.5;">This is a computer-generated document. No manual signatures are required. This scorecard is valid for admission purposes only.</p>' +
+        '<p style="margin:0;font-size:8px;color:' + s.textColor + ';opacity:0.7;line-height:1.4;">This is a computer-generated document. No manual signatures are required. This scorecard is valid for admission purposes only.</p>' +
         instructionsHtml +
         '</div>' +
-        '<div style="width:26%;text-align:center;box-sizing:border-box;padding:12px;background:linear-gradient(135deg,' + s.headerColor + '08,' + s.headerColor + '03);border-radius:10px;border:1px solid ' + s.headerColor + '20;">' +
-        '<p style="margin:0 0 8px 0;font-size:10px;color:' + s.headerColor + ';font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Authorization</p>' +
-        '<div style="width:75px;height:45px;border-bottom:3px solid ' + s.headerColor + ';margin:8px auto 0 auto;position:relative;">' +
-        '<div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:' + s.headerColor + ';border-radius:2px;"></div>' +
+        '<div style="width:26%;text-align:center;box-sizing:border-box;padding:10px;background:linear-gradient(135deg,' + s.headerColor + '08,' + s.headerColor + '03);border-radius:10px;border:1px solid ' + s.headerColor + '20;">' +
+        '<p style="margin:0 0 6px 0;font-size:9px;color:' + s.headerColor + ';font-weight:700;letter-spacing:0.4px;text-transform:uppercase;">Authorization</p>' +
+        '<div style="width:70px;height:40px;border-bottom:3px solid ' + s.headerColor + ';margin:6px auto 0 auto;position:relative;">' +
+        '<div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:18px;height:3px;background:' + s.headerColor + ';border-radius:2px;"></div>' +
         '</div>' +
-        '<p style="margin:8px 0 0 0;font-size:9px;color:' + s.textColor + ';font-weight:600;letter-spacing:0.3px;">' + s.signatureLabel + '</p>' +
+        '<p style="margin:6px 0 0 0;font-size:8px;color:' + s.textColor + ';font-weight:600;letter-spacing:0.2px;">' + s.signatureLabel + '</p>' +
         courseButtonsHtml +
         '</div>' +
         '</div>' +
         
         // Footer Text with modern style
-        '<div style="text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid #e5e7eb;position:relative;">' +
-        '<p style="margin:0;font-size:9px;color:' + s.textColor + ';opacity:0.6;letter-spacing:0.6px;font-weight:500;">' + s.footerText + '</p>' +
+        '<div style="text-align:center;margin-top:12px;padding-top:10px;border-top:1px solid #e5e7eb;position:relative;">' +
+        '<p style="margin:0;font-size:8px;color:' + s.textColor + ';opacity:0.6;letter-spacing:0.5px;font-weight:500;">' + s.footerText + '</p>' +
         websiteHtml +
         accreditationHtml +
         '</div>' +
