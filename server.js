@@ -11192,12 +11192,17 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             doc.fontSize(9).fillColor('#1e3a8a').font('Helvetica').text('Scan QR code to verify this document online', 45, y + 38, { width: 320 });
             doc.fontSize(8).fillColor('#3b82f6').font('Helvetica').text(verificationUrl, 45, y + 52, { width: 320 });
             
-            // QR code - larger size for better visibility
+            // QR code - with background and border for better visibility
             try {
+                // White background box with border for QR code
+                doc.rect(425, y + 5, 70, 70).fill('#ffffff');
+                doc.rect(425, y + 5, 70, 70).stroke('#3b82f6').lineWidth(2);
+                
                 const qrBuffer = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
                 doc.image(qrBuffer, 430, y + 10, { width: 60, height: 60 });
             } catch (e) {
-                doc.rect(430, y + 10, 60, 60).fill('#e5e7eb');
+                doc.rect(425, y + 5, 70, 70).fill('#ffffff');
+                doc.rect(425, y + 5, 70, 70).stroke('#3b82f6').lineWidth(2);
                 doc.fontSize(8).fillColor('#6b7280').font('Helvetica').text('QR', 430, y + 40, { align: 'center', width: 60 });
             }
             
