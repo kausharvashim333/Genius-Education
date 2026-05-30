@@ -10991,7 +10991,7 @@ function generateEntranceResultHTML(result) {
 </html>`;
 }
 
-// Generate PDF for entrance result using pdfkit
+// Generate PDF for entrance result using Puppeteer
 app.get('/api/entrance-result-pdf/:id', async (req, res) => {
     try {
         const results = readData('entrance-results.json') || [];
@@ -11001,18 +11001,24 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Result not found' });
         }
         
+        console.log('Generating PDF for result:', result.id);
+        
         // Use Puppeteer for better font support (including Hindi)
         const html = generateEntranceResultHTML(result);
+        console.log('HTML generated, length:', html.length);
         
         const browser = await getBrowser();
         const page = await browser.newPage();
         try {
-            await page.setContent(html, { waitUntil: 'networkidle0' });
+            await page.setContent(html, { waitUntil: 'domcontentloaded' });
+            console.log('Page content set');
+            
             const pdfBuffer = await page.pdf({
                 format: 'A4',
                 printBackground: true,
                 margin: { top: '0', bottom: '0', left: '0', right: '0' }
             });
+            console.log('PDF generated, size:', pdfBuffer.length);
             
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', `attachment; filename="entrance-result-${result.registrationNo || 'student'}.pdf"`);
