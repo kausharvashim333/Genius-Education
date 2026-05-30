@@ -11,6 +11,7 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 const puppeteer = require('puppeteer');
 const qrcode = require('qrcode');
+const PDFDocument = require('pdfkit');
 const archiver = require('archiver');
 const unzipper = require('unzipper');
 const speakeasy = require('speakeasy');
@@ -10966,9 +10967,8 @@ function generateEntranceResultHTML(result) {
 </html>`;
 }
 
-// Generate PDF for entrance result
+// Generate PDF for entrance result using pdfkit
 app.get('/api/entrance-result-pdf/:id', async (req, res) => {
-    let browser = null;
     try {
         const results = readData('entrance-results.json') || [];
         const result = results.find(r => r.id == req.params.id);
@@ -10977,47 +10977,130 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Result not found' });
         }
         
-        const html = generateEntranceResultHTML(result);
+        const settings = readData('settings.json') || {};
+        const instituteName = settings.instituteName || 'GENIUS COMPUTER EDUCATION';
+        const tagline = settings.tagline || 'Excellence in Computer Education';
+        const address = settings.address || '';
+        const headerColor = settings.headerColor || '#1e3a8a';
+        const signatureLabel = settings.signatureLabel || 'Principal / Director';
+        const footerText = settings.footerText || '© Genius Computer Education. All Rights Reserved.';
+        const instructions = settings.entranceInstructions || 'This scorecard is valid for admission purposes only. Please verify the authenticity of this document with the institute administration.';
+        const courses = settings.eligibleCourses || 'DCA, PGDCA, BCA, Tally, Busy, Corel Draw';
         
-        browser = await puppeteer.launch({
-            headless: 'new',
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process',
-                '--disable-gpu'
-            ]
-        });
-        const page = await browser.newPage();
+        const doc = new PDFDocument({ size: 'A4', margin: 0 });
+        const chunks = [];
         
-        await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 30000 });
-        
-        const pdfBuffer = await page.pdf({
-            format: 'A4',
-            printBackground: true,
-            margin: {
-                top: '0mm',
-                right: '0mm',
-                bottom: '0mm',
-                left: '0mm'
-            },
-            timeout: 30000
+        doc.on('data', chunk => chunks.push(chunk));
+        doc.on('end', () => {
+            const pdfBuffer = Buffer.concat(chunks);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="entrance-result-${result.registrationNo || 'student'}.pdf"`);
+            res.send(pdfBuffer);
         });
         
-        await browser.close();
+        // Header
+        doc.rect(0, 0, 595.28, 120).fill(headerColor);
         
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="entrance-result-${result.registrationNo || 'student'}.pdf"`);
-        res.send(pdfBuffer);
+        // Logo placeholder
+        if (settings.logo) {
+            try {
+                doc.image(settings.logo, 30, 20, { width: 80, height: 80 });
+            } catch (e) {
+                doc.fontSize(40).text('🎓', 30, 30);
+            }
+        } else {
+            doc.fontSize(40).text('🎓', 30, 30);
+        }
+        
+        // Institute name
+        doc.fontSize(24).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), 130, 40, { align: 'center', width: 335 });
+        doc.fontSize(12).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, 130, 70, { align: 'center', width: 335 });
+        if (address) {
+            doc.fontSize(10).fillColor('rgba(255,255,255,0.85)').text(address, 130, 88, { align: 'center', width: 335 });
+        }
+        
+        // Title
+        doc.rect(147.64, 140, 300, 40).fill('#f8fafc');
+        doc.rect(147.64, 140, 300, 40).stroke(headerColor).lineWidth(2);
+        doc.fontSize(12).fillColor(headerColor).font('Helvetica-Bold').text('OFFICIAL EXAMINATION SCORECARD', 147.64, 158, { align: 'center', width: 300 });
+        
+        // Student Details
+        let y = 200;
+        doc.fontSize(12).fillColor(headerColor).font('Helvetica-Bold').text('Candidate Information', 30, y);
+        y += 20;
+        
+        const details = [
+            ['Registration Number', result.registrationNo || ''],
+            ['Student Name', (result.studentName || '').toUpperCase()],
+            ['Applied Course', (result.course || '-').toUpperCase()],
+            ['Examination', (result.examName || '').toUpperCase()],
+            ['Date of Examination', result.submittedAt ? new Date(result.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '-']
+        ];
+        
+        details.forEach((detail, index) => {
+            doc.rect(30, y, 535.28, 30).fill(index % 2 === 0 ? '#f8fafc' : '#ffffff');
+            doc.fontSize(11).fillColor('#6b7280').font('Helvetica-Bold').text(detail[0], 40, y + 10);
+            doc.fontSize(12).fillColor('#1f2937').font('Helvetica').text(detail[1], 250, y + 10);
+            y += 30;
+        });
+        
+        // Performance Summary
+        y += 20;
+        doc.rect(30, y, 535.28, 100).fill(headerColor);
+        doc.fontSize(14).fillColor('#ffffff').font('Helvetica-Bold').text('Performance Summary', 30, y + 15, { align: 'center', width: 535.28 });
+        y += 45;
+        
+        doc.fontSize(11).fillColor('rgba(255,255,255,0.95)').font('Helvetica-Bold').text('Total Marks Obtained', 40, y);
+        doc.fontSize(28).fillColor('#ffffff').font('Helvetica-Bold').text(`${result.marksObtained !== undefined && result.marksObtained !== null ? result.marksObtained : 0} / ${result.totalMarks !== undefined && result.totalMarks !== null ? result.totalMarks : 0}`, 250, y - 8);
+        y += 35;
+        
+        doc.fontSize(11).fillColor('rgba(255,255,255,0.95)').font('Helvetica-Bold').text('Overall Percentage', 40, y);
+        doc.fontSize(28).fillColor('#ffffff').font('Helvetica-Bold').text(`${result.percentage !== undefined && result.percentage !== null ? result.percentage : 0}%`, 250, y - 8);
+        
+        // Instructions
+        y += 40;
+        doc.rect(30, y, 535.28, 60).fill('#fffbe6');
+        doc.rect(30, y, 535.28, 60).stroke('#fbbf24').lineWidth(2);
+        doc.fontSize(11).fillColor('#92400e').font('Helvetica-Bold').text('Important Instructions', 40, y + 10);
+        doc.fontSize(10).fillColor('#1f2937').font('Helvetica').text(instructions, 40, y + 25, { width: 515.28 });
+        
+        // Eligible Courses
+        y += 80;
+        doc.fontSize(11).fillColor(headerColor).font('Helvetica-Bold').text('Eligible Courses', 30, y);
+        y += 20;
+        
+        const courseList = courses.split(',').map(c => c.trim()).filter(c => c);
+        let courseX = 30;
+        courseList.forEach(course => {
+            const width = doc.widthOfString(course) + 20;
+            if (courseX + width > 565.28) {
+                courseX = 30;
+                y += 25;
+            }
+            doc.rect(courseX, y, width, 20).fill('#ffffff');
+            doc.rect(courseX, y, width, 20).stroke(headerColor).lineWidth(1);
+            doc.fontSize(10).fillColor(headerColor).font('Helvetica-Bold').text(course, courseX + 10, y + 5);
+            courseX += width + 10;
+        });
+        
+        // Footer
+        y = 750;
+        doc.rect(0, y, 595.28, 100).fill('#f8fafc');
+        doc.fontSize(9).fillColor('#6b7280').font('Helvetica').text('This is a computer-generated document. No manual signatures are required. This scorecard is valid for admission purposes only.', 30, y + 15, { width: 350 });
+        
+        // Authorization
+        doc.rect(380, y + 10, 185, 70).fill('#ffffff');
+        doc.rect(380, y + 10, 185, 70).stroke(headerColor).lineWidth(2);
+        doc.fontSize(9).fillColor(headerColor).font('Helvetica-Bold').text('Authorization', 380, y + 20, { align: 'center', width: 185 });
+        doc.moveTo(430, y + 50).lineTo(515, y + 50).stroke(headerColor).lineWidth(3);
+        doc.fontSize(9).fillColor('#374151').font('Helvetica').text(signatureLabel, 380, y + 60, { align: 'center', width: 185 });
+        
+        // Footer text
+        doc.fontSize(8).fillColor('#9ca3af').font('Helvetica').text(footerText, 30, y + 90, { align: 'center', width: 535.28 });
+        
+        doc.end();
     } catch (error) {
         console.error('PDF generation error:', error);
-        if (browser) {
-            await browser.close().catch(e => console.error('Error closing browser:', e));
-        }
         res.status(500).json({ success: false, message: 'Failed to generate PDF: ' + error.message });
     }
 });
