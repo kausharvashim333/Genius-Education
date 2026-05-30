@@ -946,7 +946,6 @@ async function loadInstituteSettings() {
 function previewEntranceResult(id) {
     const r = entranceCurrentResults.find(x => x.id == id);
     if (!r) return;
-    alert('Result data: ' + JSON.stringify(r, null, 2));
     currentPreviewResult = r;
     document.getElementById('entResultPreviewContent').innerHTML = renderEntranceResultHtml(r);
     document.getElementById('entranceResultViewModal').classList.add('active');
@@ -1128,7 +1127,7 @@ function renderEntranceResultHtml(r) {
         '<div style="text-align:center;margin-bottom:20px;position:relative;">' +
         '<div style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,' + s.headerColor + ' 0%,' + s.headerColor + ' 100%);border-radius:40px;box-shadow:0 8px 30px rgba(0,0,0,0.2);position:relative;">' +
         '<div style="position:absolute;top:-3px;left:-3px;right:-3px;bottom:-3px;background:linear-gradient(135deg,' + s.headerColor + '50,' + s.headerColor + '30);border-radius:42px;opacity:0.4;filter:blur(10px);"></div>' +
-        '<h2 style="margin:0;position:relative;color:#fff;font-size:17px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;">OFFICIAL EXAMINATION SCORECARD</h2>' +
+        '<h2 style="margin:0;position:relative;color:#fff;font-size:14px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;">OFFICIAL EXAMINATION SCORECARD</h2>' +
         '</div>' +
         '</div>' +
         
@@ -1154,8 +1153,8 @@ function renderEntranceResultHtml(r) {
         '<div style="position:absolute;top:-50%;right:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,0.15) 0%,transparent 70%);"></div>' +
         '<h3 style="margin:0 0 18px 0;color:#fff;font-size:16px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;text-align:center;position:relative;border-bottom:2px solid rgba(255,255,255,0.3);padding-bottom:12px;">Performance Summary</h3>' +
         '<table style="width:100%;border-collapse:collapse;position:relative;">' +
-        '<tr><td style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.25);font-weight:700;color:rgba(255,255,255,0.95);width:42%;font-size:13px;letter-spacing:0.4px;">Total Marks Obtained</td><td style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.25);font-size:28px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,0.3);">' + (r.marksObtained !== undefined && r.marksObtained !== null ? r.marksObtained : 0) + ' <span style="font-size:16px;color:rgba(255,255,255,0.85);font-weight:700;">/ ' + (r.totalMarks !== undefined && r.totalMarks !== null ? r.totalMarks : 0) + '</span></td></tr>' +
-        '<tr><td style="padding:14px;font-weight:700;color:rgba(255,255,255,0.95);font-size:13px;letter-spacing:0.4px;">Overall Percentage</td><td style="padding:14px;font-size:28px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,0.3);">' + (r.percentage !== undefined && r.percentage !== null ? r.percentage : 0) + '<span style="font-size:16px;color:rgba(255,255,255,0.85);font-weight:700;">%</span></td></tr>' +
+        '<tr><td style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.25);font-weight:700;color:rgba(255,255,255,0.95);width:42%;font-size:13px;letter-spacing:0.4px;">Total Marks Obtained</td><td style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.25);font-size:28px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,0.3);">' + (r.marksObtained ?? 0) + ' <span style="font-size:16px;color:rgba(255,255,255,0.85);font-weight:700;">/ ' + (r.totalMarks ?? 0) + '</span></td></tr>' +
+        '<tr><td style="padding:14px;font-weight:700;color:rgba(255,255,255,0.95);font-size:13px;letter-spacing:0.4px;">Overall Percentage</td><td style="padding:14px;font-size:28px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,0.3);">' + (r.percentage ?? 0) + '<span style="font-size:16px;color:rgba(255,255,255,0.85);font-weight:700;">%</span></td></tr>' +
         '</table>' +
         '</div>' +
         
