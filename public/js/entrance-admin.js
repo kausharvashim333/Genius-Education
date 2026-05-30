@@ -24,6 +24,26 @@ function entFmtDateTime(iso) {
 
 // ---------- Settings (Enable/Disable) ----------
 async function loadEntranceSettings() {
+    try {
+        const data = await entApi('/api/entrance-settings');
+        const toggle = document.getElementById('entranceEnableToggle');
+        const slider = document.getElementById('entranceToggleSlider');
+        const info = document.getElementById('entranceSettingsInfo');
+        if (!toggle) return;
+        toggle.checked = !!data.enabled;
+        if (slider) {
+            slider.style.background = data.enabled ? '#10b981' : '#374151';
+            slider.innerHTML = '<span style="position:absolute;top:4px;left:' + (data.enabled ? '32px' : '4px') + ';width:24px;height:24px;background:#fff;border-radius:50%;transition:.3s;"></span>';
+        }
+        if (info) {
+            info.innerHTML = data.enabled
+                ? '<i class="fas fa-check-circle" style="color:#10b981;"></i> <strong>Feature is currently ENABLED.</strong><br>Enabled at: ' + entFmtDateTime(data.enabledAt) + (data.enabledBy ? ' by ' + data.enabledBy : '')
+                : '<i class="fas fa-times-circle" style="color:#ef4444;"></i> <strong>Feature is currently DISABLED.</strong><br>Students cannot access the entrance portal and the homepage button is hidden.';
+        }
+    } catch (e) { console.error(e); }
+    
+    // Load submission settings
+    loadEntranceSubmissionSettings();
     // Load PDF display options
     loadPdfDisplayOptions();
     // Load PDF template settings
