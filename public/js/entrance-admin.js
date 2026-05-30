@@ -42,9 +42,6 @@ async function loadEntranceSettings() {
         }
     } catch (e) { console.error(e); }
     
-    // Load PDF settings to form
-    loadPdfSettingsToForm();
-    
     // Load submission settings
     loadEntranceSubmissionSettings();
 }
