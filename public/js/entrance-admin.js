@@ -1038,6 +1038,26 @@ function formatText(command, value = null) {
     document.getElementById('entPdfInstructions').focus();
 }
 
+function insertTable() {
+    const rows = prompt('Enter number of rows:', '3');
+    const cols = prompt('Enter number of columns:', '3');
+    
+    if (rows && cols) {
+        let table = '<table style="border-collapse: collapse; width: 100%; margin: 10px 0;">';
+        for (let i = 0; i < parseInt(rows); i++) {
+            table += '<tr>';
+            for (let j = 0; j < parseInt(cols); j++) {
+                table += '<td style="border: 1px solid #ccc; padding: 8px; min-width: 50px;">&nbsp;</td>';
+            }
+            table += '</tr>';
+        }
+        table += '</table><br>';
+        
+        document.execCommand('insertHTML', false, table);
+        document.getElementById('entPdfInstructions').focus();
+    }
+}
+
 async function saveEntrancePdfSettings() {
     const pdfData = {
         entrancePdfInstituteName: document.getElementById('entPdfInstituteName').value,
