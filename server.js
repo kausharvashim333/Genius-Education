@@ -11136,9 +11136,9 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         doc.fontSize(10).fillColor('#6b7280').font('Helvetica').text('Percentage', 200, y + 35);
         doc.fontSize(24).fillColor(percentage >= 60 ? '#10b981' : percentage >= 40 ? '#f59e0b' : '#ef4444').font('Helvetica-Bold').text(`${percentage}%`, 200, y + 50);
         
-        // Status
-        doc.fontSize(10).fillColor('#6b7280').font('Helvetica').text('Status', 350, y + 35);
-        doc.fontSize(14).fillColor(percentage >= 60 ? '#10b981' : '#ef4444').font('Helvetica-Bold').text(percentage >= 60 ? 'QUALIFIED' : 'NOT QUALIFIED', 350, y + 50);
+        // Eligible Courses
+        doc.fontSize(10).fillColor('#6b7280').font('Helvetica').text('Eligible Courses', 350, y + 35);
+        doc.fontSize(12).fillColor('#1e40af').font('Helvetica-Bold').text(courses, 350, y + 50, { width: 180 });
         
         y += 100;
         
@@ -11177,8 +11177,8 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
             doc.fontSize(11).fillColor('#1e40af').font('Helvetica-Bold').text('Document Verification', 45, y + 12);
             doc.moveTo(45, y + 28).lineTo(520, y + 28).stroke('#3b82f6').lineWidth(1);
             
-            doc.fontSize(9).fillColor('#1e3a8a').font('Helvetica').text('Scan QR code to verify this document online', 45, y + 38, { width: 370 });
-            doc.fontSize(8).fillColor('#3b82f6').font('Helvetica').text(verificationUrl, 45, y + 52, { width: 370 });
+            doc.fontSize(9).fillColor('#1e3a8a').font('Helvetica').text('Scan QR code to verify this document online', 45, y + 38, { width: 350 });
+            doc.fontSize(8).fillColor('#3b82f6').font('Helvetica').text(verificationUrl, 45, y + 52, { width: 350 });
             
             // QR code - larger size for better visibility
             try {
