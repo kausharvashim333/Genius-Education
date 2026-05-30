@@ -1070,16 +1070,17 @@ async function saveEntrancePdfSettings() {
         entrancePdfFooter: document.getElementById('entPdfFooter').value
     };
     
-    console.log('Saving PDF settings:', pdfData);
+    console.log('Saving PDF settings - instructions:', instructionsText);
     
     try {
         await entApi('/api/settings', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json; charset=utf-8' },
             body: JSON.stringify(pdfData)
         });
         entShowToast('PDF settings saved', 'success');
     } catch (e) {
+        console.error('Error saving PDF settings:', e);
         entShowToast('Error saving PDF settings', 'error');
     }
 }
