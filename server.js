@@ -11057,7 +11057,7 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
         // Header - clean and professional
         doc.rect(20, 20, 555.28, 80).fill(headerColor);
         
-        // Logo on left side of header
+        // Logo on left side of header (vertically centered)
         if (showLogo && settings.logo) {
             try {
                 // Resolve logo path to absolute path
@@ -11067,24 +11067,24 @@ app.get('/api/entrance-result-pdf/:id', async (req, res) => {
                 const logoPath = fs.existsSync(absPath) ? absPath : (fs.existsSync(publicPath) ? publicPath : null);
                 
                 if (logoPath) {
-                    doc.image(logoPath, 30, 20, { width: 60, height: 60 });
+                    doc.image(logoPath, 30, 30, { width: 60, height: 60 });
                 } else {
-                    doc.fontSize(36).text('🎓', 30, 20);
+                    doc.fontSize(36).text('🎓', 30, 30);
                 }
             } catch (e) {
-                doc.fontSize(36).text('🎓', 30, 20);
+                doc.fontSize(36).text('🎓', 30, 30);
             }
         } else if (showLogo) {
-            doc.fontSize(36).text('🎓', 30, 20);
+            doc.fontSize(36).text('🎓', 30, 30);
         }
         
-        // Institute info (positioned to the right of logo)
+        // Institute info (vertically centered to the right of logo)
         const textX = showLogo ? 100 : 30;
         const textWidth = showLogo ? 475.28 : 555.28;
-        doc.fontSize(24).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), textX, 25, { align: 'center', width: textWidth });
-        doc.fontSize(12).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, textX, 48, { align: 'center', width: textWidth });
+        doc.fontSize(24).fillColor('#ffffff').font('Helvetica-Bold').text(instituteName.toUpperCase(), textX, 35, { align: 'center', width: textWidth });
+        doc.fontSize(12).fillColor('rgba(255,255,255,0.9)').font('Helvetica').text(tagline, textX, 55, { align: 'center', width: textWidth });
         if (address) {
-            doc.fontSize(10).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, textX, 65, { align: 'center', width: textWidth });
+            doc.fontSize(10).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text(address, textX, 70, { align: 'center', width: textWidth });
         }
         
         // Reference number
