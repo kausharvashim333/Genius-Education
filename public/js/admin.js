@@ -10180,12 +10180,15 @@ async function printStudentForm(id) {
         
         // Fetch QR code
         let qrDataUrl = '';
+        const verifyUrl = window.location.origin + '/verify-application?appId=' + encodeURIComponent(appId);
         try {
-            const verifyUrl = window.location.origin + '/verify-application?appId=' + encodeURIComponent(appId);
-            const qrRes = await fetch('/api/qr?text=' + encodeURIComponent(verifyUrl) + '&size=100');
+            const qrRes = await fetch('/api/qr?text=' + encodeURIComponent(verifyUrl) + '&size=120');
             const qrData = await qrRes.json();
             if (qrData.success) qrDataUrl = qrData.dataUrl;
         } catch (e) { }
+        
+        // Latest payment info
+        const latestPayment = (s.fees && s.fees.payments && s.fees.payments.length) ? s.fees.payments[s.fees.payments.length - 1] : null;
         
         const printWindow = window.open('', '_blank');
         let html = '';
@@ -10200,7 +10203,8 @@ async function printStudentForm(id) {
         html += '        }\n';
         html += '        body { font-family: \'Times New Roman\', serif; margin: 0; padding: 30px; background: white; position: relative; }\n';
         html += '        .watermark-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-repeat: repeat; background-size: 200px 200px; opacity: 0.06; z-index: 0; pointer-events: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }\n';
-        html += '        .header { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 4px solid #1e40af; padding-bottom: 20px; position: relative; z-index: 1; }\n';
+        html += '        .header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; border-bottom: 4px solid #1e40af; padding-bottom: 20px; position: relative; z-index: 1; }\n';
+        html += '        .header-logo { width: 90px; height: 90px; object-fit: contain; flex-shrink: 0; }\n';
         html += '        .header-left { flex: 1; text-align: center; }\n';
         html += '        .header h1 { margin: 0; color: #1e40af; font-size: 38px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }\n';
         html += '        .header .subtitle { margin: 3px 0 0; color: #3b82f6; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }\n';
@@ -10241,6 +10245,9 @@ async function printStudentForm(id) {
         html += '<body>\n';
         html += '    <div class="watermark-bg" style="background-image: url(\'' + (settings.logo || '') + '\');"></div>\n';
         html += '    <div class="header">\n';
+        if (settings.logo) {
+            html += '        <img src="' + settings.logo + '" alt="Logo" class="header-logo" onerror="this.style.display=\'none\'">\n';
+        }
         html += '        <div class="header-left">\n';
         html += '            <h1>' + (settings.name || 'Institute Name') + '</h1>\n';
         html += '            <p class="subtitle">Admission Application Form</p>\n';
@@ -10256,8 +10263,11 @@ async function printStudentForm(id) {
         html += '                <td style="font-weight: 600; color: #0f172a;">' + appId + '</td>\n';
         html += '                <td style="font-weight: 700; color: #1e40af; width: 10%;">Date:</td>\n';
         html += '                <td style="font-weight: 600; color: #0f172a;">' + todayStr + '</td>\n';
-        html += '                <td style="width: 90px; vertical-align: middle;" rowspan="2">\n';
-        html += '                    <img src="' + qrDataUrl + '" alt="Verify" style="width: 80px; height: 80px; display: block; border: 2px solid #1e40af; border-radius: 6px; background: #fff;" onerror="this.style.display=\'none\'">\n';
+        html += '                <td style="width: 110px; vertical-align: middle; text-align: center;" rowspan="2">\n';
+        if (qrDataUrl) {
+            html += '                    <img src="' + qrDataUrl + '" alt="Verify" style="width: 100px; height: 100px; display: block; margin: 0 auto; border: 2px solid #1e40af; border-radius: 6px; background: #fff; padding: 3px;">\n';
+            html += '                    <div style="font-size: 9px; color: #1e40af; font-weight: 600; margin-top: 3px;">Scan to Verify</div>\n';
+        }
         html += '                </td>\n';
         html += '            </tr>\n';
         html += '            <tr>\n';
@@ -10276,22 +10286,41 @@ async function printStudentForm(id) {
         html += '                <tr><td class="label">Full Name</td><td class="value">' + (toTitleCase(s.name) || '-') + '</td><td class="label">Father\'s Name</td><td class="value">' + (toTitleCase(s.fatherName) || '-') + '</td></tr>\n';
         html += '                <tr><td class="label">Mother\'s Name</td><td class="value">' + (toTitleCase(s.motherName) || '-') + '</td><td class="label">Date of Birth</td><td class="value">' + (s.dob || '-') + '</td></tr>\n';
         html += '                <tr><td class="label">Gender</td><td class="value">' + (s.gender || '-') + '</td><td class="label">Category</td><td class="value">' + (s.category || '-') + '</td></tr>\n';
-        html += '                <tr><td class="label">Mobile Number</td><td class="value">' + (s.phone || '-') + '</td><td class="label">Email Address</td><td class="value">' + (s.email || '-') + '</td></tr>\n';
-        html += '                <tr><td class="label">Aadhar Number</td><td class="value">' + (s.aadhar || '-') + '</td><td class="label">Annual Income</td><td class="value">' + (s.familyIncome || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Mobile Number</td><td class="value">' + (s.phone || '-') + '</td><td class="label">WhatsApp</td><td class="value">' + (s.whatsapp || s.phone || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Email Address</td><td class="value">' + (s.email || '-') + '</td><td class="label">Blood Group</td><td class="value">' + (s.bloodGroup || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Aadhar Number</td><td class="value">' + (s.aadhar || '-') + '</td><td class="label">Reference</td><td class="value">' + (toTitleCase(s.reference) || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Address</td><td class="value" colspan="3">' + (s.address || '-') + '</td></tr>\n';
         html += '            </table>\n';
         html += '            <div class="photo-sig-right">\n';
         html += '                <div class="photo-box">\n';
-        html += '                    <img src="' + (s.photo || '') + '" alt="Photo">\n';
+        if (s.photo) {
+            html += '                    <img src="' + s.photo + '" alt="Photo" onerror="this.parentNode.innerHTML=\'<div style=&quot;width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px;text-align:center;&quot;>Photo<br>Not Available</div>\'">\n';
+        } else {
+            html += '                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px;text-align:center;">Photo<br>Not Available</div>\n';
+        }
         html += '                </div>\n';
         html += '                <div class="sig-box">\n';
-        html += '                    <img src="' + (s.signature || '') + '" alt="Signature">\n';
+        if (s.signature) {
+            html += '                    <img src="' + s.signature + '" alt="Signature" onerror="this.parentNode.innerHTML=\'<div style=&quot;width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:10px;&quot;>Signature</div>\'">\n';
+        } else {
+            html += '                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:10px;">Signature</div>\n';
+        }
         html += '                </div>\n';
         html += '            </div>\n';
         html += '        </div>\n';
         html += '    </div>\n';
         html += '    \n';
         html += '    <div class="section">\n';
-        html += '        <h3 class="section-title">2. Course Information</h3>\n';
+        html += '        <h3 class="section-title">2. Parent / Guardian Information</h3>\n';
+        html += '        <table class="data-table">\n';
+        html += '            <tr><td class="label">Father\'s Name</td><td class="value">' + (toTitleCase(s.fatherName) || '-') + '</td><td class="label">Father\'s Occupation</td><td class="value">' + (toTitleCase(s.fatherOccupation) || '-') + '</td></tr>\n';
+        html += '            <tr><td class="label">Father\'s Phone</td><td class="value">' + (s.fatherPhone || '-') + '</td><td class="label">Mother\'s Name</td><td class="value">' + (toTitleCase(s.motherName) || '-') + '</td></tr>\n';
+        html += '            <tr><td class="label">Annual Family Income</td><td class="value">' + (s.familyIncome ? '₹' + s.familyIncome : '-') + '</td><td class="label"></td><td class="value"></td></tr>\n';
+        html += '        </table>\n';
+        html += '    </div>\n';
+        html += '    \n';
+        html += '    <div class="section">\n';
+        html += '        <h3 class="section-title">3. Course Information</h3>\n';
         html += '        <table class="data-table">\n';
         html += '            <tr><td class="label">Course Name</td><td class="value">' + (toTitleCase(s.course) || '-') + '</td><td class="label">Batch</td><td class="value">' + (toTitleCase(s.batch) || '-') + '</td></tr>\n';
         html += '            <tr><td class="label">Roll Number</td><td class="value">' + (s.rollNo || '-') + '</td><td class="label">Admission Date</td><td class="value">' + (s.admissionDate || '-') + '</td></tr>\n';
@@ -10299,7 +10328,7 @@ async function printStudentForm(id) {
         html += '    </div>\n';
         html += '    \n';
         html += '    <div class="section">\n';
-        html += '        <h3 class="section-title">3. Educational Qualification</h3>\n';
+        html += '        <h3 class="section-title">4. Educational Qualification</h3>\n';
         if (qual && qual.tenth) {
             html += '        <table class="data-table" style="margin-bottom: 10px;">\n';
             html += '            <tr class="sub-header"><td colspan="4">10th Standard</td></tr>\n';
@@ -10332,15 +10361,23 @@ async function printStudentForm(id) {
         html += '    </div>\n';
         html += '    \n';
         html += '    <div class="section">\n';
-        html += '        <h3 class="section-title">4. Payment Information</h3>\n';
+        html += '        <h3 class="section-title">5. Payment Information</h3>\n';
         html += '        <table class="data-table">\n';
         html += '            <tr><td class="label">Total Fees</td><td class="value">&#8377;' + s.fees.totalFees + '</td><td class="label">Paid Amount</td><td class="value" style="color: #16a34a; font-weight: 700;">&#8377;' + s.fees.paidAmount + '</td></tr>\n';
         html += '            <tr><td class="label">Pending Fees</td><td class="value" style="color: ' + (s.fees.dueAmount > 0 ? '#d97706' : '#16a34a') + '; font-weight: 700;">&#8377;' + s.fees.dueAmount + '</td><td class="label">Payment Status</td><td class="value" style="color: #16a34a; font-weight: 700;">' + (s.fees.dueAmount > 0 ? 'Partial' : 'Fully Paid') + '</td></tr>\n';
+        if (latestPayment) {
+            html += '            <tr class="sub-header"><td colspan="4">Latest Payment Details</td></tr>\n';
+            html += '            <tr><td class="label">Receipt No.</td><td class="value">' + (latestPayment.receipt || '-') + '</td><td class="label">Payment Date</td><td class="value">' + (latestPayment.date || '-') + '</td></tr>\n';
+            html += '            <tr><td class="label">Payment Mode</td><td class="value">' + (latestPayment.mode || '-') + '</td><td class="label">Payment Type</td><td class="value">' + (latestPayment.type || '-') + '</td></tr>\n';
+            if (latestPayment.transactionId || latestPayment.utrNumber || latestPayment.upiId) {
+                html += '            <tr><td class="label">Transaction ID</td><td class="value">' + (latestPayment.transactionId || latestPayment.utrNumber || '-') + '</td><td class="label">UPI ID</td><td class="value">' + (latestPayment.upiId || '-') + '</td></tr>\n';
+            }
+        }
         html += '        </table>\n';
         html += '    </div>\n';
         html += '    \n';
         html += '    <div class="section">\n';
-        html += '        <h3 class="section-title">5. Declaration &amp; Undertaking (घोषणा एवं प्रतिज्ञा पत्र)</h3>\n';
+        html += '        <h3 class="section-title">6. Declaration &amp; Undertaking (घोषणा एवं प्रतिज्ञा पत्र)</h3>\n';
         html += '        <div style="background: #f8fafc; padding: 18px; border: 2px solid #1e40af; margin-top: 0;">\n';
         html += '            <p style="margin: 0 0 12px 0; font-weight: 600; color: #1e40af; font-size: 13px;">I, the undersigned, hereby declare and solemnly affirm that (मैं नीचे हस्ताक्षर कर्ता, घोषणा एवं शपथपूर्वक पुष्टि करता/करती हूं कि):</p>\n';
         html += '            <ol style="margin: 0; padding-left: 22px; line-height: 1.8; color: #0f172a; font-size: 13px;">\n';
@@ -10362,7 +10399,11 @@ async function printStudentForm(id) {
         html += '    <div class="signatures">\n';
         html += '        <div class="flex">\n';
         html += '            <div class="sig-block">\n';
-        html += '                <div class="sig-box-dashed"><span style="color: #94a3b8; font-size: 12px;">Student Signature</span></div>\n';
+        if (s.signature) {
+            html += '                <div class="sig-box-dashed" style="border-style:solid;"><img src="' + s.signature + '" alt="Sig" style="max-height:60px;max-width:100%;object-fit:contain;" onerror="this.parentNode.innerHTML=\'<span style=&quot;color:#94a3b8;font-size:12px;&quot;>Student Signature</span>\'"></div>\n';
+        } else {
+            html += '                <div class="sig-box-dashed"><span style="color: #94a3b8; font-size: 12px;">Student Signature</span></div>\n';
+        }
         html += '                <div class="sig-label">Student Signature</div>\n';
         html += '                <div class="sig-meta">Date: ' + todayStr + '</div>\n';
         html += '                <div class="sig-meta">Place: ' + place + '</div>\n';
