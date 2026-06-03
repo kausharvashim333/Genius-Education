@@ -9484,8 +9484,13 @@ async function populateAdminPrintSection(student, paymentMode, paymentType, amou
         document.getElementById('adminPrintWatermark').src = settings.logo;
     }
 
+    // Generate Application ID (same format as printStudentForm + apply.html)
+    const year = new Date().getFullYear();
+    const serial = String(student.id || student.rollNo || Date.now()).slice(-5).padStart(5, '0');
+    const appId = student.applicationId || ('GCE-' + year + '-' + serial);
+
     // Personal info
-    document.getElementById('adminPrintAppId').textContent = student.rollNo || '-';
+    document.getElementById('adminPrintAppId').textContent = appId;
     document.getElementById('adminPrintDate').textContent = formatDate(new Date());
     document.getElementById('adminPrintName').textContent = student.name || '-';
     document.getElementById('adminPrintFatherName').textContent = student.fatherName || '-';
@@ -9508,9 +9513,19 @@ async function populateAdminPrintSection(student, paymentMode, paymentType, amou
 
     // Generate QR code for admission verification
     try {
-        const verifyUrl = `${settings.websiteUrl || window.location.origin}/verify-admission?rollNo=${student.rollNo}`;
-        const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, { width: 100, margin: 1 });
-        document.getElementById('adminPrintQRImage').src = qrCodeDataUrl;
+        const baseUrl = settings.websiteUrl || window.location.origin;
+        const verifyUrl = `${baseUrl}/verify-application?appId=${encodeURIComponent(appId)}`;
+        // Try server-side QR API first (consistent across forms), fallback to client-side QRCode lib
+        let qrDataUrl = '';
+        try {
+            const qrRes = await fetch('/api/qr?text=' + encodeURIComponent(verifyUrl) + '&size=120');
+            const qrData = await qrRes.json();
+            if (qrData.success) qrDataUrl = qrData.dataUrl;
+        } catch (_) {}
+        if (!qrDataUrl && typeof QRCode !== 'undefined') {
+            qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 120, margin: 1 });
+        }
+        document.getElementById('adminPrintQRImage').src = qrDataUrl;
     } catch (e) {
         console.error('Error generating QR code:', e);
         document.getElementById('adminPrintQRImage').src = '';
