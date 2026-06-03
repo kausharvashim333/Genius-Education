@@ -5,7 +5,7 @@ let carouselImageFile = null;
 
 // Helper function to get admin session headers
 function getAdminHeaders() {
-    const sessionToken = localStorage.getItem('adminSessionToken');
+    const sessionToken = sessionStorage.getItem('adminSessionToken');
     const headers = { 'Content-Type': 'application/json' };
     if (sessionToken) {
         headers['X-Admin-Session'] = sessionToken;
@@ -15,7 +15,7 @@ function getAdminHeaders() {
 
 // Helper function to check if session is valid
 async function checkAdminSession() {
-    const sessionToken = localStorage.getItem('adminSessionToken');
+    const sessionToken = sessionStorage.getItem('adminSessionToken');
     if (!sessionToken) return false;
     
     try {
@@ -30,33 +30,29 @@ async function checkAdminSession() {
     }
 }
 
-// Session timeout warning
-let sessionTimeoutWarningShown = false;
-function checkSessionTimeout() {
-    const expiresAt = parseInt(localStorage.getItem('adminSessionExpires') || '0');
-    const now = Date.now();
-    const timeLeft = expiresAt - now;
-    
-    if (timeLeft < 5 * 60 * 1000 && !sessionTimeoutWarningShown && timeLeft > 0) {
-        // Show warning when less than 5 minutes remaining
-        showNotification('Your session will expire in less than 5 minutes. Please save your work.', 'warning');
-        sessionTimeoutWarningShown = true;
-    }
-    
-    if (timeLeft <= 0) {
-        // Session expired
-        localStorage.removeItem('adminSession');
-        localStorage.removeItem('adminSessionToken');
-        localStorage.removeItem('adminSessionExpires');
-        showNotification('Your session has expired. Please login again.', 'error');
-        document.getElementById('loginSection').classList.remove('hidden');
-        document.getElementById('dashboardSection').classList.add('hidden');
-        sessionTimeoutWarningShown = false;
-    }
+// Session is bound to the browser tab via sessionStorage and is also validated
+// against the server. It auto-expires when the tab is closed or when admin logs out.
+async function checkSessionTimeout() {
+    const sessionToken = sessionStorage.getItem('adminSessionToken');
+    if (!sessionToken) return;
+    try {
+        const res = await fetch('/api/admin/verify-session', {
+            headers: { 'X-Admin-Session': sessionToken }
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!data.valid) {
+            sessionStorage.removeItem('adminSession');
+            sessionStorage.removeItem('adminSessionToken');
+            sessionStorage.removeItem('adminSessionExpires');
+            showNotification('Your session has expired. Please login again.', 'error');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+        }
+    } catch (e) { /* network error - ignore */ }
 }
 
-// Check session every minute
-setInterval(checkSessionTimeout, 60 * 1000);
+// Periodically validate the session against the server (every 5 minutes)
+setInterval(checkSessionTimeout, 5 * 60 * 1000);
 
 // Global formatDate function for DD-MMM-YYYY format (with month name)
 function formatDate(date) {
@@ -373,9 +369,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const data = await res.json();
                 console.log('Login response:', data);
                 if (data.success) {
-                    localStorage.setItem('adminSession', 'active');
-                    localStorage.setItem('adminSessionToken', data.sessionToken);
-                    localStorage.setItem('adminSessionExpires', data.expiresAt);
+                    sessionStorage.setItem('adminSession', 'active');
+                    sessionStorage.setItem('adminSessionToken', data.sessionToken);
+                    sessionStorage.setItem('adminSessionExpires', data.expiresAt);
                     showDashboard();
                 } else if (data.requireTOTP) {
                     // Show TOTP input field
@@ -399,7 +395,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', async function() {
-        const sessionToken = localStorage.getItem('adminSessionToken');
+        const sessionToken = sessionStorage.getItem('adminSessionToken');
         if (sessionToken) {
             try {
                 await fetch('/api/admin/logout', {
@@ -410,9 +406,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 console.error('Logout error:', err);
             }
         }
-        localStorage.removeItem('adminSession');
-        localStorage.removeItem('adminSessionToken');
-        localStorage.removeItem('adminSessionExpires');
+        sessionStorage.removeItem('adminSession');
+        sessionStorage.removeItem('adminSessionToken');
+        sessionStorage.removeItem('adminSessionExpires');
         document.getElementById('loginSection').classList.remove('hidden');
         document.getElementById('dashboardSection').classList.add('hidden');
     });
@@ -650,8 +646,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         } catch (err) { showNotification('Popup image upload failed!', 'error'); }
     });
 
-    // Check if already logged in
-    if (localStorage.getItem('adminSession') === 'active') {
+    // Check if already logged in (session is tied to current tab)
+    if (sessionStorage.getItem('adminSession') === 'active') {
         showDashboard();
     }
 

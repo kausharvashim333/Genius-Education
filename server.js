@@ -1825,7 +1825,10 @@ function generateSessionToken() {
 // Create admin session
 function createAdminSession(ip) {
     const token = generateSessionToken();
-    const expiresAt = Date.now() + 30 * 60 * 1000; // 30 minutes
+    // Long server-side TTL; the actual session lifetime is bound to the
+    // browser tab via sessionStorage on the client (cleared on tab close)
+    // and on explicit logout via /api/admin/logout.
+    const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
     adminSessions.set(token, { ip, expiresAt });
     return { token, expiresAt };
 }
