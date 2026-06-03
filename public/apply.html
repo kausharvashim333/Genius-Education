@@ -1901,7 +1901,7 @@ function generateTamperToken(appId, timestamp) {
     return ('00000000' + Math.abs(hash).toString(16)).slice(-8).toUpperCase();
 }
 
-function populatePrintSection(student, paymentMode, paymentType, amountPaid) {
+async function populatePrintSection(student, paymentMode, paymentType, amountPaid) {
     // Use server-generated Application ID for accuracy
     const year = new Date().getFullYear();
     const serial = String(student.id || student.rollNo || Date.now()).slice(-5).padStart(5, '0');
@@ -1915,14 +1915,19 @@ function populatePrintSection(student, paymentMode, paymentType, amountPaid) {
     document.getElementById('printDate').textContent = todayStr;
     document.getElementById('printPlace').textContent = place;
 
-    // QR Code for verification
+    // QR Code for verification (await so the Print button always has a ready QR)
     const verifyUrl = `${window.location.origin}/verify-application?appId=${encodeURIComponent(appId)}`;
-    fetch(`/api/qr?text=${encodeURIComponent(verifyUrl)}&size=100`)
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) document.getElementById('printQR').src = data.dataUrl;
-        })
-        .catch(() => {});
+    try {
+        const qrRes = await fetch(`/api/qr?text=${encodeURIComponent(verifyUrl)}&size=200`);
+        const qrData = await qrRes.json();
+        if (qrData.success) {
+            const qrImg = document.getElementById('printQR');
+            qrImg.src = qrData.dataUrl;
+            qrImg.dataset.verifyUrl = verifyUrl;
+        }
+    } catch (e) {
+        console.error('QR fetch failed:', e);
+    }
 
     // Signature date/place
     document.getElementById('printStudentDate').textContent = todayStr;
@@ -2013,7 +2018,21 @@ function populatePrintSection(student, paymentMode, paymentType, amountPaid) {
     }
 }
 
-function printApplication() {
+async function printApplication() {
+    // Ensure QR is generated before printing (in case user clicked Print very fast)
+    const qrImg = document.getElementById('printQR');
+    if (qrImg && (!qrImg.src || qrImg.src === window.location.href || qrImg.getAttribute('src') === '')) {
+        const appId = document.getElementById('printAppId').textContent.trim();
+        if (appId && appId !== '-') {
+            try {
+                const verifyUrl = `${window.location.origin}/verify-application?appId=${encodeURIComponent(appId)}`;
+                const qrRes = await fetch(`/api/qr?text=${encodeURIComponent(verifyUrl)}&size=200`);
+                const qrData = await qrRes.json();
+                if (qrData.success) qrImg.src = qrData.dataUrl;
+            } catch (e) { console.error('QR retry failed:', e); }
+        }
+    }
+
     const printContent = document.getElementById('printContent').innerHTML;
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
@@ -2026,12 +2045,28 @@ function printApplication() {
                 td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
                 h4 { background: #e0f2fe; padding: 8px; margin: 10px 0 0 0; }
                 img { max-width: 100%; object-fit: contain; }
+                #printQR { width: 80px !important; height: 80px !important; border: 2px solid #1e40af; border-radius: 6px; background: #fff; }
             </style>
         </head>
         <body><div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; pointer-events: none; display: flex; align-items: center; justify-content: center; opacity: 0.04;"><img src="/uploads/logo/logo.png" style="max-width: 300px; max-height: 300px; border-radius: 12px;" onerror="this.parentElement.style.display='none'"></div>${printContent}</body>
         </html>
     `);
     printWindow.document.close();
+
+    // Wait for ALL images (including QR data-URL) to finish loading before print
+    const waitForImages = () => {
+        const imgs = Array.from(printWindow.document.images || []);
+        if (imgs.length === 0) return Promise.resolve();
+        return Promise.all(imgs.map(img => {
+            if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+            return new Promise(resolve => {
+                img.onload = img.onerror = () => resolve();
+                setTimeout(resolve, 3000); // safety timeout
+            });
+        }));
+    };
+    await waitForImages();
+    printWindow.focus();
     printWindow.print();
 }
 
