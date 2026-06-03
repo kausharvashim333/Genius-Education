@@ -9104,7 +9104,7 @@ async function generateResultPDF(grade, student, settings, options) {
     if (!qrCode && !isCertificate) {
         try {
             const verifyUrl = `${settings.websiteUrl || 'http://localhost:3000'}/verify-result?gradeId=${grade.id}`;
-            qrCode = await QRCode.toDataURL(verifyUrl, { width: 100, margin: 1 });
+            qrCode = await qrcode.toDataURL(verifyUrl, { width: 100, margin: 1 });
         } catch (e) {
             qrCode = '';
         }
@@ -9725,7 +9725,7 @@ app.get('/api/qr', async (req, res) => {
     const { text, size = 120 } = req.query;
     if (!text) return res.status(400).json({ success: false, message: 'Text required' });
     try {
-        const dataUrl = await QRCode.toDataURL(text, { width: parseInt(size), margin: 1, color: { dark: '#1e40af', light: '#ffffff' } });
+        const dataUrl = await qrcode.toDataURL(text, { width: parseInt(size), margin: 1, color: { dark: '#1e40af', light: '#ffffff' } });
         res.json({ success: true, dataUrl });
     } catch (e) {
         res.status(500).json({ success: false, message: e.message });
