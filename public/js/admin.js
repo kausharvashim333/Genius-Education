@@ -911,11 +911,13 @@ async function loadDashboard() {
         }
 
         // Calculate revenue from payments.json and students' fee payments, deduplicating by payment ID
+        // IMPORTANT: ignore payments whose studentId no longer exists (deleted students)
+        const validStudentIds = new Set(students.map(s => String(s.id)));
         const paymentIds = new Set();
         let totalRevenue = 0;
 
-        // Add from payments.json
-        payments.filter(p => p.status === 'approved').forEach(p => {
+        // Add from payments.json (skip orphan payments of deleted students)
+        payments.filter(p => p.status === 'approved' && validStudentIds.has(String(p.studentId))).forEach(p => {
             paymentIds.add(p.id);
             totalRevenue += parseFloat(p.amount) || 0;
         });
@@ -6210,18 +6212,27 @@ async function deleteSelectedCertificates() {
 // ===== Payments =====
 async function loadPaymentsTable() {
     try {
-        const res = await fetch('/api/payments');
+        const [res, studentsRes] = await Promise.all([
+            fetch('/api/payments'),
+            fetch('/api/students')
+        ]);
 
         if (!res.ok) {
             throw new Error('HTTP error! status: ' + res.status);
         }
 
         const data = await res.json();
+        const studentsData = await studentsRes.json().catch(() => []);
+        const students = Array.isArray(studentsData) ? studentsData : (studentsData.data || []);
+        const validStudentIds = new Set(students.map(s => String(s.id)));
         const tbody = document.querySelector('#paymentsTable tbody');
 
-        if (data.success && data.payments && data.payments.length > 0) {
+        // Hide payments belonging to deleted students
+        const visiblePayments = (data.payments || []).filter(p => validStudentIds.has(String(p.studentId)));
+
+        if (data.success && visiblePayments.length > 0) {
             // Sort by id descending (latest first)
-            const payments = [...data.payments].sort((a, b) => (b.id || 0) - (a.id || 0));
+            const payments = [...visiblePayments].sort((a, b) => (b.id || 0) - (a.id || 0));
 
             tbody.innerHTML = payments.map(p => {
                 const status = (p.status || 'pending').toLowerCase();
