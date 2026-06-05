@@ -910,29 +910,9 @@ async function loadDashboard() {
             }
         }
 
-        // Calculate revenue from payments.json and students' fee payments, deduplicating by payment ID
-        // IMPORTANT: ignore payments whose studentId no longer exists (deleted students)
-        const validStudentIds = new Set(students.map(s => String(s.id)));
-        const paymentIds = new Set();
-        let totalRevenue = 0;
-
-        // Add from payments.json (skip orphan payments of deleted students)
-        payments.filter(p => p.status === 'approved' && validStudentIds.has(String(p.studentId))).forEach(p => {
-            paymentIds.add(p.id);
-            totalRevenue += parseFloat(p.amount) || 0;
-        });
-
-        // Add from students' fee payments (only those not already in payments.json)
-        students.forEach(s => {
-            if (s.fees && s.fees.payments) {
-                s.fees.payments.forEach(p => {
-                    if (!paymentIds.has(p.id)) {
-                        totalRevenue += parseFloat(p.amount) || 0;
-                    }
-                });
-            }
-        });
-
+        // Total Revenue = sum of paidAmount of current students (matches Students list exactly)
+        // Deleted students are automatically excluded since we only iterate over current students.
+        const totalRevenue = students.reduce((sum, s) => sum + (s.fees && s.fees.paidAmount ? parseFloat(s.fees.paidAmount) : 0), 0);
         document.getElementById('totalRevenue').textContent = '₹' + totalRevenue.toLocaleString('en-IN');
 
         const totalDues = students.reduce((sum, s) => sum + (s.fees && s.fees.dueAmount ? parseFloat(s.fees.dueAmount) : 0), 0);
