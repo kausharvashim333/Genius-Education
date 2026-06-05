@@ -9166,6 +9166,7 @@ async function deleteStudent(studentId) {
         if (data.success) {
             showNotification('Student deleted successfully!', 'success');
             loadStudentsTable();
+            loadDashboard();
         } else {
             showNotification('Failed to delete student', 'error');
         }
@@ -9204,6 +9205,7 @@ async function deleteSelectedStudents() {
         
         document.getElementById('selectAllStudents').checked = false;
         loadStudentsTable();
+        loadDashboard();
     } catch (e) {
         console.error('Error deleting students:', e);
         showNotification('Error deleting students', 'error');
