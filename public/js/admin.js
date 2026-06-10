@@ -10151,6 +10151,10 @@ async function printStudentForm(id) {
     try {
         const s = await fetch('/api/students/' + id).then(r => r.json());
         const settings = await fetch('/api/settings').then(r => r.json());
+        const courses = await fetch('/api/courses').then(r => r.json()).catch(() => []);
+        const batches = await fetch('/api/batches').then(r => r.json()).catch(() => []);
+        const courseInfo = (Array.isArray(courses) ? courses : []).find(c => c.name === s.course) || {};
+        const batchInfo = (Array.isArray(batches) ? batches : []).find(b => b.name === s.batch && b.course === s.course) || {};
         
         // Parse qualification
         const qual = typeof s.qualification === 'string' ? JSON.parse(s.qualification) : s.qualification;
@@ -10165,10 +10169,10 @@ async function printStudentForm(id) {
             });
         }
         
-        // Generate Application ID and token
+        // Application ID: use stored if available, else generate
         const year = new Date().getFullYear();
         const serial = String(s.id || s.rollNo || Date.now()).slice(-5).padStart(5, '0');
-        const appId = 'GCE-' + year + '-' + serial;
+        const appId = s.applicationId || ('GCE-' + year + '-' + serial);
         const todayStr = formatDate(new Date());
         const place = settings.address || 'Batauli, Surguja (C.G.)';
         const nowIso = new Date().toISOString();
@@ -10192,8 +10196,8 @@ async function printStudentForm(id) {
             if (qrData.success) qrDataUrl = qrData.dataUrl;
         } catch (e) { }
         
-        // Latest payment info
-        const latestPayment = (s.fees && s.fees.payments && s.fees.payments.length) ? s.fees.payments[s.fees.payments.length - 1] : null;
+        // All payments (most recent first)
+        const allPayments = (s.fees && s.fees.payments && s.fees.payments.length) ? [...s.fees.payments].reverse() : [];
         
         const printWindow = window.open('', '_blank');
         let html = '';
@@ -10288,12 +10292,13 @@ async function printStudentForm(id) {
         html += '        <h3 class="section-title">1. Personal Information</h3>\n';
         html += '        <div class="personal-section">\n';
         html += '            <table class="personal-table">\n';
-        html += '                <tr><td class="label">Full Name</td><td class="value">' + (toTitleCase(s.name) || '-') + '</td><td class="label">Father\'s Name</td><td class="value">' + (toTitleCase(s.fatherName) || '-') + '</td></tr>\n';
-        html += '                <tr><td class="label">Mother\'s Name</td><td class="value">' + (toTitleCase(s.motherName) || '-') + '</td><td class="label">Date of Birth</td><td class="value">' + (s.dob || '-') + '</td></tr>\n';
-        html += '                <tr><td class="label">Gender</td><td class="value">' + (s.gender || '-') + '</td><td class="label">Category</td><td class="value">' + (s.category || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Full Name</td><td class="value" colspan="3">' + (toTitleCase(s.name) || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Date of Birth</td><td class="value">' + (s.dob || '-') + '</td><td class="label">Gender</td><td class="value">' + (s.gender || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Category</td><td class="value">' + (s.category || '-') + '</td><td class="label">Blood Group</td><td class="value">' + (s.bloodGroup || '-') + '</td></tr>\n';
         html += '                <tr><td class="label">Mobile Number</td><td class="value">' + (s.phone || '-') + '</td><td class="label">WhatsApp</td><td class="value">' + (s.whatsapp || s.phone || '-') + '</td></tr>\n';
-        html += '                <tr><td class="label">Email Address</td><td class="value">' + (s.email || '-') + '</td><td class="label">Blood Group</td><td class="value">' + (s.bloodGroup || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Email Address</td><td class="value" colspan="3">' + (s.email || '-') + '</td></tr>\n';
         html += '                <tr><td class="label">Aadhar Number</td><td class="value">' + (s.aadhar || '-') + '</td><td class="label">Reference</td><td class="value">' + (toTitleCase(s.reference) || '-') + '</td></tr>\n';
+        html += '                <tr><td class="label">Emergency Contact</td><td class="value" colspan="3">' + (s.emergencyContact || s.fatherPhone || '-') + '</td></tr>\n';
         html += '                <tr><td class="label">Address</td><td class="value" colspan="3">' + (s.address || '-') + '</td></tr>\n';
         html += '            </table>\n';
         html += '            <div class="photo-sig-right">\n';
@@ -10320,15 +10325,18 @@ async function printStudentForm(id) {
         html += '        <table class="data-table">\n';
         html += '            <tr><td class="label">Father\'s Name</td><td class="value">' + (toTitleCase(s.fatherName) || '-') + '</td><td class="label">Father\'s Occupation</td><td class="value">' + (toTitleCase(s.fatherOccupation) || '-') + '</td></tr>\n';
         html += '            <tr><td class="label">Father\'s Phone</td><td class="value">' + (s.fatherPhone || '-') + '</td><td class="label">Mother\'s Name</td><td class="value">' + (toTitleCase(s.motherName) || '-') + '</td></tr>\n';
-        html += '            <tr><td class="label">Annual Family Income</td><td class="value">' + (s.familyIncome ? '₹' + s.familyIncome : '-') + '</td><td class="label"></td><td class="value"></td></tr>\n';
+        html += '            <tr><td class="label">Mother\'s Occupation</td><td class="value">' + (toTitleCase(s.motherOccupation) || '-') + '</td><td class="label">Mother\'s Phone</td><td class="value">' + (s.motherPhone || '-') + '</td></tr>\n';
+        html += '            <tr><td class="label">Annual Family Income</td><td class="value">' + (s.familyIncome ? '₹' + s.familyIncome : '-') + '</td><td class="label">Guardian (if any)</td><td class="value">' + (toTitleCase(s.guardianName) || '-') + '</td></tr>\n';
         html += '        </table>\n';
         html += '    </div>\n';
         html += '    \n';
         html += '    <div class="section">\n';
         html += '        <h3 class="section-title">3. Course Information</h3>\n';
         html += '        <table class="data-table">\n';
-        html += '            <tr><td class="label">Course Name</td><td class="value">' + (toTitleCase(s.course) || '-') + '</td><td class="label">Batch</td><td class="value">' + (toTitleCase(s.batch) || '-') + '</td></tr>\n';
-        html += '            <tr><td class="label">Roll Number</td><td class="value">' + (s.rollNo || '-') + '</td><td class="label">Admission Date</td><td class="value">' + (s.admissionDate || '-') + '</td></tr>\n';
+        html += '            <tr><td class="label">Course Name</td><td class="value" colspan="3">' + (toTitleCase(s.course) || '-') + '</td></tr>\n';
+        html += '            <tr><td class="label">Course Duration</td><td class="value">' + (courseInfo.duration || '-') + '</td><td class="label">Eligibility</td><td class="value">' + (courseInfo.eligibility || '-') + '</td></tr>\n';
+        html += '            <tr><td class="label">Batch</td><td class="value">' + (toTitleCase(s.batch) || '-') + '</td><td class="label">Class Timing</td><td class="value">' + (batchInfo.timing || '-') + '</td></tr>\n';
+        html += '            <tr><td class="label">Batch Start Date</td><td class="value">' + (batchInfo.startDate || '-') + '</td><td class="label">Admission Date</td><td class="value">' + (s.admissionDate || '-') + '</td></tr>\n';
         html += '        </table>\n';
         html += '    </div>\n';
         html += '    \n';
@@ -10369,20 +10377,32 @@ async function printStudentForm(id) {
         html += '        <h3 class="section-title">5. Payment Information</h3>\n';
         html += '        <table class="data-table">\n';
         html += '            <tr><td class="label">Total Fees</td><td class="value">&#8377;' + s.fees.totalFees + '</td><td class="label">Paid Amount</td><td class="value" style="color: #16a34a; font-weight: 700;">&#8377;' + s.fees.paidAmount + '</td></tr>\n';
-        html += '            <tr><td class="label">Pending Fees</td><td class="value" style="color: ' + (s.fees.dueAmount > 0 ? '#d97706' : '#16a34a') + '; font-weight: 700;">&#8377;' + s.fees.dueAmount + '</td><td class="label">Payment Status</td><td class="value" style="color: #16a34a; font-weight: 700;">' + (s.fees.dueAmount > 0 ? 'Partial' : 'Fully Paid') + '</td></tr>\n';
-        if (latestPayment) {
-            html += '            <tr class="sub-header"><td colspan="4">Latest Payment Details</td></tr>\n';
-            html += '            <tr><td class="label">Receipt No.</td><td class="value">' + (latestPayment.receipt || '-') + '</td><td class="label">Payment Date</td><td class="value">' + (latestPayment.date || '-') + '</td></tr>\n';
-            html += '            <tr><td class="label">Payment Mode</td><td class="value">' + (latestPayment.mode || '-') + '</td><td class="label">Payment Type</td><td class="value">' + (latestPayment.type || '-') + '</td></tr>\n';
-            if (latestPayment.transactionId || latestPayment.utrNumber || latestPayment.upiId) {
-                html += '            <tr><td class="label">Transaction ID</td><td class="value">' + (latestPayment.transactionId || latestPayment.utrNumber || '-') + '</td><td class="label">UPI ID</td><td class="value">' + (latestPayment.upiId || '-') + '</td></tr>\n';
-            }
+        html += '            <tr><td class="label">Pending Fees</td><td class="value" style="color: ' + (s.fees.dueAmount > 0 ? '#d97706' : '#16a34a') + '; font-weight: 700;">&#8377;' + s.fees.dueAmount + '</td><td class="label">Payment Status</td><td class="value" style="color: ' + (s.fees.dueAmount > 0 ? '#d97706' : '#16a34a') + '; font-weight: 700;">' + (s.fees.dueAmount > 0 ? 'Partial' : 'Fully Paid') + '</td></tr>\n';
+        html += '        </table>\n';
+        if (allPayments.length > 0) {
+            html += '        <table class="data-table" style="margin-top:8px;">\n';
+            html += '            <tr class="sub-header"><td colspan="5" style="text-align:center;">Payment History (' + allPayments.length + ' transaction' + (allPayments.length > 1 ? 's' : '') + ')</td></tr>\n';
+            html += '            <tr style="background:#dbeafe;"><td class="label" style="width:8%;">#</td><td class="label">Date</td><td class="label">Amount</td><td class="label">Mode</td><td class="label">Receipt / Txn ID</td></tr>\n';
+            allPayments.forEach((p, idx) => {
+                const txnRef = p.receipt || p.transactionId || p.utrNumber || p.upiId || '-';
+                html += '            <tr><td class="value">' + (idx + 1) + '</td><td class="value">' + (p.date || '-') + '</td><td class="value" style="color:#16a34a;font-weight:700;">&#8377;' + (p.amount || 0) + '</td><td class="value">' + (p.mode || '-') + '</td><td class="value" style="font-family:monospace;font-size:12px;">' + txnRef + '</td></tr>\n';
+            });
+            html += '        </table>\n';
         }
+        html += '    </div>\n';
+        html += '    \n';
+        html += '    <div class="section">\n';
+        html += '        <h3 class="section-title">6. Documents Submitted</h3>\n';
+        html += '        <table class="data-table">\n';
+        html += '            <tr><td class="value" style="width:50%;">&#9744; Aadhar Card Copy</td><td class="value">&#9744; 10th Marksheet</td></tr>\n';
+        html += '            <tr><td class="value">&#9744; 12th Marksheet</td><td class="value">&#9744; Graduation Certificate (if applicable)</td></tr>\n';
+        html += '            <tr><td class="value">&#9744; Passport Size Photographs (2 copies)</td><td class="value">&#9744; Address Proof</td></tr>\n';
+        html += '            <tr><td class="value">&#9744; Caste/Category Certificate (if applicable)</td><td class="value">&#9744; Income Certificate (if applicable)</td></tr>\n';
         html += '        </table>\n';
         html += '    </div>\n';
         html += '    \n';
         html += '    <div class="section">\n';
-        html += '        <h3 class="section-title">6. Declaration &amp; Undertaking (घोषणा एवं प्रतिज्ञा पत्र)</h3>\n';
+        html += '        <h3 class="section-title">7. Declaration &amp; Undertaking (घोषणा एवं प्रतिज्ञा पत्र)</h3>\n';
         html += '        <div style="background: #f8fafc; padding: 18px; border: 2px solid #1e40af; margin-top: 0;">\n';
         html += '            <p style="margin: 0 0 12px 0; font-weight: 600; color: #1e40af; font-size: 13px;">I, the undersigned, hereby declare and solemnly affirm that (मैं नीचे हस्ताक्षर कर्ता, घोषणा एवं शपथपूर्वक पुष्टि करता/करती हूं कि):</p>\n';
         html += '            <ol style="margin: 0; padding-left: 22px; line-height: 1.8; color: #0f172a; font-size: 13px;">\n';
@@ -10399,6 +10419,15 @@ async function printStudentForm(id) {
         html += '            </ol>\n';
         html += '            <p style="margin: 12px 0 0 0; font-weight: 700; color: #dc2626; font-size: 13px;">I understand that any false statement or concealment of facts may lead to cancellation of my admission and legal action. (मुझे पता है कि कोई भी झूठा बयान या तथ्यों को छिपाने पर मेरा प्रवेश रद्द किया जा सकता है और कानूनी कार्रवाई की जा सकती है।)</p>\n';
         html += '        </div>\n';
+        html += '    </div>\n';
+        html += '    \n';
+        html += '    <div class="section">\n';
+        html += '        <h3 class="section-title">8. For Office Use Only</h3>\n';
+        html += '        <table class="data-table">\n';
+        html += '            <tr><td class="label" style="width:25%;">Verified By</td><td class="value">&nbsp;</td><td class="label" style="width:25%;">Verification Date</td><td class="value">&nbsp;</td></tr>\n';
+        html += '            <tr><td class="label">Approved By</td><td class="value">&nbsp;</td><td class="label">Approval Date</td><td class="value">&nbsp;</td></tr>\n';
+        html += '            <tr><td class="label">Remarks</td><td class="value" colspan="3" style="height:50px;">&nbsp;</td></tr>\n';
+        html += '        </table>\n';
         html += '    </div>\n';
         html += '    \n';
         html += '    <div class="signatures">\n';
