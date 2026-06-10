@@ -592,6 +592,19 @@ function getEmailLogo(settings, style = 'max-height:60px;') {
     };
 }
 
+// ---- Website URL helper (avoids hardcoded localhost in production emails/links) ----
+function getWebsiteUrl(settings, req) {
+    settings = settings || readData('settings.json') || {};
+    if (settings.websiteUrl) return String(settings.websiteUrl).replace(/\/+$/, '');
+    if (process.env.WEBSITE_URL) return String(process.env.WEBSITE_URL).replace(/\/+$/, '');
+    if (req) {
+        const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+        const host = req.headers['x-forwarded-host'] || req.get('host');
+        if (host) return `${proto}://${host}`;
+    }
+    return 'http://localhost:3000';
+}
+
 // ---- Monkey-patch nodemailer.createTransport to auto-inject institute logo in every email ----
 (function patchNodemailerForLogo() {
     const _origCreateTransport = nodemailer.createTransport.bind(nodemailer);
@@ -623,13 +636,14 @@ function getEmailLogo(settings, style = 'max-height:60px;') {
     };
 })();
 
-function generateSlipHTML(student, settings, payment, logoOverrideHtml) {
+function generateSlipHTML(student, settings, payment, logoOverrideHtml, websiteUrl) {
     const inst = settings.name || 'Genius Computer Education';
     const addr = settings.address || '';
     const phone = settings.phone || '';
+    const baseUrl = websiteUrl || getWebsiteUrl(settings);
     const logo = logoOverrideHtml !== undefined
         ? logoOverrideHtml
-        : (settings.logo ? `<img src="http://localhost:3000${settings.logo}" style="max-height:55px;">` : '');
+        : (settings.logo ? `<img src="${baseUrl}${settings.logo}" style="max-height:55px;">` : '');
     const p = payment || (student.fees.payments && student.fees.payments[student.fees.payments.length - 1]);
     return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admission Slip - ${student.rollNo}</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;color:#333;background:#fff;}
@@ -650,7 +664,7 @@ th{background:#f8fafc;font-weight:600;width:30%;color:#555;}
 </style></head><body>
 <div class="header"><div class="header-left"><div><h2>${inst}</h2><p>${addr}${phone ? ' | ' + phone : ''}</p></div></div><div class="badge">ADMISSION SLIP</div></div>
 <div class="body">
-<div class="roll">&#127891; Roll No: ${student.rollNo}</div>
+<div class="roll">&#127891; Roll No: ${student.rollNo}${student.applicationId ? ` &nbsp;|&nbsp; App ID: ${student.applicationId}` : ''}</div>
 <h3>Student Information</h3>
 <table><tr><th>Full Name</th><td><strong>${student.name}</strong></td><th>Date of Birth</th><td>${student.dob || '-'}</td></tr>
 <tr><th>Phone</th><td>${student.phone}</td><th>Email</th><td>${student.email || '-'}</td></tr>
@@ -666,14 +680,14 @@ ${p ? `<h3>Payment Details</h3><table><tr><th>Receipt No.</th><td>${p.receipt}</
 <tr><th>Amount Paid</th><td class="big green">&#8377;${p.amount}</td><th>Payment Mode</th><td>${p.mode}</td></tr>
 <tr><th>Payment Type</th><td>${p.type}</td><th>Transaction ID</th><td>${p.transactionId || '-'}</td></tr></table>` : ''}
 <div class="sigs">
-<div class="sig-box">${student.signature ? `<img src="http://localhost:3000${student.signature}" style="max-height:48px;display:block;margin:0 auto 8px;">` : '<div style="height:48px;"></div>'}<div class="sig-line">Student Signature</div></div>
+<div class="sig-box">${student.signature ? `<img src="${baseUrl}${student.signature}" style="max-height:48px;display:block;margin:0 auto 8px;">` : '<div style="height:48px;"></div>'}<div class="sig-line">Student Signature</div></div>
 <div class="sig-box"><div style="height:48px;"></div><div class="sig-line">Authorized Signature &amp; Stamp</div></div>
 </div></div>
 <div class="footer">This is a computer generated slip &mdash; ${inst}</div>
 </body></html>`;
 }
 
-async function sendSlipEmail(student, payment, type = 'admission') {
+async function sendSlipEmail(student, payment, type = 'admission', req = null) {
     const settings = readData('settings.json') || {};
     const smtpUser = process.env.SMTP_USER || settings.smtpUser;
     const smtpPass = process.env.SMTP_PASS || settings.smtpPass;
@@ -690,10 +704,13 @@ async function sendSlipEmail(student, payment, type = 'admission') {
         auth: { user: smtpUser, pass: smtpPass }
     });
     const logoInfo = getEmailLogo(settings, 'max-height:55px;');
-    const html = generateSlipHTML(student, settings, payment, logoInfo.html);
+    const websiteUrl = getWebsiteUrl(settings, req);
+    const html = generateSlipHTML(student, settings, payment, logoInfo.html, websiteUrl);
     const inst = settings.name || 'Genius Computer Education';
+    const replyTo = settings.email || smtpUser;
     await transporter.sendMail({
         from: `"${inst}" <${smtpUser}>`,
+        replyTo,
         to: student.email,
         subject: type === 'admission' ? `Admission Confirmed - ${student.rollNo} | ${inst}` : `Payment Receipt - ${student.rollNo} | ${inst}`,
         html,
@@ -2549,102 +2566,156 @@ function getSMTPConfig() {
     return { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure };
 }
 
-async function sendLoginCredentials(student, password) {
+/**
+ * Comprehensive admission confirmation email — combines welcome, slip, and credentials in ONE.
+ * Replaces the older sendLoginCredentials + sendSlipEmail pair sent on admission.
+ */
+async function sendAdmissionWelcomeEmail(student, payment, password, req = null) {
     const settings = readData('settings.json') || {};
     const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
     if (!smtpUser || !smtpPass || !student.email) return;
+
     const transporter = nodemailer.createTransport({ host: smtpHost, port: smtpPort, secure: smtpSecure, auth: { user: smtpUser, pass: smtpPass } });
     const inst = settings.name || 'Genius Computer Education';
-    const logo = getEmailLogo(settings);
-    const websiteUrl = settings.websiteUrl || 'http://localhost:3000';
+    const logo = getEmailLogo(settings, 'max-height:60px;');
+    const websiteUrl = getWebsiteUrl(settings, req);
+    const contactEmail = settings.email || smtpUser;
+    const contactPhone = settings.phone || '';
+    const address = settings.address || '';
+    const fees = student.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0 };
+    const dueAmount = parseInt(fees.dueAmount) || 0;
+    const p = payment || (fees.payments && fees.payments[fees.payments.length - 1]) || {};
+    const portalUrl = `${websiteUrl}/student-portal.html`;
+    const replyTo = contactEmail;
+
+    // Brand colors (consistent)
+    const C = { primary: '#1e40af', accent: '#2563eb', light: '#eff6ff', success: '#16a34a', warn: '#d97706', danger: '#dc2626', text: '#1f2937', muted: '#64748b' };
+
+    const subject = `🎉 Welcome ${student.name}! Aapka Admission Confirm ho gaya — Roll No: ${student.rollNo}`;
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Admission Confirmed</title></head>
+<body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#f4f6f9;color:${C.text};">
+<div style="max-width:640px;margin:30px auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.08);">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,${C.primary} 0%,${C.accent} 100%);padding:36px 28px;text-align:center;color:#fff;">
+    ${logo.html}
+    <h1 style="margin:14px 0 6px;font-size:26px;font-weight:700;">🎉 Welcome to ${inst}</h1>
+    <p style="margin:0;font-size:15px;opacity:0.92;">Aapka Admission Confirm ho gaya hai! / Your Admission is Confirmed!</p>
+  </div>
+
+  <!-- Body -->
+  <div style="padding:32px 28px;">
+    <p style="margin:0 0 14px;font-size:16px;line-height:1.6;">
+      Dear <strong>${student.name}</strong>,
+    </p>
+    <p style="margin:0 0 18px;font-size:14px;line-height:1.7;color:#475569;">
+      Bahut bahut badhai! 🙏 Aapne ${inst} ke <strong>${student.course}</strong> course me admission le liya hai. Hum aapka swagat karte hain aur aapki shiksha yatra me successful hone ki shubhkamnayein dete hain.
+      <br><span style="color:${C.muted};font-size:13px;font-style:italic;">Congratulations! You have officially enrolled in our program. We are excited to have you with us.</span>
+    </p>
+
+    <!-- Admission Details -->
+    <div style="background:${C.light};border-left:4px solid ${C.accent};padding:18px 20px;margin:22px 0;border-radius:0 10px 10px 0;">
+      <p style="margin:0 0 12px;color:${C.primary};font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">📋 Admission Details</p>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <tr><td style="padding:6px 0;color:${C.muted};width:45%;">Application ID</td><td style="padding:6px 0;color:${C.text};font-weight:700;">${student.applicationId || '-'}</td></tr>
+        <tr><td style="padding:6px 0;color:${C.muted};">Roll Number</td><td style="padding:6px 0;color:${C.primary};font-weight:700;font-size:16px;">${student.rollNo}</td></tr>
+        <tr><td style="padding:6px 0;color:${C.muted};">Course</td><td style="padding:6px 0;color:${C.text};font-weight:600;">${student.course}</td></tr>
+        <tr><td style="padding:6px 0;color:${C.muted};">Batch</td><td style="padding:6px 0;color:${C.text};">${student.batch || 'To be assigned'}</td></tr>
+        <tr><td style="padding:6px 0;color:${C.muted};">Admission Date</td><td style="padding:6px 0;color:${C.text};">${student.admissionDate || '-'}</td></tr>
+        <tr><td style="padding:6px 0;color:${C.muted};">Status</td><td style="padding:6px 0;"><span style="background:#dcfce7;color:${C.success};padding:3px 12px;border-radius:14px;font-size:12px;font-weight:700;">${student.status || 'Active'}</span></td></tr>
+      </table>
+    </div>
+
+    <!-- Fee Summary -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin:22px 0;">
+      <p style="margin:0 0 12px;color:${C.primary};font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">💰 Fee Summary</p>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <tr><td style="padding:6px 0;color:${C.muted};width:45%;">Total Fees</td><td style="padding:6px 0;color:${C.text};font-weight:700;">₹${fees.totalFees || 0}</td></tr>
+        <tr><td style="padding:6px 0;color:${C.muted};">Paid Amount</td><td style="padding:6px 0;color:${C.success};font-weight:700;">₹${fees.paidAmount || 0}</td></tr>
+        <tr><td style="padding:6px 0;color:${C.muted};">Pending Amount</td><td style="padding:6px 0;color:${dueAmount > 0 ? C.warn : C.success};font-weight:700;">₹${dueAmount}</td></tr>
+        ${p.receipt ? `<tr><td style="padding:6px 0;color:${C.muted};">Receipt No.</td><td style="padding:6px 0;color:${C.text};font-family:monospace;">${p.receipt}</td></tr>` : ''}
+        ${p.mode ? `<tr><td style="padding:6px 0;color:${C.muted};">Payment Mode</td><td style="padding:6px 0;color:${C.text};">${p.mode}</td></tr>` : ''}
+        ${p.transactionId || p.utrNumber ? `<tr><td style="padding:6px 0;color:${C.muted};">Transaction ID</td><td style="padding:6px 0;color:${C.text};font-family:monospace;font-size:12px;">${p.transactionId || p.utrNumber}</td></tr>` : ''}
+      </table>
+    </div>
+
+    ${dueAmount > 0 ? `
+    <!-- Pending Fee Reminder -->
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:16px 20px;margin:22px 0;">
+      <p style="margin:0 0 6px;color:${C.warn};font-size:14px;font-weight:700;">⏰ Pending Fee Reminder / Bakaya Fees</p>
+      <p style="margin:0;color:#9a3412;font-size:13px;line-height:1.6;">
+        Aapki <strong>₹${dueAmount}</strong> fees abhi pending hai. Kripya jaldi se jaldi pay karein. Aap institute office ya Student Portal se payment kar sakte hain.
+        <br><span style="color:${C.muted};font-style:italic;">Please clear your pending balance at the office or via the Student Portal.</span>
+      </p>
+    </div>
+    ` : ''}
+
+    ${password ? `
+    <!-- Login Credentials -->
+    <div style="background:${C.light};border:2px solid #bfdbfe;border-radius:10px;padding:20px;margin:22px 0;">
+      <p style="margin:0 0 14px;color:${C.primary};font-size:14px;font-weight:700;">🔐 Student Portal Login Credentials</p>
+      <div style="background:#fff;padding:12px 14px;border-radius:6px;margin-bottom:10px;">
+        <p style="margin:0 0 4px;color:${C.muted};font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Login Email</p>
+        <p style="margin:0;color:${C.text};font-size:14px;word-break:break-all;">${student.email}</p>
+      </div>
+      <div style="background:#fff;padding:12px 14px;border-radius:6px;">
+        <p style="margin:0 0 4px;color:${C.muted};font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Temporary Password</p>
+        <p style="margin:0;color:${C.danger};font-size:18px;font-weight:700;letter-spacing:2px;font-family:'Courier New',monospace;">${password}</p>
+      </div>
+      <p style="margin:12px 0 0;color:${C.warn};font-size:12px;line-height:1.5;">
+        ⚠️ Login ke baad password turant change karein. / Change password immediately after first login.
+      </p>
+    </div>
+    ` : ''}
+
+    <!-- CTA -->
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${portalUrl}" style="display:inline-block;background:${C.accent};color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;box-shadow:0 4px 12px rgba(37,99,235,0.3);">🎓 Open Student Portal</a>
+      <p style="margin:10px 0 0;color:${C.muted};font-size:12px;">Or copy this link: <a href="${portalUrl}" style="color:${C.accent};word-break:break-all;">${portalUrl}</a></p>
+    </div>
+
+    <!-- What's Next -->
+    <div style="background:#f0fdf4;border-left:4px solid ${C.success};padding:18px 20px;margin:22px 0;border-radius:0 10px 10px 0;">
+      <p style="margin:0 0 12px;color:#15803d;font-size:14px;font-weight:700;">📌 What's Next? / Aage kya karein:</p>
+      <ol style="margin:0;padding-left:20px;color:#374151;font-size:13px;line-height:1.9;">
+        <li>Student Portal pe login karein aur apni profile verify karein. <em style="color:${C.muted};">(Login & verify your profile)</em></li>
+        <li>Pehle din ID proof, copy, pen lekar aayein. <em style="color:${C.muted};">(Bring ID proof, notebook, pen on day 1)</em></li>
+        <li>Class timing aur schedule portal pe check karein. <em style="color:${C.muted};">(Check class schedule on portal)</em></li>
+        ${dueAmount > 0 ? `<li>Pending fees jaldi pay karein. <em style="color:${C.muted};">(Clear pending fees soon)</em></li>` : ''}
+        <li>Koi sawaal ho to office contact karein: <strong>${contactPhone || contactEmail}</strong></li>
+      </ol>
+    </div>
+
+    <p style="margin:24px 0 6px;color:#475569;font-size:14px;line-height:1.6;">
+      Aapka shiksha safar shuru hota hai — hum aapke saath hain! 🚀
+    </p>
+    <p style="margin:14px 0 0;color:${C.text};font-size:14px;font-weight:600;">
+      Best regards,<br>
+      <span style="color:${C.accent};">${inst} Team</span>
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background:#f8fafc;padding:24px 28px;text-align:center;border-top:1px solid #e2e8f0;">
+    ${address ? `<p style="margin:0 0 6px;color:${C.muted};font-size:12px;">📍 ${address}</p>` : ''}
+    ${contactPhone ? `<p style="margin:0 0 6px;color:${C.muted};font-size:12px;">📞 ${contactPhone}</p>` : ''}
+    <p style="margin:0 0 10px;color:${C.muted};font-size:12px;">✉️ <a href="mailto:${contactEmail}" style="color:${C.accent};text-decoration:none;">${contactEmail}</a></p>
+    <p style="margin:8px 0 0;color:#94a3b8;font-size:11px;">
+      <a href="${websiteUrl}" style="color:${C.accent};text-decoration:none;">Visit Website</a> &nbsp;·&nbsp;
+      <a href="${portalUrl}" style="color:${C.accent};text-decoration:none;">Student Portal</a>
+    </p>
+    <p style="margin:10px 0 0;color:#94a3b8;font-size:11px;">&copy; ${new Date().getFullYear()} ${inst}. All rights reserved.</p>
+  </div>
+
+</div></body></html>`;
 
     await transporter.sendMail({
         from: `"${inst}" <${smtpUser}>`,
+        replyTo,
         to: student.email,
-        subject: `Welcome to ${inst} - Your Admission is Confirmed!`,
-        html: `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admission Confirmation</title>
-</head>
-<body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f4f4f4;">
-    <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-        <!-- Header -->
-        <div style="background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%);padding:40px 30px;text-align:center;">
-            ${logo.html}
-            <h1 style="margin:20px 0 10px;color:#ffffff;font-size:28px;font-weight:700;">Welcome to ${inst}</h1>
-            <p style="margin:0;color:#ffffff;font-size:16px;opacity:0.9;">Your Admission is Confirmed!</p>
-        </div>
-
-        <!-- Content -->
-        <div style="padding:40px 30px;">
-            <p style="margin:0 0 20px;color:#333333;font-size:16px;line-height:1.6;">
-                Dear <strong>${student.name}</strong>,
-            </p>
-            <p style="margin:0 0 20px;color:#555555;font-size:15px;line-height:1.6;">
-                Congratulations! We are delighted to inform you that your admission has been successfully processed. You are now officially part of the ${inst} family.
-            </p>
-
-            <!-- Course Info -->
-            <div style="background:#f8fafc;border-left:4px solid #3b82f6;padding:20px;margin:25px 0;border-radius:0 8px 8px 0;">
-                <p style="margin:0 0 10px;color:#1e3a8a;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Enrolled Course</p>
-                <p style="margin:0;color:#333333;font-size:18px;font-weight:600;">${student.course}</p>
-                <p style="margin:5px 0 0;color:#666666;font-size:14px;">Batch: ${student.batch || 'To be assigned'}</p>
-            </div>
-
-            <!-- Login Credentials -->
-            <div style="background:#eff6ff;border:2px solid #bfdbfe;border-radius:8px;padding:25px;margin:25px 0;">
-                <p style="margin:0 0 15px;color:#1e3a8a;font-size:16px;font-weight:600;">Your Student Portal Login Credentials</p>
-                <div style="background:#ffffff;padding:15px;border-radius:6px;margin-bottom:12px;">
-                    <p style="margin:0 0 5px;color:#64748b;font-size:12px;font-weight:600;text-transform:uppercase;">Roll Number</p>
-                    <p style="margin:0;color:#1e3a8a;font-size:18px;font-weight:700;">${student.rollNo}</p>
-                </div>
-                <div style="background:#ffffff;padding:15px;border-radius:6px;margin-bottom:12px;">
-                    <p style="margin:0 0 5px;color:#64748b;font-size:12px;font-weight:600;text-transform:uppercase;">Login Email</p>
-                    <p style="margin:0;color:#333333;font-size:15px;">${student.email}</p>
-                </div>
-                <div style="background:#ffffff;padding:15px;border-radius:6px;">
-                    <p style="margin:0 0 5px;color:#64748b;font-size:12px;font-weight:600;text-transform:uppercase;">Password</p>
-                    <p style="margin:0;color:#dc2626;font-size:18px;font-weight:700;letter-spacing:2px;">${password}</p>
-                </div>
-            </div>
-
-            <!-- CTA Button -->
-            <div style="text-align:center;margin:30px 0;">
-                <a href="${websiteUrl}/student-portal.html" style="display:inline-block;background:#3b82f6;color:#ffffff;padding:15px 40px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;box-shadow:0 4px 6px rgba(59,130,246,0.3);">Access Student Portal</a>
-            </div>
-
-            <!-- Important Notice -->
-            <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:15px;margin:25px 0;">
-                <p style="margin:0 0 8px;color:#c2410c;font-size:14px;font-weight:600;"><i style="margin-right:5px;">⚠️</i> Important Security Notice</p>
-                <p style="margin:0;color:#9a3412;font-size:13px;line-height:1.5;">Please change your password immediately after your first login for security purposes. Do not share these credentials with anyone.</p>
-            </div>
-
-            <p style="margin:20px 0 0;color:#555555;font-size:14px;line-height:1.6;">
-                If you have any questions or need assistance, please don't hesitate to contact our administration team.
-            </p>
-            <p style="margin:10px 0 0;color:#555555;font-size:14px;line-height:1.6;">
-                We look forward to seeing you in class!
-            </p>
-            <p style="margin:20px 0 0;color:#333333;font-size:15px;font-weight:600;">
-                Best regards,<br>
-                <span style="color:#3b82f6;">${inst} Team</span>
-            </p>
-        </div>
-
-        <!-- Footer -->
-        <div style="background:#f8fafc;padding:30px;text-align:center;border-top:1px solid #e2e8f0;">
-            <p style="margin:0 0 10px;color:#64748b;font-size:13px;">&copy; ${new Date().getFullYear()} ${inst}. All rights reserved.</p>
-            <p style="margin:0;color:#94a3b8;font-size:12px;">
-                <a href="${websiteUrl}" style="color:#3b82f6;text-decoration:none;margin:0 10px;">Website</a> | 
-                <a href="mailto:${settings.email || smtpUser}" style="color:#3b82f6;text-decoration:none;margin:0 10px;">Contact Us</a>
-            </p>
-        </div>
-    </div>
-</body>
-</html>`,
+        subject,
+        html,
         attachments: logo.attachments
     });
 }
@@ -2658,11 +2729,13 @@ app.post('/api/student-auth/request-otp', async (req, res) => {
     otpStore.set(email, { otp, expiry: Date.now() + 5 * 60 * 1000 });
     const settings = readData('settings.json') || {};
     const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
+    const websiteUrl = getWebsiteUrl(settings, req);
     try {
         const transporter = nodemailer.createTransport({ host: smtpHost, port: smtpPort, secure: smtpSecure, auth: { user: smtpUser, pass: smtpPass } });
         const inst = settings.name || 'Genius Computer Education';
         await transporter.sendMail({
             from: `"${inst}" <${smtpUser}>`,
+            replyTo: settings.email || smtpUser,
             to: email,
             subject: `Login OTP - Student Portal | ${inst}`,
             html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
@@ -2694,7 +2767,7 @@ app.post('/api/student-auth/request-otp', async (req, res) => {
 </div>
 
 <p style="margin:24px 0 8px;color:#4b5563;font-size:14px;">Student Portal mein login karne ke liye yahan click karein:</p>
-<a href="http://localhost:3000/student-portal.html" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Student Portal Login</a>
+<a href="${websiteUrl}/student-portal.html" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Student Portal Login</a>
 
 <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e5e7eb;">
 <h4 style="margin:0 0 8px;color:#1f2937;font-size:14px;font-weight:600;">🔐 Account Security Tips:</h4>
@@ -2968,8 +3041,7 @@ app.post('/api/students', uploadStudent.fields([{name:'photo',maxCount:1},{name:
         submittedBy: student.submittedBy || null
     }, req);
     if (d.sendEmail === 'true' && student.email) {
-        sendSlipEmail(student, student.fees.payments[0], 'admission').catch(console.error);
-        sendLoginCredentials(student, student.loginPassword).catch(console.error);
+        sendAdmissionWelcomeEmail(student, student.fees.payments[0], student.loginPassword, req).catch(console.error);
     }
     res.json({ success: true, student });
 });
@@ -3063,7 +3135,7 @@ app.post('/api/students/:id/payment', (req, res) => {
         students[idx].fees.dueAmount = Math.max(0, students[idx].fees.dueAmount - amt);
         writeData('students.json', students);
         if (req.body.sendEmail === 'true' && students[idx].email) {
-            sendSlipEmail(students[idx], payment, 'payment').catch(console.error);
+            sendSlipEmail(students[idx], payment, 'payment', req).catch(console.error);
         }
     }
 
@@ -3186,7 +3258,7 @@ app.post('/api/students/:id/send-slip', async (req, res) => {
     const student = students.find(s => s.id == req.params.id);
     if (!student) return res.status(404).json({ error: 'Not found' });
     try {
-        await sendSlipEmail(student, null, 'admission');
+        await sendSlipEmail(student, null, 'admission', req);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
