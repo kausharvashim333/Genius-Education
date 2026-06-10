@@ -627,9 +627,11 @@ function generateSlipHTML(student, settings, payment, logoOverrideHtml) {
     const inst = settings.name || 'Genius Computer Education';
     const addr = settings.address || '';
     const phone = settings.phone || '';
+    // Base URL for inline assets (logo, signature). Use websiteUrl in production; fallback to localhost for dev.
+    const baseUrl = (settings.websiteUrl || 'http://localhost:3000').replace(/\/$/, '');
     const logo = logoOverrideHtml !== undefined
         ? logoOverrideHtml
-        : (settings.logo ? `<img src="http://localhost:3000${settings.logo}" style="max-height:55px;">` : '');
+        : (settings.logo ? `<img src="${baseUrl}${settings.logo}" style="max-height:55px;">` : '');
     const p = payment || (student.fees.payments && student.fees.payments[student.fees.payments.length - 1]);
     return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admission Slip - ${student.rollNo}</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;color:#333;background:#fff;}
@@ -666,7 +668,7 @@ ${p ? `<h3>Payment Details</h3><table><tr><th>Receipt No.</th><td>${p.receipt}</
 <tr><th>Amount Paid</th><td class="big green">&#8377;${p.amount}</td><th>Payment Mode</th><td>${p.mode}</td></tr>
 <tr><th>Payment Type</th><td>${p.type}</td><th>Transaction ID</th><td>${p.transactionId || '-'}</td></tr></table>` : ''}
 <div class="sigs">
-<div class="sig-box">${student.signature ? `<img src="http://localhost:3000${student.signature}" style="max-height:48px;display:block;margin:0 auto 8px;">` : '<div style="height:48px;"></div>'}<div class="sig-line">Student Signature</div></div>
+<div class="sig-box">${student.signature ? `<img src="${baseUrl}${student.signature}" style="max-height:48px;display:block;margin:0 auto 8px;">` : '<div style="height:48px;"></div>'}<div class="sig-line">Student Signature</div></div>
 <div class="sig-box"><div style="height:48px;"></div><div class="sig-line">Authorized Signature &amp; Stamp</div></div>
 </div></div>
 <div class="footer">This is a computer generated slip &mdash; ${inst}</div>
@@ -3055,7 +3057,10 @@ app.post('/api/students', uploadStudent.fields([{name:'photo',maxCount:1},{name:
         submittedBy: student.submittedBy || null
     }, req);
     if (d.sendEmail === 'true' && student.email) {
-        sendSlipEmail(student, student.fees.payments[0], 'admission').catch(console.error);
+        // Single comprehensive welcome email (includes App ID, fee summary, course details, login credentials,
+        // "what to bring" checklist, and the admission form PDF attached). The legacy slip email is intentionally
+        // skipped here to avoid sending two near-duplicate emails. sendSlipEmail() is still used for
+        // payment receipts and manual "resend slip" actions.
         sendLoginCredentials(student, student.loginPassword).catch(console.error);
     }
     res.json({ success: true, student });
