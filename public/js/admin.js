@@ -473,6 +473,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 'video-analytics': loadVideoAnalytics,
                 'assignments': loadAssignmentsTable,
                 'exam-results': loadExamResultsTable,
+                'notices': loadNoticesTable,
                 'announcements': loadAnnouncementsTable,
                 'tests': loadTestsTable,
                 'blog': loadBlogTable,
