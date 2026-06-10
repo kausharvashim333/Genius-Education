@@ -765,6 +765,7 @@ async function loadBlogs() {
                     `;
                 }).join('');
                 empty.style.display = 'none';
+                setupBlogCarouselDots(pinned.length);
             } else {
                 container.innerHTML = '';
                 empty.style.display = 'block';
@@ -776,6 +777,54 @@ async function loadBlogs() {
     } catch (e) {
         console.error('Error loading blogs:', e);
     }
+}
+
+function setupBlogCarouselDots(count) {
+    const container = document.getElementById('blogContainer');
+    const dotsWrap = document.getElementById('blogCarouselDots');
+    if (!container || !dotsWrap || count <= 1) {
+        if (dotsWrap) dotsWrap.innerHTML = '';
+        return;
+    }
+    // Only meaningful on mobile (CSS hides dots on desktop anyway)
+    let dotsHtml = '';
+    for (let i = 0; i < count; i++) {
+        dotsHtml += '<button class="dot' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '" aria-label="Go to blog ' + (i + 1) + '"></button>';
+    }
+    dotsWrap.innerHTML = dotsHtml;
+
+    const cards = container.querySelectorAll('.blog-card');
+    const dots = dotsWrap.querySelectorAll('.dot');
+
+    // Click dot -> scroll to card
+    dots.forEach(dot => {
+        dot.addEventListener('click', () => {
+            const idx = parseInt(dot.dataset.idx, 10);
+            if (cards[idx]) {
+                cards[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        });
+    });
+
+    // Scroll -> update active dot
+    let scrollTimeout;
+    container.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const containerCenter = container.scrollLeft + container.clientWidth / 2;
+            let closestIdx = 0;
+            let closestDist = Infinity;
+            cards.forEach((card, idx) => {
+                const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+                const dist = Math.abs(cardCenter - containerCenter);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closestIdx = idx;
+                }
+            });
+            dots.forEach((d, i) => d.classList.toggle('active', i === closestIdx));
+        }, 80);
+    }, { passive: true });
 }
 
 function viewBlogDetail(id) {
