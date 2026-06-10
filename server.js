@@ -663,7 +663,7 @@ th{background:#f8fafc;font-weight:600;width:30%;color:#555;}
 <tr><th>Admission Date</th><td>${student.admissionDate}</td><th>Status</th><td><span class="b-green">${student.status}</span></td></tr></table>
 <h3>Fee Summary</h3>
 <table><tr><th>Total Fees</th><td class="big">&#8377;${student.fees.totalFees}</td><th>Paid Amount</th><td class="big green">&#8377;${student.fees.paidAmount}</td></tr>
-<tr><th>Pending Amount</th><td class="big ${student.fees.dueAmount > 0 ? 'orange' : 'green'}">&#8377;${student.fees.dueAmount}</td><th>Fee Status</th><td>${student.fees.dueAmount > 0 ? '<span class="b-orange">Pending</span>' : '<span class="b-green">Fully Paid</span>'}</td></tr></table>
+<tr><th>Pending Amount</th><td class="big ${student.fees.dueAmount > 0 ? 'orange' : 'green'}">&#8377;${student.fees.dueAmount}</td><th>Fee Status</th><td>${student.fees.dueAmount === 0 ? '<span class="b-green">Full Payment</span>' : '<span class="b-orange">' + (student.fees.totalFees > 0 ? Math.round((student.fees.paidAmount / student.fees.totalFees) * 100) : 0) + '% Paid</span>'}</td></tr></table>
 ${p ? `<h3>Payment Details</h3><table><tr><th>Receipt No.</th><td>${p.receipt}</td><th>Date</th><td>${p.date}</td></tr>
 <tr><th>Amount Paid</th><td class="big green">&#8377;${p.amount}</td><th>Payment Mode</th><td>${p.mode}</td></tr>
 <tr><th>Payment Type</th><td>${p.type}</td><th>Transaction ID</th><td>${p.transactionId || '-'}</td></tr></table>` : ''}
@@ -2596,7 +2596,8 @@ async function sendLoginCredentials(student, password) {
 
     // Fees
     const fees = student.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0 };
-    const isFullyPaid = (fees.dueAmount || 0) <= 0;
+    const isFullyPaid = (fees.dueAmount || 0) === 0;
+    const paymentPercentage = fees.totalFees > 0 ? Math.round((fees.paidAmount / fees.totalFees) * 100) : 0;
 
     // Address + phone helpers
     const addr = settings.address || '';
@@ -2606,7 +2607,7 @@ async function sendLoginCredentials(student, password) {
 
     // Generate PDF attachment
     const pdfBuffer = await generateAdmissionPDF(student, settings);
-    const attachments = [...(logo.attachments || [])];
+    const attachments = [];
     if (pdfBuffer) {
         attachments.push({
             filename: `Admission-Form-${student.rollNo}.pdf`,
@@ -2667,7 +2668,7 @@ async function sendLoginCredentials(student, password) {
                 <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;width:40%;border-bottom:1px solid #e2e8f0;">Total Fees</td><td style="padding:10px 14px;color:#0f172a;font-size:15px;font-weight:700;border-bottom:1px solid #e2e8f0;">₹${fees.totalFees || 0}</td></tr>
                 <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Paid Amount</td><td style="padding:10px 14px;color:#16a34a;font-size:15px;font-weight:700;border-bottom:1px solid #e2e8f0;">₹${fees.paidAmount || 0}</td></tr>
                 <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Pending Amount</td><td style="padding:10px 14px;color:${isFullyPaid ? '#16a34a' : '#d97706'};font-size:15px;font-weight:700;border-bottom:1px solid #e2e8f0;">₹${fees.dueAmount || 0}</td></tr>
-                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Status</td><td style="padding:10px 14px;"><span style="background:${isFullyPaid ? '#dcfce7' : '#fef3c7'};color:${isFullyPaid ? '#16a34a' : '#d97706'};padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">${isFullyPaid ? 'Fully Paid' : 'Partial - Pay Pending'}</span></td></tr>
+                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Status</td><td style="padding:10px 14px;"><span style="background:${isFullyPaid ? '#dcfce7' : '#fef3c7'};color:${isFullyPaid ? '#16a34a' : '#d97706'};padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">${isFullyPaid ? 'Full Payment' : `${paymentPercentage}% Paid (₹${fees.dueAmount} pending)`}</span></td></tr>
             </table>
             ${!isFullyPaid ? `<p style="margin:10px 0 0;color:#9a3412;font-size:13px;font-style:italic;">⚠️ Pending fees ko time se pay karne ke liye Student Portal me Login karein.</p>` : ''}
 

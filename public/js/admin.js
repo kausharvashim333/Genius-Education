@@ -10377,7 +10377,10 @@ async function printStudentForm(id) {
         html += '        <h3 class="section-title">5. Payment Information</h3>\n';
         html += '        <table class="data-table">\n';
         html += '            <tr><td class="label">Total Fees</td><td class="value">&#8377;' + s.fees.totalFees + '</td><td class="label">Paid Amount</td><td class="value" style="color: #16a34a; font-weight: 700;">&#8377;' + s.fees.paidAmount + '</td></tr>\n';
-        html += '            <tr><td class="label">Pending Fees</td><td class="value" style="color: ' + (s.fees.dueAmount > 0 ? '#d97706' : '#16a34a') + '; font-weight: 700;">&#8377;' + s.fees.dueAmount + '</td><td class="label">Payment Status</td><td class="value" style="color: ' + (s.fees.dueAmount > 0 ? '#d97706' : '#16a34a') + '; font-weight: 700;">' + (s.fees.dueAmount > 0 ? 'Partial' : 'Fully Paid') + '</td></tr>\n';
+        const isFullyPaid = (s.fees.dueAmount || 0) === 0;
+        const paymentPercentage = s.fees.totalFees > 0 ? Math.round((s.fees.paidAmount / s.fees.totalFees) * 100) : 0;
+        const paymentStatus = isFullyPaid ? 'Full Payment' : (paymentPercentage + '% Paid');
+        html += '            <tr><td class="label">Pending Fees</td><td class="value" style="color: ' + (isFullyPaid ? '#16a34a' : '#d97706') + '; font-weight: 700;">&#8377;' + s.fees.dueAmount + '</td><td class="label">Payment Status</td><td class="value" style="color: ' + (isFullyPaid ? '#16a34a' : '#d97706') + '; font-weight: 700;">' + paymentStatus + '</td></tr>\n';
         html += '        </table>\n';
         if (allPayments.length > 0) {
             html += '        <table class="data-table" style="margin-top:8px;">\n';
@@ -11049,6 +11052,7 @@ async function loadSettings() {
         document.getElementById('settingEmail').value = s.email || '';
         document.getElementById('settingAdminEmail').value = s.adminEmail || '';
         document.getElementById('settingAddress').value = s.address || '';
+        document.getElementById('settingWebsiteUrl').value = s.websiteUrl || '';
         document.getElementById('rightClickPrevention').checked = s.rightClickPrevention || false;
         
         // Load popup settings
@@ -11368,6 +11372,7 @@ document.getElementById('settingsForm').addEventListener('submit', async functio
         email: document.getElementById('settingEmail').value,
         adminEmail: document.getElementById('settingAdminEmail').value,
         address: document.getElementById('settingAddress').value,
+        websiteUrl: document.getElementById('settingWebsiteUrl').value,
         rightClickPrevention: document.getElementById('rightClickPrevention').checked,
         popup: {
             enabled: document.getElementById('popupEnabled').checked,
