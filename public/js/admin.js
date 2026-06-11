@@ -10210,7 +10210,7 @@ async function printStudentForm(id) {
         html += '            @page { margin: 20px; }\n';
         html += '            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }\n';
         html += '        }\n';
-        html += '        body { font-family: \'Times New Roman\', serif; margin: 0; padding: 30px; background: white; position: relative; }\n';
+        html += '        body { font-family: \'Times New Roman\', serif; margin: 0; padding: 18px 24px; background: white; position: relative; }\n';
         html += '        .watermark-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-repeat: repeat; background-size: 200px 200px; opacity: 0.06; z-index: 0; pointer-events: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }\n';
         html += '        .header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; border-bottom: 4px solid #1e40af; padding-bottom: 20px; position: relative; z-index: 1; }\n';
         html += '        .header-logo { width: 90px; height: 90px; object-fit: contain; flex-shrink: 0; }\n';
@@ -10239,13 +10239,11 @@ async function printStudentForm(id) {
         html += '        .data-table .value { color: #0f172a; font-weight: 500; }\n';
         html += '        .data-table tr:nth-child(even) { background: #f0f9ff; }\n';
         html += '        .data-table .sub-header { background: #dbeafe; font-weight: 700; color: #1e40af; font-size: 15px; }\n';
-        html += '        .section { margin-bottom: 25px; page-break-inside: avoid; }\n';
-        html += '        .header { page-break-after: avoid; page-break-inside: avoid; }\n';
-        html += '        .app-info { page-break-after: avoid; page-break-inside: avoid; }\n';
+        html += '        .section { margin-bottom: 14px; }\n';
+        html += '        .section-title { page-break-after: avoid; }\n';
+        html += '        table tr, table thead, table tbody { page-break-inside: avoid; }\n';
         html += '        .personal-section { page-break-inside: avoid; }\n';
-        html += '        .personal-table { page-break-inside: avoid; }\n';
-        html += '        .data-table { page-break-inside: avoid; }\n';
-        html += '        .signatures { margin-top: 45px; padding-top: 20px; page-break-inside: avoid; }\n';
+        html += '        .signatures { margin-top: 30px; padding-top: 12px; page-break-inside: avoid; }\n';
         html += '        .signatures .flex { display: flex; justify-content: space-between; align-items: flex-start; }\n';
         html += '        .sig-block { text-align: center; width: 280px; }\n';
         html += '        .sig-box-dashed { border: 2px dashed #94a3b8; height: 70px; width: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #f8fafc; }\n';

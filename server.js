@@ -639,8 +639,8 @@ function generateSlipHTML(student, settings, payment, logoOverrideHtml) {
 .header-left{display:flex;align-items:center;gap:15px;}.header h2{font-size:1.35rem;}.header p{font-size:0.8rem;opacity:.9;margin-top:3px;}
 .badge{background:#1d4ed8;padding:7px 18px;border-radius:6px;font-weight:bold;font-size:0.85rem;letter-spacing:1px;}
 .body{padding:22px 30px;}.roll{display:inline-block;background:#eff6ff;border:2px solid #2563eb;color:#2563eb;padding:7px 20px;border-radius:8px;font-size:1.05rem;font-weight:bold;margin-bottom:18px;page-break-after:avoid;}
-h3{color:#2563eb;font-size:.95rem;margin:18px 0 8px;border-bottom:2px solid #e5e7eb;padding-bottom:5px;page-break-after:avoid;page-break-inside:avoid;}
-table{width:100%;border-collapse:collapse;margin-bottom:12px;page-break-inside:avoid;}td,th{padding:8px 12px;border:1px solid #e5e7eb;font-size:.88rem;}
+h3{color:#2563eb;font-size:.95rem;margin:18px 0 8px;border-bottom:2px solid #e5e7eb;padding-bottom:5px;page-break-after:avoid;}
+table{width:100%;border-collapse:collapse;margin-bottom:12px;}tr{page-break-inside:avoid;}td,th{padding:8px 12px;border:1px solid #e5e7eb;font-size:.88rem;}
 th{background:#f8fafc;font-weight:600;width:30%;color:#555;}
 .green{color:#16a34a;font-weight:bold;}.orange{color:#d97706;font-weight:bold;}.big{font-size:1.1rem;font-weight:bold;}
 .b-green{background:#dcfce7;color:#16a34a;padding:2px 10px;border-radius:20px;font-size:.8rem;font-weight:bold;}
