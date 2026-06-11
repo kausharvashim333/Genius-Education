@@ -11385,6 +11385,7 @@ document.getElementById('settingsForm').addEventListener('submit', async functio
     try {
         await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
         loadAdminLogo();
+        loadSettings();
         showNotification('Settings saved!', 'success');
     } catch (err) { showNotification('Error saving settings!', 'error'); }
 });
