@@ -635,19 +635,19 @@ function generateSlipHTML(student, settings, payment, logoOverrideHtml) {
     const p = payment || (student.fees.payments && student.fees.payments[student.fees.payments.length - 1]);
     return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admission Slip - ${student.rollNo}</title>
 <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;color:#333;background:#fff;}
-.header{background:#2563eb;color:#fff;padding:18px 30px;display:flex;justify-content:space-between;align-items:center;}
+.header{background:#2563eb;color:#fff;padding:18px 30px;display:flex;justify-content:space-between;align-items:center;page-break-after:avoid;}
 .header-left{display:flex;align-items:center;gap:15px;}.header h2{font-size:1.35rem;}.header p{font-size:0.8rem;opacity:.9;margin-top:3px;}
 .badge{background:#1d4ed8;padding:7px 18px;border-radius:6px;font-weight:bold;font-size:0.85rem;letter-spacing:1px;}
-.body{padding:22px 30px;}.roll{display:inline-block;background:#eff6ff;border:2px solid #2563eb;color:#2563eb;padding:7px 20px;border-radius:8px;font-size:1.05rem;font-weight:bold;margin-bottom:18px;}
-h3{color:#2563eb;font-size:.95rem;margin:18px 0 8px;border-bottom:2px solid #e5e7eb;padding-bottom:5px;}
-table{width:100%;border-collapse:collapse;margin-bottom:12px;}td,th{padding:8px 12px;border:1px solid #e5e7eb;font-size:.88rem;}
+.body{padding:22px 30px;}.roll{display:inline-block;background:#eff6ff;border:2px solid #2563eb;color:#2563eb;padding:7px 20px;border-radius:8px;font-size:1.05rem;font-weight:bold;margin-bottom:18px;page-break-after:avoid;}
+h3{color:#2563eb;font-size:.95rem;margin:18px 0 8px;border-bottom:2px solid #e5e7eb;padding-bottom:5px;page-break-after:avoid;page-break-inside:avoid;}
+table{width:100%;border-collapse:collapse;margin-bottom:12px;page-break-inside:avoid;}td,th{padding:8px 12px;border:1px solid #e5e7eb;font-size:.88rem;}
 th{background:#f8fafc;font-weight:600;width:30%;color:#555;}
 .green{color:#16a34a;font-weight:bold;}.orange{color:#d97706;font-weight:bold;}.big{font-size:1.1rem;font-weight:bold;}
 .b-green{background:#dcfce7;color:#16a34a;padding:2px 10px;border-radius:20px;font-size:.8rem;font-weight:bold;}
 .b-orange{background:#fef3c7;color:#d97706;padding:2px 10px;border-radius:20px;font-size:.8rem;font-weight:bold;}
-.sigs{display:flex;justify-content:space-between;margin-top:45px;padding:0 20px;}
+.sigs{display:flex;justify-content:space-between;margin-top:45px;padding:0 20px;page-break-inside:avoid;}
 .sig-box{text-align:center;width:180px;}.sig-line{border-top:1.5px solid #333;padding-top:7px;font-size:.83rem;color:#555;}
-.footer{background:#f8fafc;border-top:1px solid #e5e7eb;padding:10px 30px;text-align:center;font-size:.78rem;color:#888;margin-top:15px;}
+.footer{background:#f8fafc;border-top:1px solid #e5e7eb;padding:10px 30px;text-align:center;font-size:.78rem;color:#888;margin-top:15px;page-break-inside:avoid;}
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
 </style></head><body>
 <div class="header"><div class="header-left"><div><h2>${inst}</h2><p>${addr}${phone ? ' | ' + phone : ''}</p></div></div><div class="badge">ADMISSION SLIP</div></div>

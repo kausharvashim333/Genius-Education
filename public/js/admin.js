@@ -10240,6 +10240,11 @@ async function printStudentForm(id) {
         html += '        .data-table tr:nth-child(even) { background: #f0f9ff; }\n';
         html += '        .data-table .sub-header { background: #dbeafe; font-weight: 700; color: #1e40af; font-size: 15px; }\n';
         html += '        .section { margin-bottom: 25px; page-break-inside: avoid; }\n';
+        html += '        .header { page-break-after: avoid; page-break-inside: avoid; }\n';
+        html += '        .app-info { page-break-after: avoid; page-break-inside: avoid; }\n';
+        html += '        .personal-section { page-break-inside: avoid; }\n';
+        html += '        .personal-table { page-break-inside: avoid; }\n';
+        html += '        .data-table { page-break-inside: avoid; }\n';
         html += '        .signatures { margin-top: 45px; padding-top: 20px; page-break-inside: avoid; }\n';
         html += '        .signatures .flex { display: flex; justify-content: space-between; align-items: flex-start; }\n';
         html += '        .sig-block { text-align: center; width: 280px; }\n';
