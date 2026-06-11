@@ -9637,8 +9637,13 @@ app.put('/api/about', (req, res) => {
 // --- Settings ---
 app.get('/api/settings', (req, res) => {
     const settings = readData('settings.json') || {};
+    // Check admin session using X-Admin-Session header
+    const token = req.headers['x-admin-session'];
+    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    const isAdmin = token && verifyAdminSession(token, ip);
+    
     // If not admin, hide sensitive fields
-    if (!req.session || !req.session.isAdmin) {
+    if (!isAdmin) {
         const { adminEmail, smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure, ...publicSettings } = settings;
         return res.json(publicSettings);
     }
