@@ -3,13 +3,25 @@ let galleryImageFile = null;
 let galleryEditId = null;
 let carouselImageFile = null;
 
-// Auto-inject X-Admin-Session header on all /api/ fetch calls from admin panel
+// Auto-inject X-Admin-Session header on all /api/ fetch calls + handle session expiry
 (function () {
     const origFetch = window.fetch.bind(window);
+    let sessionExpiredHandled = false;
+    function handleSessionExpired() {
+        if (sessionExpiredHandled) return;
+        sessionExpiredHandled = true;
+        sessionStorage.removeItem('adminSession');
+        sessionStorage.removeItem('adminSessionToken');
+        sessionStorage.removeItem('adminSessionExpires');
+        alert('Your admin session has expired. Please login again.');
+        window.location.reload();
+    }
     window.fetch = function (input, init) {
+        let isAdminApi = false;
         try {
             const url = typeof input === 'string' ? input : (input && input.url) || '';
             if (url.indexOf('/api/') !== -1) {
+                isAdminApi = true;
                 const token = sessionStorage.getItem('adminSessionToken');
                 if (token) {
                     init = init || {};
@@ -19,7 +31,15 @@ let carouselImageFile = null;
                 }
             }
         } catch (_) {}
-        return origFetch(input, init);
+        const p = origFetch(input, init);
+        if (!isAdminApi) return p;
+        return p.then(res => {
+            // If the admin session is invalid/expired, gracefully handle it once.
+            if (res && res.status === 401 && sessionStorage.getItem('adminSessionToken')) {
+                handleSessionExpired();
+            }
+            return res;
+        });
     };
 })();
 
@@ -890,7 +910,7 @@ function showDashboard() {
 // ===== Dashboard =====
 async function loadDashboard() {
     try {
-        const [coursesData, students, enquiries, faculty, gallery, paymentsData, batches, onlineExams, certsData, materialsData, admitCardsData] = await Promise.all([
+        let [coursesData, students, enquiries, faculty, gallery, paymentsData, batches, onlineExams, certsData, materialsData, admitCardsData] = await Promise.all([
             fetch('/api/courses').then(r => r.json()).catch(() => []),
             fetch('/api/students').then(r => r.json()).catch(() => []),
             fetch('/api/enquiries').then(r => r.json()).catch(() => []),
@@ -903,6 +923,14 @@ async function loadDashboard() {
             fetch('/api/study-materials').then(r => r.json()).catch(() => ({ materials: [] })),
             fetch('/api/admit-cards').then(r => r.json()).catch(() => ({ admitCards: [] }))
         ]);
+
+        // Defensive: any endpoint that returned a non-array (e.g. 401 {success:false}) becomes []
+        if (!Array.isArray(students)) students = [];
+        if (!Array.isArray(enquiries)) enquiries = [];
+        if (!Array.isArray(faculty)) faculty = [];
+        if (!Array.isArray(gallery)) gallery = [];
+        if (!Array.isArray(batches)) batches = [];
+        if (!Array.isArray(onlineExams)) onlineExams = [];
 
         // Normalize API responses (some return {success, data} objects, some return arrays)
         const courses = Array.isArray(coursesData) ? coursesData : (coursesData.courses || coursesData.data || []);
