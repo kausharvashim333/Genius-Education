@@ -426,6 +426,232 @@
         #blogModal .modal-content::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
     </style>
     <style>
+        /* ===== Legal Pages Editor — Glassmorphism ===== */
+        #page-legal-pages .data-table {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05)) !important;
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            border-radius: 20px !important;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+            padding: 26px !important;
+            color: #f1f5f9;
+        }
+        #page-legal-pages h3,
+        #page-legal-pages label {
+            color: #f8fafc !important;
+        }
+        #page-legal-pages h3 {
+            font-size: 1.35rem;
+            letter-spacing: 0.2px;
+        }
+        #page-legal-pages h3 i {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-right: 6px;
+        }
+        #page-legal-pages > .data-table > p {
+            color: rgba(241, 245, 249, 0.75) !important;
+        }
+        /* Tab buttons */
+        #legalPageTabs {
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+        }
+        #legalPageTabs .legal-tab {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: #e2e8f0 !important;
+            border-radius: 10px !important;
+            padding: 9px 16px !important;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            box-shadow: none !important;
+        }
+        #legalPageTabs .legal-tab i {
+            color: #fbbf24;
+            margin-right: 6px;
+        }
+        #legalPageTabs .legal-tab:hover {
+            background: rgba(255, 255, 255, 0.16) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-1px);
+        }
+        #legalPageTabs .legal-tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            color: #fff !important;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.45) !important;
+        }
+        #legalPageTabs .legal-tab.active i { color: #fff; }
+        /* Title input */
+        #legalPageTitle {
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            border-radius: 12px !important;
+            color: #fff !important;
+            padding: 12px 16px !important;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+        #legalPageTitle:focus {
+            outline: none;
+            border-color: #fbbf24 !important;
+            background: rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.18);
+        }
+        #legalPageTitle::placeholder { color: rgba(255, 255, 255, 0.45); }
+        /* Quill toolbar */
+        #page-legal-pages .ql-toolbar.ql-snow {
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(18px) saturate(180%);
+            -webkit-backdrop-filter: blur(18px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-bottom: none !important;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 10px !important;
+        }
+        #page-legal-pages .ql-toolbar .ql-stroke { stroke: rgba(255, 255, 255, 0.85); }
+        #page-legal-pages .ql-toolbar .ql-fill { fill: rgba(255, 255, 255, 0.85); }
+        #page-legal-pages .ql-toolbar .ql-picker { color: rgba(255, 255, 255, 0.85); }
+        #page-legal-pages .ql-toolbar .ql-picker-label { color: rgba(255, 255, 255, 0.85); }
+        #page-legal-pages .ql-toolbar button:hover .ql-stroke,
+        #page-legal-pages .ql-toolbar .ql-picker-label:hover { stroke: #fbbf24; color: #fbbf24; }
+        #page-legal-pages .ql-toolbar button:hover .ql-fill { fill: #fbbf24; }
+        #page-legal-pages .ql-toolbar button.ql-active .ql-stroke,
+        #page-legal-pages .ql-toolbar .ql-picker-label.ql-active { stroke: #fbbf24; color: #fbbf24; }
+        #page-legal-pages .ql-toolbar button.ql-active .ql-fill { fill: #fbbf24; }
+        #page-legal-pages .ql-toolbar .ql-picker-options {
+            background: rgba(15, 23, 42, 0.97) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 8px !important;
+        }
+        /* Quill editor area */
+        #legalEditor.ql-container.ql-snow {
+            background: rgba(255, 255, 255, 0.06) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            border-top: none !important;
+            border-radius: 0 0 12px 12px !important;
+            min-height: 380px;
+        }
+        #legalEditor .ql-editor {
+            min-height: 380px;
+            font-size: 15px;
+            line-height: 1.75;
+            color: #f1f5f9;
+            padding: 18px 22px;
+        }
+        #legalEditor .ql-editor.ql-blank::before {
+            color: rgba(255, 255, 255, 0.4);
+            font-style: normal;
+            left: 22px;
+        }
+        #legalEditor .ql-editor h1,
+        #legalEditor .ql-editor h2,
+        #legalEditor .ql-editor h3,
+        #legalEditor .ql-editor h4 {
+            color: #fff;
+            margin-top: 1em;
+        }
+        #legalEditor .ql-editor a { color: #fbbf24; }
+        #legalEditor .ql-editor blockquote {
+            border-left: 4px solid #fbbf24;
+            background: rgba(251, 191, 36, 0.08);
+            color: rgba(255, 255, 255, 0.92);
+            padding: 10px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+        }
+        #legalEditor .ql-editor pre.ql-syntax,
+        #legalEditor .ql-editor code {
+            background: rgba(0, 0, 0, 0.4) !important;
+            color: #fbbf24 !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 6px 10px;
+        }
+        #legalEditor .ql-editor ul,
+        #legalEditor .ql-editor ol { padding-left: 1.4em; }
+        #legalEditor .ql-editor ::selection {
+            background: rgba(102, 126, 234, 0.5);
+            color: #fff;
+        }
+        /* Quill link tooltip */
+        #page-legal-pages .ql-tooltip {
+            background: rgba(15, 23, 42, 0.97) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 10px !important;
+            color: #fff !important;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55) !important;
+        }
+        #page-legal-pages .ql-tooltip input[type="text"] {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            color: #fff !important;
+            border-radius: 6px !important;
+        }
+        #page-legal-pages .ql-tooltip a { color: #fbbf24 !important; }
+        /* Save & Preview buttons */
+        #legalSaveBtn {
+            background: linear-gradient(135deg, #667eea, #764ba2) !important;
+            border: none !important;
+            color: #fff !important;
+            font-weight: 600;
+            border-radius: 12px !important;
+            padding: 11px 22px !important;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.45);
+            transition: all 0.2s ease;
+        }
+        #legalSaveBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(102, 126, 234, 0.6);
+        }
+        #legalPreviewLink {
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.22) !important;
+            color: #fff !important;
+            border-radius: 12px !important;
+            padding: 11px 18px !important;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        #legalPreviewLink:hover {
+            background: rgba(255, 255, 255, 0.18) !important;
+            transform: translateY(-2px);
+        }
+        #legalUpdatedAt {
+            color: rgba(255, 255, 255, 0.65) !important;
+            font-style: italic;
+        }
+        /* Scrollbar inside editor */
+        #legalEditor .ql-editor::-webkit-scrollbar { width: 8px; }
+        #legalEditor .ql-editor::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+        #legalEditor .ql-editor::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        #legalEditor .ql-editor::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.35); }
+    </style>
+    <style>
         /* Chapter table gets its own card-style design */
         #page-videos .chapter-table-wrapper {
             background: rgba(255, 255, 255, 0.08);
