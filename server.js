@@ -9680,6 +9680,139 @@ app.put('/api/settings', (req, res) => {
     res.json({ success: true });
 });
 
+// --- Legal Pages (Privacy, Terms, Refund, Disclaimer, Sitemap) ---
+const LEGAL_DEFAULTS = {
+    privacy: {
+        title: 'Privacy Policy',
+        content: `<p>Genius Computer Education is committed to protecting your privacy. This policy outlines how we collect, use, and safeguard your personal information.</p>
+<h3>1. Information Collection</h3>
+<p>We collect personal information including name, contact details, educational qualifications, and other relevant information provided during enrollment or inquiry.</p>
+<h3>2. Use of Information</h3>
+<p>Your information is used for: enrollment processing, academic records, fee management, examination purposes, and communication regarding courses and institute activities.</p>
+<h3>3. Data Security</h3>
+<p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
+<h3>4. Sharing of Information</h3>
+<p>We do not sell or rent your personal information to third parties. Your information may be shared only as required by law or for institute operations.</p>
+<h3>5. Student Records</h3>
+<p>Academic records and personal information are maintained as per educational regulations and may be retained as required by law.</p>
+<h3>6. Your Rights</h3>
+<p>You have the right to access, correct, or request deletion of your personal information, subject to applicable laws and institute policies.</p>
+<h3>7. Changes to Policy</h3>
+<p>We reserve the right to modify this privacy policy at any time. Changes will be posted on this page.</p>`
+    },
+    terms: {
+        title: 'Terms & Conditions',
+        content: `<p>By accessing and using the website of Genius Computer Education, you accept and agree to be bound by the terms and provisions of this agreement.</p>
+<h3>1. Enrollment</h3>
+<p>Students must provide accurate and complete information during enrollment. False information may result in cancellation of admission without refund.</p>
+<h3>2. Course Fees</h3>
+<p>Course fees must be paid as per the schedule provided. Late payments may attract additional charges as per institute policy.</p>
+<h3>3. Attendance</h3>
+<p>Regular attendance is mandatory. Students with less than required attendance may not be eligible for examinations.</p>
+<h3>4. Code of Conduct</h3>
+<p>Students must maintain discipline and follow the institute's code of conduct. Misconduct may lead to disciplinary action including expulsion.</p>
+<h3>5. Certificate Issuance</h3>
+<p>Certificates are issued only upon successful completion of the course and payment of all dues. The institute reserves the right to withhold certificates in case of pending dues.</p>
+<h3>6. Intellectual Property</h3>
+<p>All course materials, content, and intellectual property belong to Genius Computer Education. Unauthorized reproduction or distribution is prohibited.</p>
+<h3>7. Changes to Terms</h3>
+<p>The institute reserves the right to modify these terms at any time. Changes will be effective immediately upon posting.</p>`
+    },
+    refund: {
+        title: 'Refund Policy',
+        content: `<p>This refund policy outlines the conditions under which refunds may be issued by Genius Computer Education.</p>
+<h3>1. Course Cancellation by Student</h3>
+<p>Students may request cancellation of enrollment within 7 days of admission, subject to a deduction of 10% of the total fee as processing charges. No refunds will be provided after 7 days of enrollment.</p>
+<h3>2. Course Cancellation by Institute</h3>
+<p>If the institute cancels a course due to unavoidable circumstances, full refund will be provided to all enrolled students.</p>
+<h3>3. Refund Process</h3>
+<p>Refund requests must be submitted in writing along with original receipt. Refunds will be processed within 15-20 working days from the date of approval.</p>
+<h3>4. Non-Refundable Items</h3>
+<p>The following fees are non-refundable: registration fees, admission fees, and any material charges already incurred.</p>
+<h3>5. Payment Method</h3>
+<p>Refunds will be made through the same payment method used for the original transaction, unless otherwise specified.</p>
+<h3>6. Documentation</h3>
+<p>Students must provide original fee receipt and identity proof for refund processing.</p>
+<h3>7. Dispute Resolution</h3>
+<p>In case of any dispute regarding refunds, the decision of the institute management will be final and binding.</p>`
+    },
+    disclaimer: {
+        title: 'Disclaimer',
+        content: `<p>The information provided by Genius Computer Education on this website is for general informational purposes only. All information on the Site is provided in good faith, however we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability or completeness of any information on the Site.</p>
+<h3>Course Information</h3>
+<p>Course details, fees, and duration mentioned on this website are subject to change. Please confirm all information with our administration before enrollment.</p>
+<h3>External Links</h3>
+<p>Through this website you are able to link to other websites which are not under the control of Genius Computer Education. We have no control over the nature, content and availability of those sites. The inclusion of any links does not necessarily imply a recommendation or endorse the views expressed within them.</p>
+<h3>Limitation of Liability</h3>
+<p>In no event shall we be liable for any loss or damage including without limitation, indirect or consequential loss or damage, or any loss or damage whatsoever arising from loss of data or profits arising out of, or in connection with, the use of this website.</p>`
+    },
+    sitemap: {
+        title: 'Sitemap',
+        content: `<h3>Main Pages</h3>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="index.html#courses">Courses</a></li>
+<li><a href="index.html#notices">Notices</a></li>
+<li><a href="index.html#blog">Blog</a></li>
+<li><a href="index.html#about">About Us</a></li>
+<li><a href="index.html#gallery">Gallery</a></li>
+<li><a href="index.html#contact">Contact Us</a></li>
+</ul>
+<h3>User Portals</h3>
+<ul>
+<li><a href="apply.html">Apply Online</a></li>
+<li><a href="student-portal.html">Student Portal</a></li>
+</ul>
+<h3>Legal Pages</h3>
+<ul>
+<li><a href="disclaimer.html">Disclaimer</a></li>
+<li><a href="terms.html">Terms & Conditions</a></li>
+<li><a href="privacy.html">Privacy Policy</a></li>
+<li><a href="refund.html">Refund Policy</a></li>
+<li><a href="sitemap.html">Sitemap</a></li>
+</ul>`
+    }
+};
+
+function getLegalPages() {
+    const data = readData('legal-pages.json') || {};
+    // Seed any missing defaults
+    let changed = false;
+    for (const slug of Object.keys(LEGAL_DEFAULTS)) {
+        if (!data[slug] || !data[slug].content) {
+            data[slug] = { ...LEGAL_DEFAULTS[slug], updatedAt: new Date().toISOString() };
+            changed = true;
+        }
+    }
+    if (changed) writeData('legal-pages.json', data);
+    return data;
+}
+
+app.get('/api/legal-pages', (req, res) => {
+    res.json(getLegalPages());
+});
+
+app.get('/api/legal-pages/:slug', (req, res) => {
+    const pages = getLegalPages();
+    const page = pages[req.params.slug];
+    if (!page) return res.status(404).json({ success: false, message: 'Page not found' });
+    res.json(page);
+});
+
+app.put('/api/legal-pages/:slug', verifyAdminSessionMiddleware, (req, res) => {
+    const slug = req.params.slug;
+    if (!LEGAL_DEFAULTS[slug]) return res.status(400).json({ success: false, message: 'Invalid page slug' });
+    const pages = getLegalPages();
+    const { title, content } = req.body || {};
+    pages[slug] = {
+        title: typeof title === 'string' && title.trim() ? title.trim() : (pages[slug] && pages[slug].title) || LEGAL_DEFAULTS[slug].title,
+        content: typeof content === 'string' ? content : (pages[slug] && pages[slug].content) || '',
+        updatedAt: new Date().toISOString()
+    };
+    writeData('legal-pages.json', pages);
+    res.json({ success: true, page: pages[slug] });
+});
+
 // --- Logo Upload ---
 app.post('/api/logo', uploadLogo.single('logo'), (req, res) => {
     if (!req.file) return res.status(400).json({ success: false, message: 'No logo uploaded' });

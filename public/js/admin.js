@@ -512,7 +512,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 'manual-grading': typeof loadPendingGrading === 'function' ? loadPendingGrading : null,
                 'exam-analytics': typeof loadAnalyticsPage === 'function' ? loadAnalyticsPage : null,
                 're-evaluation': loadReEvaluationTable,
-                'exam-reports': loadExamReportsTable
+                'exam-reports': loadExamReportsTable,
+                'legal-pages': loadLegalPagesEditor
             };
             const loader = pageLoaders[page];
             if (typeof loader === 'function') {
@@ -14237,4 +14238,112 @@ function exportNewsletterCSV() {
     a.download = 'newsletter-subscribers-' + new Date().toISOString().substring(0, 10) + '.csv';
     a.click();
     URL.revokeObjectURL(url);
+}
+
+// ===== Legal Pages Editor (Privacy, Terms, Refund, Disclaimer, Sitemap) =====
+let _legalQuill = null;
+let _legalCurrentSlug = 'privacy';
+let _legalPages = {};
+
+const LEGAL_SLUG_TO_URL = {
+    privacy: '/privacy.html',
+    terms: '/terms.html',
+    refund: '/refund.html',
+    disclaimer: '/disclaimer.html',
+    sitemap: '/sitemap.html'
+};
+
+function _legalFormatDate(d) {
+    if (!d) return '';
+    try { return new Date(d).toLocaleString(); } catch (_) { return ''; }
+}
+
+async function loadLegalPagesEditor() {
+    try {
+        const res = await fetch('/api/legal-pages');
+        _legalPages = await res.json() || {};
+    } catch (err) {
+        showNotification('Error loading legal pages', 'error');
+        return;
+    }
+
+    // Initialize Quill once
+    if (!_legalQuill && typeof Quill !== 'undefined') {
+        _legalQuill = new Quill('#legalEditor', {
+            theme: 'snow',
+            placeholder: 'Edit page content here...',
+            modules: {
+                toolbar: [
+                    [{ header: [1, 2, 3, 4, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ list: 'ordered' }, { list: 'bullet' }],
+                    [{ align: [] }],
+                    ['link', 'blockquote', 'code-block'],
+                    [{ color: [] }, { background: [] }],
+                    ['clean']
+                ]
+            }
+        });
+    }
+
+    // Wire up tab buttons (one time)
+    document.querySelectorAll('#legalPageTabs .legal-tab').forEach(btn => {
+        if (btn.dataset.wired) return;
+        btn.dataset.wired = '1';
+        btn.addEventListener('click', () => selectLegalPage(btn.dataset.slug));
+    });
+
+    const saveBtn = document.getElementById('legalSaveBtn');
+    if (saveBtn && !saveBtn.dataset.wired) {
+        saveBtn.dataset.wired = '1';
+        saveBtn.addEventListener('click', saveLegalPage);
+    }
+
+    selectLegalPage(_legalCurrentSlug);
+}
+
+function selectLegalPage(slug) {
+    _legalCurrentSlug = slug;
+    // Update active tab UI
+    document.querySelectorAll('#legalPageTabs .legal-tab').forEach(btn => {
+        const active = btn.dataset.slug === slug;
+        btn.classList.toggle('btn-primary', active);
+        btn.classList.toggle('btn-secondary', !active);
+        btn.classList.toggle('active', active);
+    });
+
+    const page = _legalPages[slug] || { title: '', content: '', updatedAt: '' };
+    document.getElementById('legalPageTitle').value = page.title || '';
+    if (_legalQuill) {
+        _legalQuill.clipboard.dangerouslyPasteHTML(page.content || '');
+    }
+    const link = document.getElementById('legalPreviewLink');
+    if (link) link.href = LEGAL_SLUG_TO_URL[slug] || '#';
+    const upd = document.getElementById('legalUpdatedAt');
+    if (upd) upd.textContent = page.updatedAt ? ('Last updated: ' + _legalFormatDate(page.updatedAt)) : '';
+}
+
+async function saveLegalPage() {
+    const slug = _legalCurrentSlug;
+    const title = document.getElementById('legalPageTitle').value.trim();
+    const content = _legalQuill ? _legalQuill.root.innerHTML : '';
+    if (!title) return showNotification('Title is required', 'warning');
+    try {
+        const res = await fetch('/api/legal-pages/' + encodeURIComponent(slug), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content })
+        });
+        const data = await res.json();
+        if (data.success) {
+            _legalPages[slug] = data.page;
+            const upd = document.getElementById('legalUpdatedAt');
+            if (upd) upd.textContent = 'Last updated: ' + _legalFormatDate(data.page.updatedAt);
+            showNotification('Page saved successfully!', 'success');
+        } else {
+            showNotification(data.message || 'Save failed', 'error');
+        }
+    } catch (err) {
+        showNotification('Error saving page', 'error');
+    }
 }
