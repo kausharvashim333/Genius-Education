@@ -1151,6 +1151,29 @@
 </div>
 
     <script>
+// Auto-inject x-session-token header for /api/students/* calls
+(function () {
+    const origFetch = window.fetch.bind(window);
+    window.fetch = function (input, init) {
+        try {
+            const url = typeof input === 'string' ? input : (input && input.url) || '';
+            if (url.indexOf('/api/') !== -1) {
+                const stored = localStorage.getItem('portalStudent');
+                if (stored) {
+                    const student = JSON.parse(stored);
+                    if (student && student.sessionToken) {
+                        init = init || {};
+                        const headers = new Headers(init.headers || (typeof input !== 'string' ? input.headers : undefined) || {});
+                        if (!headers.has('x-session-token')) headers.set('x-session-token', student.sessionToken);
+                        init.headers = headers;
+                    }
+                }
+            }
+        } catch (_) {}
+        return origFetch(input, init);
+    };
+})();
+
 // Global formatDate function for DD-MMM-YYYY format (with month name)
 function formatDate(date) {
     if (!date) return '';

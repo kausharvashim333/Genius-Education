@@ -1876,6 +1876,29 @@ function verifyAdminSessionMiddleware(req, res, next) {
     next();
 }
 
+// Check if request comes from authenticated admin (without rejecting if not)
+function isAdminRequest(req) {
+    const token = req.headers['x-admin-session'];
+    if (!token) return false;
+    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    return verifyAdminSession(token, ip);
+}
+
+// Allow admin OR the student themselves (matching studentId param) to proceed
+function requireAdminOrSelfStudent(studentIdParam) {
+    return function (req, res, next) {
+        if (isAdminRequest(req)) return next();
+        const studentId = req.params[studentIdParam];
+        if (!studentId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+        const token = getStudentSessionToken(req);
+        if (!token) return res.status(401).json({ success: false, message: 'Unauthorized' });
+        const sessions = readData('student-sessions.json') || [];
+        const match = sessions.find(s => String(s.studentId) === String(studentId) && s.token === token);
+        if (!match) return res.status(401).json({ success: false, message: 'Unauthorized' });
+        next();
+    };
+}
+
 // Session verification endpoint
 app.get('/api/admin/verify-session', (req, res) => {
     const token = req.headers['x-admin-session'];
@@ -2910,7 +2933,7 @@ const studyMaterialStorage = multer.diskStorage({
 });
 const uploadStudyMaterial = multer({ storage: studyMaterialStorage, limits: { fileSize: 50 * 1024 * 1024 } });
 
-app.get('/api/students', (req, res) => {
+app.get('/api/students', verifyAdminSessionMiddleware, (req, res) => {
     const students = readData('students.json') || [];
     const { course, batch } = req.query;
     
@@ -2926,7 +2949,7 @@ app.get('/api/students', (req, res) => {
     }
 });
 
-app.get('/api/students/:id', (req, res) => {
+app.get('/api/students/:id', requireAdminOrSelfStudent('id'), (req, res) => {
     const s = (readData('students.json') || []).find(s => s.id == req.params.id);
     if (!s) return res.status(404).json({ error: 'Not found' });
     res.json(s);
@@ -3067,7 +3090,7 @@ app.post('/api/students', uploadStudent.fields([{name:'photo',maxCount:1},{name:
     res.json({ success: true, student });
 });
 
-app.delete('/api/students/:id', (req, res) => {
+app.delete('/api/students/:id', verifyAdminSessionMiddleware, (req, res) => {
     const sid = req.params.id;
 
     // Helper to filter out student from any JSON file
@@ -3113,7 +3136,7 @@ app.delete('/api/students/:id', (req, res) => {
     res.json({ success: true });
 });
 
-app.post('/api/students/:id/payment', (req, res) => {
+app.post('/api/students/:id/payment', verifyAdminSessionMiddleware, (req, res) => {
     const students = readData('students.json') || [];
     const idx = students.findIndex(s => s.id == req.params.id);
     if (idx === -1) return res.status(404).json({ error: 'Not found' });
@@ -3178,7 +3201,7 @@ app.get('/api/activity-logs', (req, res) => {
 });
 
 // Update student profile (including photo)
-app.post('/api/students/:id/update-profile', uploadStudent.single('photo'), (req, res) => {
+app.post('/api/students/:id/update-profile', uploadStudent.single('photo'), requireAdminOrSelfStudent('id'), (req, res) => {
     const students = readData('students.json') || [];
     const idx = students.findIndex(s => s.id == req.params.id);
     if (idx === -1) return res.status(404).json({ error: 'Not found' });
@@ -3227,7 +3250,7 @@ app.post('/api/students/:id/update-profile', uploadStudent.single('photo'), (req
 });
 
 // Compatibility route: admin panel sends JSON with PUT /api/students/:id
-app.put('/api/students/:id', (req, res) => {
+app.put('/api/students/:id', verifyAdminSessionMiddleware, (req, res) => {
     const students = readData('students.json') || [];
     const idx = students.findIndex(s => s.id == req.params.id);
     if (idx === -1) return res.status(404).json({ error: 'Not found' });
@@ -3264,7 +3287,7 @@ app.put('/api/students/:id', (req, res) => {
     res.json({ success: true, student: students[idx] });
 });
 
-app.post('/api/students/:id/icard-status', (req, res) => {
+app.post('/api/students/:id/icard-status', verifyAdminSessionMiddleware, (req, res) => {
     const students = readData('students.json') || [];
     const idx = students.findIndex(s => s.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Student not found' });
@@ -3274,7 +3297,7 @@ app.post('/api/students/:id/icard-status', (req, res) => {
     res.json({ success: true, student: students[idx] });
 });
 
-app.post('/api/students/:id/send-slip', async (req, res) => {
+app.post('/api/students/:id/send-slip', verifyAdminSessionMiddleware, async (req, res) => {
     const students = readData('students.json') || [];
     const student = students.find(s => s.id == req.params.id);
     if (!student) return res.status(404).json({ error: 'Not found' });
@@ -6823,7 +6846,7 @@ app.get('/verify-certificate', (req, res) => {
 });
 
 // Student certificate endpoint for student portal
-app.get('/api/students/:id/certificate', (req, res) => {
+app.get('/api/students/:id/certificate', requireAdminOrSelfStudent('id'), (req, res) => {
     const certificates = readData('certificates.json') || [];
     const studentCertificates = certificates.filter(c => c.studentId == req.params.id);
     
@@ -6837,7 +6860,7 @@ app.get('/api/students/:id/certificate', (req, res) => {
 });
 
 // I-Card endpoint for student portal (matching admin panel design)
-app.get('/api/students/:id/icard', (req, res) => {
+app.get('/api/students/:id/icard', requireAdminOrSelfStudent('id'), (req, res) => {
     const students = readData('students.json') || [];
     const student = students.find(s => s.id == req.params.id);
     if (!student) return res.status(404).send('Student not found');
@@ -7396,7 +7419,7 @@ function getCertificateContent(certificateType) {
 }
 
 // Certificate HTML endpoint for student portal
-app.get('/api/students/:id/certificate/view', (req, res) => {
+app.get('/api/students/:id/certificate/view', requireAdminOrSelfStudent('id'), (req, res) => {
     const students = readData('students.json') || [];
     const student = students.find(s => s.id == req.params.id);
     if (!student) return res.status(404).send('Student not found');
@@ -7417,7 +7440,7 @@ app.get('/api/students/:id/certificate/view', (req, res) => {
     res.send(html);
 });
 
-app.get('/api/students/:id/slip', (req, res) => {
+app.get('/api/students/:id/slip', requireAdminOrSelfStudent('id'), (req, res) => {
     const students = readData('students.json') || [];
     const student = students.find(s => s.id == req.params.id);
     if (!student) return res.status(404).send('Student not found');

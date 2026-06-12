@@ -3,6 +3,26 @@ let galleryImageFile = null;
 let galleryEditId = null;
 let carouselImageFile = null;
 
+// Auto-inject X-Admin-Session header on all /api/ fetch calls from admin panel
+(function () {
+    const origFetch = window.fetch.bind(window);
+    window.fetch = function (input, init) {
+        try {
+            const url = typeof input === 'string' ? input : (input && input.url) || '';
+            if (url.indexOf('/api/') !== -1) {
+                const token = sessionStorage.getItem('adminSessionToken');
+                if (token) {
+                    init = init || {};
+                    const headers = new Headers(init.headers || (typeof input !== 'string' ? input.headers : undefined) || {});
+                    if (!headers.has('X-Admin-Session')) headers.set('X-Admin-Session', token);
+                    init.headers = headers;
+                }
+            }
+        } catch (_) {}
+        return origFetch(input, init);
+    };
+})();
+
 // Helper function to get admin session headers
 function getAdminHeaders() {
     const sessionToken = sessionStorage.getItem('adminSessionToken');
