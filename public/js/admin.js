@@ -11061,6 +11061,7 @@ async function loadSettings() {
         document.getElementById('settingAddress').value = s.address || '';
         document.getElementById('settingWebsiteUrl').value = s.websiteUrl || '';
         document.getElementById('rightClickPrevention').checked = s.rightClickPrevention || false;
+        document.getElementById('devToolsPrevention').checked = s.devToolsPrevention || false;
         
         // Load popup settings
         if (s.popup) {
@@ -11381,6 +11382,7 @@ document.getElementById('settingsForm').addEventListener('submit', async functio
         address: document.getElementById('settingAddress').value,
         websiteUrl: document.getElementById('settingWebsiteUrl').value,
         rightClickPrevention: document.getElementById('rightClickPrevention').checked,
+        devToolsPrevention: document.getElementById('devToolsPrevention').checked,
         popup: {
             enabled: document.getElementById('popupEnabled').checked,
             title: document.getElementById('popupTitle').value,

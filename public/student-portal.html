@@ -2877,6 +2877,7 @@ function buildQuestionPaperHTML(paper, forPrint) {
         Generated from ${instituteName} Student Portal
     </div>
     ${forPrint ? '<scr' + 'ipt>window.onload = function() { setTimeout(function() { window.print(); }, 500); };</scr' + 'ipt>' : ''}
+    <script src="/js/security.js"></script>
 </body>
 </html>`;
 }
@@ -3213,7 +3214,8 @@ function printStudentAdmitCard(id) {
             <div class="admit-card-footer">
                 <p>This is a computer-generated admit card. Signature not required.</p>
             </div>
-        </body>
+            <script src="/js/security.js"></script>
+</body>
         </html>
     `);
     printWindow.document.close();
@@ -5270,5 +5272,6 @@ loadFavicon();
     </div>
 </div>
 
+    <script src="/js/security.js"></script>
 </body>
 </html>

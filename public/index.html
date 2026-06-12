@@ -630,40 +630,7 @@
             }
         })();
 
-        // Right-click prevention based on settings
-        (async function() {
-            try {
-                const settings = await fetch('/api/settings').then(r => r.json());
-                if (settings.rightClickPrevention) {
-                    // Prevent right-click
-                    document.addEventListener('contextmenu', function(e) {
-                        e.preventDefault();
-                        alert('Right-click is disabled on this website.');
-                        return false;
-                    });
-                    
-                    // Prevent keyboard shortcuts for inspecting
-                    document.addEventListener('keydown', function(e) {
-                        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-                        if (e.key === 'F12' || 
-                            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
-                            (e.ctrlKey && e.key === 'U')) {
-                            e.preventDefault();
-                            alert('Developer tools are disabled on this website.');
-                            return false;
-                        }
-                    });
-                    
-                    // Prevent text selection
-                    document.addEventListener('selectstart', function(e) {
-                        e.preventDefault();
-                        return false;
-                    });
-                }
-            } catch (err) {
-                console.error('Error loading settings for right-click prevention:', err);
-            }
-        })();
+        // Security (right-click + dev tools prevention) handled by /js/security.js
 
         // 3D Card Tilt Effect
         document.querySelectorAll('.blog-card, .course-card, .stat-item').forEach(card => {
@@ -696,5 +663,6 @@
             <div id="courseModalContent"></div>
         </div>
     </div>
+    <script src="/js/security.js"></script>
 </body>
 </html>
