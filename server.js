@@ -129,20 +129,7 @@ app.use((req, res, next) => {
 
 // Security headers with Helmet
 app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com", "https://www.google.com", "https://www.gstatic.com", "https://apis.google.com", "https://cdn.jsdelivr.net", "https://cdn.sheetjs.com"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
-            imgSrc: ["'self'", "data:", "https:", "https://*.googleusercontent.com"],
-            fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://fonts.gstatic.com"],
-            connectSrc: ["'self'"],
-            frameSrc: ["'self'", "https://www.google.com"],
-            objectSrc: ["'none'"],
-            mediaSrc: ["'self'"],
-            manifestSrc: ["'self'"]
-        }
-    },
+    contentSecurityPolicy: false, // Temporarily disabled due to inline event handler conflicts
     crossOriginEmbedderPolicy: false
 }));
 
