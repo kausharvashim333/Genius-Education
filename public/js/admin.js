@@ -10215,7 +10215,7 @@ async function printStudentForm(id) {
         html += '        .header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; border-bottom: 4px solid #1e40af; padding-bottom: 20px; position: relative; z-index: 1; }\n';
         html += '        .header-logo { width: 90px; height: 90px; object-fit: contain; flex-shrink: 0; }\n';
         html += '        .header-left { flex: 1; text-align: center; }\n';
-        html += '        .header h1 { margin: 0; color: #1e40af; font-size: 38px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }\n';
+        html += '        .header h1 { margin: 0; color: #1e40af; font-size: 26px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; }\n';
         html += '        .header .subtitle { margin: 3px 0 0; color: #3b82f6; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }\n';
         html += '        .header .contact-info { margin: 2px 0 0; color: #3b82f6; font-size: 15px; font-weight: 500; letter-spacing: 1px; }\n';
         html += '        .personal-section { display: flex; gap: 20px; margin-top: 0; }\n';
