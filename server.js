@@ -21,6 +21,10 @@ const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const { OAuth2Client } = require('google-auth-library');
+
+// Google ID token verifier (used for student Google Sign-In)
+const googleAuthClient = new OAuth2Client();
 
 // XSS sanitization helper
 function sanitizeHTML(str) {
@@ -547,6 +551,18 @@ function getStudentSessionToken(req) {
     return req.headers['x-session-token'] || req.query.sessionToken || req.body.sessionToken || '';
 }
 
+// Verify that the request carries a valid student session belonging to the
+// student identified by rollNo. Returns true only on a positive match.
+function verifyStudentSelfByRollNo(req, rollNo) {
+    const token = getStudentSessionToken(req);
+    if (!token || !rollNo) return false;
+    const students = readData('students.json') || [];
+    const student = students.find(s => s.rollNo === rollNo);
+    if (!student) return false;
+    const sessions = readData('student-sessions.json') || [];
+    return sessions.some(s => s.token === token && String(s.studentId) === String(student.id));
+}
+
 function ensureStudentSession(req, res, studentId) {
     const token = getStudentSessionToken(req);
     if (!token) {
@@ -974,7 +990,7 @@ app.get('/api/courses', (req, res) => {
     res.json(courses);
 });
 
-app.post('/api/courses', (req, res) => {
+app.post('/api/courses', verifyAdminSessionMiddleware, (req, res) => {
     const courses = readData('courses.json') || [];
     // Assign position = max existing position + 1 (append at end)
     const maxPos = courses.reduce((max, c) => Math.max(max, c.position || 0), -1);
@@ -985,7 +1001,7 @@ app.post('/api/courses', (req, res) => {
 });
 
 // Reorder courses - must be before :id route to avoid conflict
-app.put('/api/courses/reorder', (req, res) => {
+app.put('/api/courses/reorder', verifyAdminSessionMiddleware, (req, res) => {
     const { order } = req.body;
     if (!Array.isArray(order)) {
         return res.status(400).json({ success: false, message: 'order array required' });
@@ -999,7 +1015,7 @@ app.put('/api/courses/reorder', (req, res) => {
     res.json({ success: true });
 });
 
-app.put('/api/courses/:id', (req, res) => {
+app.put('/api/courses/:id', verifyAdminSessionMiddleware, (req, res) => {
     let courses = readData('courses.json');
     const index = courses.findIndex(c => c.id == req.params.id);
     if (index !== -1) {
@@ -1011,7 +1027,7 @@ app.put('/api/courses/:id', (req, res) => {
     }
 });
 
-app.delete('/api/courses/:id', (req, res) => {
+app.delete('/api/courses/:id', verifyAdminSessionMiddleware, (req, res) => {
     let courses = readData('courses.json') || [];
     courses = courses.filter(c => c.id != req.params.id);
     // Reassign positions sequentially after deletion to keep them clean
@@ -1032,7 +1048,7 @@ app.get('/api/faculty/:id', (req, res) => {
     res.json(facultyMember);
 });
 
-app.post('/api/faculty', async (req, res) => {
+app.post('/api/faculty', verifyAdminSessionMiddleware, async (req, res) => {
     const faculty = readData('faculty.json') || [];
     const crypto = require('crypto');
 
@@ -1092,14 +1108,14 @@ app.post('/api/faculty', async (req, res) => {
     }
 });
 
-app.delete('/api/faculty/:id', (req, res) => {
+app.delete('/api/faculty/:id', verifyAdminSessionMiddleware, (req, res) => {
     let faculty = readData('faculty.json');
     faculty = faculty.filter(f => f.id != req.params.id);
     writeData('faculty.json', faculty);
     res.json({ success: true });
 });
 
-app.put('/api/faculty/:id', (req, res) => {
+app.put('/api/faculty/:id', verifyAdminSessionMiddleware, (req, res) => {
     const faculty = readData('faculty.json') || [];
     const idx = faculty.findIndex(f => f.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Faculty not found' });
@@ -1179,12 +1195,24 @@ function getRolePermissions(roleName) {
 // Faculty 2FA Setup
 app.post('/api/faculty/enable-2fa', async (req, res) => {
     try {
-        const { email } = req.body;
+        const { email, password } = req.body;
         const faculty = readData('faculty.json') || [];
         const userIndex = faculty.findIndex(f => f.email === email);
         
         if (userIndex === -1) {
             return res.json({ success: false, message: 'Faculty not found' });
+        }
+
+        // Require password verification to prevent unauthorized 2FA setup on someone else's account
+        const fUser = faculty[userIndex];
+        let pwOk;
+        if (fUser.password && fUser.password.startsWith('$2b$')) {
+            pwOk = await bcrypt.compare(password || '', fUser.password);
+        } else {
+            pwOk = (password || '') === fUser.password;
+        }
+        if (!pwOk) {
+            return res.status(401).json({ success: false, message: 'Password incorrect' });
         }
         
         const settings = readData('settings.json') || {};
@@ -1250,7 +1278,7 @@ app.post('/api/faculty/verify-2fa', (req, res) => {
     }
 });
 
-app.post('/api/faculty/disable-2fa', (req, res) => {
+app.post('/api/faculty/disable-2fa', async (req, res) => {
     const { email, password } = req.body;
     const faculty = readData('faculty.json') || [];
     const userIndex = faculty.findIndex(f => f.email === email);
@@ -1258,13 +1286,22 @@ app.post('/api/faculty/disable-2fa', (req, res) => {
     if (userIndex === -1) {
         return res.json({ success: false, message: 'Faculty not found' });
     }
-    
+
     // Verify password before disabling 2FA
-    // (This should be async with bcrypt, but for simplicity we're checking directly)
-    // In production, this should verify the password properly
+    const fUser = faculty[userIndex];
+    let pwOk;
+    if (fUser.password && fUser.password.startsWith('$2b$')) {
+        pwOk = await bcrypt.compare(password || '', fUser.password);
+    } else {
+        pwOk = (password || '') === fUser.password;
+    }
+    if (!pwOk) {
+        return res.status(401).json({ success: false, message: 'Password incorrect' });
+    }
     
     faculty[userIndex].twoFactorEnabled = false;
     delete faculty[userIndex].totpSecret;
+    delete faculty[userIndex].tempTotpSecret;
     writeData('faculty.json', faculty);
     
     res.json({ success: true, message: '2FA disabled successfully' });
@@ -1694,6 +1731,12 @@ app.post('/api/student-auth/verify-otp', (req, res) => {
 app.post('/api/student/enable-2fa', async (req, res) => {
     try {
         const { rollNo } = req.body;
+
+        // Only the logged-in student themselves can set up 2FA on their account
+        if (!verifyStudentSelfByRollNo(req, rollNo)) {
+            return res.status(401).json({ success: false, message: 'Unauthorized. Please login again.' });
+        }
+
         const students = readData('students.json') || [];
         const studentIndex = students.findIndex(s => s.rollNo === rollNo);
         
@@ -1732,6 +1775,12 @@ app.post('/api/student/enable-2fa', async (req, res) => {
 
 app.post('/api/student/verify-2fa', (req, res) => {
     const { rollNo, token } = req.body;
+
+    // Only the logged-in student themselves can complete 2FA setup
+    if (!verifyStudentSelfByRollNo(req, rollNo)) {
+        return res.status(401).json({ success: false, message: 'Unauthorized. Please login again.' });
+    }
+
     const students = readData('students.json') || [];
     const studentIndex = students.findIndex(s => s.rollNo === rollNo);
     
@@ -1764,8 +1813,14 @@ app.post('/api/student/verify-2fa', (req, res) => {
     }
 });
 
-app.post('/api/student/disable-2fa', (req, res) => {
+app.post('/api/student/disable-2fa', async (req, res) => {
     const { rollNo, password } = req.body;
+
+    // Only the logged-in student themselves can disable their 2FA
+    if (!verifyStudentSelfByRollNo(req, rollNo)) {
+        return res.status(401).json({ success: false, message: 'Unauthorized. Please login again.' });
+    }
+
     const students = readData('students.json') || [];
     const studentIndex = students.findIndex(s => s.rollNo === rollNo);
     
@@ -1773,12 +1828,9 @@ app.post('/api/student/disable-2fa', (req, res) => {
         return res.json({ success: false, message: 'Student not found' });
     }
     
-    // Verify password before disabling 2FA
-    // (This should be async with bcrypt, but for simplicity we're checking directly)
-    // In production, this should verify the password properly
-    
     students[studentIndex].twoFactorEnabled = false;
     delete students[studentIndex].totpSecret;
+    delete students[studentIndex].tempTotpSecret;
     writeData('students.json', students);
     
     res.json({ success: true, message: '2FA disabled successfully' });
@@ -2124,7 +2176,7 @@ app.get('/api/faculty/:id/me', (req, res) => {
 });
 
 // PATCH: Toggle entrance exam management access for a faculty
-app.patch('/api/faculty/:id/entrance-management-access', (req, res) => {
+app.patch('/api/faculty/:id/entrance-management-access', verifyAdminSessionMiddleware, (req, res) => {
     const faculty = readData('faculty.json') || [];
     const idx = faculty.findIndex(f => f.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Faculty not found' });
@@ -2307,15 +2359,23 @@ app.post('/api/admin/logout', (req, res) => {
 // Admin Gate Passcode Verification
 app.post('/api/admin/verify-gate-passcode', async (req, res) => {
     const { passcode, recaptchaToken } = req.body;
-    const gatePasscode = process.env.ADMIN_GATE_PASSCODE || '1234';
+    const gatePasscode = process.env.ADMIN_GATE_PASSCODE;
     const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+
+    // Fail closed: the gate passcode must be explicitly configured (no insecure default)
+    if (!gatePasscode) {
+        return res.status(503).json({ success: false, message: 'Admin gate passcode server par configured nahi hai. ADMIN_GATE_PASSCODE set karein.' });
+    }
     
     if (!passcode) {
         return res.json({ success: false, message: 'Passcode required' });
     }
     
-    // Verify reCAPTCHA token
-    if (recaptchaToken && recaptchaSecret) {
+    // Verify reCAPTCHA token (mandatory when a reCAPTCHA secret is configured)
+    if (recaptchaSecret) {
+        if (!recaptchaToken) {
+            return res.json({ success: false, message: 'reCAPTCHA verification required.' });
+        }
         try {
             const recaptchaResponse = await fetch('https://www.google.com/recaptcha/api/siteverify', {
                 method: 'POST',
@@ -2485,9 +2545,12 @@ app.post('/api/admin/verify-credentials', async (req, res) => {
     const { username, password, totpToken, recaptchaToken } = req.body;
     const ip = req.ip || req.connection.remoteAddress || 'unknown';
     const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
-    
-    // Verify reCAPTCHA token
-    if (recaptchaToken && recaptchaSecret) {
+
+    // Verify reCAPTCHA token (mandatory when a reCAPTCHA secret is configured)
+    if (recaptchaSecret) {
+        if (!recaptchaToken) {
+            return res.json({ success: false, message: 'reCAPTCHA verification required.' });
+        }
         try {
             const recaptchaResponse = await fetch('https://www.google.com/recaptcha/api/siteverify', {
                 method: 'POST',
@@ -2495,7 +2558,7 @@ app.post('/api/admin/verify-credentials', async (req, res) => {
                 body: `secret=${recaptchaSecret}&response=${recaptchaToken}`
             });
             const recaptchaData = await recaptchaResponse.json();
-            
+
             if (!recaptchaData.success || recaptchaData.score < 0.5) {
                 return res.json({ success: false, message: 'reCAPTCHA verification failed. Please try again.' });
             }
@@ -2582,7 +2645,7 @@ app.get('/api/gallery', (req, res) => {
     res.json(readData('gallery.json') || []);
 });
 
-app.post('/api/gallery', uploadGallery.single('image'), (req, res) => {
+app.post('/api/gallery', verifyAdminSessionMiddleware, uploadGallery.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ success: false, message: 'No image uploaded' });
     const gallery = readData('gallery.json') || [];
     const item = {
@@ -2596,7 +2659,7 @@ app.post('/api/gallery', uploadGallery.single('image'), (req, res) => {
     res.json({ success: true, item });
 });
 
-app.put('/api/gallery/:id', uploadGallery.single('image'), (req, res) => {
+app.put('/api/gallery/:id', verifyAdminSessionMiddleware, uploadGallery.single('image'), (req, res) => {
     let gallery = readData('gallery.json');
     const index = gallery.findIndex(g => g.id == req.params.id);
     if (index === -1) return res.status(404).json({ success: false, message: 'Gallery item not found' });
@@ -2613,7 +2676,7 @@ app.put('/api/gallery/:id', uploadGallery.single('image'), (req, res) => {
     res.json({ success: true, item });
 });
 
-app.delete('/api/gallery/:id', (req, res) => {
+app.delete('/api/gallery/:id', verifyAdminSessionMiddleware, (req, res) => {
     let gallery = readData('gallery.json');
     const item = gallery.find(g => g.id == req.params.id);
     if (item && item.image) {
@@ -2946,11 +3009,6 @@ app.delete('/api/batches/:id', (req, res) => {
     res.json({ success: true });
 });
 
-// --- Student OTP Auth ---
-const otpStore = new Map();
-
-function generateOTP() { return Math.floor(100000 + Math.random() * 900000).toString(); }
-
 function generatePassword() {
     const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#';
     return Array.from({length: 8}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
@@ -3156,103 +3214,38 @@ async function sendLoginCredentials(student, password) {
     });
 }
 
-app.post('/api/student-auth/request-otp', async (req, res) => {
-    const { email } = req.body;
-    const students = readData('students.json') || [];
-    const student = students.find(s => s.email === email);
-    if (!student) return res.status(404).json({ error: 'Is email se koi student registered nahi hai.' });
-    const otp = generateOTP();
-    otpStore.set(email, { otp, expiry: Date.now() + 5 * 60 * 1000 });
-    const settings = readData('settings.json') || {};
-    const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
-    try {
-        const transporter = nodemailer.createTransport({ host: smtpHost, port: smtpPort, secure: smtpSecure, auth: { user: smtpUser, pass: smtpPass } });
-        const inst = settings.name || 'Genius Computer Education';
-        await transporter.sendMail({
-            from: `"${inst}" <${smtpUser}>`,
-            to: email,
-            subject: `Login OTP - Student Portal | ${inst}`,
-            html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
-<div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:30px 32px;">
-<h1 style="margin:0;font-size:24px;font-weight:700;">${inst}</h1>
-<p style="margin:6px 0 0;opacity:0.9;font-size:14px;">Student Portal - Login Verification</p>
-</div>
-<div style="padding:32px;background:#fff;">
-<p style="margin:0 0 16px;color:#1f2937;font-size:16px;">Dear <strong>${student.name || 'Student'}</strong>,</p>
-<p style="margin:0 0 24px;color:#4b5563;font-size:15px;line-height:1.6;">Aapne Student Portal mein login karne ke liye OTP request kiya hai. Aapka verification code neeche diya gaya hai:</p>
-<div style="background:#f0f9ff;border:2px solid #3b82f6;border-radius:12px;padding:24px;text-align:center;margin:24px 0;">
-<p style="margin:0 0 8px;color:#6b7280;font-size:13px;letter-spacing:1px;text-transform:uppercase;font-weight:600;">Your Verification Code</p>
-<p style="margin:0;font-size:36px;font-weight:700;letter-spacing:8px;color:#1e40af;font-family:'Courier New',monospace;">${otp}</p>
-</div>
-<p style="margin:0 0 20px;color:#4b5563;font-size:14px;line-height:1.6;">Yeh OTP <strong>5 minutes</strong> ke liye valid hai. Isse kisi ke saath share na karein.</p>
-
-<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:24px 0;">
-<h3 style="margin:0 0 12px;color:#1e40af;font-size:15px;font-weight:600;">📋 Aapka Account Details:</h3>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-<div><span style="color:#6b7280;font-size:13px;">Roll No:</span> <span style="font-weight:600;color:#1f2937;font-size:14px;">${student.rollNo || '—'}</span></div>
-<div><span style="color:#6b7280;font-size:13px;">Course:</span> <span style="font-weight:600;color:#1f2937;font-size:14px;">${student.course || '—'}</span></div>
-<div><span style="color:#6b7280;font-size:13px;">Batch:</span> <span style="font-weight:600;color:#1f2937;font-size:14px;">${student.batch || '—'}</span></div>
-<div><span style="color:#6b7280;font-size:13px;">Status:</span> <span style="font-weight:600;color:#16a34a;font-size:14px;">${student.status || 'Active'}</span></div>
-</div>
-</div>
-
-<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:12px 16px;margin:20px 0;border-radius:6px;">
-<p style="margin:0;color:#92400e;font-size:13px;line-height:1.5;"><strong>⚠️ Security Notice:</strong> Agar aapne yeh OTP request nahi kiya, to isse ignore karein aur apna password change karein. Koi bhi suspicious activity ho to immediately administration ko inform karein.</p>
-</div>
-
-<p style="margin:24px 0 8px;color:#4b5563;font-size:14px;">Student Portal mein login karne ke liye yahan click karein:</p>
-<a href="http://localhost:3000/student-portal.html" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Student Portal Login</a>
-
-<div style="margin-top:24px;padding-top:20px;border-top:1px solid #e5e7eb;">
-<h4 style="margin:0 0 8px;color:#1f2937;font-size:14px;font-weight:600;">🔐 Account Security Tips:</h4>
-<ul style="margin:0;padding-left:20px;color:#4b5563;font-size:13px;line-height:1.8;">
-<li>Apna OTP kabhi kisi ke saath share na karein</li>
-<li>Login ke baad logout karna na bhulein</li>
-<li>Apna password regularly change karein</li>
-<li>Public devices par login karna avoid karein</li>
-</ul>
-</div>
-</div>
-<div style="background:#f9fafb;padding:20px 32px;border-top:1px solid #e5e7eb;">
-<p style="margin:0 0 8px;color:#6b7280;font-size:12px;">Need help? Contact us:</p>
-<p style="margin:0;color:#374151;font-size:13px;">${settings.phone || 'Contact Administration'}</p>
-<p style="margin:4px 0 0;color:#6b7280;font-size:12px;">${settings.email || settings.smtpUser || ''}</p>
-<p style="margin:8px 0 0;color:#6b7280;font-size:12px;">&copy; ${new Date().getFullYear()} ${inst}. All rights reserved.</p>
-</div>
-</div>`
-        });
-        res.json({ success: true, message: 'OTP sent to your email.' });
-    } catch (e) {
-        logEmailFailure('student-auth-otp', email, e);
-        res.status(500).json({ error: 'OTP send nahi ho saka. Admin se contact karein.' });
-    }
-});
-
-app.post('/api/student-auth/verify-otp', (req, res) => {
-    const { email, otp } = req.body;
-    const record = otpStore.get(email);
-    if (!record) return res.status(400).json({ error: 'OTP request nahi mili. Phir se try karein.' });
-    if (Date.now() > record.expiry) { otpStore.delete(email); return res.status(400).json({ error: 'OTP expire ho gaya. Naya OTP mangaiye.' }); }
-    if (record.otp !== otp) return res.status(400).json({ error: 'Galat OTP. Dobara check karein.' });
-    otpStore.delete(email);
-    const student = (readData('students.json') || []).find(s => s.email === email);
-    const sessionToken = createStudentSession(student.id, req);
-    res.json({ success: true, student: { ...student, sessionToken } });
-});
-
 // Google Sign-In
 app.post('/api/student-auth/google-signin', async (req, res) => {
     try {
         const { token } = req.body;
         if (!token) return res.status(400).json({ success: false, error: 'Token required' });
-        
-        // Decode Google ID token (without verification for now - in production, verify with google-auth-library)
-        const parts = token.split('.');
-        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-        
+
+        // Google Sign-In requires a configured client ID to verify token signatures.
+        if (!GOOGLE_CLIENT_ID) {
+            return res.status(503).json({ success: false, error: 'Google Sign-In server par configured nahi hai.' });
+        }
+
+        // Cryptographically verify the Google ID token (signature, audience, expiry, issuer)
+        // instead of blindly trusting the decoded payload.
+        let payload;
+        try {
+            const ticket = await googleAuthClient.verifyIdToken({
+                idToken: token,
+                audience: GOOGLE_CLIENT_ID
+            });
+            payload = ticket.getPayload();
+        } catch (verifyErr) {
+            console.error('Google token verification failed:', verifyErr.message);
+            return res.status(401).json({ success: false, error: 'Google token invalid hai ya expire ho gaya.' });
+        }
+
+        // Require a verified email claim from Google
+        if (!payload || !payload.email || payload.email_verified === false) {
+            return res.status(401).json({ success: false, error: 'Google account email verified nahi hai.' });
+        }
+
         const email = payload.email;
-        const name = payload.name;
-        
+
         // Find student by email
         const students = readData('students.json') || [];
         const student = students.find(s => s.email === email);
@@ -8035,7 +8028,7 @@ app.get('/api/carousel', (req, res) => {
     res.json(readData('carousel.json') || []);
 });
 
-app.post('/api/carousel', uploadCarousel.single('image'), (req, res) => {
+app.post('/api/carousel', verifyAdminSessionMiddleware, uploadCarousel.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ success: false, message: 'No image uploaded' });
     const carousel = readData('carousel.json') || [];
     const item = {
@@ -8048,7 +8041,7 @@ app.post('/api/carousel', uploadCarousel.single('image'), (req, res) => {
     res.json({ success: true, item });
 });
 
-app.delete('/api/carousel/:id', (req, res) => {
+app.delete('/api/carousel/:id', verifyAdminSessionMiddleware, (req, res) => {
     let carousel = readData('carousel.json');
     const item = carousel.find(c => c.id == req.params.id);
     if (item && item.image) {
@@ -10710,7 +10703,7 @@ app.get('/api/carousel', (req, res) => {
     }
 });
 
-app.post('/api/carousel', uploadCarousel.single('image'), (req, res) => {
+app.post('/api/carousel', verifyAdminSessionMiddleware, uploadCarousel.single('image'), (req, res) => {
     try {
         const { caption } = req.body;
         
@@ -10736,7 +10729,7 @@ app.post('/api/carousel', uploadCarousel.single('image'), (req, res) => {
     }
 });
 
-app.put('/api/carousel/:id', uploadCarousel.single('image'), (req, res) => {
+app.put('/api/carousel/:id', verifyAdminSessionMiddleware, uploadCarousel.single('image'), (req, res) => {
     try {
         const { id } = req.params;
         const { caption } = req.body;
@@ -10767,7 +10760,7 @@ app.put('/api/carousel/:id', uploadCarousel.single('image'), (req, res) => {
     }
 });
 
-app.delete('/api/carousel/:id', (req, res) => {
+app.delete('/api/carousel/:id', verifyAdminSessionMiddleware, (req, res) => {
     try {
         const { id } = req.params;
         const carousel = readData('carousel.json') || [];
