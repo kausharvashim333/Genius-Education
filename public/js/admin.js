@@ -10470,14 +10470,18 @@ async function printStudentForm(id) {
         html += '    </div>\n';
         html += '    \n';
         html += '    <script>\n';
-        html += '        window.onload = function() {\n';
-        html += '            window.print();\n';
+        html += '        function triggerPrint() {\n';
+        html += '            setTimeout(function(){ window.focus(); window.print(); }, 400);\n';
         html += '            window.onafterprint = function() { window.close(); };\n';
-        html += '        };\n';
+        html += '        }\n';
+        html += '        if (document.readyState === "complete") { triggerPrint(); }\n';
+        html += '        else { window.addEventListener("load", triggerPrint); }\n';
         html += '    </script>\n';
         html += '</body>\n';
         html += '</html>\n';
+        printWindow.document.open();
         printWindow.document.write(html);
+        printWindow.document.close();
     } catch (err) {
         showNotification('Error loading student data!', 'error');
     }
