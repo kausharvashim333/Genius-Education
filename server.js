@@ -140,6 +140,67 @@ const authLimiter = rateLimit({
 app.use('/api/login', authLimiter);
 app.use('/api/admin-login', authLimiter);
 
+// === Anti-abuse limiters for email-sending and public form endpoints ===
+// Strict: OTP and email-sending endpoints (5 per IP per 15 min)
+const emailLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Bahut zyada requests. 15 minute baad try karein.' }
+});
+
+// Moderate: public form submissions (10 per IP per 15 min)
+const formLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Bahut zyada requests. Thodi der baad try karein.' }
+});
+
+// Strict: admin login attempts (5 per IP per 15 min)
+const adminLoginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Bahut zyada login attempts. 15 minute baad try karein.' }
+});
+
+// Apply limiters by route prefix (must be before route handlers)
+// OTP / email sending
+app.use('/api/faculty/send-otp', emailLimiter);
+app.use('/api/faculty/forgot-password', emailLimiter);
+app.use('/api/staff/send-otp', emailLimiter);
+app.use('/api/student/send-otp', emailLimiter);
+app.use('/api/student-auth/request-otp', emailLimiter);
+// OTP verification (anti brute-force)
+app.use('/api/faculty/verify-otp', emailLimiter);
+app.use('/api/staff/verify-otp', emailLimiter);
+app.use('/api/student-auth/verify-otp', emailLimiter);
+// Public form submissions
+app.use('/api/enquiries', (req, res, next) => {
+    // Only limit public POST at exactly /api/enquiries (contact form).
+    // Sub-paths like /:id/reply are admin actions and excluded.
+    if (req.method === 'POST' && req.path === '/' && !req.headers['x-admin-session']) {
+        return formLimiter(req, res, next);
+    }
+    next();
+});
+app.use('/api/newsletter/subscribe', formLimiter);
+app.use('/api/students', (req, res, next) => {
+    // Only limit public admission form POST at exactly /api/students (not sub-paths)
+    // Sub-paths like /api/students/:id/update-profile, /payment, etc. are excluded.
+    if (req.method === 'POST' && req.path === '/' && !req.headers['x-admin-session']) {
+        return formLimiter(req, res, next);
+    }
+    next();
+});
+// Admin login
+app.use('/api/admin/verify-credentials', adminLoginLimiter);
+app.use('/api/admin/verify-gate-passcode', adminLoginLimiter);
+
 // Handle preflight requests
 app.options('*', (req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
