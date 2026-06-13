@@ -50,9 +50,9 @@ body {
     top: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.5) 100%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     align-items: center;
     justify-content: center;
 }
@@ -62,41 +62,48 @@ body {
 }
 
 .popup-modal-content {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 24px;
-    padding: 40px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 20px;
+    padding: 36px;
     max-width: 600px;
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
     box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-    animation: popupSlideIn 0.5s ease-out;
+        0 25px 50px -12px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        0 0 40px rgba(102, 126, 234, 0.15);
+    animation: popupSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .popup-modal-content::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-    border-radius: 24px;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 30%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 70% 70%, rgba(118, 75, 162, 0.08) 0%, transparent 50%);
+    border-radius: 20px;
     pointer-events: none;
     z-index: -1;
+    animation: shimmer 8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { opacity: 0.5; transform: translate(0, 0); }
+    50% { opacity: 1; transform: translate(-5%, -5%); }
 }
 
 @keyframes popupSlideIn {
     from {
         opacity: 0;
-        transform: scale(0.9) translateY(-30px);
+        transform: scale(0.85) translateY(-20px);
     }
     to {
         opacity: 1;
@@ -106,29 +113,30 @@ body {
 
 .popup-modal-close {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    width: 44px;
-    height: 44px;
-    font-size: 18px;
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    color: #fca5a5;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
 .popup-modal-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg) scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(220, 38, 38, 0.25) 100%);
+    transform: rotate(90deg) scale(1.05);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+    color: #fff;
 }
 
 .popup-modal-image {
