@@ -3090,6 +3090,10 @@ async function sendLoginCredentials(student, password) {
     // Generate PDF attachment
     const pdfBuffer = await generateAdmissionPDF(student, settings);
     const attachments = [];
+    // Add logo attachments if available
+    if (logo.attachments && logo.attachments.length > 0) {
+        attachments.push(...logo.attachments);
+    }
     if (pdfBuffer) {
         attachments.push({
             filename: `Admission-Form-${student.rollNo}.pdf`,
