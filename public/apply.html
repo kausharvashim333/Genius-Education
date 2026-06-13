@@ -944,13 +944,14 @@ function updateStickyButton() {
 }
 
 // Update on step change and resize
-const originalShowStep = showStep;
-showStep = function(step) {
-    originalShowStep(step);
-    updateStickyButton();
-};
-
-window.addEventListener('resize', updateStickyButton);
+document.addEventListener('DOMContentLoaded', function() {
+    const originalShowStep = showStep;
+    showStep = function(step) {
+        originalShowStep(step);
+        updateStickyButton();
+    };
+    window.addEventListener('resize', updateStickyButton);
+});
 </script>
 
 <!-- Staff OTP Verification Modal -->
@@ -1489,7 +1490,6 @@ async function applyOnCourseChange() {
     const val = courseName.toUpperCase();
     const isPGDCA = val.includes('PGDCA');
     const isTyping = val.includes('TYPING') || val.includes('HINDI TYPING') || val.includes('ENGLISH TYPING');
-    const qualSec = document.getElementById('applyQualSection');
     const gradSec = document.getElementById('applyGradSection');
     const gradDocGroup = document.getElementById('aGradMarksheetGroup');
     const sec10 = document.getElementById('apply10Section');
@@ -1500,24 +1500,21 @@ async function applyOnCourseChange() {
     const batchSel = document.getElementById('aBatch');
     if (courseName && window.allBatches) {
         const filteredBatches = window.allBatches.filter(b => b.course === courseName);
-        batchSel.innerHTML = '<option value="">-- Select Batch --</option>' + 
+        batchSel.innerHTML = '<option value="">-- Select Batch --</option>' +
             filteredBatches.map(b => `<option value="${b.name}" data-batch-id="${b.id}">${b.name} (${b.timing})</option>`).join('');
     } else {
         batchSel.innerHTML = '<option value="">-- Select Batch --</option>';
     }
     
-    // Always show qualification section
-    qualSec.style.display = 'block';
-    
     // Handle 10th section - mandatory for all courses
-    sec10.style.display = 'block';
-    
+    if (sec10) sec10.style.display = 'block';
+
     // Handle 12th section - hide for typing courses
-    sec12.style.display = isTyping ? 'none' : 'block';
-    
+    if (sec12) sec12.style.display = isTyping ? 'none' : 'block';
+
     // Handle graduation section - show only for PGDCA
-    gradSec.style.display = isPGDCA ? 'block' : 'none';
-    
+    if (gradSec) gradSec.style.display = isPGDCA ? 'block' : 'none';
+
     // Handle graduation marksheet upload - show only for PGDCA
     if (gradDocGroup) gradDocGroup.style.display = isPGDCA ? 'block' : 'none';
     
