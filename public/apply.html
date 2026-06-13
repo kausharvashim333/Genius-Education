@@ -1355,6 +1355,7 @@ document.addEventListener('DOMContentLoaded', function() {
     showStep(1);
     loadDraft();
     setupAutoSave();
+    loadApplyBatches(); // Load batches on page load
 });
 
 // Auto-save draft functionality
@@ -1541,6 +1542,7 @@ async function applyOnCourseChange() {
 
 async function loadApplyBatches(courseName) {
     const data = await fetch('/api/batches/seats').then(r => r.json());
+    window.allBatches = data; // Store for course change handler
     const sel = document.getElementById('aBatch');
     sel.innerHTML = '<option value="">-- Select Batch --</option>';
     
