@@ -182,15 +182,38 @@
         .apply-success .cred-box { background:rgba(22, 163, 74, 0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border:1px solid rgba(22, 163, 74, 0.3); border-radius:10px; padding:20px 28px; display:inline-block; margin:16px auto; text-align:left; }
         .back-link { display:inline-block; margin:18px 0; color:#60a5fa; font-weight:600; text-decoration:none; }
         .back-link:hover { text-decoration:underline; }
-        .step-indicator { display:flex; gap:0; margin-bottom:28px; counter-reset: step; }
-        .step { flex:1; text-align:center; font-size:.78rem; font-weight:600; color:#94a3b8; position:relative; }
+        .step-indicator { display:flex; gap:0; margin-bottom:28px; counter-reset: step; overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .step-indicator::-webkit-scrollbar { display: none; }
+        .step { flex: 0 0 auto; min-width: 70px; text-align:center; font-size:.78rem; font-weight:600; color:#94a3b8; position:relative; padding: 0 8px; }
         .step::before { counter-increment:step; content:counter(step); display:block; width:30px; height:30px; border-radius:50%; background:rgba(226, 232, 240, 0.3); color:#e2e8f0; line-height:30px; margin:0 auto 6px; font-weight:700; }
-        .step::after { content:''; position:absolute; top:15px; left:calc(50% + 15px); width:calc(100% - 30px); height:2px; background:rgba(226, 232, 240, 0.3); z-index:0; }
+        .step::after { content:''; position:absolute; top:15px; left:calc(50% + 15px); width:30px; height:2px; background:rgba(226, 232, 240, 0.3); z-index:0; }
         .step:last-child::after { display:none; }
         .step.active::before { background:#2563eb; color:#fff; }
         .step.done::before   { background:#16a34a; color:#fff; content:'✓'; }
         .step.active { color:#60a5fa; }
         .step.done   { color:#16a34a; }
+
+        @media (max-width: 768px) {
+            .step-indicator {
+                gap: 4px;
+                margin-bottom: 20px;
+            }
+            .step {
+                min-width: 60px;
+                font-size: 0.7rem;
+                padding: 0 6px;
+            }
+            .step::before {
+                width: 26px;
+                height: 26px;
+                line-height: 26px;
+                font-size: 0.8rem;
+            }
+            .step::after {
+                width: 20px;
+                top: 13px;
+            }
+        }
         
         /* Glassmorphism for form wrapper */
         #applyFormWrap {
