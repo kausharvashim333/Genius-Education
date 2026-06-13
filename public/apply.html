@@ -1321,17 +1321,18 @@ function validateStep(step) {
     const stepElement = document.getElementById(`step${step}`);
     const requiredFields = stepElement.querySelectorAll('input[required], select[required]');
     let isValid = true;
-    
+
     requiredFields.forEach(field => {
         if (!field.value.trim()) {
             isValid = false;
             field.style.borderColor = '#ef4444';
+            field.focus();
             setTimeout(() => {
                 field.style.borderColor = '';
             }, 2000);
         }
     });
-    
+
     return isValid;
 }
 
@@ -1357,7 +1358,30 @@ document.addEventListener('DOMContentLoaded', function() {
     loadDraft();
     setupAutoSave();
     loadApplyBatches(); // Load batches on page load
+    initializeRequiredFields(); // Set correct required attributes on load
 });
+
+// Initialize required fields based on visible sections
+function initializeRequiredFields() {
+    const sec12 = document.getElementById('apply12Section');
+    const gradSec = document.getElementById('applyGradSection');
+
+    // Hide 12th section by default and remove required
+    if (sec12) {
+        sec12.style.display = 'none';
+        sec12.querySelectorAll('input[required], select[required]').forEach(field => {
+            field.removeAttribute('required');
+        });
+    }
+
+    // Hide graduation section by default and remove required
+    if (gradSec) {
+        gradSec.style.display = 'none';
+        gradSec.querySelectorAll('input[required], select[required]').forEach(field => {
+            field.removeAttribute('required');
+        });
+    }
+}
 
 // Auto-save draft functionality
 const DRAFT_KEY = 'admission_form_draft';
@@ -1510,10 +1534,30 @@ async function applyOnCourseChange() {
     if (sec10) sec10.style.display = 'block';
 
     // Handle 12th section - hide for typing courses
-    if (sec12) sec12.style.display = isTyping ? 'none' : 'block';
+    if (sec12) {
+        sec12.style.display = isTyping ? 'none' : 'block';
+        // Toggle required attribute for 12th fields
+        sec12.querySelectorAll('input[required], select[required]').forEach(field => {
+            if (isTyping) {
+                field.removeAttribute('required');
+            } else {
+                field.setAttribute('required', '');
+            }
+        });
+    }
 
     // Handle graduation section - show only for PGDCA
-    if (gradSec) gradSec.style.display = isPGDCA ? 'block' : 'none';
+    if (gradSec) {
+        gradSec.style.display = isPGDCA ? 'block' : 'none';
+        // Toggle required attribute for graduation fields
+        gradSec.querySelectorAll('input[required], select[required]').forEach(field => {
+            if (isPGDCA) {
+                field.setAttribute('required', '');
+            } else {
+                field.removeAttribute('required');
+            }
+        });
+    }
 
     // Handle graduation marksheet upload - show only for PGDCA
     if (gradDocGroup) gradDocGroup.style.display = isPGDCA ? 'block' : 'none';
