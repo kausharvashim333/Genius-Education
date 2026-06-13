@@ -145,7 +145,14 @@ const limiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
 });
-app.use('/api/', limiter);
+// Apply limiter to /api/ but skip public duplicate check endpoints
+app.use('/api/', (req, res, next) => {
+    if (req.path.startsWith('/check-mobile') || req.path.startsWith('/check-email') || req.path.startsWith('/check-aadhar') || req.path.startsWith('/batches')) {
+        next();
+    } else {
+        limiter(req, res, next);
+    }
+});
 
 // Stricter rate limiting for auth endpoints
 const authLimiter = rateLimit({

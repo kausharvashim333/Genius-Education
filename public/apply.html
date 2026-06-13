@@ -2300,8 +2300,8 @@ async function submitApplication(paymentMode, paymentType, amountPaid, upiId = '
     
     const isPGDCA = document.getElementById('aCourse').value.toUpperCase().includes('PGDCA');
     const isTyping = document.getElementById('aCourse').value.toUpperCase().includes('TYPING');
-    
-    if (!isTyping && document.getElementById('applyQualSection').style.display !== 'none') {
+
+    if (!isTyping) {
         qual.twelfth = { 
             board:document.getElementById('a12Board').value, 
             stream:document.getElementById('a12Stream').value, 
