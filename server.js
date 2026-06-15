@@ -925,6 +925,9 @@ app.post('/api/email-templates/:key/reset', verifyAdminSessionMiddleware, (req, 
 // Live preview render (admin) - renders provided subject/body with sample vars
 app.post('/api/email-templates/:key/preview', verifyAdminSessionMiddleware, (req, res) => {
     const key = req.params.key;
+    console.log('Preview request - key:', key);
+    console.log('Available template keys:', Object.keys(EMAIL_TEMPLATE_DEFAULTS));
+    console.log('Template exists:', !!EMAIL_TEMPLATE_DEFAULTS[key]);
     if (!EMAIL_TEMPLATE_DEFAULTS[key]) return res.status(400).json({ success: false, message: 'Invalid template key' });
     const settings = readData('settings.json') || {};
     const { vars } = getSampleTemplateVars(key, settings);

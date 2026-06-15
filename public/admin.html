@@ -5463,20 +5463,28 @@
             return;
         }
 
+        const subject = document.getElementById('templateSubject').value;
+        const body = document.getElementById('templateBody').value;
+
+        console.log('Preview request:', { key: currentTemplateKey, subject, body });
+
         try {
             const response = await fetch(`/api/email-templates/${currentTemplateKey}/preview`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    subject: document.getElementById('templateSubject').value,
-                    body: document.getElementById('templateBody').value
-                })
+                body: JSON.stringify({ subject, body })
             });
+
+            console.log('Preview response status:', response.status);
+
             if (response.status === 401) {
                 alert('Please login as admin to preview email templates');
                 return;
             }
+
             const data = await response.json();
+            console.log('Preview response data:', data);
+
             if (data.success) {
                 const previewWindow = window.open('', '_blank', 'width=800,height=600');
                 previewWindow.document.write(`
