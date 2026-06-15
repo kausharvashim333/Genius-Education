@@ -2785,15 +2785,21 @@ setInterval(() => {
 function verifyAdminSessionMiddleware(req, res, next) {
     const token = req.headers['x-admin-session'];
     const ip = req.ip || req.connection.remoteAddress || 'unknown';
-    
+
+    console.log('Admin session check - token:', token ? 'present' : 'missing');
+    console.log('Admin session check - IP:', ip);
+
     if (!token) {
         return res.status(401).json({ success: false, message: 'No session token provided' });
     }
-    
-    if (!verifyAdminSession(token, ip)) {
+
+    const isValid = verifyAdminSession(token, ip);
+    console.log('Admin session check - valid:', isValid);
+
+    if (!isValid) {
         return res.status(401).json({ success: false, message: 'Invalid or expired session' });
     }
-    
+
     next();
 }
 

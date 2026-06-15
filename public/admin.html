@@ -5485,6 +5485,7 @@
         }
 
         const sessionToken = sessionStorage.getItem('adminSessionToken');
+        console.log('Session token:', sessionToken);
         if (!sessionToken) {
             alert('Please login as admin to preview email templates');
             return;
