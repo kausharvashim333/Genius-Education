@@ -5292,15 +5292,7 @@
 
     async function loadEmailTemplates() {
         try {
-            const sessionToken = sessionStorage.getItem('adminSessionToken');
-            if (!sessionToken) {
-                alert('Please login as admin to access email templates');
-                return;
-            }
-
-            const response = await fetch('/api/email-templates', {
-                headers: { 'X-Admin-Session': sessionToken }
-            });
+            const response = await fetch('/api/email-templates');
             if (response.status === 401) {
                 alert('Please login as admin to access email templates');
                 return;
@@ -5398,19 +5390,13 @@
             return;
         }
 
-        const sessionToken = sessionStorage.getItem('adminSessionToken');
-        if (!sessionToken) {
-            alert('Please login as admin to save email templates');
-            return;
-        }
-
         const subject = document.getElementById('templateSubject').value;
         const body = document.getElementById('templateBody').value;
 
         try {
             const response = await fetch(`/api/email-templates/${currentTemplateKey}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'X-Admin-Session': sessionToken },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ subject, body })
             });
             if (response.status === 401) {
@@ -5442,18 +5428,11 @@
             return;
         }
 
-        const sessionToken = sessionStorage.getItem('adminSessionToken');
-        if (!sessionToken) {
-            alert('Please login as admin to reset email templates');
-            return;
-        }
-
         if (!confirm('Are you sure you want to reset this template to its default? This cannot be undone.')) return;
 
         try {
             const response = await fetch(`/api/email-templates/${currentTemplateKey}/reset`, {
-                method: 'POST',
-                headers: { 'X-Admin-Session': sessionToken }
+                method: 'POST'
             });
             if (response.status === 401) {
                 alert('Please login as admin to reset email templates');
@@ -5484,13 +5463,6 @@
             return;
         }
 
-        const sessionToken = sessionStorage.getItem('adminSessionToken');
-        console.log('Session token:', sessionToken);
-        if (!sessionToken) {
-            alert('Please login as admin to preview email templates');
-            return;
-        }
-
         const subject = document.getElementById('templateSubject').value;
         const body = document.getElementById('templateBody').value;
 
@@ -5499,7 +5471,7 @@
         try {
             const response = await fetch(`/api/email-templates/${currentTemplateKey}/preview`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-Admin-Session': sessionToken },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ subject, body })
             });
 
@@ -5543,12 +5515,6 @@
             return;
         }
 
-        const sessionToken = sessionStorage.getItem('adminSessionToken');
-        if (!sessionToken) {
-            alert('Please login as admin to send test emails');
-            return;
-        }
-
         const testEmail = prompt('Enter email address to send test email:');
         if (!testEmail) return;
 
@@ -5560,7 +5526,7 @@
         try {
             const response = await fetch(`/api/email-templates/${currentTemplateKey}/test`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-Admin-Session': sessionToken },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ to: testEmail })
             });
             if (response.status === 401) {
