@@ -5293,10 +5293,16 @@
     async function loadEmailTemplates() {
         try {
             const response = await fetch('/api/email-templates');
+            if (response.status === 401) {
+                alert('Please login as admin to access email templates');
+                return;
+            }
             const data = await response.json();
             if (data.success) {
                 emailTemplates = data.templates;
                 renderTemplateList();
+            } else {
+                alert('Failed to load email templates: ' + (data.message || 'Unknown error'));
             }
         } catch (error) {
             console.error('Failed to load email templates:', error);
@@ -5376,13 +5382,17 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ subject, body })
             });
+            if (response.status === 401) {
+                alert('Please login as admin to save email templates');
+                return;
+            }
             const data = await response.json();
             if (data.success) {
                 alert('Template saved successfully!');
                 emailTemplates[currentTemplateKey].subject = subject;
                 emailTemplates[currentTemplateKey].body = body;
             } else {
-                alert('Failed to save template: ' + data.message);
+                alert('Failed to save template: ' + (data.message || 'Unknown error'));
             }
         } catch (error) {
             console.error('Failed to save template:', error);
@@ -5398,13 +5408,17 @@
             const response = await fetch(`/api/email-templates/${currentTemplateKey}/reset`, {
                 method: 'POST'
             });
+            if (response.status === 401) {
+                alert('Please login as admin to reset email templates');
+                return;
+            }
             const data = await response.json();
             if (data.success) {
                 alert('Template reset to default!');
                 emailTemplates[currentTemplateKey] = data.template;
                 selectTemplate(currentTemplateKey);
             } else {
-                alert('Failed to reset template: ' + data.message);
+                alert('Failed to reset template: ' + (data.message || 'Unknown error'));
             }
         } catch (error) {
             console.error('Failed to reset template:', error);
@@ -5424,6 +5438,10 @@
                     body: document.getElementById('templateBody').value
                 })
             });
+            if (response.status === 401) {
+                alert('Please login as admin to preview email templates');
+                return;
+            }
             const data = await response.json();
             if (data.success) {
                 const previewWindow = window.open('', '_blank', 'width=800,height=600');
@@ -5436,7 +5454,7 @@
                     </body></html>
                 `);
             } else {
-                alert('Failed to preview template: ' + data.message);
+                alert('Failed to preview template: ' + (data.message || 'Unknown error'));
             }
         } catch (error) {
             console.error('Failed to preview template:', error);
@@ -5461,11 +5479,15 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ to: testEmail })
             });
+            if (response.status === 401) {
+                alert('Please login as admin to send test emails');
+                return;
+            }
             const data = await response.json();
             if (data.success) {
                 alert('Test email sent successfully to ' + testEmail);
             } else {
-                alert('Failed to send test email: ' + data.message);
+                alert('Failed to send test email: ' + (data.message || 'Unknown error'));
             }
         } catch (error) {
             console.error('Failed to send test email:', error);
