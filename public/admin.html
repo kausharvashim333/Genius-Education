@@ -5318,6 +5318,7 @@
             const template = emailTemplates[key];
             const btn = document.createElement('button');
             btn.className = 'btn btn-secondary';
+            btn.dataset.key = key;
             btn.style.cssText = 'text-align: left; width: 100%; padding: 10px 12px; font-size: 13px;';
             btn.innerHTML = `<i class="fas fa-envelope" style="margin-right: 8px;"></i> ${template.name}`;
             btn.onclick = () => selectTemplate(key);
@@ -5328,6 +5329,12 @@
     async function selectTemplate(key) {
         currentTemplateKey = key;
         const template = emailTemplates[key];
+
+        if (!template) {
+            console.error('Template not found for key:', key);
+            alert('Template not found');
+            return;
+        }
 
         // Show editor, hide empty state
         document.getElementById('templateEditor').style.display = 'block';
@@ -5365,9 +5372,11 @@
         document.querySelectorAll('#emailTemplateList button').forEach(btn => {
             btn.classList.remove('btn-primary');
             btn.classList.add('btn-secondary');
+            if (btn.dataset.key === key) {
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-primary');
+            }
         });
-        event.target.classList.remove('btn-secondary');
-        event.target.classList.add('btn-primary');
     }
 
     async function saveEmailTemplate() {
