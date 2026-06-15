@@ -720,12 +720,12 @@
                     <div class="qual-sub-heading"><i class="fas fa-school"></i> 10th / High School Details</div>
                     <div class="form-grid-3">
                         <div class="form-group"><label>Board *</label>
-                            <select id="a10Board" style="height:40px;"><option value="">Select Board</option><option>CGBSE Raipur</option><option>CBSE Delhi</option><option>ICSE Board</option><option>MHRD Board</option><option>UP Board (UPMSP)</option><option>MP Board (MPBSE)</option><option>Rajasthan Board (RBSE)</option><option>Bihar Board (BSEB)</option><option>Uttarakhand Board (UBSE)</option><option>Other Board</option></select></div>
-                        <div class="form-group"><label>School Name *</label><input type="text" id="a10School" placeholder="School ka naam"></div>
-                        <div class="form-group"><label>Passing Year *</label><input type="number" id="a10Year" placeholder="e.g. 2022" min="2010" max="2030"></div>
-                        <div class="form-group"><label>Roll Number *</label><input type="text" id="a10Roll" placeholder="Board roll number"></div>
-                        <div class="form-group"><label>Total Marks *</label><input type="number" id="a10Total" placeholder="e.g. 500" oninput="applyCalc10Pct()"></div>
-                        <div class="form-group"><label>Obtained Marks *</label><input type="number" id="a10Obtained" placeholder="e.g. 350" oninput="applyCalc10Pct()"></div>
+                            <select id="a10Board" name="a10Board" style="height:40px;"><option value="">Select Board</option><option>CGBSE Raipur</option><option>CBSE Delhi</option><option>ICSE Board</option><option>MHRD Board</option><option>UP Board (UPMSP)</option><option>MP Board (MPBSE)</option><option>Rajasthan Board (RBSE)</option><option>Bihar Board (BSEB)</option><option>Uttarakhand Board (UBSE)</option><option>Other Board</option></select></div>
+                        <div class="form-group"><label>School Name *</label><input type="text" id="a10School" name="a10School" placeholder="School ka naam"></div>
+                        <div class="form-group"><label>Passing Year *</label><input type="number" id="a10Year" name="a10Year" placeholder="e.g. 2022" min="2010" max="2030"></div>
+                        <div class="form-group"><label>Roll Number *</label><input type="text" id="a10Roll" name="a10Roll" placeholder="Board roll number"></div>
+                        <div class="form-group"><label>Total Marks *</label><input type="number" id="a10Total" name="a10Total" placeholder="e.g. 500" oninput="applyCalc10Pct()"></div>
+                        <div class="form-group"><label>Obtained Marks *</label><input type="number" id="a10Obtained" name="a10Obtained" placeholder="e.g. 350" oninput="applyCalc10Pct()"></div>
                     </div>
                     <div style="margin-top:10px;padding:14px 16px;background:rgba(255,255,255,0.25);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.4);border-radius:12px;box-shadow:0 4px 16px rgba(31,38,135,0.15);display:flex;justify-content:space-between;align-items:center;">
                         <span style="font-weight:600;">10th Percentage: <span id="applyPct10" style="color:#1e3a8a;">—</span></span>
@@ -737,14 +737,14 @@
                     <div class="qual-sub-heading"><i class="fas fa-school"></i> 12th / Intermediate Details</div>
                     <div class="form-grid-3">
                         <div class="form-group"><label>Board *</label>
-                            <select id="a12Board" style="height:40px;"><option value="">Select Board</option><option>CGBSE Raipur</option><option>CBSE Delhi</option><option>ICSE Board</option><option>MHRD Board</option><option>UP Board (UPMSP)</option><option>MP Board (MPBSE)</option><option>Rajasthan Board (RBSE)</option><option>Bihar Board (BSEB)</option><option>Uttarakhand Board (UBSE)</option><option>Other Board</option></select></div>
+                            <select id="a12Board" name="a12Board" style="height:40px;"><option value="">Select Board</option><option>CGBSE Raipur</option><option>CBSE Delhi</option><option>ICSE Board</option><option>MHRD Board</option><option>UP Board (UPMSP)</option><option>MP Board (MPBSE)</option><option>Rajasthan Board (RBSE)</option><option>Bihar Board (BSEB)</option><option>Uttarakhand Board (UBSE)</option><option>Other Board</option></select></div>
                         <div class="form-group"><label>Stream *</label>
-                            <select id="a12Stream" style="height:40px;"><option value="">Select Stream</option><option value="Science">Science</option><option value="Commerce">Commerce</option><option value="Arts">Arts / Humanities</option><option value="Vocational">Vocational</option><option value="Technical">Technical</option><option value="Home Science">Home Science</option><option value="Fine Arts">Fine Arts</option><option value="Physical Education">Physical Education</option><option value="Agriculture">Agriculture</option><option value="Other">Other</option></select></div>
-                        <div class="form-group"><label>School / College Name *</label><input type="text" id="a12School" placeholder="School ya college ka naam"></div>
-                        <div class="form-group"><label>Passing Year *</label><input type="number" id="a12Year" placeholder="e.g. 2024" min="2000" max="2030"></div>
-                        <div class="form-group"><label>Roll Number *</label><input type="text" id="a12Roll" placeholder="Board roll number"></div>
-                        <div class="form-group"><label>Total Marks *</label><input type="number" id="a12Total" placeholder="e.g. 500" oninput="applyCalc12Pct()"></div>
-                        <div class="form-group"><label>Obtained Marks *</label><input type="number" id="a12Obtained" placeholder="e.g. 350" oninput="applyCalc12Pct()"></div>
+                            <select id="a12Stream" name="a12Stream" style="height:40px;"><option value="">Select Stream</option><option value="Science">Science</option><option value="Commerce">Commerce</option><option value="Arts">Arts / Humanities</option><option value="Vocational">Vocational</option><option value="Technical">Technical</option><option value="Home Science">Home Science</option><option value="Fine Arts">Fine Arts</option><option value="Physical Education">Physical Education</option><option value="Agriculture">Agriculture</option><option value="Other">Other</option></select></div>
+                        <div class="form-group"><label>School / College Name *</label><input type="text" id="a12School" name="a12School" placeholder="School ya college ka naam"></div>
+                        <div class="form-group"><label>Passing Year *</label><input type="number" id="a12Year" name="a12Year" placeholder="e.g. 2024" min="2000" max="2030"></div>
+                        <div class="form-group"><label>Roll Number *</label><input type="text" id="a12Roll" name="a12Roll" placeholder="Board roll number"></div>
+                        <div class="form-group"><label>Total Marks *</label><input type="number" id="a12Total" name="a12Total" placeholder="e.g. 500" oninput="applyCalc12Pct()"></div>
+                        <div class="form-group"><label>Obtained Marks *</label><input type="number" id="a12Obtained" name="a12Obtained" placeholder="e.g. 350" oninput="applyCalc12Pct()"></div>
                     </div>
                     <div style="margin-top:10px;padding:14px 16px;background:rgba(255,255,255,0.25);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.4);border-radius:12px;box-shadow:0 4px 16px rgba(31,38,135,0.15);display:flex;justify-content:space-between;align-items:center;">
                         <span style="font-weight:600;">12th Percentage: <span id="applyPct12" style="color:#1e3a8a;">—</span></span>
@@ -756,7 +756,7 @@
                     <div class="qual-sub-heading" style="border-color:#7c3aed;color:#7c3aed;"><i class="fas fa-university"></i> Graduation Details</div>
                     <div class="form-grid-3">
                         <div class="form-group"><label>University *</label>
-                            <select id="aGradUniv" style="height:40px;"><option value="">Select University</option>
+                            <select id="aGradUniv" name="aGradUniv" style="height:40px;"><option value="">Select University</option>
                                 <optgroup label="Government Universities">
                                     <option>Guru Ghasidas Vishwavidyalaya, Bilaspur</option>
                                     <option>Pandit Ravishankar Shukla University, Raipur</option>
@@ -796,12 +796,12 @@
                                 <option>Other University</option>
                             </select>
                         </div>
-                        <div class="form-group"><label>College *</label><input type="text" id="aGradCollege" placeholder="College ka naam"></div>
+                        <div class="form-group"><label>College *</label><input type="text" id="aGradCollege" name="aGradCollege" placeholder="College ka naam"></div>
                         <div class="form-group"><label>Degree *</label>
-                            <select id="aGradDegree" style="height:40px;"><option value="">Select</option><option>BA</option><option>B.Com</option><option>B.Sc</option><option>BCA</option><option>BBA</option><option>B.Tech</option><option>Other</option></select></div>
-                        <div class="form-group"><label>Stream / Subject *</label><input type="text" id="aGradStream" placeholder="e.g. Mathematics"></div>
-                        <div class="form-group"><label>Passing Year *</label><input type="number" id="aGradYear" placeholder="e.g. 2023" min="2000" max="2030"></div>
-                        <div class="form-group"><label>Enrollment No. *</label><input type="text" id="aGradEnroll" placeholder="University enrollment no."></div>
+                            <select id="aGradDegree" name="aGradDegree" style="height:40px;"><option value="">Select</option><option>BA</option><option>B.Com</option><option>B.Sc</option><option>BCA</option><option>BBA</option><option>B.Tech</option><option>Other</option></select></div>
+                        <div class="form-group"><label>Stream / Subject *</label><input type="text" id="aGradStream" name="aGradStream" placeholder="e.g. Mathematics"></div>
+                        <div class="form-group"><label>Passing Year *</label><input type="number" id="aGradYear" name="aGradYear" placeholder="e.g. 2023" min="2000" max="2030"></div>
+                        <div class="form-group"><label>Enrollment No. *</label><input type="text" id="aGradEnroll" name="aGradEnroll" placeholder="University enrollment no."></div>
                     </div>
                     <div class="marks-type-toggle">
                         <span style="font-weight:600;margin-right:12px;">Marks in:</span>
@@ -810,8 +810,8 @@
                     </div>
                     <div id="applyGradPctSection">
                         <div class="form-grid-3" style="max-width:600px;">
-                            <div class="form-group"><label>Total Marks *</label><input type="number" id="aGradTotal" placeholder="e.g. 2100" oninput="applyCalcGradPct()"></div>
-                            <div class="form-group"><label>Obtained Marks *</label><input type="number" id="aGradObtained" placeholder="e.g. 1280" oninput="applyCalcGradPct()"></div>
+                            <div class="form-group"><label>Total Marks *</label><input type="number" id="aGradTotal" name="aGradTotal" placeholder="e.g. 2100" oninput="applyCalcGradPct()"></div>
+                            <div class="form-group"><label>Obtained Marks *</label><input type="number" id="aGradObtained" name="aGradObtained" placeholder="e.g. 1280" oninput="applyCalcGradPct()"></div>
                         </div>
                         <div style="margin-top:10px;padding:14px 16px;background:rgba(255,255,255,0.25);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.4);border-radius:12px;box-shadow:0 4px 16px rgba(31,38,135,0.15);display:flex;justify-content:space-between;align-items:center;">
                             <span style="font-weight:600;">Graduation Percentage: <span id="applyPctGrad" style="color:#1e3a8a;">—</span></span>
@@ -820,9 +820,9 @@
                     </div>
                     <div id="applyGradCGPASection" style="display:none;">
                         <div class="form-grid-3" style="max-width:600px;">
-                            <div class="form-group"><label>CGPA (out of 10) *</label><input type="number" id="aGradCGPA" step="0.01" min="0" max="10" placeholder="e.g. 7.80" oninput="applyCalcCGPA()"></div>
-                            <div class="form-group"><label>Equivalent %</label><input type="text" id="aGradCGPAPct" readonly class="fee-display blue" placeholder="Auto"></div>
-                            <div class="form-group"><label>Division</label><input type="text" id="aGradCGPADiv" readonly style="background:#f8fafc;font-weight:600;" placeholder="Auto"></div>
+                            <div class="form-group"><label>CGPA (out of 10) *</label><input type="number" id="aGradCGPA" name="aGradCGPA" step="0.01" min="0" max="10" placeholder="e.g. 7.80" oninput="applyCalcCGPA()"></div>
+                            <div class="form-group"><label>Equivalent %</label><input type="text" id="aGradCGPAPct" name="aGradCGPAPct" readonly class="fee-display blue" placeholder="Auto"></div>
+                            <div class="form-group"><label>Division</label><input type="text" id="aGradCGPADiv" name="aGradCGPADiv" readonly style="background:#f8fafc;font-weight:600;" placeholder="Auto"></div>
                         </div>
                     </div>
                 </div>
