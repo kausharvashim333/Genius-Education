@@ -475,6 +475,492 @@ function writeData(file, data) {
     fs.renameSync(tempPath, filePath);
 }
 
+// ===================== EMAIL TEMPLATE SYSTEM =====================
+// Editable email templates. Defaults live here; admin overrides are stored in data/email-templates.json.
+// Templates use {{placeholder}} syntax which is replaced at send time.
+const EMAIL_TEMPLATE_DEFAULTS = {
+    'faculty-otp': {
+        name: 'Faculty Login OTP',
+        description: 'Faculty portal me login ke liye OTP email.',
+        placeholders: ['name', 'otp', 'inst'],
+        subject: 'Faculty Portal - OTP Verification',
+        body: `<h2>Faculty Portal OTP</h2>
+<p>Dear {{name}},</p>
+<p>Your One-Time Password (OTP) for Faculty Portal login is:</p>
+<h1 style="color:#667eea;font-size:36px;letter-spacing:5px;text-align:center;">{{otp}}</h1>
+<p>This OTP is valid for 5 minutes.</p>
+<p>If you didn't request this OTP, please ignore this email.</p>
+<p>Best regards,<br>{{inst}}</p>`
+    },
+    'faculty-password-reset': {
+        name: 'Faculty Password Reset OTP',
+        description: 'Faculty password reset ke liye OTP email.',
+        placeholders: ['name', 'otp', 'inst'],
+        subject: 'Faculty Portal - Password Reset OTP',
+        body: `<h2>Password Reset Request</h2>
+<p>Dear {{name}},</p>
+<p>Your One-Time Password (OTP) for password reset is:</p>
+<h1 style="color:#667eea;font-size:36px;letter-spacing:5px;text-align:center;">{{otp}}</h1>
+<p>This OTP is valid for 5 minutes.</p>
+<p>If you didn't request this password reset, please ignore this email.</p>
+<p>Best regards,<br>{{inst}}</p>`
+    },
+    'student-otp': {
+        name: 'Student Login OTP',
+        description: 'Student portal me login ke liye OTP email.',
+        placeholders: ['name', 'otp', 'inst'],
+        subject: 'Student Portal - OTP Verification',
+        body: `<h2>Student Portal OTP</h2>
+<p>Dear {{name}},</p>
+<p>Your One-Time Password (OTP) for Student Portal login is:</p>
+<h1 style="color:#667eea;font-size:36px;letter-spacing:5px;text-align:center;">{{otp}}</h1>
+<p>This OTP is valid for 5 minutes.</p>
+<p>If you didn't request this OTP, please ignore this email.</p>
+<p>Best regards,<br>{{inst}}</p>`
+    },
+    'apply-otp': {
+        name: 'Admission Form Email Verification OTP',
+        description: 'Public admission form me email verify karne ke liye OTP.',
+        placeholders: ['name', 'otp', 'inst', 'year', 'logoHtml'],
+        subject: '{{inst}} - Admission Email Verification OTP',
+        body: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+<div style="background:#2563eb;color:#fff;padding:20px;text-align:center;">{{logoHtml}}<h2 style="margin:8px 0 0;">Email Verification</h2></div>
+<div style="padding:24px;color:#1f2937;">
+<p>Dear {{name}},</p>
+<p>Aapne {{inst}} ke admission form par apply kiya hai. Apna email verify karne ke liye yeh OTP use karein:</p>
+<div style="text-align:center;margin:24px 0;">
+<span style="display:inline-block;font-size:32px;letter-spacing:8px;font-weight:700;background:#eff6ff;color:#1d4ed8;padding:14px 28px;border-radius:10px;border:2px dashed #2563eb;">{{otp}}</span>
+</div>
+<p style="color:#6b7280;font-size:13px;">Yeh OTP <strong>10 minute</strong> tak valid hai. Agar aapne yeh request nahi kiya, to ise ignore karein.</p>
+</div>
+<div style="background:#f9fafb;padding:16px;text-align:center;color:#6b7280;font-size:12px;">&copy; {{year}} {{inst}}</div>
+</div>`
+    },
+    'staff-otp': {
+        name: 'Staff Admission OTP',
+        description: 'Cash/UPI admission submit confirm karne ke liye staff OTP.',
+        placeholders: ['staffName', 'otp', 'inst', 'year', 'logoHtml'],
+        subject: '{{inst}} - Staff Admission OTP',
+        body: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+<div style="background:#7c3aed;color:#fff;padding:20px;text-align:center;">{{logoHtml}}<h2 style="margin:8px 0 0;">Staff Admission Verification</h2></div>
+<div style="padding:24px;color:#1f2937;">
+<p>Dear {{staffName}},</p>
+<p>Aap admission form submit kar rahe hain (Cash/UPI payment). Confirm karne ke liye yeh OTP use karein:</p>
+<div style="text-align:center;margin:24px 0;">
+<span style="display:inline-block;font-size:32px;letter-spacing:8px;font-weight:700;background:#f5f3ff;color:#6d28d9;padding:14px 28px;border-radius:10px;border:2px dashed #7c3aed;">{{otp}}</span>
+</div>
+<p style="color:#6b7280;font-size:13px;">Yeh OTP <strong>10 minute</strong> tak valid hai. Single-use hai - submit hone ke baad expire ho jayega.</p>
+<p style="color:#dc2626;font-size:13px;"><strong>&#9888; Security:</strong> Agar aapne yeh OTP request nahi kiya, to immediately admin ko inform karein.</p>
+</div>
+<div style="background:#f9fafb;padding:16px;text-align:center;color:#6b7280;font-size:12px;">&copy; {{year}} {{inst}}</div>
+</div>`
+    },
+    'admin-credentials': {
+        name: 'Admin Login Credentials',
+        description: 'Admin panel ke temporary login credentials.',
+        placeholders: ['username', 'password', 'inst'],
+        subject: 'Admin Panel Login Credentials - {{inst}}',
+        body: `<h2>Admin Panel Login Credentials</h2>
+<p>Dear Admin,</p>
+<p>Your temporary login credentials for the Admin Panel are:</p>
+<div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px 20px;margin:16px 0;">
+    <p style="margin:0 0 8px;"><strong>Username:</strong> {{username}}</p>
+    <p style="margin:0;"><strong>Password:</strong> {{password}}</p>
+</div>
+<p><strong>Important:</strong></p>
+<ul>
+    <li>These credentials are valid for 15 minutes only</li>
+    <li>After login, you can change your password if needed</li>
+    <li>Do not share these credentials with anyone</li>
+</ul>
+<p>If you didn't request these credentials, please ignore this email.</p>
+<p>Best regards,<br>{{inst}}</p>`
+    },
+    'exam-result': {
+        name: 'Exam Result Published',
+        description: 'Student ko exam result publish hone par bheja jaane wala email.',
+        placeholders: ['studentName', 'examName', 'course', 'total', 'obtained', 'percentage', 'grade', 'status', 'statusColor', 'inst', 'pdfNote'],
+        subject: 'Your Result: {{examName}}',
+        body: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+    <p>Dear <strong>{{studentName}}</strong>,</p>
+    <p>Your result for <strong>{{examName}}</strong> has been published.</p>
+    <table style="width:100%;border-collapse:collapse;margin:15px 0;">
+        <tr><td style="padding:8px;background:#f1f5f9;width:40%;"><strong>Course</strong></td><td style="padding:8px;">{{course}}</td></tr>
+        <tr><td style="padding:8px;background:#f1f5f9;"><strong>Total Marks</strong></td><td style="padding:8px;">{{total}}</td></tr>
+        <tr><td style="padding:8px;background:#f1f5f9;"><strong>Obtained</strong></td><td style="padding:8px;">{{obtained}}</td></tr>
+        <tr><td style="padding:8px;background:#f1f5f9;"><strong>Percentage</strong></td><td style="padding:8px;">{{percentage}}%</td></tr>
+        <tr><td style="padding:8px;background:#f1f5f9;"><strong>Grade</strong></td><td style="padding:8px;font-size:18px;font-weight:700;color:{{statusColor}};">{{grade}}</td></tr>
+        <tr><td style="padding:8px;background:#f1f5f9;"><strong>Status</strong></td><td style="padding:8px;color:{{statusColor}};font-weight:600;">{{status}}</td></tr>
+    </table>
+    {{pdfNote}}
+    <p>Login to your student portal to view detailed result.</p>
+    <p style="margin-top:30px;color:#64748b;font-size:12px;">Regards,<br>{{inst}}</p>
+</div>`
+    },
+    'enquiry-reply': {
+        name: 'Enquiry Reply',
+        description: 'Enquiry ke jawab me bheja jaane wala email.',
+        placeholders: ['name', 'message', 'reply', 'inst', 'address', 'phone', 'email', 'logoHtml'],
+        subject: 'Re: Your Enquiry - {{inst}}',
+        body: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,sans-serif;background:#f4f6f9;">
+<div style="max-width:600px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+<div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:28px 30px;text-align:center;">
+{{logoHtml}}
+<h1 style="color:#fff;margin:12px 0 4px;font-size:22px;">{{inst}}</h1>
+<p style="color:rgba(255,255,255,0.85);margin:0;font-size:13px;">{{address}}</p>
+</div>
+<div style="padding:30px;">
+<h2 style="color:#1e293b;margin:0 0 8px;font-size:18px;">Hello {{name}},</h2>
+<p style="color:#64748b;font-size:14px;line-height:1.6;margin:0 0 20px;">Thank you for your enquiry. Here is our response:</p>
+<div style="background:#f0f4ff;border-left:4px solid #667eea;padding:16px 20px;border-radius:0 8px 8px 0;margin-bottom:20px;">
+<p style="color:#94a3b8;font-size:12px;margin:0 0 6px;font-weight:600;text-transform:uppercase;">Your Question</p>
+<p style="color:#334155;font-size:14px;margin:0;line-height:1.5;">{{message}}</p>
+</div>
+<div style="background:#ecfdf5;border-left:4px solid #10b981;padding:16px 20px;border-radius:0 8px 8px 0;margin-bottom:20px;">
+<p style="color:#059669;font-size:12px;margin:0 0 6px;font-weight:600;text-transform:uppercase;">Our Reply</p>
+<p style="color:#065f46;font-size:14px;margin:0;line-height:1.6;white-space:pre-wrap;">{{reply}}</p>
+</div>
+<p style="color:#64748b;font-size:13px;line-height:1.5;">If you have any more questions, feel free to contact us:</p>
+<p style="color:#334155;font-size:13px;margin:4px 0;">&#128222; {{phone}}</p>
+<p style="color:#334155;font-size:13px;margin:4px 0;">&#9993; {{email}}</p>
+</div>
+<div style="background:#f8fafc;padding:16px 30px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="color:#94a3b8;font-size:12px;margin:0;">This email was sent from {{inst}}. Please do not reply directly to this email.</p>
+</div>
+</div></body></html>`
+    },
+    'admission-confirmation': {
+        name: 'Admission Confirmation (Welcome)',
+        description: 'Admission confirm hone par student ko bheja jaane wala welcome email (login credentials ke saath).',
+        placeholders: ['inst', 'logoHtml', 'studentName', 'appId', 'course', 'duration', 'batch', 'timing', 'startDate', 'admissionDate', 'totalFees', 'paidAmount', 'dueAmount', 'dueColor', 'feeStatusBadge', 'pendingNotice', 'rollNo', 'email', 'password', 'websiteUrl', 'footerAddress', 'footerPhones', 'footerEmailLine', 'year'],
+        subject: 'Admission Confirmed - {{appId}} (Roll: {{rollNo}}) | {{inst}}',
+        body: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admission Confirmation</title>
+</head>
+<body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f4f4f4;">
+    <div style="max-width:640px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+        <div style="background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%);padding:40px 30px;text-align:center;">
+            {{logoHtml}}
+            <h1 style="margin:20px 0 10px;color:#ffffff;font-size:28px;font-weight:700;">Welcome to {{inst}}</h1>
+            <p style="margin:0;color:#ffffff;font-size:16px;opacity:0.9;">&#127881; Your Admission is Confirmed!</p>
+        </div>
+        <div style="padding:40px 30px;">
+            <p style="margin:0 0 20px;color:#333333;font-size:16px;line-height:1.6;">
+                Dear <strong>{{studentName}}</strong>,
+            </p>
+            <p style="margin:0 0 20px;color:#555555;font-size:15px;line-height:1.6;">
+                Congratulations! Aapka admission successfully process ho gaya hai. Aap ab officially <strong>{{inst}}</strong> family ka hissa hain. Aapki admission form ki PDF copy is email ke saath attached hai.
+            </p>
+            <div style="background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border:2px solid #f59e0b;border-radius:8px;padding:18px;margin:20px 0;text-align:center;">
+                <p style="margin:0 0 5px;color:#92400e;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Application ID</p>
+                <p style="margin:0;color:#78350f;font-size:22px;font-weight:700;letter-spacing:2px;font-family:'Courier New',monospace;">{{appId}}</p>
+            </div>
+            <h3 style="margin:25px 0 12px;color:#1e3a8a;font-size:16px;font-weight:700;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">&#128218; Course & Batch Details</h3>
+            <table style="width:100%;border-collapse:collapse;background:#f8fafc;border-radius:8px;overflow:hidden;">
+                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;width:40%;border-bottom:1px solid #e2e8f0;">Course</td><td style="padding:10px 14px;color:#0f172a;font-size:14px;font-weight:600;border-bottom:1px solid #e2e8f0;">{{course}}</td></tr>
+                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Duration</td><td style="padding:10px 14px;color:#0f172a;font-size:14px;border-bottom:1px solid #e2e8f0;">{{duration}}</td></tr>
+                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Batch</td><td style="padding:10px 14px;color:#0f172a;font-size:14px;border-bottom:1px solid #e2e8f0;">{{batch}}</td></tr>
+                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Class Timing</td><td style="padding:10px 14px;color:#0f172a;font-size:14px;border-bottom:1px solid #e2e8f0;">{{timing}}</td></tr>
+                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Batch Start Date</td><td style="padding:10px 14px;color:#0f172a;font-size:14px;font-weight:600;border-bottom:1px solid #e2e8f0;">{{startDate}}</td></tr>
+                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Admission Date</td><td style="padding:10px 14px;color:#0f172a;font-size:14px;">{{admissionDate}}</td></tr>
+            </table>
+            <h3 style="margin:25px 0 12px;color:#1e3a8a;font-size:16px;font-weight:700;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">&#128176; Fee Summary</h3>
+            <table style="width:100%;border-collapse:collapse;background:#f8fafc;border-radius:8px;overflow:hidden;">
+                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;width:40%;border-bottom:1px solid #e2e8f0;">Total Fees</td><td style="padding:10px 14px;color:#0f172a;font-size:15px;font-weight:700;border-bottom:1px solid #e2e8f0;">&#8377;{{totalFees}}</td></tr>
+                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Paid Amount</td><td style="padding:10px 14px;color:#16a34a;font-size:15px;font-weight:700;border-bottom:1px solid #e2e8f0;">&#8377;{{paidAmount}}</td></tr>
+                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Pending Amount</td><td style="padding:10px 14px;color:{{dueColor}};font-size:15px;font-weight:700;border-bottom:1px solid #e2e8f0;">&#8377;{{dueAmount}}</td></tr>
+                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Status</td><td style="padding:10px 14px;">{{feeStatusBadge}}</td></tr>
+            </table>
+            {{pendingNotice}}
+            <h3 style="margin:25px 0 12px;color:#1e3a8a;font-size:16px;font-weight:700;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">&#128272; Student Portal Login</h3>
+            <div style="background:#eff6ff;border:2px solid #bfdbfe;border-radius:8px;padding:20px;margin:0 0 15px;">
+                <div style="background:#ffffff;padding:12px 15px;border-radius:6px;margin-bottom:10px;">
+                    <p style="margin:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;">Roll Number</p>
+                    <p style="margin:0;color:#1e3a8a;font-size:17px;font-weight:700;">{{rollNo}}</p>
+                </div>
+                <div style="background:#ffffff;padding:12px 15px;border-radius:6px;margin-bottom:10px;">
+                    <p style="margin:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;">Login Email</p>
+                    <p style="margin:0;color:#333333;font-size:14px;">{{email}}</p>
+                </div>
+                <div style="background:#ffffff;padding:12px 15px;border-radius:6px;">
+                    <p style="margin:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;">Temporary Password</p>
+                    <p style="margin:0;color:#dc2626;font-size:17px;font-weight:700;letter-spacing:2px;font-family:'Courier New',monospace;">{{password}}</p>
+                </div>
+            </div>
+            <div style="text-align:center;margin:25px 0;">
+                <a href="{{websiteUrl}}/student-portal.html" style="display:inline-block;background:#3b82f6;color:#ffffff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;box-shadow:0 4px 6px rgba(59,130,246,0.3);">Access Student Portal &#8594;</a>
+            </div>
+            <h3 style="margin:25px 0 12px;color:#1e3a8a;font-size:16px;font-weight:700;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">&#128203; First Day par Kya Laana hai</h3>
+            <div style="background:#f0fdf4;border-left:4px solid #16a34a;padding:16px 20px;border-radius:0 8px 8px 0;">
+                <ul style="margin:0;padding-left:20px;color:#166534;font-size:14px;line-height:1.9;">
+                    <li>Aadhar Card original + 1 photocopy</li>
+                    <li>10th & 12th Marksheet (original + photocopy)</li>
+                    <li>2 Passport-size photographs</li>
+                    <li>Notebook, pen, aur basic stationery</li>
+                    <li>Yeh confirmation email ka printout (optional)</li>
+                </ul>
+            </div>
+            <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:15px;margin:25px 0;">
+                <p style="margin:0 0 6px;color:#c2410c;font-size:14px;font-weight:600;">&#9888; Important Security Notice</p>
+                <p style="margin:0;color:#9a3412;font-size:13px;line-height:1.5;">First login ke baad turant apna password change karein. Ye credentials kisi ke saath share na karein.</p>
+            </div>
+            <p style="margin:20px 0 0;color:#555555;font-size:14px;line-height:1.6;">
+                Koi bhi sawaal ho to humse contact karein. Hum aapko classroom me milne ke liye excited hain!
+            </p>
+            <p style="margin:20px 0 0;color:#333333;font-size:15px;font-weight:600;">
+                Best regards,<br>
+                <span style="color:#3b82f6;">{{inst}} Team</span>
+            </p>
+        </div>
+        <div style="background:#f8fafc;padding:25px 30px;border-top:1px solid #e2e8f0;">
+            <p style="margin:0 0 10px;color:#1e3a8a;font-size:14px;font-weight:700;text-align:center;">{{inst}}</p>
+            {{footerAddress}}
+            {{footerPhones}}
+            {{footerEmailLine}}
+            <p style="margin:0;color:#94a3b8;font-size:11px;text-align:center;">&copy; {{year}} {{inst}}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>`
+    },
+    'faculty-credentials': {
+        name: 'Faculty Account Credentials',
+        description: 'Naye faculty member ko account create hone par credentials bhejne ke liye.',
+        placeholders: ['name', 'email', 'password', 'role', 'inst', 'portalUrl'],
+        subject: 'Faculty Portal Login Credentials - {{inst}}',
+        body: `<h2>Welcome to {{inst}}</h2>
+<p>Dear {{name}},</p>
+<p>Your faculty portal account has been created. Below are your login credentials:</p>
+<p><strong>Email:</strong> {{email}}</p>
+<p><strong>Password:</strong> {{password}}</p>
+<p><strong>Role:</strong> {{role}}</p>
+<p>You can login at: <a href="{{portalUrl}}">Faculty Portal</a></p>
+<p>Please change your password after first login.</p>
+<p>Best regards,<br>{{inst}}</p>`
+    },
+    'admission-slip': {
+        name: 'Admission/Payment Slip',
+        description: 'Admission ya payment ke baad student ko slip bhejne ke liye.',
+        placeholders: ['slipHtml', 'inst', 'type', 'rollNo'],
+        subject: '{{type}} Confirmed - {{rollNo}} | {{inst}}',
+        body: `{{slipHtml}}`
+    },
+    'blog-notification': {
+        name: 'Blog Post Notification',
+        description: 'Naye blog post publish hone par subscribers ko notification bhejne ke liye.',
+        placeholders: ['inst', 'blogTitle', 'blogImage', 'blogExcerpt', 'blogTags', 'blogCategory', 'blogAuthor', 'blogReadingTime', 'blogUrl', 'subscriberName', 'baseUrl'],
+        subject: 'New Blog Post: {{blogTitle}}',
+        body: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f9fafb;">
+    <div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:30px;border-radius:10px;text-align:center;color:#fff;margin-bottom:20px;">
+        <h1 style="margin:0;font-size:28px;">{{inst}}</h1>
+        <p style="margin:10px 0 0;opacity:0.9;">New Blog Post Published</p>
+    </div>
+    <div style="background:#fff;padding:25px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+        {{blogImage}}
+        <h2 style="color:#1f2937;margin:0 0 15px;font-size:24px;">{{blogTitle}}</h2>
+        <p style="color:#4b5563;line-height:1.6;margin-bottom:15px;">{{blogExcerpt}}</p>
+        {{blogTags}}
+        <p style="color:#6b7280;font-size:13px;margin-bottom:20px;">
+            <strong>Category:</strong> {{blogCategory}} | 
+            <strong>Author:</strong> {{blogAuthor}} |
+            <strong>Reading Time:</strong> {{blogReadingTime}} min
+        </p>
+        <a href="{{blogUrl}}" style="display:inline-block;background:#667eea;color:#fff;padding:12px 30px;text-decoration:none;border-radius:6px;font-weight:600;">Read Full Article</a>
+    </div>
+    <p style="text-align:center;color:#9ca3af;font-size:12px;margin-top:20px;">
+        You received this email because you subscribed to {{inst}} newsletter.<br>
+        <a href="{{baseUrl}}/unsubscribe" style="color:#6b7280;">Unsubscribe</a>
+    </p>
+</div>`
+    },
+    'video-notification': {
+        name: 'Video Learning Notification',
+        description: 'Naya video upload hone par students ko notification bhejne ke liye.',
+        placeholders: ['inst', 'studentName', 'videoTitle', 'videoDescription', 'availabilityStart', 'availabilityEnd', 'portalUrl'],
+        subject: 'New Video Available: {{videoTitle}}',
+        body: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+<div style="background:#1e40af;color:#fff;padding:20px;"><h2 style="margin:0;">{{inst}}</h2><p style="margin:6px 0 0;opacity:.9;">Video Learning Update</p></div>
+<div style="padding:20px;">
+<p>Hi {{studentName}},</p>
+<p>A new video is available for your course:</p>
+<h3 style="margin:8px 0;color:#0f172a;">{{videoTitle}}</h3>
+<p style="color:#475569;">{{videoDescription}}</p>
+<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin:14px 0;">
+<div><strong>Available from:</strong> {{availabilityStart}}</div>
+<div><strong>Available till:</strong> {{availabilityEnd}}</div>
+</div>
+<a href="{{portalUrl}}" style="display:inline-block;background:#2563eb;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600;">Open Student Portal</a>
+</div></div>`
+    }
+};
+
+// Replace {{placeholder}} tokens with provided values
+function fillPlaceholders(str, vars) {
+    return String(str == null ? '' : str).replace(/\{\{\s*([\w]+)\s*\}\}/g, (m, key) => {
+        const v = vars[key];
+        return (v === undefined || v === null) ? '' : String(v);
+    });
+}
+
+// Get a template (admin override merged over default)
+function getEmailTemplate(key) {
+    const def = EMAIL_TEMPLATE_DEFAULTS[key] || { subject: '', body: '' };
+    const overrides = readData('email-templates.json') || {};
+    const o = overrides[key] || {};
+    return {
+        subject: (o.subject !== undefined && o.subject !== null && o.subject !== '') ? o.subject : def.subject,
+        body: (o.body !== undefined && o.body !== null && o.body !== '') ? o.body : def.body
+    };
+}
+
+// Render a template into final { subject, html } using vars
+function renderEmailTemplate(key, vars = {}) {
+    const t = getEmailTemplate(key);
+    return {
+        subject: fillPlaceholders(t.subject, vars),
+        html: fillPlaceholders(t.body, vars)
+    };
+}
+
+// Sample placeholder values used for previews and test emails
+function getSampleTemplateVars(key, settings) {
+    const inst = (settings && settings.name) || 'Genius Computer Education';
+    const logoInfo = getEmailLogo(settings || {}, 'max-height:55px;');
+    const common = {
+        inst,
+        name: 'Rahul Sharma',
+        studentName: 'Rahul Sharma',
+        staffName: 'Anita Verma',
+        otp: '123456',
+        year: new Date().getFullYear(),
+        logoHtml: logoInfo.html || '',
+        username: 'admin',
+        password: 'Temp@1234',
+        examName: 'Mid-Term Examination',
+        course: 'DCA',
+        total: '100',
+        obtained: '82',
+        percentage: '82.00',
+        grade: 'A',
+        status: 'PASS',
+        statusColor: '#16a34a',
+        pdfNote: '',
+        message: 'Course fees kitni hai aur batch kab start hoga?',
+        reply: 'Dhanyavaad! DCA course ki fees 8000 hai aur naya batch agle Monday se shuru ho raha hai.',
+        address: (settings && settings.address) || 'Main Road, Your City',
+        phone: '9876543210',
+        email: (settings && settings.email) || 'info@example.com',
+        appId: 'GCE-' + new Date().getFullYear() + '-00042',
+        rollNo: 'GCE0042',
+        duration: '6 Months',
+        batch: 'Morning Batch',
+        timing: '9:00 AM - 11:00 AM',
+        startDate: '01 Jul ' + new Date().getFullYear(),
+        admissionDate: '15 Jun ' + new Date().getFullYear(),
+        totalFees: '8000',
+        paidAmount: '5000',
+        dueAmount: '3000',
+        dueColor: '#d97706',
+        feeStatusBadge: '<span style="background:#fef3c7;color:#d97706;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">62% Paid (&#8377;3000 pending)</span>',
+        pendingNotice: '<p style="margin:10px 0 0;color:#9a3412;font-size:13px;font-style:italic;">&#9888; Pending fees ko time se pay karne ke liye Student Portal me Login karein.</p>',
+        websiteUrl: (settings && settings.websiteUrl) || 'http://localhost:3000',
+        footerAddress: '<p style="margin:0 0 8px;color:#475569;font-size:13px;line-height:1.5;text-align:center;">&#128205; Main Road, Your City</p>',
+        footerPhones: '<p style="margin:0 0 8px;color:#475569;font-size:13px;text-align:center;">&#128222; 9876543210</p>',
+        footerEmailLine: '<p style="margin:0 0 12px;color:#475569;font-size:13px;text-align:center;">&#9993; info@example.com</p>'
+    };
+    return { vars: common, attachments: logoInfo.attachments || [] };
+}
+
+// --- Email Template Admin APIs ---
+app.get('/api/email-templates', verifyAdminSessionMiddleware, (req, res) => {
+    const overrides = readData('email-templates.json') || {};
+    const list = Object.keys(EMAIL_TEMPLATE_DEFAULTS).map(key => {
+        const def = EMAIL_TEMPLATE_DEFAULTS[key];
+        const o = overrides[key] || {};
+        const isCustomized = !!(o.subject || o.body);
+        const merged = getEmailTemplate(key);
+        return {
+            key,
+            name: def.name,
+            description: def.description,
+            placeholders: def.placeholders || [],
+            subject: merged.subject,
+            body: merged.body,
+            defaultSubject: def.subject,
+            defaultBody: def.body,
+            isCustomized
+        };
+    });
+    res.json({ success: true, templates: list });
+});
+
+app.put('/api/email-templates/:key', verifyAdminSessionMiddleware, (req, res) => {
+    const key = req.params.key;
+    if (!EMAIL_TEMPLATE_DEFAULTS[key]) return res.status(400).json({ success: false, message: 'Invalid template key' });
+    const { subject, body } = req.body || {};
+    const overrides = readData('email-templates.json') || {};
+    overrides[key] = {
+        subject: typeof subject === 'string' ? subject : '',
+        body: typeof body === 'string' ? body : '',
+        updatedAt: new Date().toISOString()
+    };
+    writeData('email-templates.json', overrides);
+    res.json({ success: true, template: { key, ...getEmailTemplate(key) } });
+});
+
+app.post('/api/email-templates/:key/reset', verifyAdminSessionMiddleware, (req, res) => {
+    const key = req.params.key;
+    if (!EMAIL_TEMPLATE_DEFAULTS[key]) return res.status(400).json({ success: false, message: 'Invalid template key' });
+    const overrides = readData('email-templates.json') || {};
+    delete overrides[key];
+    writeData('email-templates.json', overrides);
+    const def = EMAIL_TEMPLATE_DEFAULTS[key];
+    res.json({ success: true, template: { key, subject: def.subject, body: def.body } });
+});
+
+// Live preview render (admin) - renders provided subject/body with sample vars
+app.post('/api/email-templates/:key/preview', verifyAdminSessionMiddleware, (req, res) => {
+    const key = req.params.key;
+    if (!EMAIL_TEMPLATE_DEFAULTS[key]) return res.status(400).json({ success: false, message: 'Invalid template key' });
+    const settings = readData('settings.json') || {};
+    const { vars } = getSampleTemplateVars(key, settings);
+    const subject = (req.body && typeof req.body.subject === 'string') ? req.body.subject : getEmailTemplate(key).subject;
+    const body = (req.body && typeof req.body.body === 'string') ? req.body.body : getEmailTemplate(key).body;
+    res.json({ success: true, subject: fillPlaceholders(subject, vars), html: fillPlaceholders(body, vars) });
+});
+
+// Send a test email using current saved template (admin)
+app.post('/api/email-templates/:key/test', verifyAdminSessionMiddleware, async (req, res) => {
+    try {
+        const key = req.params.key;
+        if (!EMAIL_TEMPLATE_DEFAULTS[key]) return res.status(400).json({ success: false, message: 'Invalid template key' });
+        const to = (req.body && req.body.to || '').trim();
+        if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return res.status(400).json({ success: false, message: 'Valid recipient email required' });
+        const settings = readData('settings.json') || {};
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
+        if (!smtpUser || !smtpPass) return res.status(400).json({ success: false, message: 'SMTP not configured. Go to Settings > Email.' });
+        const { vars, attachments } = getSampleTemplateVars(key, settings);
+        const rendered = renderEmailTemplate(key, vars);
+        const inst = settings.name || 'Genius Computer Education';
+        const transporter = nodemailer.createTransport({ host: smtpHost, port: smtpPort, secure: smtpSecure, auth: { user: smtpUser, pass: smtpPass } });
+        await transporter.sendMail({
+            from: `"${inst}" <${smtpUser}>`,
+            to,
+            subject: '[TEST] ' + rendered.subject,
+            html: rendered.html,
+            attachments
+        });
+        res.json({ success: true, message: 'Test email sent to ' + to });
+    } catch (e) {
+        console.error('Test email error:', e);
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
 // PII Masking helper - masks sensitive data in logs and emails
 function maskPII(data, type = 'email') {
     if (!data) return '';
@@ -841,7 +1327,7 @@ async function sendSlipEmail(student, payment, type = 'admission') {
     const smtpSecure = process.env.SMTP_SECURE === 'true' || settings.smtpSecure !== false;
 
     if (!smtpUser || !smtpPass) throw new Error('Email (SMTP) settings configure karo pehle - Settings > Email Configuration.');
-    
+
     const transporter = nodemailer.createTransport({
         host: smtpHost,
         port: smtpPort,
@@ -849,13 +1335,21 @@ async function sendSlipEmail(student, payment, type = 'admission') {
         auth: { user: smtpUser, pass: smtpPass }
     });
     const logoInfo = getEmailLogo(settings, 'max-height:55px;');
-    const html = generateSlipHTML(student, settings, payment, logoInfo.html);
+    const slipHtml = generateSlipHTML(student, settings, payment, logoInfo.html);
     const inst = settings.name || 'Genius Computer Education';
+
+    const rendered = renderEmailTemplate('admission-slip', {
+        slipHtml: slipHtml,
+        inst: inst,
+        type: type === 'admission' ? 'Admission' : 'Payment',
+        rollNo: student.rollNo
+    });
+
     await transporter.sendMail({
         from: `"${inst}" <${smtpUser}>`,
         to: student.email,
-        subject: type === 'admission' ? `Admission Confirmed - ${student.rollNo} | ${inst}` : `Payment Receipt - ${student.rollNo} | ${inst}`,
-        html,
+        subject: rendered.subject,
+        html: rendered.html,
         attachments: logoInfo.attachments
     });
 }
@@ -1090,21 +1584,21 @@ app.post('/api/faculty', verifyAdminSessionMiddleware, async (req, res) => {
             }
         });
 
+        const inst = settings.name || 'Genius Computer Education';
+        const rendered = renderEmailTemplate('faculty-credentials', {
+            name: member.name,
+            email: member.email,
+            password: password,
+            role: member.role,
+            inst: inst,
+            portalUrl: 'http://localhost:3000/faculty-portal.html'
+        });
+
         const mailOptions = {
-            from: smtpUser,
+            from: `"${inst}" <${smtpUser}>`,
             to: member.email,
-            subject: 'Faculty Portal Login Credentials',
-            html: `
-                <h2>Welcome to Genius Computer Education</h2>
-                <p>Dear ${member.name},</p>
-                <p>Your faculty portal account has been created. Below are your login credentials:</p>
-                <p><strong>Email:</strong> ${member.email}</p>
-                <p><strong>Password:</strong> ${password}</p>
-                <p><strong>Role:</strong> ${member.role}</p>
-                <p>You can login at: <a href="http://localhost:3000/faculty-portal.html">Faculty Portal</a></p>
-                <p>Please change your password after first login.</p>
-                <p>Best regards,<br>Genius Computer Education</p>
-            `
+            subject: rendered.subject,
+            html: rendered.html
         };
 
         await transporter.sendMail(mailOptions);
@@ -1359,19 +1853,16 @@ app.post('/api/faculty/send-otp', async (req, res) => {
             }
         });
         
+        const rendered = renderEmailTemplate('faculty-otp', {
+            name: user.name,
+            otp,
+            inst: settings.name || 'Genius Computer Education'
+        });
         const mailOptions = {
             from: smtpUser,
             to: email,
-            subject: 'Faculty Portal - OTP Verification',
-            html: `
-                <h2>Faculty Portal OTP</h2>
-                <p>Dear ${user.name},</p>
-                <p>Your One-Time Password (OTP) for Faculty Portal login is:</p>
-                <h1 style="color:#667eea;font-size:36px;letter-spacing:5px;text-align:center;">${otp}</h1>
-                <p>This OTP is valid for 5 minutes.</p>
-                <p>If you didn't request this OTP, please ignore this email.</p>
-                <p>Best regards,<br>Genius Computer Education</p>
-            `
+            subject: rendered.subject,
+            html: rendered.html
         };
 
         await transporter.sendMail(mailOptions);
@@ -1494,19 +1985,16 @@ app.post('/api/faculty/forgot-password', async (req, res) => {
             }
         });
         
+        const rendered = renderEmailTemplate('faculty-password-reset', {
+            name: user.name,
+            otp,
+            inst: settings.name || 'Genius Computer Education'
+        });
         const mailOptions = {
             from: smtpUser,
             to: email,
-            subject: 'Faculty Portal - Password Reset OTP',
-            html: `
-                <h2>Password Reset Request</h2>
-                <p>Dear ${user.name},</p>
-                <p>Your One-Time Password (OTP) for password reset is:</p>
-                <h1 style="color:#667eea;font-size:36px;letter-spacing:5px;text-align:center;">${otp}</h1>
-                <p>This OTP is valid for 5 minutes.</p>
-                <p>If you didn't request this password reset, please ignore this email.</p>
-                <p>Best regards,<br>Genius Computer Education</p>
-            `
+            subject: rendered.subject,
+            html: rendered.html
         };
 
         await transporter.sendMail(mailOptions);
@@ -1633,19 +2121,16 @@ app.post('/api/student-auth/request-otp', (req, res) => {
             }
         });
         
+        const rendered = renderEmailTemplate('student-otp', {
+            name: student.name,
+            otp,
+            inst: settings.name || 'Genius Computer Education'
+        });
         const mailOptions = {
             from: smtpUser,
             to: email,
-            subject: 'Student Portal - OTP Verification',
-            html: `
-                <h2>Student Portal OTP</h2>
-                <p>Dear ${student.name},</p>
-                <p>Your One-Time Password (OTP) for Student Portal login is:</p>
-                <h1 style="color:#667eea;font-size:36px;letter-spacing:5px;text-align:center;">${otp}</h1>
-                <p>This OTP is valid for 5 minutes.</p>
-                <p>If you didn't request this OTP, please ignore this email.</p>
-                <p>Best regards,<br>Genius Computer Education</p>
-            `
+            subject: rendered.subject,
+            html: rendered.html
         };
         
         transporter.sendMail(mailOptions, (err) => {
@@ -1942,22 +2427,18 @@ app.post('/api/apply/send-otp', async (req, res) => {
         });
         const inst = settings.name || 'Genius Computer Education';
         const logo = getEmailLogo(settings);
+        const rendered = renderEmailTemplate('apply-otp', {
+            name: name ? String(name).slice(0, 60) : 'Applicant',
+            otp,
+            inst,
+            year: new Date().getFullYear(),
+            logoHtml: logo.html || ''
+        });
         await transporter.sendMail({
             from: `${inst} <${smtpUser}>`,
             to: email,
-            subject: `${inst} - Admission Email Verification OTP`,
-            html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
-<div style="background:#2563eb;color:#fff;padding:20px;text-align:center;">${logo.html}<h2 style="margin:8px 0 0;">Email Verification</h2></div>
-<div style="padding:24px;color:#1f2937;">
-<p>Dear ${name ? String(name).slice(0, 60) : 'Applicant'},</p>
-<p>Aapne ${inst} ke admission form par apply kiya hai. Apna email verify karne ke liye yeh OTP use karein:</p>
-<div style="text-align:center;margin:24px 0;">
-<span style="display:inline-block;font-size:32px;letter-spacing:8px;font-weight:700;background:#eff6ff;color:#1d4ed8;padding:14px 28px;border-radius:10px;border:2px dashed #2563eb;">${otp}</span>
-</div>
-<p style="color:#6b7280;font-size:13px;">Yeh OTP <strong>10 minute</strong> tak valid hai. Agar aapne yeh request nahi kiya, to ise ignore karein.</p>
-</div>
-<div style="background:#f9fafb;padding:16px;text-align:center;color:#6b7280;font-size:12px;">&copy; ${new Date().getFullYear()} ${inst}</div>
-</div>`,
+            subject: rendered.subject,
+            html: rendered.html,
             attachments: logo.attachments
         });
         logActivity('apply.send-otp', { type: 'public' }, { email }, req);
@@ -2075,23 +2556,18 @@ app.post('/api/staff/send-otp', async (req, res) => {
         });
         const inst = settings.name || 'Genius Computer Education';
         const logo = getEmailLogo(settings);
+        const rendered = renderEmailTemplate('staff-otp', {
+            staffName: staff.name,
+            otp,
+            inst,
+            year: new Date().getFullYear(),
+            logoHtml: logo.html || ''
+        });
         await transporter.sendMail({
             from: `${inst} <${smtpUser}>`,
             to: email,
-            subject: `${inst} - Staff Admission OTP`,
-            html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
-<div style="background:#7c3aed;color:#fff;padding:20px;text-align:center;">${logo.html}<h2 style="margin:8px 0 0;">Staff Admission Verification</h2></div>
-<div style="padding:24px;color:#1f2937;">
-<p>Dear ${staff.name},</p>
-<p>Aap admission form submit kar rahe hain (Cash/UPI payment). Confirm karne ke liye yeh OTP use karein:</p>
-<div style="text-align:center;margin:24px 0;">
-<span style="display:inline-block;font-size:32px;letter-spacing:8px;font-weight:700;background:#f5f3ff;color:#6d28d9;padding:14px 28px;border-radius:10px;border:2px dashed #7c3aed;">${otp}</span>
-</div>
-<p style="color:#6b7280;font-size:13px;">Yeh OTP <strong>10 minute</strong> tak valid hai. Single-use hai - submit hone ke baad expire ho jayega.</p>
-<p style="color:#dc2626;font-size:13px;"><strong>⚠️ Security:</strong> Agar aapne yeh OTP request nahi kiya, to immediately admin ko inform karein.</p>
-</div>
-<div style="background:#f9fafb;padding:16px;text-align:center;color:#6b7280;font-size:12px;">&copy; ${new Date().getFullYear()} ${inst}</div>
-</div>`,
+            subject: rendered.subject,
+            html: rendered.html,
             attachments: logo.attachments
         });
         logActivity('staff.send-otp', { type: 'staff', id: staff.id, name: staff.name }, { email }, req);
@@ -2512,30 +2988,21 @@ app.post('/api/admin/generate-credentials', async (req, res) => {
                 pass: smtpPass
             }
         });
-        
+
+        const inst = settings.name || 'Genius Computer Education';
+        const rendered = renderEmailTemplate('admin-credentials', {
+            username: username,
+            password: password,
+            inst: inst
+        });
+
         const mailOptions = {
-            from: smtpUser,
+            from: `"${inst}" <${smtpUser}>`,
             to: adminEmail,
-            subject: 'Admin Panel Login Credentials - Genius Computer Education',
-            html: `
-                <h2>Admin Panel Login Credentials</h2>
-                <p>Dear Admin,</p>
-                <p>Your temporary login credentials for the Admin Panel are:</p>
-                <div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px 20px;margin:16px 0;">
-                    <p style="margin:0 0 8px;"><strong>Username:</strong> ${username}</p>
-                    <p style="margin:0;"><strong>Password:</strong> ${password}</p>
-                </div>
-                <p><strong>Important:</strong></p>
-                <ul>
-                    <li>These credentials are valid for 15 minutes only</li>
-                    <li>After login, you can change your password if needed</li>
-                    <li>Do not share these credentials with anyone</li>
-                </ul>
-                <p>If you didn't request these credentials, please ignore this email.</p>
-                <p>Best regards,<br>Genius Computer Education</p>
-            `
+            subject: rendered.subject,
+            html: rendered.html
         };
-        
+
         await transporter.sendMail(mailOptions);
         
         res.json({ 
@@ -2736,41 +3203,25 @@ app.post('/api/enquiries/:id/reply', async (req, res) => {
             secure: smtpSecure,
             auth: { user: smtpUser, pass: smtpPass }
         });
-        
+
         const logoInfo = getEmailLogo(settings, 'max-height:50px;');
-        
-        const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,sans-serif;background:#f4f6f9;">
-<div style="max-width:600px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-<div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:28px 30px;text-align:center;">
-${logoInfo.html}
-<h1 style="color:#fff;margin:12px 0 4px;font-size:22px;">${inst}</h1>
-<p style="color:rgba(255,255,255,0.85);margin:0;font-size:13px;">${settings.address || ''}</p>
-</div>
-<div style="padding:30px;">
-<h2 style="color:#1e293b;margin:0 0 8px;font-size:18px;">Hello ${enquiry.name || 'there'},</h2>
-<p style="color:#64748b;font-size:14px;line-height:1.6;margin:0 0 20px;">Thank you for your enquiry. Here is our response:</p>
-<div style="background:#f0f4ff;border-left:4px solid #667eea;padding:16px 20px;border-radius:0 8px 8px 0;margin-bottom:20px;">
-<p style="color:#94a3b8;font-size:12px;margin:0 0 6px;font-weight:600;text-transform:uppercase;">Your Question</p>
-<p style="color:#334155;font-size:14px;margin:0;line-height:1.5;">${enquiry.message || '-'}</p>
-</div>
-<div style="background:#ecfdf5;border-left:4px solid #10b981;padding:16px 20px;border-radius:0 8px 8px 0;margin-bottom:20px;">
-<p style="color:#059669;font-size:12px;margin:0 0 6px;font-weight:600;text-transform:uppercase;">Our Reply</p>
-<p style="color:#065f46;font-size:14px;margin:0;line-height:1.6;white-space:pre-wrap;">${replyText}</p>
-</div>
-<p style="color:#64748b;font-size:13px;line-height:1.5;">If you have any more questions, feel free to contact us:</p>
-<p style="color:#334155;font-size:13px;margin:4px 0;">📞 ${settings.phone || ''}</p>
-<p style="color:#334155;font-size:13px;margin:4px 0;">✉️ ${settings.email || settings.smtpUser || ''}</p>
-</div>
-<div style="background:#f8fafc;padding:16px 30px;text-align:center;border-top:1px solid #e2e8f0;">
-<p style="color:#94a3b8;font-size:12px;margin:0;">This email was sent from ${inst}. Please do not reply directly to this email.</p>
-</div>
-</div></body></html>`;
-        
+
+        const rendered = renderEmailTemplate('enquiry-reply', {
+            name: enquiry.name || 'there',
+            message: enquiry.message || '-',
+            reply: replyText,
+            inst: inst,
+            address: settings.address || '',
+            phone: settings.phone || '',
+            email: settings.email || settings.smtpUser || '',
+            logoHtml: logoInfo.html
+        });
+
         await transporter.sendMail({
             from: `"${inst}" <${settings.smtpUser}>`,
             to: enquiry.email,
-            subject: `Re: Your Enquiry - ${inst}`,
-            html: emailHtml,
+            subject: rendered.subject,
+            html: rendered.html,
             attachments: logoInfo.attachments
         });
         
@@ -3102,125 +3553,49 @@ async function sendLoginCredentials(student, password) {
         });
     }
 
+    // Build template variables
+    const dueColor = isFullyPaid ? '#16a34a' : '#d97706';
+    const feeStatusBadge = `<span style="background:${isFullyPaid ? '#dcfce7' : '#fef3c7'};color:${isFullyPaid ? '#16a34a' : '#d97706'};padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">${isFullyPaid ? 'Full Payment' : `${paymentPercentage}% Paid (₹${fees.dueAmount} pending)`}</span>`;
+    const pendingNotice = !isFullyPaid ? `<p style="margin:10px 0 0;color:#9a3412;font-size:13px;font-style:italic;">⚠️ Pending fees ko time se pay karne ke liye Student Portal me Login karein.</p>` : '';
+    const footerAddress = addr ? `<p style="margin:0 0 8px;color:#475569;font-size:13px;line-height:1.5;text-align:center;">📍 ${addr}${mapLink ? ` &nbsp;<a href="${mapLink}" style="color:#3b82f6;text-decoration:none;font-weight:600;">[View on Map]</a>` : ''}</p>` : '';
+    const footerPhones = phonesHtml ? `<p style="margin:0 0 8px;color:#475569;font-size:13px;text-align:center;">📞 ${phonesHtml}</p>` : '';
+    const footerEmailLine = `<p style="margin:0 0 12px;color:#475569;font-size:13px;text-align:center;">
+        ✉️ <a href="mailto:${settings.email || smtpUser}" style="color:#3b82f6;text-decoration:none;">${settings.email || smtpUser}</a>
+        ${settings.websiteUrl ? ` &nbsp;|&nbsp; 🌐 <a href="${settings.websiteUrl}" style="color:#3b82f6;text-decoration:none;">${settings.websiteUrl.replace(/^https?:\/\//,'')}</a>` : ''}
+    </p>`;
+
+    const rendered = renderEmailTemplate('admission-confirmation', {
+        inst: inst,
+        logoHtml: logo.html,
+        studentName: student.name,
+        appId: appId,
+        course: student.course,
+        duration: courseInfo.duration || '-',
+        batch: student.batch || 'To be assigned',
+        timing: batchInfo.timing || 'To be announced',
+        startDate: batchInfo.startDate || 'To be announced',
+        admissionDate: student.admissionDate || '-',
+        totalFees: fees.totalFees || 0,
+        paidAmount: fees.paidAmount || 0,
+        dueAmount: fees.dueAmount || 0,
+        dueColor: dueColor,
+        feeStatusBadge: feeStatusBadge,
+        pendingNotice: pendingNotice,
+        rollNo: student.rollNo,
+        email: student.email,
+        password: password,
+        websiteUrl: websiteUrl,
+        footerAddress: footerAddress,
+        footerPhones: footerPhones,
+        footerEmailLine: footerEmailLine,
+        year: new Date().getFullYear()
+    });
+
     await transporter.sendMail({
         from: `"${inst}" <${smtpUser}>`,
         to: student.email,
-        subject: `Admission Confirmed - ${appId} (Roll: ${student.rollNo}) | ${inst}`,
-        html: `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admission Confirmation</title>
-</head>
-<body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f4f4f4;">
-    <div style="max-width:640px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-        <!-- Header -->
-        <div style="background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%);padding:40px 30px;text-align:center;">
-            ${logo.html}
-            <h1 style="margin:20px 0 10px;color:#ffffff;font-size:28px;font-weight:700;">Welcome to ${inst}</h1>
-            <p style="margin:0;color:#ffffff;font-size:16px;opacity:0.9;">🎉 Your Admission is Confirmed!</p>
-        </div>
-
-        <!-- Content -->
-        <div style="padding:40px 30px;">
-            <p style="margin:0 0 20px;color:#333333;font-size:16px;line-height:1.6;">
-                Dear <strong>${student.name}</strong>,
-            </p>
-            <p style="margin:0 0 20px;color:#555555;font-size:15px;line-height:1.6;">
-                Congratulations! Aapka admission successfully process ho gaya hai. Aap ab officially <strong>${inst}</strong> family ka hissa hain. Aapki admission form ki PDF copy is email ke saath attached hai.
-            </p>
-
-            <!-- Application Reference -->
-            <div style="background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border:2px solid #f59e0b;border-radius:8px;padding:18px;margin:20px 0;text-align:center;">
-                <p style="margin:0 0 5px;color:#92400e;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Application ID</p>
-                <p style="margin:0;color:#78350f;font-size:22px;font-weight:700;letter-spacing:2px;font-family:'Courier New',monospace;">${appId}</p>
-            </div>
-
-            <!-- Course & Batch Info -->
-            <h3 style="margin:25px 0 12px;color:#1e3a8a;font-size:16px;font-weight:700;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📚 Course & Batch Details</h3>
-            <table style="width:100%;border-collapse:collapse;background:#f8fafc;border-radius:8px;overflow:hidden;">
-                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;width:40%;border-bottom:1px solid #e2e8f0;">Course</td><td style="padding:10px 14px;color:#0f172a;font-size:14px;font-weight:600;border-bottom:1px solid #e2e8f0;">${student.course}</td></tr>
-                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Duration</td><td style="padding:10px 14px;color:#0f172a;font-size:14px;border-bottom:1px solid #e2e8f0;">${courseInfo.duration || '-'}</td></tr>
-                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Batch</td><td style="padding:10px 14px;color:#0f172a;font-size:14px;border-bottom:1px solid #e2e8f0;">${student.batch || 'To be assigned'}</td></tr>
-                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Class Timing</td><td style="padding:10px 14px;color:#0f172a;font-size:14px;border-bottom:1px solid #e2e8f0;">${batchInfo.timing || 'To be announced'}</td></tr>
-                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Batch Start Date</td><td style="padding:10px 14px;color:#0f172a;font-size:14px;font-weight:600;border-bottom:1px solid #e2e8f0;">${batchInfo.startDate || 'To be announced'}</td></tr>
-                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Admission Date</td><td style="padding:10px 14px;color:#0f172a;font-size:14px;">${student.admissionDate || '-'}</td></tr>
-            </table>
-
-            <!-- Fee Summary -->
-            <h3 style="margin:25px 0 12px;color:#1e3a8a;font-size:16px;font-weight:700;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">💰 Fee Summary</h3>
-            <table style="width:100%;border-collapse:collapse;background:#f8fafc;border-radius:8px;overflow:hidden;">
-                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;width:40%;border-bottom:1px solid #e2e8f0;">Total Fees</td><td style="padding:10px 14px;color:#0f172a;font-size:15px;font-weight:700;border-bottom:1px solid #e2e8f0;">₹${fees.totalFees || 0}</td></tr>
-                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Paid Amount</td><td style="padding:10px 14px;color:#16a34a;font-size:15px;font-weight:700;border-bottom:1px solid #e2e8f0;">₹${fees.paidAmount || 0}</td></tr>
-                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;border-bottom:1px solid #e2e8f0;">Pending Amount</td><td style="padding:10px 14px;color:${isFullyPaid ? '#16a34a' : '#d97706'};font-size:15px;font-weight:700;border-bottom:1px solid #e2e8f0;">₹${fees.dueAmount || 0}</td></tr>
-                <tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Status</td><td style="padding:10px 14px;"><span style="background:${isFullyPaid ? '#dcfce7' : '#fef3c7'};color:${isFullyPaid ? '#16a34a' : '#d97706'};padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">${isFullyPaid ? 'Full Payment' : `${paymentPercentage}% Paid (₹${fees.dueAmount} pending)`}</span></td></tr>
-            </table>
-            ${!isFullyPaid ? `<p style="margin:10px 0 0;color:#9a3412;font-size:13px;font-style:italic;">⚠️ Pending fees ko time se pay karne ke liye Student Portal me Login karein.</p>` : ''}
-
-            <!-- Login Credentials -->
-            <h3 style="margin:25px 0 12px;color:#1e3a8a;font-size:16px;font-weight:700;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">🔐 Student Portal Login</h3>
-            <div style="background:#eff6ff;border:2px solid #bfdbfe;border-radius:8px;padding:20px;margin:0 0 15px;">
-                <div style="background:#ffffff;padding:12px 15px;border-radius:6px;margin-bottom:10px;">
-                    <p style="margin:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;">Roll Number</p>
-                    <p style="margin:0;color:#1e3a8a;font-size:17px;font-weight:700;">${student.rollNo}</p>
-                </div>
-                <div style="background:#ffffff;padding:12px 15px;border-radius:6px;margin-bottom:10px;">
-                    <p style="margin:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;">Login Email</p>
-                    <p style="margin:0;color:#333333;font-size:14px;">${student.email}</p>
-                </div>
-                <div style="background:#ffffff;padding:12px 15px;border-radius:6px;">
-                    <p style="margin:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;">Temporary Password</p>
-                    <p style="margin:0;color:#dc2626;font-size:17px;font-weight:700;letter-spacing:2px;font-family:'Courier New',monospace;">${password}</p>
-                </div>
-            </div>
-
-            <!-- CTA Button -->
-            <div style="text-align:center;margin:25px 0;">
-                <a href="${websiteUrl}/student-portal.html" style="display:inline-block;background:#3b82f6;color:#ffffff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;box-shadow:0 4px 6px rgba(59,130,246,0.3);">Access Student Portal →</a>
-            </div>
-
-            <!-- What to Bring -->
-            <h3 style="margin:25px 0 12px;color:#1e3a8a;font-size:16px;font-weight:700;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📋 First Day par Kya Laana hai</h3>
-            <div style="background:#f0fdf4;border-left:4px solid #16a34a;padding:16px 20px;border-radius:0 8px 8px 0;">
-                <ul style="margin:0;padding-left:20px;color:#166534;font-size:14px;line-height:1.9;">
-                    <li>Aadhar Card original + 1 photocopy</li>
-                    <li>10th & 12th Marksheet (original + photocopy)</li>
-                    <li>2 Passport-size photographs</li>
-                    <li>Notebook, pen, aur basic stationery</li>
-                    <li>Yeh confirmation email ka printout (optional)</li>
-                </ul>
-            </div>
-
-            <!-- Security Notice -->
-            <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:15px;margin:25px 0;">
-                <p style="margin:0 0 6px;color:#c2410c;font-size:14px;font-weight:600;">⚠️ Important Security Notice</p>
-                <p style="margin:0;color:#9a3412;font-size:13px;line-height:1.5;">First login ke baad turant apna password change karein. Ye credentials kisi ke saath share na karein.</p>
-            </div>
-
-            <p style="margin:20px 0 0;color:#555555;font-size:14px;line-height:1.6;">
-                Koi bhi sawaal ho to humse contact karein. Hum aapko classroom me milne ke liye excited hain!
-            </p>
-            <p style="margin:20px 0 0;color:#333333;font-size:15px;font-weight:600;">
-                Best regards,<br>
-                <span style="color:#3b82f6;">${inst} Team</span>
-            </p>
-        </div>
-
-        <!-- Footer -->
-        <div style="background:#f8fafc;padding:25px 30px;border-top:1px solid #e2e8f0;">
-            <p style="margin:0 0 10px;color:#1e3a8a;font-size:14px;font-weight:700;text-align:center;">${inst}</p>
-            ${addr ? `<p style="margin:0 0 8px;color:#475569;font-size:13px;line-height:1.5;text-align:center;">📍 ${addr}${mapLink ? ` &nbsp;<a href="${mapLink}" style="color:#3b82f6;text-decoration:none;font-weight:600;">[View on Map]</a>` : ''}</p>` : ''}
-            ${phonesHtml ? `<p style="margin:0 0 8px;color:#475569;font-size:13px;text-align:center;">📞 ${phonesHtml}</p>` : ''}
-            <p style="margin:0 0 12px;color:#475569;font-size:13px;text-align:center;">
-                ✉️ <a href="mailto:${settings.email || smtpUser}" style="color:#3b82f6;text-decoration:none;">${settings.email || smtpUser}</a>
-                ${settings.websiteUrl ? ` &nbsp;|&nbsp; 🌐 <a href="${settings.websiteUrl}" style="color:#3b82f6;text-decoration:none;">${settings.websiteUrl.replace(/^https?:\/\//,'')}</a>` : ''}
-            </p>
-            <p style="margin:0;color:#94a3b8;font-size:11px;text-align:center;">&copy; ${new Date().getFullYear()} ${inst}. All rights reserved.</p>
-        </div>
-    </div>
-</body>
-</html>`,
+        subject: rendered.subject,
+        html: rendered.html,
         attachments
     });
 }
@@ -4977,45 +5352,32 @@ async function sendBlogPublishNotification(blog) {
         const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
         const blogUrl = `${baseUrl}/blog/${encodeURIComponent(blog.slug)}`;
         const excerpt = blog.excerpt || blog.content.replace(/<[^>]+>/g, ' ').substring(0, 200) + '...';
-        const tagsHtml = (blog.tags || []).length > 0 
-            ? `<p style="color:#6b7280;font-size:13px;"><strong>Tags:</strong> ${blog.tags.join(', ')}</p>` 
+        const blogImage = blog.image ? `<img src="${blog.image}" alt="${blog.title}" style="width:100%;max-height:300px;object-fit:cover;border-radius:8px;margin-bottom:20px;">` : '';
+        const tagsHtml = (blog.tags || []).length > 0
+            ? `<p style="color:#6b7280;font-size:13px;"><strong>Tags:</strong> ${blog.tags.join(', ')}</p>`
             : '';
-
-        const mailOptions = {
-            from: `"${inst}" <${smtpUser}>`,
-            subject: `New Blog Post: ${blog.title}`,
-            html: `
-                <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f9fafb;">
-                    <div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:30px;border-radius:10px;text-align:center;color:#fff;margin-bottom:20px;">
-                        <h1 style="margin:0;font-size:28px;">${inst}</h1>
-                        <p style="margin:10px 0 0;opacity:0.9;">New Blog Post Published</p>
-                    </div>
-                    <div style="background:#fff;padding:25px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
-                        ${blog.image ? `<img src="${blog.image}" alt="${blog.title}" style="width:100%;max-height:300px;object-fit:cover;border-radius:8px;margin-bottom:20px;">` : ''}
-                        <h2 style="color:#1f2937;margin:0 0 15px;font-size:24px;">${blog.title}</h2>
-                        <p style="color:#4b5563;line-height:1.6;margin-bottom:15px;">${excerpt}</p>
-                        ${tagsHtml}
-                        <p style="color:#6b7280;font-size:13px;margin-bottom:20px;">
-                            <strong>Category:</strong> ${blog.category} | 
-                            <strong>Author:</strong> ${blog.author} |
-                            <strong>Reading Time:</strong> ${blog.readingTime || 1} min
-                        </p>
-                        <a href="${blogUrl}" style="display:inline-block;background:#667eea;color:#fff;padding:12px 30px;text-decoration:none;border-radius:6px;font-weight:600;">Read Full Article</a>
-                    </div>
-                    <p style="text-align:center;color:#9ca3af;font-size:12px;margin-top:20px;">
-                        You received this email because you subscribed to ${inst} newsletter.<br>
-                        <a href="${baseUrl}/unsubscribe" style="color:#6b7280;">Unsubscribe</a>
-                    </p>
-                </div>
-            `
-        };
 
         // Send to all subscribers
         const promises = activeSubs.map(sub => {
+            const rendered = renderEmailTemplate('blog-notification', {
+                inst: inst,
+                blogTitle: blog.title,
+                blogImage: blogImage,
+                blogExcerpt: excerpt,
+                blogTags: tagsHtml,
+                blogCategory: blog.category,
+                blogAuthor: blog.author,
+                blogReadingTime: blog.readingTime || 1,
+                blogUrl: blogUrl,
+                subscriberName: sub.name || 'Subscriber',
+                baseUrl: baseUrl
+            });
+
             const personalizedOptions = {
-                ...mailOptions,
+                from: `"${inst}" <${smtpUser}>`,
                 to: sub.email,
-                html: mailOptions.html.replace('Dear Subscriber', sub.name ? `Dear ${sub.name}` : 'Dear Subscriber')
+                subject: rendered.subject,
+                html: rendered.html
             };
             return transporter.sendMail(personalizedOptions).catch(err => {
                 logEmailFailure('blog-notification', sub.email, err);
@@ -6386,23 +6748,21 @@ app.post('/api/admin/videos/:id/notify-availability', async (req, res) => {
 
         for (const st of targetStudents) {
             try {
+                const rendered = renderEmailTemplate('video-notification', {
+                    inst: fromName,
+                    studentName: st.name || 'Student',
+                    videoTitle: video.title,
+                    videoDescription: video.description || 'Please login to your student portal and start learning.',
+                    availabilityStart: startText,
+                    availabilityEnd: endText,
+                    portalUrl: 'http://localhost:3000/student-portal.html'
+                });
+
                 await transporter.sendMail({
                     from: `"${fromName}" <${settings.smtpUser}>`,
                     to: st.email,
-                    subject: `New Video Available: ${video.title}`,
-                    html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
-<div style="background:#1e40af;color:#fff;padding:20px;"><h2 style="margin:0;">${fromName}</h2><p style="margin:6px 0 0;opacity:.9;">Video Learning Update</p></div>
-<div style="padding:20px;">
-<p>Hi ${st.name || 'Student'},</p>
-<p>A new video is available for your course:</p>
-<h3 style="margin:8px 0;color:#0f172a;">${video.title}</h3>
-<p style="color:#475569;">${video.description || 'Please login to your student portal and start learning.'}</p>
-<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin:14px 0;">
-<div><strong>Available from:</strong> ${startText}</div>
-<div><strong>Available till:</strong> ${endText}</div>
-</div>
-<a href="http://localhost:3000/student-portal.html" style="display:inline-block;background:#2563eb;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600;">Open Student Portal</a>
-</div></div>`
+                    subject: rendered.subject,
+                    html: rendered.html
                 });
                 sent++;
             } catch (mailError) {
@@ -9561,28 +9921,28 @@ async function sendExamResultEmail(grade) {
     } catch (e) {
         console.warn('[PDF] Generation failed:', e.message);
     }
-    
+
+    const pdfNote = pdfAttachment ? `<p style="background:#ecfdf5;border-left:4px solid #22c55e;padding:10px;"><strong>📎 Official Result Marksheet attached as PDF.</strong></p>` : '';
+
+    const rendered = renderEmailTemplate('exam-result', {
+        studentName: grade.studentName,
+        examName: grade.examName,
+        course: grade.course,
+        total: grade.total,
+        obtained: grade.obtained,
+        percentage: grade.percentage,
+        grade: grade.grade,
+        status: grade.status,
+        statusColor: passColor,
+        inst: instName,
+        pdfNote: pdfNote
+    });
+
     await transporter.sendMail({
         from: `"${instName}" <${settings.smtpUser}>`,
         to: student.email,
-        subject: `Your Result: ${grade.examName}`,
-        html: `
-            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
-                <p>Dear <strong>${grade.studentName}</strong>,</p>
-                <p>Your result for <strong>${grade.examName}</strong> has been published.</p>
-                <table style="width:100%;border-collapse:collapse;margin:15px 0;">
-                    <tr><td style="padding:8px;background:#f1f5f9;width:40%;"><strong>Course</strong></td><td style="padding:8px;">${grade.course}</td></tr>
-                    <tr><td style="padding:8px;background:#f1f5f9;"><strong>Total Marks</strong></td><td style="padding:8px;">${grade.total}</td></tr>
-                    <tr><td style="padding:8px;background:#f1f5f9;"><strong>Obtained</strong></td><td style="padding:8px;">${grade.obtained}</td></tr>
-                    <tr><td style="padding:8px;background:#f1f5f9;"><strong>Percentage</strong></td><td style="padding:8px;">${grade.percentage}%</td></tr>
-                    <tr><td style="padding:8px;background:#f1f5f9;"><strong>Grade</strong></td><td style="padding:8px;font-size:18px;font-weight:700;color:${passColor};">${grade.grade}</td></tr>
-                    <tr><td style="padding:8px;background:#f1f5f9;"><strong>Status</strong></td><td style="padding:8px;color:${passColor};font-weight:600;">${grade.status}</td></tr>
-                </table>
-                ${pdfAttachment ? `<p style="background:#ecfdf5;border-left:4px solid #22c55e;padding:10px;"><strong>📎 Official Result Marksheet attached as PDF.</strong></p>` : ''}
-                <p>Login to your student portal to view detailed result.</p>
-                <p style="margin-top:30px;color:#64748b;font-size:12px;">Regards,<br>${instName}</p>
-            </div>
-        `,
+        subject: rendered.subject,
+        html: rendered.html,
         attachments: pdfAttachment ? [pdfAttachment] : []
     });
     
