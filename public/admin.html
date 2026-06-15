@@ -5371,7 +5371,15 @@
     }
 
     async function saveEmailTemplate() {
-        if (!currentTemplateKey) return;
+        if (!currentTemplateKey) {
+            alert('Please select a template first');
+            return;
+        }
+
+        if (!emailTemplates[currentTemplateKey]) {
+            alert('Invalid template selected');
+            return;
+        }
 
         const subject = document.getElementById('templateSubject').value;
         const body = document.getElementById('templateBody').value;
@@ -5401,7 +5409,16 @@
     }
 
     async function resetEmailTemplate() {
-        if (!currentTemplateKey) return;
+        if (!currentTemplateKey) {
+            alert('Please select a template first');
+            return;
+        }
+
+        if (!emailTemplates[currentTemplateKey]) {
+            alert('Invalid template selected');
+            return;
+        }
+
         if (!confirm('Are you sure you want to reset this template to its default? This cannot be undone.')) return;
 
         try {
@@ -5427,7 +5444,15 @@
     }
 
     async function previewEmailTemplate() {
-        if (!currentTemplateKey) return;
+        if (!currentTemplateKey) {
+            alert('Please select a template first');
+            return;
+        }
+
+        if (!emailTemplates[currentTemplateKey]) {
+            alert('Invalid template selected');
+            return;
+        }
 
         try {
             const response = await fetch(`/api/email-templates/${currentTemplateKey}/preview`, {
@@ -5463,7 +5488,15 @@
     }
 
     async function testEmailTemplate() {
-        if (!currentTemplateKey) return;
+        if (!currentTemplateKey) {
+            alert('Please select a template first');
+            return;
+        }
+
+        if (!emailTemplates[currentTemplateKey]) {
+            alert('Invalid template selected');
+            return;
+        }
 
         const testEmail = prompt('Enter email address to send test email:');
         if (!testEmail) return;
