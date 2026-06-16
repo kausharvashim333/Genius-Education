@@ -1331,6 +1331,31 @@
             margin-top: 20px;
         }
 
+        .name-input-section {
+            margin: 20px 0;
+        }
+
+        .name-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .name-input::placeholder {
+            color: rgba(224, 224, 224, 0.5);
+        }
+
+        .name-input:focus {
+            border-color: #667eea;
+        }
+
         /* Leaderboard Modal */
         .leaderboard-modal {
             display: none;
@@ -1417,7 +1442,7 @@
 
         .leaderboard-row {
             display: grid;
-            grid-template-columns: 60px 80px 100px 100px 150px;
+            grid-template-columns: 60px 150px 80px 100px 100px 150px;
             gap: 10px;
             padding: 12px 16px;
             background: rgba(255, 255, 255, 0.05);
@@ -2440,6 +2465,9 @@
                     <div class="result-stat-label">Errors</div>
                 </div>
             </div>
+            <div class="name-input-section">
+                <input type="text" id="studentName" placeholder="Enter your name" maxlength="30" class="name-input">
+            </div>
             <div class="result-buttons">
                 <button class="btn btn-secondary" onclick="closeResultModal()">
                     <i class="fas fa-redo"></i> Try Again
@@ -2471,6 +2499,7 @@
             <div class="leaderboard-table">
                 <div class="leaderboard-row header">
                     <div class="rank">Rank</div>
+                    <div class="name">Name</div>
                     <div class="level">Level</div>
                     <div class="wpm">WPM</div>
                     <div class="accuracy">Accuracy</div>
@@ -2769,8 +2798,11 @@
         }
 
         function saveScore(wpm, accuracy) {
+            const nameInput = document.getElementById('studentName');
+            const name = nameInput.value.trim() || 'Anonymous';
             const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
             const newScore = {
+                name: name,
                 level: currentLevel,
                 wpm: wpm,
                 accuracy: accuracy,
@@ -2808,6 +2840,7 @@
                 html += `
                     <div class="leaderboard-row">
                         <div class="rank">#${index + 1}</div>
+                        <div class="name">${score.name}</div>
                         <div class="level">Level ${score.level}</div>
                         <div class="wpm">${score.wpm}</div>
                         <div class="accuracy">${score.accuracy}%</div>
