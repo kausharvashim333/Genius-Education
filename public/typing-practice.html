@@ -1009,6 +1009,56 @@
             margin-top: 10px;
         }
 
+        .guide-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .guide-nav-btn {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid #667eea;
+            color: #e0e0e0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .guide-nav-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+        }
+
+        .guide-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .guide-page-indicator {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .guide-page {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Finger guide colors */
         .pinky-left { border-left: 3px solid #ef4444; }
         .ring-left { border-left: 3px solid #f59e0b; }
@@ -1512,300 +1562,332 @@
             </div>
             
             <div class="guide-content-english active">
-                <div class="guide-section">
-                    <h3><i class="fas fa-hand-paper"></i> Finger Placement</h3>
-                    <p>Place your fingers on the home row keys:</p>
-                    
-                    <div class="guide-diagram">
-                        <svg width="400" height="200" viewBox="0 0 400 200">
-                            <!-- Keyboard base -->
-                            <rect x="20" y="50" width="360" height="120" rx="10" fill="#2a2a3a" stroke="#444" stroke-width="2"/>
-                            
-                            <!-- Home row keys -->
-                            <rect x="40" y="80" width="35" height="30" rx="5" fill="#ef4444" opacity="0.7"/>
-                            <text x="57" y="100" fill="white" font-size="14" text-anchor="middle">A</text>
-                            
-                            <rect x="80" y="80" width="35" height="30" rx="5" fill="#f59e0b" opacity="0.7"/>
-                            <text x="97" y="100" fill="white" font-size="14" text-anchor="middle">S</text>
-                            
-                            <rect x="120" y="80" width="35" height="30" rx="5" fill="#22c55e" opacity="0.7"/>
-                            <text x="137" y="100" fill="white" font-size="14" text-anchor="middle">D</text>
-                            
-                            <rect x="160" y="80" width="35" height="30" rx="5" fill="#3b82f6" opacity="0.7"/>
-                            <text x="177" y="100" fill="white" font-size="14" text-anchor="middle">F</text>
-                            
-                            <rect x="200" y="80" width="35" height="30" rx="5" fill="#3b82f6" opacity="0.7"/>
-                            <text x="217" y="100" fill="white" font-size="14" text-anchor="middle">J</text>
-                            
-                            <rect x="240" y="80" width="35" height="30" rx="5" fill="#22c55e" opacity="0.7"/>
-                            <text x="257" y="100" fill="white" font-size="14" text-anchor="middle">K</text>
-                            
-                            <rect x="280" y="80" width="35" height="30" rx="5" fill="#f59e0b" opacity="0.7"/>
-                            <text x="297" y="100" fill="white" font-size="14" text-anchor="middle">L</text>
-                            
-                            <rect x="320" y="80" width="35" height="30" rx="5" fill="#ef4444" opacity="0.7"/>
-                            <text x="337" y="100" fill="white" font-size="14" text-anchor="middle">;</text>
-                            
-                            <!-- Space bar -->
-                            <rect x="100" y="130" width="200" height="25" rx="5" fill="#8b5cf6" opacity="0.7"/>
-                            <text x="200" y="147" fill="white" font-size="12" text-anchor="middle">SPACE</text>
-                            
-                            <!-- Labels -->
-                            <text x="57" y="70" fill="#ef4444" font-size="10" text-anchor="middle">Pinky</text>
-                            <text x="97" y="70" fill="#f59e0b" font-size="10" text-anchor="middle">Ring</text>
-                            <text x="137" y="70" fill="#22c55e" font-size="10" text-anchor="middle">Middle</text>
-                            <text x="177" y="70" fill="#3b82f6" font-size="10" text-anchor="middle">Index</text>
-                            <text x="217" y="70" fill="#3b82f6" font-size="10" text-anchor="middle">Index</text>
-                            <text x="257" y="70" fill="#22c55e" font-size="10" text-anchor="middle">Middle</text>
-                            <text x="297" y="70" fill="#f59e0b" font-size="10" text-anchor="middle">Ring</text>
-                            <text x="337" y="70" fill="#ef4444" font-size="10" text-anchor="middle">Pinky</text>
-                            <text x="200" y="175" fill="#8b5cf6" font-size="10" text-anchor="middle">Thumbs</text>
-                        </svg>
-                        <div class="diagram-label">Home Row Finger Placement</div>
+                <div class="guide-page" id="guidePage0">
+                    <div class="guide-section">
+                        <h3><i class="fas fa-hand-paper"></i> Finger Placement</h3>
+                        <p>Place your fingers on the home row keys:</p>
+                        
+                        <div class="guide-diagram">
+                            <svg width="400" height="200" viewBox="0 0 400 200">
+                                <!-- Keyboard base -->
+                                <rect x="20" y="50" width="360" height="120" rx="10" fill="#2a2a3a" stroke="#444" stroke-width="2"/>
+                                
+                                <!-- Home row keys -->
+                                <rect x="40" y="80" width="35" height="30" rx="5" fill="#ef4444" opacity="0.7"/>
+                                <text x="57" y="100" fill="white" font-size="14" text-anchor="middle">A</text>
+                                
+                                <rect x="80" y="80" width="35" height="30" rx="5" fill="#f59e0b" opacity="0.7"/>
+                                <text x="97" y="100" fill="white" font-size="14" text-anchor="middle">S</text>
+                                
+                                <rect x="120" y="80" width="35" height="30" rx="5" fill="#22c55e" opacity="0.7"/>
+                                <text x="137" y="100" fill="white" font-size="14" text-anchor="middle">D</text>
+                                
+                                <rect x="160" y="80" width="35" height="30" rx="5" fill="#3b82f6" opacity="0.7"/>
+                                <text x="177" y="100" fill="white" font-size="14" text-anchor="middle">F</text>
+                                
+                                <rect x="200" y="80" width="35" height="30" rx="5" fill="#3b82f6" opacity="0.7"/>
+                                <text x="217" y="100" fill="white" font-size="14" text-anchor="middle">J</text>
+                                
+                                <rect x="240" y="80" width="35" height="30" rx="5" fill="#22c55e" opacity="0.7"/>
+                                <text x="257" y="100" fill="white" font-size="14" text-anchor="middle">K</text>
+                                
+                                <rect x="280" y="80" width="35" height="30" rx="5" fill="#f59e0b" opacity="0.7"/>
+                                <text x="297" y="100" fill="white" font-size="14" text-anchor="middle">L</text>
+                                
+                                <rect x="320" y="80" width="35" height="30" rx="5" fill="#ef4444" opacity="0.7"/>
+                                <text x="337" y="100" fill="white" font-size="14" text-anchor="middle">;</text>
+                                
+                                <!-- Space bar -->
+                                <rect x="100" y="130" width="200" height="25" rx="5" fill="#8b5cf6" opacity="0.7"/>
+                                <text x="200" y="147" fill="white" font-size="12" text-anchor="middle">SPACE</text>
+                                
+                                <!-- Labels -->
+                                <text x="57" y="70" fill="#ef4444" font-size="10" text-anchor="middle">Pinky</text>
+                                <text x="97" y="70" fill="#f59e0b" font-size="10" text-anchor="middle">Ring</text>
+                                <text x="137" y="70" fill="#22c55e" font-size="10" text-anchor="middle">Middle</text>
+                                <text x="177" y="70" fill="#3b82f6" font-size="10" text-anchor="middle">Index</text>
+                                <text x="217" y="70" fill="#3b82f6" font-size="10" text-anchor="middle">Index</text>
+                                <text x="257" y="70" fill="#22c55e" font-size="10" text-anchor="middle">Middle</text>
+                                <text x="297" y="70" fill="#f59e0b" font-size="10" text-anchor="middle">Ring</text>
+                                <text x="337" y="70" fill="#ef4444" font-size="10" text-anchor="middle">Pinky</text>
+                                <text x="200" y="175" fill="#8b5cf6" font-size="10" text-anchor="middle">Thumbs</text>
+                            </svg>
+                            <div class="diagram-label">Home Row Finger Placement</div>
+                        </div>
+                        
+                        <ul>
+                            <li><strong>Left Pinky:</strong> A key</li>
+                            <li><strong>Left Ring:</strong> S key</li>
+                            <li><strong>Left Middle:</strong> D key</li>
+                            <li><strong>Left Index:</strong> F key</li>
+                            <li><strong>Right Index:</strong> J key</li>
+                            <li><strong>Right Middle:</strong> K key</li>
+                            <li><strong>Right Ring:</strong> L key</li>
+                            <li><strong>Right Pinky:</strong> ; key</li>
+                            <li><strong>Thumbs:</strong> Space bar</li>
+                        </ul>
                     </div>
-                    
-                    <ul>
-                        <li><strong>Left Pinky:</strong> A key</li>
-                        <li><strong>Left Ring:</strong> S key</li>
-                        <li><strong>Left Middle:</strong> D key</li>
-                        <li><strong>Left Index:</strong> F key</li>
-                        <li><strong>Right Index:</strong> J key</li>
-                        <li><strong>Right Middle:</strong> K key</li>
-                        <li><strong>Right Ring:</strong> L key</li>
-                        <li><strong>Right Pinky:</strong> ; key</li>
-                        <li><strong>Thumbs:</strong> Space bar</li>
-                    </ul>
                 </div>
                 
-                <div class="guide-section">
-                    <h3><i class="fas fa-keyboard"></i> Basic Rules</h3>
-                    
-                    <div class="guide-diagram">
-                        <svg width="400" height="150" viewBox="0 0 400 150">
-                            <!-- Rule 1: Home row -->
-                            <circle cx="60" cy="40" r="25" fill="#667eea" opacity="0.3"/>
-                            <text x="60" y="45" fill="#667eea" font-size="20" text-anchor="middle">🏠</text>
-                            <text x="60" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">Home Row</text>
-                            
-                            <!-- Rule 2: No looking -->
-                            <circle cx="140" cy="40" r="25" fill="#ef4444" opacity="0.3"/>
-                            <text x="140" y="45" fill="#ef4444" font-size="20" text-anchor="middle">🙈</text>
-                            <text x="140" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">No Looking</text>
-                            
-                            <!-- Rule 3: Correct finger -->
-                            <circle cx="220" cy="40" r="25" fill="#22c55e" opacity="0.3"/>
-                            <text x="220" y="45" fill="#22c55e" font-size="20" text-anchor="middle">👆</text>
-                            <text x="220" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">Right Finger</text>
-                            
-                            <!-- Rule 4: Gentle press -->
-                            <circle cx="300" cy="40" r="25" fill="#f59e0b" opacity="0.3"/>
-                            <text x="300" y="45" fill="#f59e0b" font-size="20" text-anchor="middle">⚡</text>
-                            <text x="300" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">Gentle Press</text>
-                            
-                            <!-- Rule 5: Take breaks -->
-                            <circle cx="380" cy="40" r="25" fill="#8b5cf6" opacity="0.3"/>
-                            <text x="380" y="45" fill="#8b5cf6" font-size="20" text-anchor="middle">☕</text>
-                            <text x="380" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">Take Breaks</text>
-                        </svg>
-                        <div class="diagram-label">Visual Guide to Basic Rules</div>
+                <div class="guide-page" id="guidePage1" style="display: none;">
+                    <div class="guide-section">
+                        <h3><i class="fas fa-keyboard"></i> Basic Rules</h3>
+                        
+                        <div class="guide-diagram">
+                            <svg width="400" height="150" viewBox="0 0 400 150">
+                                <!-- Rule 1: Home row -->
+                                <circle cx="60" cy="40" r="25" fill="#667eea" opacity="0.3"/>
+                                <text x="60" y="45" fill="#667eea" font-size="20" text-anchor="middle">🏠</text>
+                                <text x="60" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">Home Row</text>
+                                
+                                <!-- Rule 2: No looking -->
+                                <circle cx="140" cy="40" r="25" fill="#ef4444" opacity="0.3"/>
+                                <text x="140" y="45" fill="#ef4444" font-size="20" text-anchor="middle">🙈</text>
+                                <text x="140" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">No Looking</text>
+                                
+                                <!-- Rule 3: Correct finger -->
+                                <circle cx="220" cy="40" r="25" fill="#22c55e" opacity="0.3"/>
+                                <text x="220" y="45" fill="#22c55e" font-size="20" text-anchor="middle">👆</text>
+                                <text x="220" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">Right Finger</text>
+                                
+                                <!-- Rule 4: Gentle press -->
+                                <circle cx="300" cy="40" r="25" fill="#f59e0b" opacity="0.3"/>
+                                <text x="300" y="45" fill="#f59e0b" font-size="20" text-anchor="middle">⚡</text>
+                                <text x="300" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">Gentle Press</text>
+                                
+                                <!-- Rule 5: Take breaks -->
+                                <circle cx="380" cy="40" r="25" fill="#8b5cf6" opacity="0.3"/>
+                                <text x="380" y="45" fill="#8b5cf6" font-size="20" text-anchor="middle">☕</text>
+                                <text x="380" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">Take Breaks</text>
+                            </svg>
+                            <div class="diagram-label">Visual Guide to Basic Rules</div>
+                        </div>
+                        
+                        <ul>
+                            <li>Always keep your fingers on the home row</li>
+                            <li>Don't look at the keyboard while typing</li>
+                            <li>Use the correct finger for each key</li>
+                            <li>Press keys gently and release quickly</li>
+                            <li>Take breaks to avoid fatigue</li>
+                        </ul>
                     </div>
-                    
-                    <ul>
-                        <li>Always keep your fingers on the home row</li>
-                        <li>Don't look at the keyboard while typing</li>
-                        <li>Use the correct finger for each key</li>
-                        <li>Press keys gently and release quickly</li>
-                        <li>Take breaks to avoid fatigue</li>
-                    </ul>
                 </div>
                 
-                <div class="guide-section">
-                    <h3><i class="fas fa-chart-line"></i> Tips for Improvement</h3>
-                    <ul>
-                        <li>Practice daily for at least 15-20 minutes</li>
-                        <li>Start with slow speed and focus on accuracy</li>
-                        <li>Gradually increase your speed as you improve</li>
-                        <li>Use lessons from beginner to advanced level</li>
-                        <li>Track your progress and celebrate improvements</li>
-                    </ul>
+                <div class="guide-page" id="guidePage2" style="display: none;">
+                    <div class="guide-section">
+                        <h3><i class="fas fa-chart-line"></i> Tips for Improvement</h3>
+                        <ul>
+                            <li>Practice daily for at least 15-20 minutes</li>
+                            <li>Start with slow speed and focus on accuracy</li>
+                            <li>Gradually increase your speed as you improve</li>
+                            <li>Use lessons from beginner to advanced level</li>
+                            <li>Track your progress and celebrate improvements</li>
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="guide-section">
-                    <h3><i class="fas fa-tachometer-alt"></i> Understanding WPM</h3>
-                    
-                    <div class="guide-diagram">
-                        <svg width="400" height="180" viewBox="0 0 400 180">
-                            <!-- WPM calculation example -->
-                            <rect x="20" y="20" width="360" height="60" rx="8" fill="#2a2a3a" stroke="#667eea" stroke-width="2"/>
-                            <text x="30" y="45" fill="#e0e0e0" font-size="14" font-weight="bold">Example: "hello world"</text>
-                            <text x="30" y="65" fill="#888" font-size="12">11 characters = 2 words (11 ÷ 5 = 2.2)</text>
-                            
-                            <!-- WPM formula -->
-                            <rect x="20" y="90" width="170" height="70" rx="8" fill="#22c55e" opacity="0.2" stroke="#22c55e" stroke-width="2"/>
-                            <text x="105" y="115" fill="#22c55e" font-size="14" font-weight="bold" text-anchor="middle">WPM Formula</text>
-                            <text x="105" y="135" fill="#b0b0b0" font-size="12" text-anchor="middle">Words ÷ Minutes</text>
-                            <text x="105" y="150" fill="#b0b0b0" font-size="12" text-anchor="middle">= WPM</text>
-                            
-                            <!-- Accuracy formula -->
-                            <rect x="210" y="90" width="170" height="70" rx="8" fill="#f59e0b" opacity="0.2" stroke="#f59e0b" stroke-width="2"/>
-                            <text x="295" y="115" fill="#f59e0b" font-size="14" font-weight="bold" text-anchor="middle">Accuracy</text>
-                            <text x="295" y="135" fill="#b0b0b0" font-size="12" text-anchor="middle">Correct ÷ Total</text>
-                            <text x="295" y="150" fill="#b0b0b0" font-size="12" text-anchor="middle">× 100%</text>
-                        </svg>
-                        <div class="diagram-label">WPM and Accuracy Calculation</div>
+                <div class="guide-page" id="guidePage3" style="display: none;">
+                    <div class="guide-section">
+                        <h3><i class="fas fa-tachometer-alt"></i> Understanding WPM</h3>
+                        
+                        <div class="guide-diagram">
+                            <svg width="400" height="180" viewBox="0 0 400 180">
+                                <!-- WPM calculation example -->
+                                <rect x="20" y="20" width="360" height="60" rx="8" fill="#2a2a3a" stroke="#667eea" stroke-width="2"/>
+                                <text x="30" y="45" fill="#e0e0e0" font-size="14" font-weight="bold">Example: "hello world"</text>
+                                <text x="30" y="65" fill="#888" font-size="12">11 characters = 2 words (11 ÷ 5 = 2.2)</text>
+                                
+                                <!-- WPM formula -->
+                                <rect x="20" y="90" width="170" height="70" rx="8" fill="#22c55e" opacity="0.2" stroke="#22c55e" stroke-width="2"/>
+                                <text x="105" y="115" fill="#22c55e" font-size="14" font-weight="bold" text-anchor="middle">WPM Formula</text>
+                                <text x="105" y="135" fill="#b0b0b0" font-size="12" text-anchor="middle">Words ÷ Minutes</text>
+                                <text x="105" y="150" fill="#b0b0b0" font-size="12" text-anchor="middle">= WPM</text>
+                                
+                                <!-- Accuracy formula -->
+                                <rect x="210" y="90" width="170" height="70" rx="8" fill="#f59e0b" opacity="0.2" stroke="#f59e0b" stroke-width="2"/>
+                                <text x="295" y="115" fill="#f59e0b" font-size="14" font-weight="bold" text-anchor="middle">Accuracy</text>
+                                <text x="295" y="135" fill="#b0b0b0" font-size="12" text-anchor="middle">Correct ÷ Total</text>
+                                <text x="295" y="150" fill="#b0b0b0" font-size="12" text-anchor="middle">× 100%</text>
+                            </svg>
+                            <div class="diagram-label">WPM and Accuracy Calculation</div>
+                        </div>
+                        
+                        <p><strong>WPM (Words Per Minute)</strong> measures your typing speed. One word is typically 5 characters. For example, typing "hello world" counts as 2 words.</p>
+                        <p><strong>Accuracy</strong> shows how many characters you typed correctly. Aim for 95%+ accuracy before focusing on speed.</p>
                     </div>
-                    
-                    <p><strong>WPM (Words Per Minute)</strong> measures your typing speed. One word is typically 5 characters. For example, typing "hello world" counts as 2 words.</p>
-                    <p><strong>Accuracy</strong> shows how many characters you typed correctly. Aim for 95%+ accuracy before focusing on speed.</p>
+                </div>
+                
+                <div class="guide-navigation">
+                    <button class="guide-nav-btn" id="prevBtn" onclick="prevGuidePage()" disabled>Previous</button>
+                    <div class="guide-page-indicator">
+                        <span id="currentPage">1</span> / <span id="totalPages">4</span>
+                    </div>
+                    <button class="guide-nav-btn" id="nextBtn" onclick="nextGuidePage()">Next</button>
                 </div>
             </div>
             
             <div class="guide-content-hindi">
-                <div class="guide-section">
-                    <h3><i class="fas fa-hand-paper"></i> उंगलियों की स्थिति (Finger Placement)</h3>
-                    <p>अपनी उंगलियों को होम रो कीज पर रखें:</p>
-                    
-                    <div class="guide-diagram">
-                        <svg width="400" height="200" viewBox="0 0 400 200">
-                            <!-- Keyboard base -->
-                            <rect x="20" y="50" width="360" height="120" rx="10" fill="#2a2a3a" stroke="#444" stroke-width="2"/>
-                            
-                            <!-- Home row keys -->
-                            <rect x="40" y="80" width="35" height="30" rx="5" fill="#ef4444" opacity="0.7"/>
-                            <text x="57" y="100" fill="white" font-size="14" text-anchor="middle">A</text>
-                            
-                            <rect x="80" y="80" width="35" height="30" rx="5" fill="#f59e0b" opacity="0.7"/>
-                            <text x="97" y="100" fill="white" font-size="14" text-anchor="middle">S</text>
-                            
-                            <rect x="120" y="80" width="35" height="30" rx="5" fill="#22c55e" opacity="0.7"/>
-                            <text x="137" y="100" fill="white" font-size="14" text-anchor="middle">D</text>
-                            
-                            <rect x="160" y="80" width="35" height="30" rx="5" fill="#3b82f6" opacity="0.7"/>
-                            <text x="177" y="100" fill="white" font-size="14" text-anchor="middle">F</text>
-                            
-                            <rect x="200" y="80" width="35" height="30" rx="5" fill="#3b82f6" opacity="0.7"/>
-                            <text x="217" y="100" fill="white" font-size="14" text-anchor="middle">J</text>
-                            
-                            <rect x="240" y="80" width="35" height="30" rx="5" fill="#22c55e" opacity="0.7"/>
-                            <text x="257" y="100" fill="white" font-size="14" text-anchor="middle">K</text>
-                            
-                            <rect x="280" y="80" width="35" height="30" rx="5" fill="#f59e0b" opacity="0.7"/>
-                            <text x="297" y="100" fill="white" font-size="14" text-anchor="middle">L</text>
-                            
-                            <rect x="320" y="80" width="35" height="30" rx="5" fill="#ef4444" opacity="0.7"/>
-                            <text x="337" y="100" fill="white" font-size="14" text-anchor="middle">;</text>
-                            
-                            <!-- Space bar -->
-                            <rect x="100" y="130" width="200" height="25" rx="5" fill="#8b5cf6" opacity="0.7"/>
-                            <text x="200" y="147" fill="white" font-size="12" text-anchor="middle">SPACE</text>
-                            
-                            <!-- Labels -->
-                            <text x="57" y="70" fill="#ef4444" font-size="10" text-anchor="middle">छोटी</text>
-                            <text x="97" y="70" fill="#f59e0b" font-size="10" text-anchor="middle">अनामिका</text>
-                            <text x="137" y="70" fill="#22c55e" font-size="10" text-anchor="middle">मध्यमा</text>
-                            <text x="177" y="70" fill="#3b82f6" font-size="10" text-anchor="middle">तर्जनी</text>
-                            <text x="217" y="70" fill="#3b82f6" font-size="10" text-anchor="middle">तर्जनी</text>
-                            <text x="257" y="70" fill="#22c55e" font-size="10" text-anchor="middle">मध्यमा</text>
-                            <text x="297" y="70" fill="#f59e0b" font-size="10" text-anchor="middle">अनामिका</text>
-                            <text x="337" y="70" fill="#ef4444" font-size="10" text-anchor="middle">छोटी</text>
-                            <text x="200" y="175" fill="#8b5cf6" font-size="10" text-anchor="middle">अंगूठे</text>
-                        </svg>
-                        <div class="diagram-label">होम रो उंगली स्थिति</div>
+                <div class="guide-page" id="guidePageHindi0">
+                    <div class="guide-section">
+                        <h3><i class="fas fa-hand-paper"></i> उंगलियों की स्थिति (Finger Placement)</h3>
+                        <p>अपनी उंगलियों को होम रो कीज पर रखें:</p>
+                        
+                        <div class="guide-diagram">
+                            <svg width="400" height="200" viewBox="0 0 400 200">
+                                <!-- Keyboard base -->
+                                <rect x="20" y="50" width="360" height="120" rx="10" fill="#2a2a3a" stroke="#444" stroke-width="2"/>
+                                
+                                <!-- Home row keys -->
+                                <rect x="40" y="80" width="35" height="30" rx="5" fill="#ef4444" opacity="0.7"/>
+                                <text x="57" y="100" fill="white" font-size="14" text-anchor="middle">A</text>
+                                
+                                <rect x="80" y="80" width="35" height="30" rx="5" fill="#f59e0b" opacity="0.7"/>
+                                <text x="97" y="100" fill="white" font-size="14" text-anchor="middle">S</text>
+                                
+                                <rect x="120" y="80" width="35" height="30" rx="5" fill="#22c55e" opacity="0.7"/>
+                                <text x="137" y="100" fill="white" font-size="14" text-anchor="middle">D</text>
+                                
+                                <rect x="160" y="80" width="35" height="30" rx="5" fill="#3b82f6" opacity="0.7"/>
+                                <text x="177" y="100" fill="white" font-size="14" text-anchor="middle">F</text>
+                                
+                                <rect x="200" y="80" width="35" height="30" rx="5" fill="#3b82f6" opacity="0.7"/>
+                                <text x="217" y="100" fill="white" font-size="14" text-anchor="middle">J</text>
+                                
+                                <rect x="240" y="80" width="35" height="30" rx="5" fill="#22c55e" opacity="0.7"/>
+                                <text x="257" y="100" fill="white" font-size="14" text-anchor="middle">K</text>
+                                
+                                <rect x="280" y="80" width="35" height="30" rx="5" fill="#f59e0b" opacity="0.7"/>
+                                <text x="297" y="100" fill="white" font-size="14" text-anchor="middle">L</text>
+                                
+                                <rect x="320" y="80" width="35" height="30" rx="5" fill="#ef4444" opacity="0.7"/>
+                                <text x="337" y="100" fill="white" font-size="14" text-anchor="middle">;</text>
+                                
+                                <!-- Space bar -->
+                                <rect x="100" y="130" width="200" height="25" rx="5" fill="#8b5cf6" opacity="0.7"/>
+                                <text x="200" y="147" fill="white" font-size="12" text-anchor="middle">SPACE</text>
+                                
+                                <!-- Labels -->
+                                <text x="57" y="70" fill="#ef4444" font-size="10" text-anchor="middle">छोटी</text>
+                                <text x="97" y="70" fill="#f59e0b" font-size="10" text-anchor="middle">अनामिका</text>
+                                <text x="137" y="70" fill="#22c55e" font-size="10" text-anchor="middle">मध्यमा</text>
+                                <text x="177" y="70" fill="#3b82f6" font-size="10" text-anchor="middle">तर्जनी</text>
+                                <text x="217" y="70" fill="#3b82f6" font-size="10" text-anchor="middle">तर्जनी</text>
+                                <text x="257" y="70" fill="#22c55e" font-size="10" text-anchor="middle">मध्यमा</text>
+                                <text x="297" y="70" fill="#f59e0b" font-size="10" text-anchor="middle">अनामिका</text>
+                                <text x="337" y="70" fill="#ef4444" font-size="10" text-anchor="middle">छोटी</text>
+                                <text x="200" y="175" fill="#8b5cf6" font-size="10" text-anchor="middle">अंगूठे</text>
+                            </svg>
+                            <div class="diagram-label">होम रो उंगली स्थिति</div>
+                        </div>
+                        
+                        <ul>
+                            <li><strong>बाया छोटी उंगली:</strong> A की</li>
+                            <li><strong>बाया अनामिका:</strong> S की</li>
+                            <li><strong>बाया मध्यमा:</strong> D की</li>
+                            <li><strong>बाया तर्जनी:</strong> F की</li>
+                            <li><strong>दाया तर्जनी:</strong> J की</li>
+                            <li><strong>दाया मध्यमा:</strong> K की</li>
+                            <li><strong>दाया अनामिका:</strong> L की</li>
+                            <li><strong>दाया छोटी उंगली:</strong> ; की</li>
+                            <li><strong>अंगूठे:</strong> स्पेस बार</li>
+                        </ul>
                     </div>
-                    
-                    <ul>
-                        <li><strong>बाया छोटी उंगली:</strong> A की</li>
-                        <li><strong>बाया अनामिका:</strong> S की</li>
-                        <li><strong>बाया मध्यमा:</strong> D की</li>
-                        <li><strong>बाया तर्जनी:</strong> F की</li>
-                        <li><strong>दाया तर्जनी:</strong> J की</li>
-                        <li><strong>दाया मध्यमा:</strong> K की</li>
-                        <li><strong>दाया अनामिका:</strong> L की</li>
-                        <li><strong>दाया छोटी उंगली:</strong> ; की</li>
-                        <li><strong>अंगूठे:</strong> स्पेस बार</li>
-                    </ul>
                 </div>
                 
-                <div class="guide-section">
-                    <h3><i class="fas fa-keyboard"></i> बुनियादी नियम (Basic Rules)</h3>
-                    
-                    <div class="guide-diagram">
-                        <svg width="400" height="150" viewBox="0 0 400 150">
-                            <!-- Rule 1: Home row -->
-                            <circle cx="60" cy="40" r="25" fill="#667eea" opacity="0.3"/>
-                            <text x="60" y="45" fill="#667eea" font-size="20" text-anchor="middle">🏠</text>
-                            <text x="60" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">होम रो</text>
-                            
-                            <!-- Rule 2: No looking -->
-                            <circle cx="140" cy="40" r="25" fill="#ef4444" opacity="0.3"/>
-                            <text x="140" y="45" fill="#ef4444" font-size="20" text-anchor="middle">🙈</text>
-                            <text x="140" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">न देखें</text>
-                            
-                            <!-- Rule 3: Correct finger -->
-                            <circle cx="220" cy="40" r="25" fill="#22c55e" opacity="0.3"/>
-                            <text x="220" y="45" fill="#22c55e" font-size="20" text-anchor="middle">👆</text>
-                            <text x="220" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">सही उंगली</text>
-                            
-                            <!-- Rule 4: Gentle press -->
-                            <circle cx="300" cy="40" r="25" fill="#f59e0b" opacity="0.3"/>
-                            <text x="300" y="45" fill="#f59e0b" font-size="20" text-anchor="middle">⚡</text>
-                            <text x="300" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">हल्का दबाएं</text>
-                            
-                            <!-- Rule 5: Take breaks -->
-                            <circle cx="380" cy="40" r="25" fill="#8b5cf6" opacity="0.3"/>
-                            <text x="380" y="45" fill="#8b5cf6" font-size="20" text-anchor="middle">☕</text>
-                            <text x="380" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">ब्रेक लें</text>
-                        </svg>
-                        <div class="diagram-label">बुनियादी नियमों का विजुअल गाइड</div>
+                <div class="guide-page" id="guidePageHindi1" style="display: none;">
+                    <div class="guide-section">
+                        <h3><i class="fas fa-keyboard"></i> बुनियादी नियम (Basic Rules)</h3>
+                        
+                        <div class="guide-diagram">
+                            <svg width="400" height="150" viewBox="0 0 400 150">
+                                <!-- Rule 1: Home row -->
+                                <circle cx="60" cy="40" r="25" fill="#667eea" opacity="0.3"/>
+                                <text x="60" y="45" fill="#667eea" font-size="20" text-anchor="middle">🏠</text>
+                                <text x="60" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">होम रो</text>
+                                
+                                <!-- Rule 2: No looking -->
+                                <circle cx="140" cy="40" r="25" fill="#ef4444" opacity="0.3"/>
+                                <text x="140" y="45" fill="#ef4444" font-size="20" text-anchor="middle">🙈</text>
+                                <text x="140" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">न देखें</text>
+                                
+                                <!-- Rule 3: Correct finger -->
+                                <circle cx="220" cy="40" r="25" fill="#22c55e" opacity="0.3"/>
+                                <text x="220" y="45" fill="#22c55e" font-size="20" text-anchor="middle">👆</text>
+                                <text x="220" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">सही उंगली</text>
+                                
+                                <!-- Rule 4: Gentle press -->
+                                <circle cx="300" cy="40" r="25" fill="#f59e0b" opacity="0.3"/>
+                                <text x="300" y="45" fill="#f59e0b" font-size="20" text-anchor="middle">⚡</text>
+                                <text x="300" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">हल्का दबाएं</text>
+                                
+                                <!-- Rule 5: Take breaks -->
+                                <circle cx="380" cy="40" r="25" fill="#8b5cf6" opacity="0.3"/>
+                                <text x="380" y="45" fill="#8b5cf6" font-size="20" text-anchor="middle">☕</text>
+                                <text x="380" y="80" fill="#b0b0b0" font-size="11" text-anchor="middle">ब्रेक लें</text>
+                            </svg>
+                            <div class="diagram-label">बुनियादी नियमों का विजुअल गाइड</div>
+                        </div>
+                        
+                        <ul>
+                            <li>हमेशा अपनी उंगलियों को होम रो पर रखें</li>
+                            <li>टाइप करते समय कीबोर्ड को न देखें</li>
+                            <li>हर की के लिए सही उंगली का प्रयोग करें</li>
+                            <li>कीज को हल्के से दबाएं और जल्दी छोड़ें</li>
+                            <li>थकावट से बचने के लिए ब्रेक लें</li>
+                        </ul>
                     </div>
-                    
-                    <ul>
-                        <li>हमेशा अपनी उंगलियों को होम रो पर रखें</li>
-                        <li>टाइप करते समय कीबोर्ड को न देखें</li>
-                        <li>हर की के लिए सही उंगली का प्रयोग करें</li>
-                        <li>कीज को हल्के से दबाएं और जल्दी छोड़ें</li>
-                        <li>थकावट से बचने के लिए ब्रेक लें</li>
-                    </ul>
                 </div>
                 
-                <div class="guide-section">
-                    <h3><i class="fas fa-chart-line"></i> सुधार के लिए टिप्स (Tips for Improvement)</h3>
-                    <ul>
-                        <li>रोजाना कम से कम 15-20 मिनट प्रैक्टिस करें</li>
-                        <li>धीमी गति से शुरू करें और सटीकता पर ध्यान दें</li>
-                        <li>सुधार के साथ धीरे-धीरे गति बढ़ाएं</li>
-                        <li>शुरुआती से लेकर उन्नत स्तर तक पाठ का उपयोग करें</li>
-                        <li>अपनी प्रगति को ट्रैक करें और सुधार का जश्न मनाएं</li>
-                    </ul>
+                <div class="guide-page" id="guidePageHindi2" style="display: none;">
+                    <div class="guide-section">
+                        <h3><i class="fas fa-chart-line"></i> सुधार के लिए टिप्स (Tips for Improvement)</h3>
+                        <ul>
+                            <li>रोजाना कम से कम 15-20 मिनट प्रैक्टिस करें</li>
+                            <li>धीमी गति से शुरू करें और सटीकता पर ध्यान दें</li>
+                            <li>सुधार के साथ धीरे-धीरे गति बढ़ाएं</li>
+                            <li>शुरुआती से लेकर उन्नत स्तर तक पाठ का उपयोग करें</li>
+                            <li>अपनी प्रगति को ट्रैक करें और सुधार का जश्न मनाएं</li>
+                        </ul>
+                    </div>
                 </div>
                 
-                <div class="guide-section">
-                    <h3><i class="fas fa-tachometer-alt"></i> WPM को समझना (Understanding WPM)</h3>
-                    
-                    <div class="guide-diagram">
-                        <svg width="400" height="180" viewBox="0 0 400 180">
-                            <!-- WPM calculation example -->
-                            <rect x="20" y="20" width="360" height="60" rx="8" fill="#2a2a3a" stroke="#667eea" stroke-width="2"/>
-                            <text x="30" y="45" fill="#e0e0e0" font-size="14" font-weight="bold">उदाहरण: "hello world"</text>
-                            <text x="30" y="65" fill="#888" font-size="12">11 अक्षर = 2 शब्द (11 ÷ 5 = 2.2)</text>
-                            
-                            <!-- WPM formula -->
-                            <rect x="20" y="90" width="170" height="70" rx="8" fill="#22c55e" opacity="0.2" stroke="#22c55e" stroke-width="2"/>
-                            <text x="105" y="115" fill="#22c55e" font-size="14" font-weight="bold" text-anchor="middle">WPM सूत्र</text>
-                            <text x="105" y="135" fill="#b0b0b0" font-size="12" text-anchor="middle">शब्द ÷ मिनट</text>
-                            <text x="105" y="150" fill="#b0b0b0" font-size="12" text-anchor="middle">= WPM</text>
-                            
-                            <!-- Accuracy formula -->
-                            <rect x="210" y="90" width="170" height="70" rx="8" fill="#f59e0b" opacity="0.2" stroke="#f59e0b" stroke-width="2"/>
-                            <text x="295" y="115" fill="#f59e0b" font-size="14" font-weight="bold" text-anchor="middle">सटीकता</text>
-                            <text x="295" y="135" fill="#b0b0b0" font-size="12" text-anchor="middle">सही ÷ कुल</text>
-                            <text x="295" y="150" fill="#b0b0b0" font-size="12" text-anchor="middle">× 100%</text>
-                        </svg>
-                        <div class="diagram-label">WPM और सटीकता की गणना</div>
+                <div class="guide-page" id="guidePageHindi3" style="display: none;">
+                    <div class="guide-section">
+                        <h3><i class="fas fa-tachometer-alt"></i> WPM को समझना (Understanding WPM)</h3>
+                        
+                        <div class="guide-diagram">
+                            <svg width="400" height="180" viewBox="0 0 400 180">
+                                <!-- WPM calculation example -->
+                                <rect x="20" y="20" width="360" height="60" rx="8" fill="#2a2a3a" stroke="#667eea" stroke-width="2"/>
+                                <text x="30" y="45" fill="#e0e0e0" font-size="14" font-weight="bold">उदाहरण: "hello world"</text>
+                                <text x="30" y="65" fill="#888" font-size="12">11 अक्षर = 2 शब्द (11 ÷ 5 = 2.2)</text>
+                                
+                                <!-- WPM formula -->
+                                <rect x="20" y="90" width="170" height="70" rx="8" fill="#22c55e" opacity="0.2" stroke="#22c55e" stroke-width="2"/>
+                                <text x="105" y="115" fill="#22c55e" font-size="14" font-weight="bold" text-anchor="middle">WPM सूत्र</text>
+                                <text x="105" y="135" fill="#b0b0b0" font-size="12" text-anchor="middle">शब्द ÷ मिनट</text>
+                                <text x="105" y="150" fill="#b0b0b0" font-size="12" text-anchor="middle">= WPM</text>
+                                
+                                <!-- Accuracy formula -->
+                                <rect x="210" y="90" width="170" height="70" rx="8" fill="#f59e0b" opacity="0.2" stroke="#f59e0b" stroke-width="2"/>
+                                <text x="295" y="115" fill="#f59e0b" font-size="14" font-weight="bold" text-anchor="middle">सटीकता</text>
+                                <text x="295" y="135" fill="#b0b0b0" font-size="12" text-anchor="middle">सही ÷ कुल</text>
+                                <text x="295" y="150" fill="#b0b0b0" font-size="12" text-anchor="middle">× 100%</text>
+                            </svg>
+                            <div class="diagram-label">WPM और सटीकता की गणना</div>
+                        </div>
+                        
+                        <p><strong>WPM (Words Per Minute)</strong> आपकी टाइपिंग गति मापता है। आमतौर पर एक शब्द 5 अक्षरों का होता है। उदाहरण के लिए, "hello world" टाइप करना 2 शब्द गिना जाता है।</p>
+                        <p><strong>सटीकता (Accuracy)</strong> दिखाती है कि आपने कितने अक्षर सही टाइप किए। गति पर ध्यान देने से पहले 95%+ सटीकता का लक्ष्य रखें।</p>
                     </div>
-                    
-                    <p><strong>WPM (Words Per Minute)</strong> आपकी टाइपिंग गति मापता है। आमतौर पर एक शब्द 5 अक्षरों का होता है। उदाहरण के लिए, "hello world" टाइप करना 2 शब्द गिना जाता है।</p>
-                    <p><strong>सटीकता (Accuracy)</strong> दिखाती है कि आपने कितने अक्षर सही टाइप किए। गति पर ध्यान देने से पहले 95%+ सटीकता का लक्ष्य रखें।</p>
+                </div>
+                
+                <div class="guide-navigation">
+                    <button class="guide-nav-btn" id="prevBtnHindi" onclick="prevGuidePage()" disabled>Previous</button>
+                    <div class="guide-page-indicator">
+                        <span id="currentPageHindi">1</span> / <span id="totalPagesHindi">4</span>
+                    </div>
+                    <button class="guide-nav-btn" id="nextBtnHindi" onclick="nextGuidePage()">Next</button>
                 </div>
             </div>
         </div>
@@ -2048,6 +2130,14 @@
             document.getElementById('guideModal').style.display = 'flex';
         }
 
+        // Check for guide parameter in URL and open guide automatically
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('guide') === 'true') {
+                openGuide();
+            }
+        });
+
         function closeGuide() {
             document.getElementById('guideModal').style.display = 'none';
         }
@@ -2063,11 +2153,64 @@
                 tabs[0].classList.add('active');
                 englishContent.classList.add('active');
                 hindiContent.classList.remove('active');
+                resetGuidePage('english');
             } else {
                 tabs[1].classList.add('active');
                 hindiContent.classList.add('active');
                 englishContent.classList.remove('active');
+                resetGuidePage('hindi');
             }
+        }
+
+        let currentGuidePage = 0;
+        const totalGuidePages = 4;
+
+        function nextGuidePage() {
+            const lang = document.querySelector('.guide-content-english.active') ? 'english' : 'hindi';
+            if (currentGuidePage < totalGuidePages - 1) {
+                currentGuidePage++;
+                updateGuidePageDisplay(lang);
+            }
+        }
+
+        function prevGuidePage() {
+            const lang = document.querySelector('.guide-content-english.active') ? 'english' : 'hindi';
+            if (currentGuidePage > 0) {
+                currentGuidePage--;
+                updateGuidePageDisplay(lang);
+            }
+        }
+
+        function updateGuidePageDisplay(lang) {
+            const prefix = lang === 'english' ? '' : 'Hindi';
+            
+            // Hide all pages
+            for (let i = 0; i < totalGuidePages; i++) {
+                const page = document.getElementById(`guidePage${prefix}${i}`);
+                if (page) {
+                    page.style.display = 'none';
+                }
+            }
+            
+            // Show current page
+            const currentPage = document.getElementById(`guidePage${prefix}${currentGuidePage}`);
+            if (currentPage) {
+                currentPage.style.display = 'block';
+            }
+            
+            // Update navigation buttons
+            const prevBtn = document.getElementById(`prevBtn${prefix}`);
+            const nextBtn = document.getElementById(`nextBtn${prefix}`);
+            const currentPageSpan = document.getElementById(`currentPage${prefix}`);
+            
+            if (prevBtn) prevBtn.disabled = currentGuidePage === 0;
+            if (nextBtn) nextBtn.disabled = currentGuidePage === totalGuidePages - 1;
+            if (currentPageSpan) currentPageSpan.textContent = currentGuidePage + 1;
+        }
+
+        function resetGuidePage(lang) {
+            currentGuidePage = 0;
+            updateGuidePageDisplay(lang);
         }
 
         // Window controls

@@ -711,6 +711,15 @@
     </div>
 
     <script>
+        // Function to extend text content for longer practice sessions
+        function extendText(baseText, repetitions = 8) {
+            let extendedText = '';
+            for (let i = 0; i < repetitions; i++) {
+                extendedText += baseText + ' ';
+            }
+            return extendedText.trim();
+        }
+
         // Typing Practice Course Data for Beginners
         const courseData = {
             chapters: [
@@ -719,10 +728,10 @@
                     title: "Basic Letters (A-Z)",
                     description: "Learn to type all letters of the alphabet",
                     lessons: [
-                        { id: 1, title: "Home Row Keys", description: "Practice ASDF JKL; home row", duration: "10 min", icon: "fa-keyboard", completed: false, text: "asdf jkl; asdf jkl; asdf jkl; asdf jkl;" },
-                        { id: 2, title: "Top Row Keys", description: "Practice QWERTYUIOP top row", duration: "10 min", icon: "fa-keyboard", completed: false, text: "qwertyuiop qwertyuiop qwertyuiop qwertyuiop" },
-                        { id: 3, title: "Bottom Row Keys", description: "Practice ZXCVBNM bottom row", duration: "10 min", icon: "fa-keyboard", completed: false, text: "zxcvbnm zxcvbnm zxcvbnm zxcvbnm" },
-                        { id: 4, title: "All Letters Mixed", description: "Practice all letters together", duration: "15 min", icon: "fa-keyboard", completed: false, text: "the quick brown fox jumps over the lazy dog" }
+                        { id: 1, title: "Home Row Keys", description: "Practice ASDF JKL; home row", duration: "20 min", icon: "fa-keyboard", completed: false, text: extendText("asdf jkl; asdf jkl; asdf jkl; asdf jkl;", 12) },
+                        { id: 2, title: "Top Row Keys", description: "Practice QWERTYUIOP top row", duration: "20 min", icon: "fa-keyboard", completed: false, text: extendText("qwertyuiop qwertyuiop qwertyuiop qwertyuiop", 12) },
+                        { id: 3, title: "Bottom Row Keys", description: "Practice ZXCVBNM bottom row", duration: "20 min", icon: "fa-keyboard", completed: false, text: extendText("zxcvbnm zxcvbnm zxcvbnm zxcvbnm", 12) },
+                        { id: 4, title: "All Letters Mixed", description: "Practice all letters together", duration: "25 min", icon: "fa-keyboard", completed: false, text: extendText("the quick brown fox jumps over the lazy dog", 15) }
                     ]
                 },
                 {
@@ -730,10 +739,10 @@
                     title: "Simple Words",
                     description: "Practice typing simple common words",
                     lessons: [
-                        { id: 5, title: "3-Letter Words", description: "Common three letter words", duration: "10 min", icon: "fa-font", completed: false, text: "cat dog run sun fun big red hot cup pen" },
-                        { id: 6, title: "4-Letter Words", description: "Common four letter words", duration: "10 min", icon: "fa-font", completed: false, text: "good time work play book read love like home" },
-                        { id: 7, title: "5-Letter Words", description: "Common five letter words", duration: "10 min", icon: "fa-font", completed: false, text: "happy world great small light house water music" },
-                        { id: 8, title: "Mixed Short Words", description: "Mix of short words", duration: "15 min", icon: "fa-font", completed: false, text: "the and for are but not you all can will" }
+                        { id: 5, title: "3-Letter Words", description: "Common three letter words", duration: "20 min", icon: "fa-font", completed: false, text: extendText("cat dog run sun fun big red hot cup pen", 15) },
+                        { id: 6, title: "4-Letter Words", description: "Common four letter words", duration: "20 min", icon: "fa-font", completed: false, text: extendText("good time work play book read love like home", 15) },
+                        { id: 7, title: "5-Letter Words", description: "Common five letter words", duration: "20 min", icon: "fa-font", completed: false, text: extendText("happy world great small light house water music", 15) },
+                        { id: 8, title: "Mixed Short Words", description: "Mix of short words", duration: "25 min", icon: "fa-font", completed: false, text: extendText("the and for are but not you all can will", 15) }
                     ]
                 },
                 {
@@ -741,10 +750,10 @@
                     title: "Numbers (0-9)",
                     description: "Learn to type numbers and digits",
                     lessons: [
-                        { id: 9, title: "Basic Numbers", description: "Practice 1-2-3-4-5-6-7-8-9-0", duration: "10 min", icon: "fa-hashtag", completed: false, text: "1234567890 1234567890 1234567890" },
-                        { id: 10, title: "Number Words", description: "Type number words", duration: "10 min", icon: "fa-hashtag", completed: false, text: "one two three four five six seven eight nine ten" },
-                        { id: 11, title: "Phone Numbers", description: "Practice phone number format", duration: "10 min", icon: "fa-phone", completed: false, text: "9876543210 1234567890 5551234567" },
-                        { id: 12, title: "Numbers in Text", description: "Numbers mixed with words", duration: "15 min", icon: "fa-hashtag", completed: false, text: "I have 5 apples and 3 oranges" }
+                        { id: 9, title: "Basic Numbers", description: "Practice 1-2-3-4-5-6-7-8-9-0", duration: "20 min", icon: "fa-hashtag", completed: false, text: extendText("1234567890 1234567890 1234567890", 15) },
+                        { id: 10, title: "Number Words", description: "Type number words", duration: "20 min", icon: "fa-hashtag", completed: false, text: extendText("one two three four five six seven eight nine ten", 15) },
+                        { id: 11, title: "Phone Numbers", description: "Practice phone number format", duration: "20 min", icon: "fa-phone", completed: false, text: extendText("9876543210 1234567890 5551234567", 15) },
+                        { id: 12, title: "Numbers in Text", description: "Numbers mixed with words", duration: "25 min", icon: "fa-hashtag", completed: false, text: extendText("I have 5 apples and 3 oranges", 15) }
                     ]
                 },
                 {
@@ -752,10 +761,10 @@
                     title: "Simple Stories",
                     description: "Practice typing short stories",
                     lessons: [
-                        { id: 13, title: "The Cat Story", description: "A simple story about a cat", duration: "10 min", icon: "fa-book", completed: false, text: "The cat sat on the mat. The cat was black. The cat liked to sleep." },
-                        { id: 14, title: "The Dog Story", description: "A simple story about a dog", duration: "10 min", icon: "fa-book", completed: false, text: "The dog ran in the park. The dog was brown. The dog liked to play." },
-                        { id: 15, title: "The Bird Story", description: "A simple story about a bird", duration: "10 min", icon: "fa-book", completed: false, text: "The bird flew in the sky. The bird was blue. The bird sang a song." },
-                        { id: 16, title: "The Fish Story", description: "A simple story about a fish", duration: "10 min", icon: "fa-book", completed: false, text: "The fish swam in the sea. The fish was gold. The fish was small." }
+                        { id: 13, title: "The Cat Story", description: "A simple story about a cat", duration: "20 min", icon: "fa-book", completed: false, text: extendText("The cat sat on the mat. The cat was black. The cat liked to sleep.", 12) },
+                        { id: 14, title: "The Dog Story", description: "A simple story about a dog", duration: "20 min", icon: "fa-book", completed: false, text: extendText("The dog ran in the park. The dog was brown. The dog liked to play.", 12) },
+                        { id: 15, title: "The Bird Story", description: "A simple story about a bird", duration: "20 min", icon: "fa-book", completed: false, text: extendText("The bird flew in the sky. The bird was blue. The bird sang a song.", 12) },
+                        { id: 16, title: "The Fish Story", description: "A simple story about a fish", duration: "20 min", icon: "fa-book", completed: false, text: extendText("The fish swam in the sea. The fish was gold. The fish was small.", 12) }
                     ]
                 },
                 {
@@ -763,10 +772,10 @@
                     title: "Simple Poems",
                     description: "Practice typing short poems",
                     lessons: [
-                        { id: 17, title: "Twinkle Twinkle", description: "Classic nursery rhyme", duration: "10 min", icon: "fa-music", completed: false, text: "Twinkle twinkle little star, how I wonder what you are." },
-                        { id: 18, title: "Baa Baa Black Sheep", description: "Classic nursery rhyme", duration: "10 min", icon: "fa-music", completed: false, text: "Baa baa black sheep, have you any wool?" },
-                        { id: 19, title: "Mary Had a Little Lamb", description: "Classic nursery rhyme", duration: "10 min", icon: "fa-music", completed: false, text: "Mary had a little lamb, its fleece was white as snow." },
-                        { id: 20, title: "Humpty Dumpty", description: "Classic nursery rhyme", duration: "10 min", icon: "fa-music", completed: false, text: "Humpty Dumpty sat on a wall, Humpty Dumpty had a great fall." }
+                        { id: 17, title: "Twinkle Twinkle", description: "Classic nursery rhyme", duration: "20 min", icon: "fa-music", completed: false, text: extendText("Twinkle twinkle little star, how I wonder what you are.", 12) },
+                        { id: 18, title: "Baa Baa Black Sheep", description: "Classic nursery rhyme", duration: "20 min", icon: "fa-music", completed: false, text: extendText("Baa baa black sheep, have you any wool?", 12) },
+                        { id: 19, title: "Mary Had a Little Lamb", description: "Classic nursery rhyme", duration: "20 min", icon: "fa-music", completed: false, text: extendText("Mary had a little lamb, its fleece was white as snow.", 12) },
+                        { id: 20, title: "Humpty Dumpty", description: "Classic nursery rhyme", duration: "20 min", icon: "fa-music", completed: false, text: extendText("Humpty Dumpty sat on a wall, Humpty Dumpty had a great fall.", 12) }
                     ]
                 },
                 {
@@ -774,10 +783,10 @@
                     title: "Sentences",
                     description: "Practice typing complete sentences",
                     lessons: [
-                        { id: 21, title: "Simple Sentences", description: "Basic sentence structure", duration: "10 min", icon: "fa-align-left", completed: false, text: "I like to play. She is my friend. We go to school." },
-                        { id: 22, title: "Questions", description: "Practice question sentences", duration: "10 min", icon: "fa-question", completed: false, text: "What is your name? How are you? Where do you live?" },
-                        { id: 23, title: "Statements", description: "Practice statement sentences", duration: "10 min", icon: "fa-align-left", completed: false, text: "The sun is bright. The sky is blue. The grass is green." },
-                        { id: 24, title: "Mixed Sentences", description: "Mix of sentence types", duration: "15 min", icon: "fa-align-left", completed: false, text: "Do you like ice cream? Yes, I do. It is very sweet." }
+                        { id: 21, title: "Simple Sentences", description: "Basic sentence structure", duration: "20 min", icon: "fa-align-left", completed: false, text: extendText("I like to play. She is my friend. We go to school.", 12) },
+                        { id: 22, title: "Questions", description: "Practice question sentences", duration: "20 min", icon: "fa-question", completed: false, text: extendText("What is your name? How are you? Where do you live?", 12) },
+                        { id: 23, title: "Statements", description: "Practice statement sentences", duration: "20 min", icon: "fa-align-left", completed: false, text: extendText("The sun is bright. The sky is blue. The grass is green.", 12) },
+                        { id: 24, title: "Mixed Sentences", description: "Mix of sentence types", duration: "25 min", icon: "fa-align-left", completed: false, text: extendText("Do you like ice cream? Yes, I do. It is very sweet.", 12) }
                     ]
                 },
                 {
@@ -785,10 +794,10 @@
                     title: "Capital Letters",
                     description: "Practice typing with capital letters",
                     lessons: [
-                        { id: 25, title: "Capitalize First Letter", description: "Capitalize the first letter", duration: "10 min", icon: "fa-font", completed: false, text: "The Dog The Cat The Bird The Fish" },
-                        { id: 26, title: "Names", description: "Practice typing names", duration: "10 min", icon: "fa-user", completed: false, text: "John Mary Tom Lisa David Sarah Mike" },
-                        { id: 27, title: "Days of Week", description: "Practice days of the week", duration: "10 min", icon: "fa-calendar", completed: false, text: "Monday Tuesday Wednesday Thursday Friday Saturday Sunday" },
-                        { id: 28, title: "Months of Year", description: "Practice months of the year", duration: "10 min", icon: "fa-calendar", completed: false, text: "January February March April May June July August" }
+                        { id: 25, title: "Capitalize First Letter", description: "Capitalize the first letter", duration: "20 min", icon: "fa-font", completed: false, text: extendText("The Dog The Cat The Bird The Fish", 15) },
+                        { id: 26, title: "Names", description: "Practice typing names", duration: "20 min", icon: "fa-user", completed: false, text: extendText("John Mary Tom Lisa David Sarah Mike", 15) },
+                        { id: 27, title: "Days of Week", description: "Practice days of the week", duration: "20 min", icon: "fa-calendar", completed: false, text: extendText("Monday Tuesday Wednesday Thursday Friday Saturday Sunday", 15) },
+                        { id: 28, title: "Months of Year", description: "Practice months of the year", duration: "20 min", icon: "fa-calendar", completed: false, text: extendText("January February March April May June July August September October November December", 15) }
                     ]
                 },
                 {
@@ -796,10 +805,10 @@
                     title: "Punctuation",
                     description: "Learn to type punctuation marks",
                     lessons: [
-                        { id: 29, title: "Period and Comma", description: "Practice . and ,", duration: "10 min", icon: "fa-comma", completed: false, text: "Hello, world. How are you? I am fine." },
-                        { id: 30, title: "Question Mark", description: "Practice question marks", duration: "10 min", icon: "fa-question", completed: false, text: "What? When? Where? Who? Why? How?" },
-                        { id: 31, title: "Exclamation Mark", description: "Practice exclamation marks", duration: "10 min", icon: "fa-exclamation", completed: false, text: "Wow! Great! Amazing! Awesome! Fantastic!" },
-                        { id: 32, title: "All Punctuation", description: "Mix of all punctuation", duration: "15 min", icon: "fa-comma", completed: false, text: "Hello! How are you? I'm fine, thanks." }
+                        { id: 29, title: "Period and Comma", description: "Practice . and ,", duration: "20 min", icon: "fa-comma", completed: false, text: extendText("Hello, world. How are you? I am fine.", 12) },
+                        { id: 30, title: "Question Mark", description: "Practice question marks", duration: "20 min", icon: "fa-question", completed: false, text: extendText("What? When? Where? Who? Why? How?", 12) },
+                        { id: 31, title: "Exclamation Mark", description: "Practice exclamation marks", duration: "20 min", icon: "fa-exclamation", completed: false, text: extendText("Wow! Great! Amazing! Awesome! Fantastic!", 12) },
+                        { id: 32, title: "All Punctuation", description: "Mix of all punctuation", duration: "25 min", icon: "fa-comma", completed: false, text: extendText("Hello! How are you? I'm fine, thanks.", 12) }
                     ]
                 },
                 {
@@ -807,10 +816,10 @@
                     title: "Common Phrases",
                     description: "Practice typing common phrases",
                     lessons: [
-                        { id: 33, title: "Greetings", description: "Common greeting phrases", duration: "10 min", icon: "fa-hand-wave", completed: false, text: "Good morning. Good afternoon. Good evening. Good night." },
-                        { id: 34, title: "Thank You Phrases", description: "Polite thank you phrases", duration: "10 min", icon: "fa-heart", completed: false, text: "Thank you very much. Thanks a lot. Many thanks." },
-                        { id: 35, title: "Sorry Phrases", description: "Apology phrases", duration: "10 min", icon: "fa-heart", completed: false, text: "I am sorry. Please forgive me. My apologies." },
-                        { id: 36, title: "Everyday Phrases", description: "Common daily phrases", duration: "15 min", icon: "fa-comment", completed: false, text: "See you later. Have a nice day. Take care." }
+                        { id: 33, title: "Greetings", description: "Common greeting phrases", duration: "20 min", icon: "fa-hand-wave", completed: false, text: extendText("Good morning. Good afternoon. Good evening. Good night.", 12) },
+                        { id: 34, title: "Thank You Phrases", description: "Polite thank you phrases", duration: "20 min", icon: "fa-heart", completed: false, text: extendText("Thank you very much. Thanks a lot. Many thanks.", 12) },
+                        { id: 35, title: "Sorry Phrases", description: "Apology phrases", duration: "20 min", icon: "fa-heart", completed: false, text: extendText("I am sorry. Please forgive me. My apologies.", 12) },
+                        { id: 36, title: "Everyday Phrases", description: "Common daily phrases", duration: "25 min", icon: "fa-comment", completed: false, text: extendText("See you later. Have a nice day. Take care.", 12) }
                     ]
                 },
                 {
@@ -818,10 +827,10 @@
                     title: "Colors",
                     description: "Practice typing color names",
                     lessons: [
-                        { id: 37, title: "Basic Colors", description: "Primary and secondary colors", duration: "10 min", icon: "fa-palette", completed: false, text: "red blue green yellow orange purple pink brown black white" },
-                        { id: 38, title: "Color Sentences", description: "Sentences with colors", duration: "10 min", icon: "fa-palette", completed: false, text: "The sky is blue. The grass is green. The sun is yellow." },
-                        { id: 39, title: "Color Objects", description: "Objects and their colors", duration: "10 min", icon: "fa-palette", completed: false, text: "Red apple. Blue ocean. Green tree. Yellow flower." },
-                        { id: 40, title: "Color Stories", description: "Short stories with colors", duration: "15 min", icon: "fa-palette", completed: false, text: "I saw a red bird in the green tree. The blue sky was beautiful." }
+                        { id: 37, title: "Basic Colors", description: "Primary and secondary colors", duration: "20 min", icon: "fa-palette", completed: false, text: extendText("red blue green yellow orange purple pink brown black white", 15) },
+                        { id: 38, title: "Color Sentences", description: "Sentences with colors", duration: "20 min", icon: "fa-palette", completed: false, text: extendText("The sky is blue. The grass is green. The sun is yellow.", 12) },
+                        { id: 39, title: "Color Objects", description: "Objects and their colors", duration: "20 min", icon: "fa-palette", completed: false, text: extendText("Red apple. Blue ocean. Green tree. Yellow flower.", 12) },
+                        { id: 40, title: "Color Stories", description: "Short stories with colors", duration: "25 min", icon: "fa-palette", completed: false, text: extendText("I saw a red bird in the green tree. The blue sky was beautiful.", 12) }
                     ]
                 },
                 {
@@ -829,10 +838,10 @@
                     title: "Animals",
                     description: "Practice typing animal names",
                     lessons: [
-                        { id: 41, title: "Pet Animals", description: "Common pet animals", duration: "10 min", icon: "fa-paw", completed: false, text: "dog cat rabbit hamster fish bird turtle" },
-                        { id: 42, title: "Farm Animals", description: "Farm animal names", duration: "10 min", icon: "fa-paw", completed: false, text: "cow pig sheep horse chicken duck goat" },
-                        { id: 43, title: "Wild Animals", description: "Wild animal names", duration: "10 min", icon: "fa-paw", completed: false, text: "lion tiger elephant giraffe zebra monkey bear" },
-                        { id: 44, title: "Animal Sentences", description: "Sentences about animals", duration: "15 min", icon: "fa-paw", completed: false, text: "The dog barks. The cat meows. The bird sings." }
+                        { id: 41, title: "Pet Animals", description: "Common pet animals", duration: "20 min", icon: "fa-paw", completed: false, text: extendText("dog cat rabbit hamster fish bird turtle", 15) },
+                        { id: 42, title: "Farm Animals", description: "Farm animal names", duration: "20 min", icon: "fa-paw", completed: false, text: extendText("cow pig sheep horse chicken duck goat", 15) },
+                        { id: 43, title: "Wild Animals", description: "Wild animal names", duration: "20 min", icon: "fa-paw", completed: false, text: extendText("lion tiger elephant giraffe zebra monkey bear", 15) },
+                        { id: 44, title: "Animal Sentences", description: "Sentences about animals", duration: "25 min", icon: "fa-paw", completed: false, text: extendText("The dog barks. The cat meows. The bird sings.", 12) }
                     ]
                 },
                 {
@@ -840,10 +849,10 @@
                     title: "Food",
                     description: "Practice typing food names",
                     lessons: [
-                        { id: 45, title: "Fruits", description: "Common fruit names", duration: "10 min", icon: "fa-apple-alt", completed: false, text: "apple banana orange grape mango pear peach" },
-                        { id: 46, title: "Vegetables", description: "Common vegetable names", duration: "10 min", icon: "fa-carrot", completed: false, text: "carrot potato tomato onion cucumber spinach" },
-                        { id: 47, title: "Drinks", description: "Common drink names", duration: "10 min", icon: "fa-coffee", completed: false, text: "water milk juice tea coffee soda" },
-                        { id: 48, title: "Food Sentences", description: "Sentences about food", duration: "15 min", icon: "fa-utensils", completed: false, text: "I like apples. She drinks milk. We eat rice." }
+                        { id: 45, title: "Fruits", description: "Common fruit names", duration: "20 min", icon: "fa-apple-alt", completed: false, text: extendText("apple banana orange grape mango pear peach", 15) },
+                        { id: 46, title: "Vegetables", description: "Common vegetable names", duration: "20 min", icon: "fa-carrot", completed: false, text: extendText("carrot potato tomato onion cucumber spinach", 15) },
+                        { id: 47, title: "Drinks", description: "Common drink names", duration: "20 min", icon: "fa-coffee", completed: false, text: extendText("water milk juice tea coffee soda", 15) },
+                        { id: 48, title: "Food Sentences", description: "Sentences about food", duration: "25 min", icon: "fa-utensils", completed: false, text: extendText("I like apples. She drinks milk. We eat rice.", 12) }
                     ]
                 },
                 {
@@ -851,10 +860,10 @@
                     title: "Family",
                     description: "Practice typing family words",
                     lessons: [
-                        { id: 49, title: "Immediate Family", description: "Close family members", duration: "10 min", icon: "fa-users", completed: false, text: "mother father brother sister son daughter" },
-                        { id: 50, title: "Extended Family", description: "Extended family members", duration: "10 min", icon: "fa-users", completed: false, text: "grandmother grandfather uncle aunt cousin" },
-                        { id: 51, title: "Family Sentences", description: "Sentences about family", duration: "10 min", icon: "fa-users", completed: false, text: "My mother is kind. My father is tall. I love my family." },
-                        { id: 52, title: "Family Stories", description: "Short family stories", duration: "15 min", icon: "fa-users", completed: false, text: "My grandmother cooks well. My grandfather tells stories." }
+                        { id: 49, title: "Immediate Family", description: "Close family members", duration: "20 min", icon: "fa-users", completed: false, text: extendText("mother father brother sister son daughter", 15) },
+                        { id: 50, title: "Extended Family", description: "Extended family members", duration: "20 min", icon: "fa-users", completed: false, text: extendText("grandmother grandfather uncle aunt cousin", 15) },
+                        { id: 51, title: "Family Sentences", description: "Sentences about family", duration: "20 min", icon: "fa-users", completed: false, text: extendText("My mother is kind. My father is tall. I love my family.", 12) },
+                        { id: 52, title: "Family Stories", description: "Short family stories", duration: "25 min", icon: "fa-users", completed: false, text: extendText("My grandmother cooks well. My grandfather tells stories.", 12) }
                     ]
                 },
                 {
@@ -862,10 +871,10 @@
                     title: "School Words",
                     description: "Practice typing school-related words",
                     lessons: [
-                        { id: 53, title: "School Items", description: "Things used in school", duration: "10 min", icon: "fa-school", completed: false, text: "book pencil pen ruler eraser bag desk chair" },
-                        { id: 54, title: "School Subjects", description: "School subject names", duration: "10 min", icon: "fa-book", completed: false, text: "math science english history art music" },
-                        { id: 55, title: "School Actions", description: "Actions in school", duration: "10 min", icon: "fa-school", completed: false, text: "read write learn study teach listen speak" },
-                        { id: 56, title: "School Sentences", description: "Sentences about school", duration: "15 min", icon: "fa-school", completed: false, text: "I go to school. I read books. I learn math." }
+                        { id: 53, title: "School Items", description: "Things used in school", duration: "20 min", icon: "fa-school", completed: false, text: extendText("book pencil pen ruler eraser bag desk chair", 15) },
+                        { id: 54, title: "School Subjects", description: "School subject names", duration: "20 min", icon: "fa-book", completed: false, text: extendText("math science english history art music", 15) },
+                        { id: 55, title: "School Actions", description: "Actions in school", duration: "20 min", icon: "fa-school", completed: false, text: extendText("read write learn study teach listen speak", 15) },
+                        { id: 56, title: "School Sentences", description: "Sentences about school", duration: "25 min", icon: "fa-school", completed: false, text: extendText("I go to school. I read books. I learn math.", 12) }
                     ]
                 },
                 {
@@ -873,10 +882,10 @@
                     title: "Nature",
                     description: "Practice typing nature words",
                     lessons: [
-                        { id: 57, title: "Weather Words", description: "Weather related words", duration: "10 min", icon: "fa-cloud-sun", completed: false, text: "sun rain wind snow cloud storm rainbow" },
-                        { id: 58, title: "Nature Elements", description: "Elements of nature", duration: "10 min", icon: "fa-leaf", completed: false, text: "tree flower grass river mountain ocean sky" },
-                        { id: 59, title: "Seasons", description: "Season names", duration: "10 min", icon: "fa-calendar", completed: false, text: "spring summer autumn winter" },
-                        { id: 60, title: "Nature Sentences", description: "Sentences about nature", duration: "15 min", icon: "fa-leaf", completed: false, text: "The sun is hot. The rain is wet. The wind is cool." }
+                        { id: 57, title: "Weather Words", description: "Weather related words", duration: "20 min", icon: "fa-cloud-sun", completed: false, text: extendText("sun rain wind snow cloud storm rainbow", 15) },
+                        { id: 58, title: "Nature Elements", description: "Elements of nature", duration: "20 min", icon: "fa-leaf", completed: false, text: extendText("tree flower grass river mountain ocean sky", 15) },
+                        { id: 59, title: "Seasons", description: "Season names", duration: "20 min", icon: "fa-calendar", completed: false, text: extendText("spring summer autumn winter", 15) },
+                        { id: 60, title: "Nature Sentences", description: "Sentences about nature", duration: "25 min", icon: "fa-leaf", completed: false, text: extendText("The sun is hot. The rain is wet. The wind is cool.", 12) }
                     ]
                 },
                 {
@@ -884,10 +893,10 @@
                     title: "Body Parts",
                     description: "Practice typing body part names",
                     lessons: [
-                        { id: 61, title: "Face Parts", description: "Parts of the face", duration: "10 min", icon: "fa-user", completed: false, text: "eye ear nose mouth hair face" },
-                        { id: 62, title: "Body Parts", description: "Parts of the body", duration: "10 min", icon: "fa-user", completed: false, text: "hand arm leg foot head body" },
-                        { id: 63, title: "Body Actions", description: "Actions with body parts", duration: "10 min", icon: "fa-running", completed: false, text: "see hear smell taste touch walk run" },
-                        { id: 64, title: "Body Sentences", description: "Sentences about body", duration: "15 min", icon: "fa-user", completed: false, text: "I see with my eyes. I hear with my ears. I walk with my legs." }
+                        { id: 61, title: "Face Parts", description: "Parts of the face", duration: "20 min", icon: "fa-user", completed: false, text: extendText("eye ear nose mouth hair face", 15) },
+                        { id: 62, title: "Body Parts", description: "Parts of the body", duration: "20 min", icon: "fa-user", completed: false, text: extendText("hand arm leg foot head body", 15) },
+                        { id: 63, title: "Body Actions", description: "Actions with body parts", duration: "20 min", icon: "fa-running", completed: false, text: extendText("see hear smell taste touch walk run", 15) },
+                        { id: 64, title: "Body Sentences", description: "Sentences about body", duration: "25 min", icon: "fa-user", completed: false, text: extendText("I see with my eyes. I hear with my ears. I walk with my legs.", 12) }
                     ]
                 },
                 {
@@ -895,10 +904,10 @@
                     title: "Time",
                     description: "Practice typing time-related words",
                     lessons: [
-                        { id: 65, title: "Time Words", description: "Time related vocabulary", duration: "10 min", icon: "fa-clock", completed: false, text: "hour minute second morning noon evening night" },
-                        { id: 66, title: "Clock Reading", description: "Reading time expressions", duration: "10 min", icon: "fa-clock", completed: false, text: "It is 5 o'clock. It is 10:30. It is quarter past three." },
-                        { id: 67, title: "Time Phrases", description: "Common time phrases", duration: "10 min", icon: "fa-clock", completed: false, text: "right now soon later today tomorrow yesterday" },
-                        { id: 68, title: "Time Sentences", description: "Sentences about time", duration: "15 min", icon: "fa-clock", completed: false, text: "I wake up at 7 AM. I eat lunch at 12 PM. I sleep at 10 PM." }
+                        { id: 65, title: "Time Words", description: "Time related vocabulary", duration: "20 min", icon: "fa-clock", completed: false, text: extendText("hour minute second morning noon evening night", 15) },
+                        { id: 66, title: "Clock Reading", description: "Reading time expressions", duration: "20 min", icon: "fa-clock", completed: false, text: extendText("It is 5 o'clock. It is 10:30. It is quarter past three.", 12) },
+                        { id: 67, title: "Time Phrases", description: "Common time phrases", duration: "20 min", icon: "fa-clock", completed: false, text: extendText("right now soon later today tomorrow yesterday", 15) },
+                        { id: 68, title: "Time Sentences", description: "Sentences about time", duration: "25 min", icon: "fa-clock", completed: false, text: extendText("I wake up at 7 AM. I eat lunch at 12 PM. I sleep at 10 PM.", 12) }
                     ]
                 },
                 {
@@ -906,10 +915,10 @@
                     title: "Numbers in Sentences",
                     description: "Practice numbers within sentences",
                     lessons: [
-                        { id: 69, title: "Counting Objects", description: "Count with numbers", duration: "10 min", icon: "fa-hashtag", completed: false, text: "I have 2 cats. She has 5 dogs. We have 10 books." },
-                        { id: 70, title: "Age", description: "Talking about age", duration: "10 min", icon: "fa-birthday-cake", completed: false, text: "I am 10 years old. She is 8 years old. He is 12 years old." },
-                        { id: 71, title: "Measurements", description: "Simple measurements", duration: "10 min", icon: "fa-ruler", completed: false, text: "The table is 5 feet long. The box is 3 inches wide." },
-                        { id: 72, title: "Number Stories", description: "Stories with numbers", duration: "15 min", icon: "fa-hashtag", completed: false, text: "There are 7 days in a week. There are 12 months in a year." }
+                        { id: 69, title: "Counting Objects", description: "Count with numbers", duration: "20 min", icon: "fa-hashtag", completed: false, text: extendText("I have 2 cats. She has 5 dogs. We have 10 books.", 12) },
+                        { id: 70, title: "Age", description: "Talking about age", duration: "20 min", icon: "fa-birthday-cake", completed: false, text: extendText("I am 10 years old. She is 8 years old. He is 12 years old.", 12) },
+                        { id: 71, title: "Measurements", description: "Simple measurements", duration: "20 min", icon: "fa-ruler", completed: false, text: extendText("The table is 5 feet long. The box is 3 inches wide.", 12) },
+                        { id: 72, title: "Number Stories", description: "Stories with numbers", duration: "25 min", icon: "fa-hashtag", completed: false, text: extendText("There are 7 days in a week. There are 12 months in a year.", 12) }
                     ]
                 },
                 {
@@ -917,10 +926,10 @@
                     title: "Places",
                     description: "Practice typing place names",
                     lessons: [
-                        { id: 73, title: "Rooms in House", description: "Rooms in a home", duration: "10 min", icon: "fa-home", completed: false, text: "kitchen bedroom bathroom living room dining room" },
-                        { id: 74, title: "Public Places", description: "Public places", duration: "10 min", icon: "fa-building", completed: false, text: "school hospital bank park library store" },
-                        { id: 75, title: "City Places", description: "Places in a city", duration: "10 min", icon: "fa-city", completed: false, text: "street road bridge station airport mall" },
-                        { id: 76, title: "Place Sentences", description: "Sentences about places", duration: "15 min", icon: "fa-map-marker", completed: false, text: "I live in a house. I go to school. I play in the park." }
+                        { id: 73, title: "Rooms in House", description: "Rooms in a home", duration: "20 min", icon: "fa-home", completed: false, text: extendText("kitchen bedroom bathroom living room dining room", 15) },
+                        { id: 74, title: "Public Places", description: "Public places", duration: "20 min", icon: "fa-building", completed: false, text: extendText("school hospital bank park library store", 15) },
+                        { id: 75, title: "City Places", description: "Places in a city", duration: "20 min", icon: "fa-city", completed: false, text: extendText("street road bridge station airport mall", 15) },
+                        { id: 76, title: "Place Sentences", description: "Sentences about places", duration: "25 min", icon: "fa-map-marker", completed: false, text: extendText("I live in a house. I go to school. I play in the park.", 12) }
                     ]
                 },
                 {
@@ -928,10 +937,10 @@
                     title: "Transportation",
                     description: "Practice typing transportation words",
                     lessons: [
-                        { id: 77, title: "Vehicles", description: "Different vehicles", duration: "10 min", icon: "fa-car", completed: false, text: "car bus train bike airplane boat truck" },
-                        { id: 78, title: "Travel Words", description: "Travel related words", duration: "10 min", icon: "fa-plane", completed: false, text: "go come travel ride drive fly walk" },
-                        { id: 79, title: "Transport Sentences", description: "Sentences about transport", duration: "10 min", icon: "fa-car", completed: false, text: "I go by bus. She drives a car. We fly in an airplane." },
-                        { id: 80, title: "Travel Stories", description: "Short travel stories", duration: "15 min", icon: "fa-plane", completed: false, text: "I went to the park by bike. She traveled by train." }
+                        { id: 77, title: "Vehicles", description: "Different vehicles", duration: "20 min", icon: "fa-car", completed: false, text: extendText("car bus train bike airplane boat truck", 15) },
+                        { id: 78, title: "Travel Words", description: "Travel related words", duration: "20 min", icon: "fa-plane", completed: false, text: extendText("go come travel ride drive fly walk", 15) },
+                        { id: 79, title: "Transport Sentences", description: "Sentences about transport", duration: "20 min", icon: "fa-car", completed: false, text: extendText("I go by bus. She drives a car. We fly in an airplane.", 12) },
+                        { id: 80, title: "Travel Stories", description: "Short travel stories", duration: "25 min", icon: "fa-plane", completed: false, text: extendText("I went to the park by bike. She traveled by train.", 12) }
                     ]
                 },
                 {
@@ -939,10 +948,10 @@
                     title: "Clothing",
                     description: "Practice typing clothing words",
                     lessons: [
-                        { id: 81, title: "Basic Clothes", description: "Common clothing items", duration: "10 min", icon: "fa-tshirt", completed: false, text: "shirt pants dress shoes socks hat coat" },
-                        { id: 82, title: "Accessories", description: "Clothing accessories", duration: "10 min", icon: "fa-glasses", completed: false, text: "glasses watch belt bag scarf gloves" },
-                        { id: 83, title: "Clothing Actions", description: "Actions with clothes", duration: "10 min", icon: "fa-tshirt", completed: false, text: "wear dress put on take off change" },
-                        { id: 84, title: "Clothing Sentences", description: "Sentences about clothes", duration: "15 min", icon: "fa-tshirt", completed: false, text: "I wear a shirt. She puts on a dress. He takes off his shoes." }
+                        { id: 81, title: "Basic Clothes", description: "Common clothing items", duration: "20 min", icon: "fa-tshirt", completed: false, text: extendText("shirt pants dress shoes socks hat coat", 15) },
+                        { id: 82, title: "Accessories", description: "Clothing accessories", duration: "20 min", icon: "fa-glasses", completed: false, text: extendText("glasses watch belt bag scarf gloves", 15) },
+                        { id: 83, title: "Clothing Actions", description: "Actions with clothes", duration: "20 min", icon: "fa-tshirt", completed: false, text: extendText("wear dress put on take off change", 15) },
+                        { id: 84, title: "Clothing Sentences", description: "Sentences about clothes", duration: "25 min", icon: "fa-tshirt", completed: false, text: extendText("I wear a shirt. She puts on a dress. He takes off his shoes.", 12) }
                     ]
                 },
                 {
@@ -950,10 +959,10 @@
                     title: "Emotions",
                     description: "Practice typing emotion words",
                     lessons: [
-                        { id: 85, title: "Happy Emotions", description: "Positive emotions", duration: "10 min", icon: "fa-smile", completed: false, text: "happy glad joyful excited cheerful delighted" },
-                        { id: 86, title: "Sad Emotions", description: "Negative emotions", duration: "10 min", icon: "fa-frown", completed: false, text: "sad unhappy upset disappointed worried afraid" },
-                        { id: 87, title: "Emotion Sentences", description: "Sentences about feelings", duration: "10 min", icon: "fa-heart", completed: false, text: "I am happy today. She feels sad. He is excited." },
-                        { id: 88, title: "Emotion Stories", description: "Stories with emotions", duration: "15 min", icon: "fa-heart", completed: false, text: "I was happy when I won. She was sad when she lost." }
+                        { id: 85, title: "Happy Emotions", description: "Positive emotions", duration: "20 min", icon: "fa-smile", completed: false, text: extendText("happy glad joyful excited cheerful delighted", 15) },
+                        { id: 86, title: "Sad Emotions", description: "Negative emotions", duration: "20 min", icon: "fa-frown", completed: false, text: extendText("sad unhappy upset disappointed worried afraid", 15) },
+                        { id: 87, title: "Emotion Sentences", description: "Sentences about feelings", duration: "20 min", icon: "fa-heart", completed: false, text: extendText("I am happy today. She feels sad. He is excited.", 12) },
+                        { id: 88, title: "Emotion Stories", description: "Stories with emotions", duration: "25 min", icon: "fa-heart", completed: false, text: extendText("I was happy when I won. She was sad when she lost.", 12) }
                     ]
                 },
                 {
@@ -961,10 +970,10 @@
                     title: "Hobbies",
                     description: "Practice typing hobby words",
                     lessons: [
-                        { id: 89, title: "Common Hobbies", description: "Popular hobbies", duration: "10 min", icon: "fa-gamepad", completed: false, text: "reading drawing singing dancing cooking gardening" },
-                        { id: 90, title: "Sports", description: "Sports activities", duration: "10 min", icon: "fa-futbol", completed: false, text: "football cricket basketball tennis swimming running" },
-                        { id: 91, title: "Hobby Sentences", description: "Sentences about hobbies", duration: "10 min", icon: "fa-gamepad", completed: false, text: "I like reading. She enjoys dancing. He loves cooking." },
-                        { id: 92, title: "Hobby Stories", description: "Stories about hobbies", duration: "15 min", icon: "fa-gamepad", completed: false, text: "My hobby is painting. I paint pictures of nature." }
+                        { id: 89, title: "Common Hobbies", description: "Popular hobbies", duration: "20 min", icon: "fa-gamepad", completed: false, text: extendText("reading drawing singing dancing cooking gardening", 15) },
+                        { id: 90, title: "Sports", description: "Sports activities", duration: "20 min", icon: "fa-futbol", completed: false, text: extendText("football cricket basketball tennis swimming running", 15) },
+                        { id: 91, title: "Hobby Sentences", description: "Sentences about hobbies", duration: "20 min", icon: "fa-gamepad", completed: false, text: extendText("I like reading. She enjoys dancing. He loves cooking.", 12) },
+                        { id: 92, title: "Hobby Stories", description: "Stories about hobbies", duration: "25 min", icon: "fa-gamepad", completed: false, text: extendText("My hobby is painting. I paint pictures of nature.", 12) }
                     ]
                 },
                 {
@@ -972,10 +981,10 @@
                     title: "Short Stories (Level 2)",
                     description: "Practice typing longer stories",
                     lessons: [
-                        { id: 93, title: "The Lost Puppy", description: "Story about a lost puppy", duration: "15 min", icon: "fa-book", completed: false, text: "Once there was a little puppy. He got lost in the big city. A kind girl found him and took him home. Now he is happy." },
-                        { id: 94, title: "The Magic Tree", description: "Story about a magic tree", duration: "15 min", icon: "fa-book", completed: false, text: "In the garden there was a magic tree. It grew golden apples. One day a bird ate an apple and could speak. The bird told wonderful stories." },
-                        { id: 95, title: "The Brave Mouse", description: "Story about a brave mouse", duration: "15 min", icon: "fa-book", completed: false, text: "A tiny mouse lived in a big house. One day he saw a cat. The mouse was brave and helped his friend escape. Everyone was proud of him." },
-                        { id: 96, title: "The Rainbow Day", description: "Story about a rainbow", duration: "15 min", icon: "fa-book", completed: false, text: "After the rain stopped, a big rainbow appeared. It had seven colors. Children ran outside to see it. It was the most beautiful rainbow ever." }
+                        { id: 93, title: "The Lost Puppy", description: "Story about a lost puppy", duration: "25 min", icon: "fa-book", completed: false, text: extendText("Once there was a little puppy. He got lost in the big city. A kind girl found him and took him home. Now he is happy.", 10) },
+                        { id: 94, title: "The Magic Tree", description: "Story about a magic tree", duration: "25 min", icon: "fa-book", completed: false, text: extendText("In the garden there was a magic tree. It grew golden apples. One day a bird ate an apple and could speak. The bird told wonderful stories.", 10) },
+                        { id: 95, title: "The Brave Mouse", description: "Story about a brave mouse", duration: "25 min", icon: "fa-book", completed: false, text: extendText("A tiny mouse lived in a big house. One day he saw a cat. The mouse was brave and helped his friend escape. Everyone was proud of him.", 10) },
+                        { id: 96, title: "The Rainbow Day", description: "Story about a rainbow", duration: "25 min", icon: "fa-book", completed: false, text: extendText("After the rain stopped, a big rainbow appeared. It had seven colors. Children ran outside to see it. It was the most beautiful rainbow ever.", 10) }
                     ]
                 },
                 {
@@ -983,10 +992,10 @@
                     title: "Simple Poems (Level 2)",
                     description: "Practice typing longer poems",
                     lessons: [
-                        { id: 97, title: "The Wind", description: "Poem about the wind", duration: "15 min", icon: "fa-music", completed: false, text: "Who has seen the wind? Neither I nor you. But when the leaves hang trembling, the wind is passing through." },
-                        { id: 98, title: "The Rain", description: "Poem about rain", duration: "15 min", icon: "fa-music", completed: false, text: "Rain rain go away, come again another day. Little Johnny wants to play. Rain rain go away." },
-                        { id: 99, title: "The Star", description: "Poem about a star", duration: "15 min", icon: "fa-music", completed: false, text: "Star light star bright, first star I see tonight. I wish I may I wish I might, have the wish I wish tonight." },
-                        { id: 100, title: "The Flower", description: "Poem about a flower", duration: "15 min", icon: "fa-music", completed: false, text: "Little flower in the garden, growing tall and bright. You bring so much beauty, with your colors light." }
+                        { id: 97, title: "The Wind", description: "Poem about the wind", duration: "25 min", icon: "fa-music", completed: false, text: extendText("Who has seen the wind? Neither I nor you. But when the leaves hang trembling, the wind is passing through.", 10) },
+                        { id: 98, title: "The Rain", description: "Poem about rain", duration: "25 min", icon: "fa-music", completed: false, text: extendText("Rain rain go away, come again another day. Little Johnny wants to play. Rain rain go away.", 10) },
+                        { id: 99, title: "The Star", description: "Poem about a star", duration: "25 min", icon: "fa-music", completed: false, text: extendText("Star light star bright, first star I see tonight. I wish I may I wish I might, have the wish I wish tonight.", 10) },
+                        { id: 100, title: "The Flower", description: "Poem about a flower", duration: "25 min", icon: "fa-music", completed: false, text: extendText("Little flower in the garden, growing tall and bright. You bring so much beauty, with your colors light.", 10) }
                     ]
                 },
                 {
@@ -994,10 +1003,10 @@
                     title: "Paragraphs",
                     description: "Practice typing full paragraphs",
                     lessons: [
-                        { id: 101, title: "My Best Friend", description: "Paragraph about friendship", duration: "15 min", icon: "fa-align-left", completed: false, text: "My best friend is Tom. We go to the same school. We play together every day. He helps me with my homework. I help him with his problems. We are very happy together." },
-                        { id: 102, title: "My School", description: "Paragraph about school", duration: "15 min", icon: "fa-school", completed: false, text: "My school is very big. It has many classrooms. The teachers are kind and helpful. I learn many new things every day. My friends are also in my school. I love my school very much." },
-                        { id: 103, title: "My Family", description: "Paragraph about family", duration: "15 min", icon: "fa-users", completed: false, text: "I have a small family. There are four members in my family. My father is a doctor. My mother is a teacher. I have one younger sister. We live together happily. We love each other very much." },
-                        { id: 104, title: "My Daily Routine", description: "Paragraph about daily routine", duration: "15 min", icon: "fa-clock", completed: false, text: "I wake up early in the morning. I brush my teeth and wash my face. Then I eat my breakfast. After that, I go to school. In the evening, I do my homework. At night, I go to sleep." }
+                        { id: 101, title: "My Best Friend", description: "Paragraph about friendship", duration: "25 min", icon: "fa-align-left", completed: false, text: extendText("My best friend is Tom. We go to the same school. We play together every day. He helps me with my homework. I help him with his problems. We are very happy together.", 10) },
+                        { id: 102, title: "My School", description: "Paragraph about school", duration: "25 min", icon: "fa-school", completed: false, text: extendText("My school is very big. It has many classrooms. The teachers are kind and helpful. I learn many new things every day. My friends are also in my school. I love my school very much.", 10) },
+                        { id: 103, title: "My Family", description: "Paragraph about family", duration: "25 min", icon: "fa-users", completed: false, text: extendText("I have a small family. There are four members in my family. My father is a doctor. My mother is a teacher. I have one younger sister. We live together happily. We love each other very much.", 10) },
+                        { id: 104, title: "My Daily Routine", description: "Paragraph about daily routine", duration: "25 min", icon: "fa-clock", completed: false, text: extendText("I wake up early in the morning. I brush my teeth and wash my face. Then I eat my breakfast. After that, I go to school. In the evening, I do my homework. At night, I go to sleep.", 10) }
                     ]
                 },
                 {
@@ -1005,10 +1014,10 @@
                     title: "Numbers Advanced",
                     description: "Advanced number practice",
                     lessons: [
-                        { id: 105, title: "Large Numbers", description: "Practice large numbers", duration: "10 min", icon: "fa-hashtag", completed: false, text: "100 200 300 400 500 1000 2000 5000 10000" },
-                        { id: 106, title: "Math Problems", description: "Simple math in words", duration: "10 min", icon: "fa-calculator", completed: false, text: "Five plus three equals eight. Ten minus four equals six." },
-                        { id: 107, title: "Phone Numbers", description: "Complex phone numbers", duration: "10 min", icon: "fa-phone", completed: false, text: "+91 98765 43210 +1 555 123 4567 +44 20 1234 5678" },
-                        { id: 108, title: "Dates", description: "Practice typing dates", duration: "15 min", icon: "fa-calendar", completed: false, text: "January 1, 2024. December 25, 2024. March 15, 2024." }
+                        { id: 105, title: "Large Numbers", description: "Practice large numbers", duration: "20 min", icon: "fa-hashtag", completed: false, text: extendText("100 200 300 400 500 1000 2000 5000 10000", 15) },
+                        { id: 106, title: "Math Problems", description: "Simple math in words", duration: "20 min", icon: "fa-calculator", completed: false, text: extendText("Five plus three equals eight. Ten minus four equals six.", 12) },
+                        { id: 107, title: "Phone Numbers", description: "Complex phone numbers", duration: "20 min", icon: "fa-phone", completed: false, text: extendText("+91 98765 43210 +1 555 123 4567 +44 20 1234 5678", 12) },
+                        { id: 108, title: "Dates", description: "Practice typing dates", duration: "25 min", icon: "fa-calendar", completed: false, text: extendText("January 1, 2024. December 25, 2024. March 15, 2024.", 12) }
                     ]
                 },
                 {
@@ -1016,10 +1025,10 @@
                     title: "Mixed Practice",
                     description: "Mixed content for comprehensive practice",
                     lessons: [
-                        { id: 109, title: "Letters and Numbers", description: "Mix of letters and numbers", duration: "15 min", icon: "fa-keyboard", completed: false, text: "A1 B2 C3 D4 E5 F6 G7 H8 I9 J10" },
-                        { id: 110, title: "Words and Numbers", description: "Mix of words and numbers", duration: "15 min", icon: "fa-font", completed: false, text: "I have 5 apples. She is 10 years old. There are 7 days." },
-                        { id: 111, title: "All Characters", description: "Mix of all character types", duration: "15 min", icon: "fa-keyboard", completed: false, text: "Hello! I have 2 cats. They are 3 years old. I love them!" },
-                        { id: 112, title: "Complex Sentences", description: "Longer complex sentences", duration: "20 min", icon: "fa-align-left", completed: false, text: "Although it was raining heavily, we decided to go for a picnic because we had planned it for a long time and did not want to cancel our plans." }
+                        { id: 109, title: "Letters and Numbers", description: "Mix of letters and numbers", duration: "25 min", icon: "fa-keyboard", completed: false, text: extendText("A1 B2 C3 D4 E5 F6 G7 H8 I9 J10", 15) },
+                        { id: 110, title: "Words and Numbers", description: "Mix of words and numbers", duration: "25 min", icon: "fa-font", completed: false, text: extendText("I have 5 apples. She is 10 years old. There are 7 days.", 12) },
+                        { id: 111, title: "All Characters", description: "Mix of all character types", duration: "25 min", icon: "fa-keyboard", completed: false, text: extendText("Hello! I have 2 cats. They are 3 years old. I love them!", 12) },
+                        { id: 112, title: "Complex Sentences", description: "Longer complex sentences", duration: "30 min", icon: "fa-align-left", completed: false, text: extendText("Although it was raining heavily, we decided to go for a picnic because we had planned it for a long time and did not want to cancel our plans.", 10) }
                     ]
                 },
                 {
@@ -1027,10 +1036,10 @@
                     title: "Fairy Tales",
                     description: "Practice typing fairy tale stories",
                     lessons: [
-                        { id: 113, title: "Cinderella", description: "Cinderella story excerpt", duration: "20 min", icon: "fa-book", completed: false, text: "Once upon a time, there lived a beautiful girl named Cinderella. She lived with her wicked stepmother and stepsisters. They made her do all the housework. One day, the prince invited everyone to a grand ball." },
-                        { id: 114, title: "The Three Little Pigs", description: "Three pigs story excerpt", duration: "20 min", icon: "fa-book", completed: false, text: "Once there were three little pigs. They decided to build houses. The first pig built a house of straw. The second pig built a house of sticks. The third pig built a house of bricks. A big bad wolf came to blow their houses down." },
-                        { id: 115, title: "Goldilocks", description: "Goldilocks story excerpt", duration: "20 min", icon: "fa-book", completed: false, text: "Once upon a time, there was a girl named Goldilocks. She went for a walk in the forest. She came to a house. Inside, she saw three bowls of porridge. She tasted each one until she found the one that was just right." },
-                        { id: 116, title: "The Gingerbread Man", description: "Gingerbread man story excerpt", duration: "20 min", icon: "fa-book", completed: false, text: "Once an old woman baked a gingerbread man. When she opened the oven, the gingerbread man jumped out and ran away. He ran past a cow, a horse, and many others. He could not be caught!" }
+                        { id: 113, title: "Cinderella", description: "Cinderella story excerpt", duration: "30 min", icon: "fa-book", completed: false, text: extendText("Once upon a time, there lived a beautiful girl named Cinderella. She lived with her wicked stepmother and stepsisters. They made her do all the housework. One day, the prince invited everyone to a grand ball.", 10) },
+                        { id: 114, title: "The Three Little Pigs", description: "Three pigs story excerpt", duration: "30 min", icon: "fa-book", completed: false, text: extendText("Once there were three little pigs. They decided to build houses. The first pig built a house of straw. The second pig built a house of sticks. The third pig built a house of bricks. A big bad wolf came to blow their houses down.", 10) },
+                        { id: 115, title: "Goldilocks", description: "Goldilocks story excerpt", duration: "30 min", icon: "fa-book", completed: false, text: extendText("Once upon a time, there was a girl named Goldilocks. She went for a walk in the forest. She came to a house. Inside, she saw three bowls of porridge. She tasted each one until she found the one that was just right.", 10) },
+                        { id: 116, title: "The Gingerbread Man", description: "Gingerbread man story excerpt", duration: "30 min", icon: "fa-book", completed: false, text: extendText("Once an old woman baked a gingerbread man. When she opened the oven, the gingerbread man jumped out and ran away. He ran past a cow, a horse, and many others. He could not be caught!", 10) }
                     ]
                 },
                 {
@@ -1038,10 +1047,10 @@
                     title: "Final Challenge",
                     description: "Comprehensive typing challenge",
                     lessons: [
-                        { id: 117, title: "Speed Test 1", description: "Test your typing speed", duration: "15 min", icon: "fa-tachometer-alt", completed: false, text: "The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump!" },
-                        { id: 118, title: "Speed Test 2", description: "Another speed test", duration: "15 min", icon: "fa-tachometer-alt", completed: false, text: "Sphinx of black quartz, judge my vow. The five boxing wizards jump quickly. Jackdaws love my big sphinx of quartz." },
-                        { id: 119, title: "Accuracy Test", description: "Test your accuracy", duration: "20 min", icon: "fa-bullseye", completed: false, text: "A journey of a thousand miles begins with a single step. Practice makes perfect. Learning to type fast is a valuable skill in today's digital world." },
-                        { id: 120, title: "Final Exam", description: "Complete typing challenge", duration: "25 min", icon: "fa-trophy", completed: false, text: "Congratulations on completing all the lessons! You have learned to type letters, numbers, words, sentences, stories, poems, and much more. Keep practicing to improve your speed and accuracy. Typing is an important skill that will help you in school, work, and everyday life. Well done!" }
+                        { id: 117, title: "Speed Test 1", description: "Test your typing speed", duration: "30 min", icon: "fa-tachometer-alt", completed: false, text: extendText("The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump!", 15) },
+                        { id: 118, title: "Speed Test 2", description: "Another speed test", duration: "30 min", icon: "fa-tachometer-alt", completed: false, text: extendText("Sphinx of black quartz, judge my vow. The five boxing wizards jump quickly. Jackdaws love my big sphinx of quartz.", 15) },
+                        { id: 119, title: "Accuracy Test", description: "Test your accuracy", duration: "30 min", icon: "fa-bullseye", completed: false, text: extendText("A journey of a thousand miles begins with a single step. Practice makes perfect. Learning to type fast is a valuable skill in today's digital world.", 12) },
+                        { id: 120, title: "Final Exam", description: "Complete typing challenge", duration: "35 min", icon: "fa-trophy", completed: false, text: extendText("Congratulations on completing all the lessons! You have learned to type letters, numbers, words, sentences, stories, poems, and much more. Keep practicing to improve your speed and accuracy. Typing is an important skill that will help you in school, work, and everyday life. Well done!", 10) }
                     ]
                 }
             ]
