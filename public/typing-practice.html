@@ -369,6 +369,9 @@
             background: rgba(30, 30, 50, 0.5);
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
         }
 
         .text-line {
@@ -579,6 +582,19 @@
             min-width: 80px;
         }
 
+        .key.win-key {
+            min-width: 50px;
+            font-size: 14px;
+        }
+
+        .key.alt-key {
+            min-width: 50px;
+        }
+
+        .key.ctrl-key {
+            min-width: 50px;
+        }
+
         /* Finger guide legend */
         .finger-legend {
             display: flex;
@@ -613,23 +629,26 @@
 
         /* Window Title Bar */
         .window-title-bar {
-            background: linear-gradient(180deg, #3a3a4a 0%, #2a2a3a 100%);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 8px 15px;
+            background: #202020;
+            border-bottom: 1px solid #333;
+            padding: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
+            height: 32px;
             -webkit-app-region: drag;
         }
 
         .window-title {
             color: #e0e0e0;
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 12px;
+            font-weight: 400;
             display: flex;
             align-items: center;
             gap: 8px;
+            padding: 0 12px;
+            height: 100%;
         }
 
         .window-title i {
@@ -638,32 +657,35 @@
 
         .window-controls {
             display: flex;
-            gap: 8px;
+            height: 100%;
         }
 
         .window-btn {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
+            width: 46px;
+            height: 100%;
             border: none;
+            border-radius: 0;
             cursor: pointer;
-            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s ease;
+            font-size: 10px;
+            background: transparent;
+            color: #e0e0e0;
         }
 
-        .window-btn:hover {
-            transform: scale(1.2);
+        .window-btn.minimize:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        .window-btn.close {
-            background: #ff5f57;
+        .window-btn.maximize:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        .window-btn.minimize {
-            background: #febc2e;
-        }
-
-        .window-btn.maximize {
-            background: #28c840;
+        .window-btn.close:hover {
+            background: #e81123;
+            color: white;
         }
 
         /* Status Bar */
@@ -1439,12 +1461,6 @@
                     </div>
                     <div class="text-display" id="textDisplay">Click "Start" to begin typing...</div>
                     <input type="text" class="typing-input" id="typingInput" placeholder="Start typing here..." disabled style="display: none;">
-                    
-                    <div class="progress-container">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-                        </div>
-                    </div>
 
                     <div class="keyboard-section" id="keyboardSection">
                         <div class="keyboard-title"><i class="fas fa-keyboard"></i> Virtual Keyboard</div>
@@ -1511,7 +1527,12 @@
                                 <div class="key pinky-right shift" data-key="Shift">Shift</div>
                             </div>
                             <div class="keyboard-row">
+                                <div class="key win-key" data-key="Meta">⊞</div>
+                                <div class="key alt-key" data-key="Alt">Alt</div>
                                 <div class="key thumb" data-key=" ">Space</div>
+                                <div class="key alt-key" data-key="Alt">Alt</div>
+                                <div class="key win-key" data-key="Meta">⊞</div>
+                                <div class="key ctrl-key" data-key="Control">Ctrl</div>
                             </div>
                         </div>
                         
@@ -2255,7 +2276,6 @@
         const charCountDisplay = document.getElementById('charCountDisplay');
         const streakDisplay = document.getElementById('streakDisplay');
         const comboDisplay = document.getElementById('comboDisplay');
-        const progressFill = document.getElementById('progressFill');
         const progressFillSidebar = document.getElementById('progressFillSidebar');
         const progressPercentage = document.getElementById('progressPercentage');
         const accuracyCircle = document.getElementById('accuracyCircle');
@@ -2340,7 +2360,6 @@
             charCountDisplay.textContent = `0/${currentText.length}`;
             streakDisplay.textContent = '0';
             comboDisplay.textContent = 'x1';
-            progressFill.style.width = '0%';
             progressFillSidebar.style.width = '0%';
             progressPercentage.textContent = '0%';
             accuracyCircle.style.strokeDashoffset = '339.292';
@@ -2901,11 +2920,16 @@
             textDisplay.innerHTML = displayHTML;
             
             const progress = (currentIndex / currentText.length) * 100;
-            progressFill.style.width = progress + '%';
             progressFillSidebar.style.width = progress + '%';
             progressPercentage.textContent = Math.round(progress) + '%';
             
             charCountDisplay.textContent = `${currentIndex}/${currentText.length}`;
+            
+            // Auto-scroll to current line
+            const currentLineElement = textDisplay.querySelector('.text-line.active');
+            if (currentLineElement) {
+                currentLineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             
             if (isTyping && startTime) {
                 const timeElapsed = (new Date() - startTime) / 1000 / 60;
