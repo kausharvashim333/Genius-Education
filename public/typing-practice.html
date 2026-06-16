@@ -1448,6 +1448,12 @@
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
             align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-row:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
         }
 
         .leaderboard-row.header {
@@ -1456,26 +1462,58 @@
             color: #667eea;
         }
 
+        .leaderboard-row:nth-child(2) {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05));
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .leaderboard-row:nth-child(3) {
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(192, 192, 192, 0.05));
+            border: 1px solid rgba(192, 192, 192, 0.3);
+        }
+
+        .leaderboard-row:nth-child(4) {
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.15), rgba(205, 127, 50, 0.05));
+            border: 1px solid rgba(205, 127, 50, 0.3);
+        }
+
         .leaderboard-row .rank {
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 16px;
             color: #f59e0b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .leaderboard-row .rank:nth-child(1) {
+        .leaderboard-row:nth-child(2) .rank {
             color: #ffd700;
+            font-size: 20px;
         }
 
-        .leaderboard-row .rank:nth-child(2) {
+        .leaderboard-row:nth-child(3) .rank {
             color: #c0c0c0;
+            font-size: 18px;
         }
 
-        .leaderboard-row .rank:nth-child(3) {
+        .leaderboard-row:nth-child(4) .rank {
             color: #cd7f32;
+            font-size: 18px;
         }
 
         .leaderboard-row > div {
             color: #e0e0e0;
             font-size: 14px;
+        }
+
+        .leaderboard-row .name {
+            font-weight: 600;
+        }
+
+        .leaderboard-row .wpm {
+            font-weight: 700;
+            color: #10b981;
+            font-size: 15px;
         }
 
         .no-data {
@@ -2467,6 +2505,9 @@
             </div>
             <div class="name-input-section">
                 <input type="text" id="studentName" placeholder="Enter your name" maxlength="30" class="name-input">
+                <button class="btn btn-success" onclick="saveAndContinue()" style="margin-top: 10px;">
+                    <i class="fas fa-check"></i> OK
+                </button>
             </div>
             <div class="result-buttons">
                 <button class="btn btn-secondary" onclick="closeResultModal()">
@@ -2761,6 +2802,23 @@
             updateStatusBar();
         }
 
+        function saveAndContinue() {
+            // Save score when OK button is clicked
+            if (window.finalWpm && window.finalAccuracy) {
+                saveScore(window.finalWpm, window.finalAccuracy);
+                window.finalWpm = null;
+                window.finalAccuracy = null;
+            }
+            // Show success feedback
+            const okBtn = event.target;
+            okBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+            okBtn.disabled = true;
+            setTimeout(() => {
+                okBtn.innerHTML = '<i class="fas fa-check"></i> OK';
+                okBtn.disabled = false;
+            }, 1500);
+        }
+
         function closeResultModal() {
             // Save score before closing
             if (window.finalWpm && window.finalAccuracy) {
@@ -2866,9 +2924,13 @@
             filteredScores.forEach((score, index) => {
                 const date = new Date(score.date).toLocaleDateString();
                 const displayName = score.name || 'Anonymous';
+                let rankDisplay = `#${index + 1}`;
+                if (index === 0) rankDisplay = '🥇';
+                if (index === 1) rankDisplay = '🥈';
+                if (index === 2) rankDisplay = '🥉';
                 html += `
                     <div class="leaderboard-row">
-                        <div class="rank">#${index + 1}</div>
+                        <div class="rank">${rankDisplay}</div>
                         <div class="name">${displayName}</div>
                         <div class="level">Level ${score.level}</div>
                         <div class="wpm">${score.wpm}</div>
