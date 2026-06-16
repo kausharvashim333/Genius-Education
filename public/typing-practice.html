@@ -378,33 +378,6 @@
             background: rgba(30, 30, 50, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            animation: slideIn 0.4s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideOut {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-        }
-
-        .text-line.slide-out {
-            animation: slideOut 0.4s ease-out forwards;
         }
 
         .text-line.active {
@@ -2961,10 +2934,6 @@
                 charCount += lineLength + 1; // +1 for space
             }
             
-            // Check if line actually changed AND current index is at the start of new line
-            const lineChanged = currentLineIndex !== previousLineIndex && 
-                              (currentIndex === 0 || currentIndex === lineCharCounts[currentLineIndex]);
-            
             // Card-based display: show only current line and adjacent lines
             let displayHTML = '';
             const visibleLines = [currentLineIndex - 1, currentLineIndex, currentLineIndex + 1];
@@ -3013,11 +2982,6 @@
             progressPercentage.textContent = Math.round(progress) + '%';
             
             charCountDisplay.textContent = `${currentIndex}/${currentText.length}`;
-            
-            // Update previous line index after rendering
-            if (lineChanged) {
-                previousLineIndex = currentLineIndex;
-            }
             
             // Update last completed line
             if (currentLineIndex > lastCompletedLine) {
