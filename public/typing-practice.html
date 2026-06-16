@@ -362,20 +362,33 @@
             text-align: center;
             max-width: 900px;
             word-wrap: break-word;
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
 
         .text-display .correct {
             color: #22c55e;
+            font-weight: 500;
         }
 
         .text-display .incorrect {
             color: #ef4444;
             text-decoration: underline;
+            font-weight: 500;
         }
 
         .text-display .current {
-            background: rgba(102, 126, 234, 0.3);
-            border-radius: 2px;
+            background: rgba(102, 126, 234, 0.4);
+            border-radius: 3px;
+            padding: 2px 4px;
+            margin: -2px -4px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .text-display .remaining {
+            color: #666;
         }
 
         .typing-input {
@@ -1202,6 +1215,13 @@
                     <label>Finger Guide</label>
                     <label class="toggle-switch">
                         <input type="checkbox" id="fingerGuide" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>Sound Effects</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="soundEffects" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -2195,7 +2215,6 @@
         function updateDisplay() {
             const typed = currentText.substring(0, currentIndex);
             const remaining = currentText.substring(currentIndex);
-            const currentChar = remaining.charAt(0);
             
             let displayHTML = '';
             
@@ -2205,7 +2224,7 @@
                 } else if (i === currentIndex) {
                     displayHTML += `<span class="current">${currentText[i]}</span>`;
                 } else {
-                    displayHTML += currentText[i];
+                    displayHTML += `<span class="remaining">${currentText[i]}</span>`;
                 }
             }
             
@@ -2218,16 +2237,16 @@
             
             if (isTyping && startTime) {
                 const timeElapsed = (new Date() - startTime) / 1000 / 60;
-                const wordsTyped = typed.split(' ').length;
+                const wordsTyped = typed.split(' ').filter(w => w.length > 0).length;
                 const wpm = Math.round(wordsTyped / timeElapsed) || 0;
                 const cpm = Math.round(currentIndex / timeElapsed) || 0;
-                const accuracy = Math.round(((currentIndex - mistakes) / currentIndex) * 100) || 100;
+                const accuracy = currentIndex > 0 ? Math.round(((currentIndex - mistakes) / currentIndex) * 100) : 100;
                 
                 wpmDisplay.textContent = wpm;
                 cpmDisplay.textContent = cpm;
                 accuracyDisplay.textContent = accuracy + '%';
                 streakDisplay.textContent = streak;
-                comboDisplay.textContent = 'x' + combo;
+                comboDisplay.textContent = 'x' + combo.toFixed(1);
                 
                 const accuracyOffset = 339.292 - (339.292 * accuracy / 100);
                 accuracyCircle.style.strokeDashoffset = accuracyOffset;
