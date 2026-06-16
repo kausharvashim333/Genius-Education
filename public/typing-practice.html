@@ -2920,18 +2920,32 @@
                 lines.push(currentLine.trim());
             }
             
-            // Calculate which line we're on
+            // Calculate which line we're on based on wrapped text
             let charCount = 0;
             let currentLineIndex = 0;
             let lineCharCounts = [];
             
+            // Reconstruct the wrapped text to match character positions
+            let wrappedText = '';
             for (let i = 0; i < lines.length; i++) {
                 lineCharCounts.push(charCount);
-                const lineLength = lines[i].length;
-                if (currentIndex >= charCount && currentIndex < charCount + lineLength) {
-                    currentLineIndex = i;
+                wrappedText += lines[i];
+                if (i < lines.length - 1) {
+                    wrappedText += ' ';
+                    charCount += lines[i].length + 1; // +1 for space
+                } else {
+                    charCount += lines[i].length;
                 }
-                charCount += lineLength + 1; // +1 for space
+            }
+            
+            // Find current line based on wrapped text
+            for (let i = 0; i < lines.length; i++) {
+                const lineStart = lineCharCounts[i];
+                const lineEnd = lineStart + lines[i].length;
+                if (currentIndex >= lineStart && currentIndex < lineEnd) {
+                    currentLineIndex = i;
+                    break;
+                }
             }
             
             // Card-based display: show only current line
