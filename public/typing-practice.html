@@ -26,8 +26,15 @@
         /* Full-screen app layout */
         .app-container {
             display: flex;
+            flex-direction: column;
             height: 100vh;
             width: 100vw;
+            overflow: hidden;
+        }
+
+        .app-main-wrapper {
+            display: flex;
+            flex: 1;
             overflow: hidden;
         }
 
@@ -1111,8 +1118,9 @@
             </div>
         </div>
 
-        <!-- Sidebar -->
-        <div class="app-sidebar">
+        <div class="app-main-wrapper">
+            <!-- Sidebar -->
+            <div class="app-sidebar">
             <div class="sidebar-header">
                 <h2><i class="fas fa-keyboard"></i> Typing Stats</h2>
             </div>
@@ -1384,6 +1392,7 @@
                     </div>
                 </div>
             </div>
+        </div>
         </div>
 
         <!-- Status Bar -->
