@@ -1059,6 +1059,27 @@
             }
         }
 
+        /* Level selector styles */
+        .level-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .level-label {
+            color: #e0e0e0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .level-info {
+            color: #888;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+
         /* Finger guide colors */
         .pinky-left { border-left: 3px solid #ef4444; }
         .ring-left { border-left: 3px solid #f59e0b; }
@@ -1371,20 +1392,12 @@
                     <div class="app-title" id="lessonTitle">Typing Practice</div>
                 </div>
                 <div class="app-header-right">
-                    <select class="difficulty-select" id="difficulty">
-                        <option value="easy">Easy</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="hard">Hard</option>
-                    </select>
-                    <select class="difficulty-select" id="timer">
-                        <option value="15">15 sec</option>
-                        <option value="30">30 sec</option>
-                        <option value="60" selected>1 min</option>
-                        <option value="120">2 min</option>
-                        <option value="300">5 min</option>
-                        <option value="600">10 min</option>
-                        <option value="0">Unlimited</option>
-                    </select>
+                    <div class="level-selector">
+                        <span class="level-label">Level:</span>
+                        <select class="difficulty-select" id="levelSelect">
+                        </select>
+                        <span class="level-info" id="levelInfo">1 min • Easy</span>
+                    </div>
                     <button class="header-btn secondary" onclick="loadNewText()">
                         <i class="fas fa-redo"></i> New Text
                     </button>
@@ -1393,9 +1406,6 @@
                     </button>
                     <button class="header-btn secondary" onclick="openGuide()">
                         <i class="fas fa-question-circle"></i> Guide
-                    </button>
-                    <button class="header-btn secondary" onclick="window.location.href='course-viewer.html'">
-                        <i class="fas fa-book"></i> Lessons
                     </button>
                 </div>
             </div>
@@ -1564,8 +1574,8 @@
             <div class="guide-content-english active">
                 <div class="guide-page" id="guidePage0">
                     <div class="guide-section">
-                        <h3><i class="fas fa-hand-paper"></i> Finger Placement</h3>
-                        <p>Place your fingers on the home row keys:</p>
+                        <h3><i class="fas fa-hand-paper"></i> Finger Placement - The Foundation</h3>
+                        <p>Proper finger placement is the most important aspect of touch typing. Your fingers should always rest on the home row keys when not typing other keys.</p>
                         
                         <div class="guide-diagram">
                             <svg width="400" height="200" viewBox="0 0 400 200">
@@ -1615,23 +1625,30 @@
                             <div class="diagram-label">Home Row Finger Placement</div>
                         </div>
                         
+                        <h4>Left Hand:</h4>
                         <ul>
-                            <li><strong>Left Pinky:</strong> A key</li>
-                            <li><strong>Left Ring:</strong> S key</li>
-                            <li><strong>Left Middle:</strong> D key</li>
-                            <li><strong>Left Index:</strong> F key</li>
-                            <li><strong>Right Index:</strong> J key</li>
-                            <li><strong>Right Middle:</strong> K key</li>
-                            <li><strong>Right Ring:</strong> L key</li>
-                            <li><strong>Right Pinky:</strong> ; key</li>
-                            <li><strong>Thumbs:</strong> Space bar</li>
+                            <li><strong>Pinky Finger:</strong> A key - Also covers Q, Z, 1, and Shift</li>
+                            <li><strong>Ring Finger:</strong> S key - Also covers W, X, 2</li>
+                            <li><strong>Middle Finger:</strong> D key - Also covers E, C, 3</li>
+                            <li><strong>Index Finger:</strong> F key - Also covers R, V, 4, 5, T, G, B</li>
                         </ul>
+                        
+                        <h4>Right Hand:</h4>
+                        <ul>
+                            <li><strong>Index Finger:</strong> J key - Also covers U, M, 7, 6, Y, H, N</li>
+                            <li><strong>Middle Finger:</strong> K key - Also covers I, comma, 8</li>
+                            <li><strong>Ring Finger:</strong> L key - Also covers O, period, 9</li>
+                            <li><strong>Pinky Finger:</strong> ; key - Also covers P, /, 0, -, =, [, ], Backspace, Enter</li>
+                            <li><strong>Thumbs:</strong> Space bar (both thumbs share this key)</li>
+                        </ul>
+                        
+                        <p><strong>Important:</strong> The F and J keys usually have small bumps on them. These help you find the home row position without looking at the keyboard.</p>
                     </div>
                 </div>
                 
                 <div class="guide-page" id="guidePage1" style="display: none;">
                     <div class="guide-section">
-                        <h3><i class="fas fa-keyboard"></i> Basic Rules</h3>
+                        <h3><i class="fas fa-keyboard"></i> Essential Typing Rules</h3>
                         
                         <div class="guide-diagram">
                             <svg width="400" height="150" viewBox="0 0 400 150">
@@ -1663,32 +1680,71 @@
                             <div class="diagram-label">Visual Guide to Basic Rules</div>
                         </div>
                         
-                        <ul>
-                            <li>Always keep your fingers on the home row</li>
-                            <li>Don't look at the keyboard while typing</li>
-                            <li>Use the correct finger for each key</li>
-                            <li>Press keys gently and release quickly</li>
-                            <li>Take breaks to avoid fatigue</li>
-                        </ul>
+                        <h4>Rule 1: Always Return to Home Row</h4>
+                        <p>After typing any key, your fingers should immediately return to their home row position. This is the foundation of touch typing and ensures your fingers are always in the right position for the next keystroke.</p>
+                        
+                        <h4>Rule 2: Never Look at the Keyboard</h4>
+                        <p>Touch typing means typing without looking. If you look at the keyboard, you'll never develop muscle memory. Cover your keyboard if necessary or use a keyboard cover. Trust your fingers to find the keys.</p>
+                        
+                        <h4>Rule 3: Use the Correct Finger for Each Key</h4>
+                        <p>Each key has a designated finger. Using the wrong finger slows you down and can lead to bad habits. Stick to the finger assignments even if it feels slower at first.</p>
+                        
+                        <h4>Rule 4: Press Keys Gently</h4>
+                        <p>Type with a light touch. Don't bang on the keys. Gentle, quick keystrokes are faster and reduce fatigue. Your fingers should barely touch the keys before moving to the next one.</p>
+                        
+                        <h4>Rule 5: Take Regular Breaks</h4>
+                        <p>Typing for long periods can cause strain and injury. Take a 5-minute break every 30 minutes. Stretch your hands, wrists, and arms. This prevents repetitive strain injury (RSI).</p>
                     </div>
                 </div>
                 
                 <div class="guide-page" id="guidePage2" style="display: none;">
                     <div class="guide-section">
-                        <h3><i class="fas fa-chart-line"></i> Tips for Improvement</h3>
+                        <h3><i class="fas fa-chart-line"></i> Strategies for Improvement</h3>
+                        
+                        <h4>Daily Practice Routine</h4>
                         <ul>
-                            <li>Practice daily for at least 15-20 minutes</li>
-                            <li>Start with slow speed and focus on accuracy</li>
-                            <li>Gradually increase your speed as you improve</li>
-                            <li>Use lessons from beginner to advanced level</li>
-                            <li>Track your progress and celebrate improvements</li>
+                            <li><strong>Consistency is Key:</strong> Practice 15-30 minutes daily rather than long sessions once a week</li>
+                            <li><strong>Morning Practice:</strong> Your mind is freshest in the morning, making it ideal for learning new skills</li>
+                            <li><strong>Warm Up:</strong> Start with simple exercises before attempting complex text</li>
+                            <li><strong>End with Challenge:</strong> Finish each session with something slightly harder than your comfort zone</li>
+                        </ul>
+                        
+                        <h4>Accuracy Before Speed</h4>
+                        <p>Many beginners make the mistake of prioritizing speed over accuracy. This is wrong. Focus on accuracy first. Speed will naturally follow as your muscle memory improves. Aim for 95%+ accuracy before trying to type faster.</p>
+                        
+                        <h4>Progressive Learning Path</h4>
+                        <ul>
+                            <li><strong>Week 1-2:</strong> Master home row keys (ASDF JKL;)</li>
+                            <li><strong>Week 3-4:</strong> Learn top row (QWERTYUIOP)</li>
+                            <li><strong>Week 5-6:</strong> Learn bottom row (ZXCVBNM)</li>
+                            <li><strong>Week 7-8:</strong> Practice common words and letter combinations</li>
+                            <li><strong>Week 9-12:</strong> Work on sentences and paragraphs</li>
+                            <li><strong>Month 4-6:</strong> Focus on speed and complex text</li>
+                        </ul>
+                        
+                        <h4>Track Your Progress</h4>
+                        <ul>
+                            <li>Record your WPM and accuracy daily</li>
+                            <li>Identify which keys or letter combinations give you trouble</li>
+                            <li>Practice problem areas specifically</li>
+                            <li>Celebrate milestones (e.g., reaching 40 WPM, 50 WPM, etc.)</li>
+                        </ul>
+                        
+                        <h4>Common Mistakes to Avoid</h4>
+                        <ul>
+                            <li>Looking at the keyboard while typing</li>
+                            <li>Using the wrong fingers for keys</li>
+                            <li>Pressing keys too hard</li>
+                            <li>Not taking breaks</li>
+                            <li>Skipping the basics and jumping to advanced lessons</li>
+                            <li>Getting frustrated with slow progress - learning takes time</li>
                         </ul>
                     </div>
                 </div>
                 
                 <div class="guide-page" id="guidePage3" style="display: none;">
                     <div class="guide-section">
-                        <h3><i class="fas fa-tachometer-alt"></i> Understanding WPM</h3>
+                        <h3><i class="fas fa-tachometer-alt"></i> Understanding WPM and Accuracy</h3>
                         
                         <div class="guide-diagram">
                             <svg width="400" height="180" viewBox="0 0 400 180">
@@ -1712,15 +1768,82 @@
                             <div class="diagram-label">WPM and Accuracy Calculation</div>
                         </div>
                         
-                        <p><strong>WPM (Words Per Minute)</strong> measures your typing speed. One word is typically 5 characters. For example, typing "hello world" counts as 2 words.</p>
-                        <p><strong>Accuracy</strong> shows how many characters you typed correctly. Aim for 95%+ accuracy before focusing on speed.</p>
+                        <h4>What is WPM?</h4>
+                        <p><strong>WPM (Words Per Minute)</strong> is the standard measure of typing speed. In typing, one "word" is standardized as 5 characters. This includes letters, numbers, spaces, and punctuation. For example:</p>
+                        <ul>
+                            <li>"hello" = 5 characters = 1 word</li>
+                            <li>"hello world" = 11 characters = 2.2 words</li>
+                            <li>"The quick brown fox" = 19 characters = 3.8 words</li>
+                        </ul>
+                        
+                        <h4>What is Accuracy?</h4>
+                        <p><strong>Accuracy</strong> measures how many characters you typed correctly. It's calculated as: (Correct Characters ÷ Total Characters) × 100%. High accuracy is crucial because correcting mistakes takes time and breaks your flow.</p>
+                        
+                        <h4>Typing Speed Benchmarks</h4>
+                        <ul>
+                            <li><strong>Beginner:</strong> 20-30 WPM (just learning)</li>
+                            <li><strong>Average:</strong> 40-50 WPM (functional for most tasks)</li>
+                            <li><strong>Good:</strong> 60-70 WPM (above average)</li>
+                            <li><strong>Professional:</strong> 75-90 WPM (very fast)</li>
+                            <li><strong>Expert:</strong> 100+ WPM (exceptional)</li>
+                        </ul>
+                        
+                        <h4>Net WPM vs Gross WPM</h4>
+                        <p><strong>Gross WPM</strong> is your raw typing speed including mistakes. <strong>Net WPM</strong> accounts for errors and is calculated as: Gross WPM - (Errors ÷ Time). Net WPM is a more accurate measure of your actual typing ability.</p>
+                    </div>
+                </div>
+                
+                <div class="guide-page" id="guidePage4" style="display: none;">
+                    <div class="guide-section">
+                        <h3><i class="fas fa-laptop"></i> Keyboard Shortcuts & Tips</h3>
+                        
+                        <h4>Essential Keyboard Shortcuts</h4>
+                        <ul>
+                            <li><strong>Ctrl/Cmd + C:</strong> Copy selected text</li>
+                            <li><strong>Ctrl/Cmd + V:</strong> Paste copied text</li>
+                            <li><strong>Ctrl/Cmd + X:</strong> Cut selected text</li>
+                            <li><strong>Ctrl/Cmd + Z:</strong> Undo last action</li>
+                            <li><strong>Ctrl/Cmd + A:</strong> Select all text</li>
+                            <li><strong>Ctrl/Cmd + S:</strong> Save document</li>
+                            <li><strong>Ctrl/Cmd + F:</strong> Find text</li>
+                            <li><strong>Home:</strong> Go to beginning of line</li>
+                            <li><strong>End:</strong> Go to end of line</li>
+                            <li><strong>Ctrl/Cmd + Home/End:</strong> Go to beginning/end of document</li>
+                        </ul>
+                        
+                        <h4>Ergonomics and Posture</h4>
+                        <ul>
+                            <li><strong>Chair Height:</strong> Adjust so your feet are flat on the floor and knees at 90 degrees</li>
+                            <li><strong>Monitor Position:</strong> Top of screen should be at or slightly below eye level</li>
+                            <li><strong>Arm Position:</strong> Elbows should be at 90-100 degrees, close to your body</li>
+                            <li><strong>Wrist Position:</strong> Keep wrists straight, not bent up or down</li>
+                            <li><strong>Keyboard Placement:</strong> Centered in front of you, about 2-3 inches from the edge of the desk</li>
+                        </ul>
+                        
+                        <h4>Health Tips</h4>
+                        <ul>
+                            <li>Take a 1-2 minute break every 20-30 minutes</li>
+                            <li>Stretch your fingers, hands, and wrists regularly</li>
+                            <li>Stay hydrated to prevent muscle cramps</li>
+                            <li>If you feel pain, stop immediately and rest</li>
+                            <li>Consider using an ergonomic keyboard if you type extensively</li>
+                        </ul>
+                        
+                        <h4>Advanced Tips</h4>
+                        <ul>
+                            <li>Learn to type numbers without looking at the number pad</li>
+                            <li>Practice special characters and symbols</li>
+                            <li>Learn to use keyboard shortcuts in your favorite applications</li>
+                            <li>Practice with different types of text (technical, creative, conversational)</li>
+                            <li>Consider learning Dvorak or Colemak layouts if you want to optimize further (but master QWERTY first)</li>
+                        </ul>
                     </div>
                 </div>
                 
                 <div class="guide-navigation">
                     <button class="guide-nav-btn" id="prevBtn" onclick="prevGuidePage()" disabled>Previous</button>
                     <div class="guide-page-indicator">
-                        <span id="currentPage">1</span> / <span id="totalPages">4</span>
+                        <span id="currentPage">1</span> / <span id="totalPages">5</span>
                     </div>
                     <button class="guide-nav-btn" id="nextBtn" onclick="nextGuidePage()">Next</button>
                 </div>
@@ -1729,8 +1852,8 @@
             <div class="guide-content-hindi">
                 <div class="guide-page" id="guidePageHindi0">
                     <div class="guide-section">
-                        <h3><i class="fas fa-hand-paper"></i> उंगलियों की स्थिति (Finger Placement)</h3>
-                        <p>अपनी उंगलियों को होम रो कीज पर रखें:</p>
+                        <h3><i class="fas fa-hand-paper"></i> उंगलियों की स्थिति - नींव (Finger Placement)</h3>
+                        <p>सही उंगली स्थिति टच टाइपिंग का सबसे महत्वपूर्ण पहलू है। जब आप अन्य कीज टाइप नहीं कर रहे हों, तो आपकी उंगलियां हमेशा होम रो कीज पर आराम करनी चाहिए।</p>
                         
                         <div class="guide-diagram">
                             <svg width="400" height="200" viewBox="0 0 400 200">
@@ -1780,23 +1903,30 @@
                             <div class="diagram-label">होम रो उंगली स्थिति</div>
                         </div>
                         
+                        <h4>बाया हाथ:</h4>
                         <ul>
-                            <li><strong>बाया छोटी उंगली:</strong> A की</li>
-                            <li><strong>बाया अनामिका:</strong> S की</li>
-                            <li><strong>बाया मध्यमा:</strong> D की</li>
-                            <li><strong>बाया तर्जनी:</strong> F की</li>
-                            <li><strong>दाया तर्जनी:</strong> J की</li>
-                            <li><strong>दाया मध्यमा:</strong> K की</li>
-                            <li><strong>दाया अनामिका:</strong> L की</li>
-                            <li><strong>दाया छोटी उंगली:</strong> ; की</li>
-                            <li><strong>अंगूठे:</strong> स्पेस बार</li>
+                            <li><strong>छोटी उंगली:</strong> A की - यह Q, Z, 1, और Shift भी कवर करती है</li>
+                            <li><strong>अनामिका:</strong> S की - यह W, X, 2 भी कवर करती है</li>
+                            <li><strong>मध्यमा:</strong> D की - यह E, C, 3 भी कवर करती है</li>
+                            <li><strong>तर्जनी:</strong> F की - यह R, V, 4, 5, T, G, B भी कवर करती है</li>
                         </ul>
+                        
+                        <h4>दाया हाथ:</h4>
+                        <ul>
+                            <li><strong>तर्जनी:</strong> J की - यह U, M, 7, 6, Y, H, N भी कवर करती है</li>
+                            <li><strong>मध्यमा:</strong> K की - यह I, comma, 8 भी कवर करती है</li>
+                            <li><strong>अनामिका:</strong> L की - यह O, period, 9 भी कवर करती है</li>
+                            <li><strong>छोटी उंगली:</strong> ; की - यह P, /, 0, -, =, [, ], Backspace, Enter भी कवर करती है</li>
+                            <li><strong>अंगूठे:</strong> स्पेस बार (दोनों अंगूठे इस की को साझा करते हैं)</li>
+                        </ul>
+                        
+                        <p><strong>महत्वपूर्ण:</strong> F और J कीज पर आमतौर पर छोटे उभार होते हैं। ये आपको कीबोर्ड को देखे बिना होम रो की स्थिति खोजने में मदद करते हैं।</p>
                     </div>
                 </div>
                 
                 <div class="guide-page" id="guidePageHindi1" style="display: none;">
                     <div class="guide-section">
-                        <h3><i class="fas fa-keyboard"></i> बुनियादी नियम (Basic Rules)</h3>
+                        <h3><i class="fas fa-keyboard"></i> आवश्यक टाइपिंग नियम (Essential Rules)</h3>
                         
                         <div class="guide-diagram">
                             <svg width="400" height="150" viewBox="0 0 400 150">
@@ -1828,32 +1958,71 @@
                             <div class="diagram-label">बुनियादी नियमों का विजुअल गाइड</div>
                         </div>
                         
-                        <ul>
-                            <li>हमेशा अपनी उंगलियों को होम रो पर रखें</li>
-                            <li>टाइप करते समय कीबोर्ड को न देखें</li>
-                            <li>हर की के लिए सही उंगली का प्रयोग करें</li>
-                            <li>कीज को हल्के से दबाएं और जल्दी छोड़ें</li>
-                            <li>थकावट से बचने के लिए ब्रेक लें</li>
-                        </ul>
+                        <h4>नियम 1: हमेशा होम रो पर वापस आएं</h4>
+                        <p>किसी भी की को टाइप करने के बाद, आपकी उंगलियों को तुरंत अपनी होम रो स्थिति पर वापस आना चाहिए। यह टच टाइपिंग की नींव है और यह सुनिश्चित करता है कि आपकी उंगलियां हमेशा अगले कीस्ट्रोक के लिए सही स्थिति में हों।</p>
+                        
+                        <h4>नियम 2: कभी कीबोर्ड को मत देखें</h4>
+                        <p>टच टाइपिंग का मतलब है बिना देखे टाइप करना। यदि आप कीबोर्ड को देखते हैं, तो आप कभी भी मांसपेशी स्मृति नहीं विकसित कर पाएंगे। आवश्यकता हो तो अपने कीबोर्ड को कवर करें या कीबोर्ड कवर का उपयोग करें। अपनी उंगलियों पर भरोसा करें।</p>
+                        
+                        <h4>नियम 3: हर की के लिए सही उंगली का उपयोग करें</h4>
+                        <p>हर की के लिए एक निर्धारित उंगली होती है। गलत उंगली का उपयोग करने से आप धीमे हो जाते हैं और बुरी आदतें पड़ सकती हैं। भले ही शुरू में धीमा लगे, उंगली असाइनमेंट से चिपके रहें।</p>
+                        
+                        <h4>नियम 4: कीज को हल्के से दबाएं</h4>
+                        <p>हल्के स्पर्श के साथ टाइप करें। कीज पर मत मारें। हल्के, तेज कीस्ट्रोक तेज होते हैं और थकावट को कम करते हैं। अगले की पर जाने से पहले आपकी उंगलियों को कीज से बमुश्किल छूना चाहिए।</p>
+                        
+                        <h4>नियम 5: नियमित ब्रेक लें</h4>
+                        <p>लंबे समय तक टाइप करने से तनाव और चोट हो सकती है। हर 30 मिनट में 5 मिनट का ब्रेक लें। अपने हाथ, कलाई और बांहों को खींचें। यह दोहराव वाले तनाव चोट (RSI) को रोकता है।</p>
                     </div>
                 </div>
                 
                 <div class="guide-page" id="guidePageHindi2" style="display: none;">
                     <div class="guide-section">
-                        <h3><i class="fas fa-chart-line"></i> सुधार के लिए टिप्स (Tips for Improvement)</h3>
+                        <h3><i class="fas fa-chart-line"></i> सुधार के लिए रणनीतियां (Strategies)</h3>
+                        
+                        <h4>दैनिक अभ्यास दिनचर्या</h4>
                         <ul>
-                            <li>रोजाना कम से कम 15-20 मिनट प्रैक्टिस करें</li>
-                            <li>धीमी गति से शुरू करें और सटीकता पर ध्यान दें</li>
-                            <li>सुधार के साथ धीरे-धीरे गति बढ़ाएं</li>
-                            <li>शुरुआती से लेकर उन्नत स्तर तक पाठ का उपयोग करें</li>
-                            <li>अपनी प्रगति को ट्रैक करें और सुधार का जश्न मनाएं</li>
+                            <li><strong>संगति महत्वपूर्ण है:</strong> सप्ताह में एक बार लंबे सत्र के बजाय रोजाना 15-30 मिनट अभ्यास करें</li>
+                            <li><strong>सुबह का अभ्यास:</strong> सुबह आपका दिमाग सबसे ताजा होता है, जो नए कौशल सीखने के लिए आदर्श है</li>
+                            <li><strong>वार्म अप:</strong> जटिल टेक्स्ट से पहले सरल व्यायाम से शुरू करें</li>
+                            <li><strong>चुनौती के साथ समाप्त:</strong> हर सत्र को अपनी आरामदायक क्षेत्र से थोड़ा कठिन चीज के साथ समाप्त करें</li>
+                        </ul>
+                        
+                        <h4>गति से पहले सटीकता</h4>
+                        <p>कई शुरुआती लोग गलती से सटीकता की तुलना में गति को प्राथमिकता देते हैं। यह गलत है। पहले सटीकता पर ध्यान दें। जैसे-जैसे आपकी मांसपेशी स्मृति में सुधार होगा, गति स्वाभाविक रूप से आएगी। तेज टाइप करने की कोशिश करने से पहले 95%+ सटीकता का लक्ष्य रखें।</p>
+                        
+                        <h4>प्रगतिशील सीखने का मार्ग</h4>
+                        <ul>
+                            <li><strong>सप्ताह 1-2:</strong> होम रो कीज में महारत हासिल करें (ASDF JKL;)</li>
+                            <li><strong>सप्ताह 3-4:</strong> टॉप रो सीखें (QWERTYUIOP)</li>
+                            <li><strong>सप्ताह 5-6:</strong> बॉटम रो सीखें (ZXCVBNM)</li>
+                            <li><strong>सप्ताह 7-8:</strong> सामान्य शब्द और अक्षर संयोजन का अभ्यास करें</li>
+                            <li><strong>सप्ताह 9-12:</strong> वाक्य और पैराग्राफ पर काम करें</li>
+                            <li><strong>माह 4-6:</strong> गति और जटिल टेक्स्ट पर ध्यान दें</li>
+                        </ul>
+                        
+                        <h4>अपनी प्रगति को ट्रैक करें</h4>
+                        <ul>
+                            <li>रोजाना अपने WPM और सटीकता रिकॉर्ड करें</li>
+                            <li>पहचानें कि कौन सी कीज या अक्षर संयोजन आपको परेशान करते हैं</li>
+                            <li>समस्या वाले क्षेत्रों को विशेष रूप से अभ्यास करें</li>
+                            <li>मील के पत्थर का जश्न मनाएं (जैसे 40 WPM, 50 WPM तक पहुंचना, आदि)</li>
+                        </ul>
+                        
+                        <h4>बचने के लिए सामान्य गलतियां</h4>
+                        <ul>
+                            <li>टाइप करते समय कीबोर्ड को देखना</li>
+                            <li>कीज के लिए गलत उंगलियों का उपयोग करना</li>
+                            <li>कीज को बहुत कड़ा दबाना</li>
+                            <li>ब्रेक न लेना</li>
+                            <li>बुनियादी बातों को छोड़कर उन्नत पाठों पर कूदना</li>
+                            <li>धीमी प्रगति से निराश होना - सीखने में समय लगता है</li>
                         </ul>
                     </div>
                 </div>
                 
                 <div class="guide-page" id="guidePageHindi3" style="display: none;">
                     <div class="guide-section">
-                        <h3><i class="fas fa-tachometer-alt"></i> WPM को समझना (Understanding WPM)</h3>
+                        <h3><i class="fas fa-tachometer-alt"></i> WPM और सटीकता को समझना</h3>
                         
                         <div class="guide-diagram">
                             <svg width="400" height="180" viewBox="0 0 400 180">
@@ -1877,15 +2046,82 @@
                             <div class="diagram-label">WPM और सटीकता की गणना</div>
                         </div>
                         
-                        <p><strong>WPM (Words Per Minute)</strong> आपकी टाइपिंग गति मापता है। आमतौर पर एक शब्द 5 अक्षरों का होता है। उदाहरण के लिए, "hello world" टाइप करना 2 शब्द गिना जाता है।</p>
-                        <p><strong>सटीकता (Accuracy)</strong> दिखाती है कि आपने कितने अक्षर सही टाइप किए। गति पर ध्यान देने से पहले 95%+ सटीकता का लक्ष्य रखें।</p>
+                        <h4>WPM क्या है?</h4>
+                        <p><strong>WPM (Words Per Minute)</strong> टाइपिंग गति का मानक माप है। टाइपिंग में, एक "शब्द" को 5 अक्षर के रूप में मानकीकृत किया जाता है। इसमें अक्षर, संख्या, स्पेस, और विराम चिह्न शामिल हैं। उदाहरण के लिए:</p>
+                        <ul>
+                            <li>"hello" = 5 अक्षर = 1 शब्द</li>
+                            <li>"hello world" = 11 अक्षर = 2.2 शब्द</li>
+                            <li>"The quick brown fox" = 19 अक्षर = 3.8 शब्द</li>
+                        </ul>
+                        
+                        <h4>सटीकता क्या है?</h4>
+                        <p><strong>सटीकता</strong> मापती है कि आपने कितने अक्षर सही टाइप किए। इसकी गणना इस प्रकार की जाती है: (सही अक्षर ÷ कुल अक्षर) × 100%। उच्च सटीकता महत्वपूर्ण है क्योंकि गलतियों को सुधारने में समय लगता है और आपकी प्रवाह को तोड़ता है।</p>
+                        
+                        <h4>टाइपिंग गति बेंचमार्क</h4>
+                        <ul>
+                            <li><strong>शुरुआती:</strong> 20-30 WPM (सिर्फ सीख रहे हैं)</li>
+                            <li><strong>औसत:</strong> 40-50 WPM (अधिकांश कार्यों के लिए कार्यात्मक)</li>
+                            <li><strong>अच्छा:</strong> 60-70 WPM (औसत से ऊपर)</li>
+                            <li><strong>पेशेवर:</strong> 75-90 WPM (बहुत तेज)</li>
+                            <li><strong>विशेषज्ञ:</strong> 100+ WPM (असाधारण)</li>
+                        </ul>
+                        
+                        <h4>Net WPM vs Gross WPM</h4>
+                        <p><strong>Gross WPM</strong> आपकी कच्ची टाइपिंग गति है जिसमें गलतियां शामिल हैं। <strong>Net WPM</strong> त्रुटियों को ध्यान में रखता है और इसकी गणना इस प्रकार की जाती है: Gross WPM - (त्रुटियां ÷ समय)। Net WPM आपकी वास्तविक टाइपिंग क्षमता का अधिक सटीक माप है।</p>
+                    </div>
+                </div>
+                
+                <div class="guide-page" id="guidePageHindi4" style="display: none;">
+                    <div class="guide-section">
+                        <h3><i class="fas fa-laptop"></i> कीबोर्ड शॉर्टकट और टिप्स</h3>
+                        
+                        <h4>आवश्यक कीबोर्ड शॉर्टकट</h4>
+                        <ul>
+                            <li><strong>Ctrl/Cmd + C:</strong> चयनित टेक्स्ट कॉपी करें</li>
+                            <li><strong>Ctrl/Cmd + V:</strong> कॉपी किया गया टेक्स्ट पेस्ट करें</li>
+                            <li><strong>Ctrl/Cmd + X:</strong> चयनित टेक्स्ट कट करें</li>
+                            <li><strong>Ctrl/Cmd + Z:</strong> अंतिम कार्य पूर्ववत करें</li>
+                            <li><strong>Ctrl/Cmd + A:</strong> सभी टेक्स्ट चयन करें</li>
+                            <li><strong>Ctrl/Cmd + S:</strong> दस्तावेज़ सहेजें</li>
+                            <li><strong>Ctrl/Cmd + F:</strong> टेक्स्ट खोजें</li>
+                            <li><strong>Home:</strong> पंक्ति की शुरुआत पर जाएं</li>
+                            <li><strong>End:</strong> पंक्ति के अंत पर जाएं</li>
+                            <li><strong>Ctrl/Cmd + Home/End:</strong> दस्तावेज़ की शुरुआत/अंत पर जाएं</li>
+                        </ul>
+                        
+                        <h4>एर्गोनॉमिक्स और मुद्रा</h4>
+                        <ul>
+                            <li><strong>कुर्सी की ऊंचाई:</strong> इसे इस तरह समायोजित करें कि आपके पैर फर्श पर सपाट हों और घुटने 90 डिग्री पर हों</li>
+                            <li><strong>मॉनिटर की स्थिति:</strong> स्क्रीन का शीर्ष आंख के स्तर पर या उससे थोड़ा नीचे होना चाहिए</li>
+                            <li><strong>बांह की स्थिति:</strong> कोहनी 90-100 डिग्री पर होनी चाहिए, आपके शरीर के करीब</li>
+                            <li><strong>कलाई की स्थिति:</strong> कलाई को सीधा रखें, न तो ऊपर झुकाएं और न ही नीचे</li>
+                            <li><strong>कीबोर्ड की स्थापना:</strong> आपके सामने केंद्रित, डेस्क के किनारे से लगभग 2-3 इंच दूर</li>
+                        </ul>
+                        
+                        <h4>स्वास्थ्य टिप्स</h4>
+                        <ul>
+                            <li>हर 20-30 मिनट में 1-2 मिनट का ब्रेक लें</li>
+                            <li>नियमित रूप से अपनी उंगलियों, हाथों और कलाई को खींचें</li>
+                            <li>मांसपेशी क्रैंप से बचने के लिए हाइड्रेटेड रहें</li>
+                            <li>यदि आपको दर्द महसूस हो, तो तुरंत रुकें और आराम करें</li>
+                            <li>यदि आप व्यापक रूप से टाइप करते हैं तो एर्गोनॉमिक कीबोर्ड का उपयोग करने पर विचार करें</li>
+                        </ul>
+                        
+                        <h4>उन्नत टिप्स</h4>
+                        <ul>
+                            <li>नंबर पैड को देखे बिना नंबर टाइप करना सीखें</li>
+                            <li>विशेष अक्षर और प्रतीकों का अभ्यास करें</li>
+                            <li>अपने पसंदीदा एप्लिकेशन में कीबोर्ड शॉर्टकट का उपयोग करना सीखें</li>
+                            <li>विभिन्न प्रकार के टेक्स्ट (तकनीकी, रचनात्मक, वार्तालाप) के साथ अभ्यास करें</li>
+                            <li>यदि आप और अधिक अनुकूलित करना चाहते हैं तो Dvorak या Colemak लेआउट सीखने पर विचार करें (लेकिन पहले QWERTY में महारत हासिल करें)</li>
+                        </ul>
                     </div>
                 </div>
                 
                 <div class="guide-navigation">
                     <button class="guide-nav-btn" id="prevBtnHindi" onclick="prevGuidePage()" disabled>Previous</button>
                     <div class="guide-page-indicator">
-                        <span id="currentPageHindi">1</span> / <span id="totalPagesHindi">4</span>
+                        <span id="currentPageHindi">1</span> / <span id="totalPagesHindi">5</span>
                     </div>
                     <button class="guide-nav-btn" id="nextBtnHindi" onclick="nextGuidePage()">Next</button>
                 </div>
@@ -1921,30 +2157,58 @@
     </div>
 
     <script>
-        // Text samples for different difficulty levels
-        const textSamples = {
-            easy: [
-                "The quick brown fox jumps over the lazy dog. A journey of a thousand miles begins with a single step.",
-                "Practice makes perfect. Learning to type fast is a valuable skill in today's digital world.",
-                "The sun rises in the east and sets in the west. Birds fly in the sky and fish swim in the sea.",
-                "A good friend is like a four-leaf clover: hard to find and lucky to have.",
-                "Every day is a new beginning. Take a deep breath and start again."
-            ],
-            medium: [
-                "Programming is the art of telling a computer what to do. It requires patience, logic, and creativity to write efficient code.",
-                "The internet has revolutionized how we communicate, work, and learn. It connects people across the globe instantly.",
-                "Machine learning algorithms can analyze vast amounts of data to find patterns and make predictions.",
-                "Climate change is one of the most pressing challenges of our time, requiring global cooperation and innovation.",
-                "Effective communication is essential in both personal and professional relationships. It builds trust and understanding."
-            ],
-            hard: [
-                "Quantum computing leverages quantum-mechanical phenomena such as superposition and entanglement to perform computations exponentially faster than classical computers.",
-                "The implementation of artificial neural networks in deep learning has enabled breakthroughs in image recognition, natural language processing, and autonomous systems.",
-                "Cryptocurrency and blockchain technology are disrupting traditional financial systems by enabling decentralized, secure, and transparent transactions without intermediaries.",
-                "The CRISPR-Cas9 gene editing technology has revolutionized molecular biology by allowing precise modifications to DNA sequences, opening new possibilities in medicine and agriculture.",
-                "The Internet of Things (IoT) ecosystem connects billions of devices, sensors, and systems, creating smart environments that collect and analyze data in real-time."
-            ]
-        };
+        // 50-Level Game System
+        const gameLevels = [];
+        
+        // Generate 50 levels with progressive difficulty
+        for (let i = 1; i <= 50; i++) {
+            const levelNum = i;
+            let duration, difficulty, contentLength;
+            
+            // Timer duration: Level 1 = 1 min, Level 50 = 30 min
+            if (levelNum <= 10) {
+                duration = 1 + (levelNum - 1) * 0.5; // 1-5.5 min
+            } else if (levelNum <= 25) {
+                duration = 5.5 + (levelNum - 10) * 0.5; // 5.5-13 min
+            } else if (levelNum <= 40) {
+                duration = 13 + (levelNum - 25) * 0.6; // 13-22 min
+            } else {
+                duration = 22 + (levelNum - 40) * 0.5; // 22-30 min
+            }
+            
+            // Difficulty categories
+            if (levelNum <= 15) {
+                difficulty = 'Easy';
+            } else if (levelNum <= 35) {
+                difficulty = 'Medium';
+            } else {
+                difficulty = 'Hard';
+            }
+            
+            // Content length: increases with level (500-6000 characters)
+            contentLength = 500 + (levelNum - 1) * 110;
+            
+            gameLevels.push({
+                level: levelNum,
+                duration: Math.round(duration * 60), // Convert to seconds
+                durationDisplay: duration >= 60 ? `${Math.round(duration/60)} min` : `${Math.round(duration)} min`,
+                difficulty: difficulty,
+                contentLength: contentLength
+            });
+        }
+        
+        // Text content generator for different levels
+        const easyTexts = [
+            "The quick brown fox jumps over the lazy dog. A journey of a thousand miles begins with a single step. Practice makes perfect. Learning to type fast is a valuable skill in today's digital world. The sun rises in the east and sets in the west. Birds fly in the sky and fish swim in the sea. A good friend is like a four-leaf clover: hard to find and lucky to have. Every day is a new beginning. Take a deep breath and start again. Success is not final, failure is not fatal: it is the courage to continue that counts. The best time to plant a tree was twenty years ago. The second best time is now. Life is what happens when you're busy making other plans. In the middle of difficulty lies opportunity. The only way to do great work is to love what you do. Believe you can and you're halfway there. Happiness depends upon ourselves. The future belongs to those who believe in the beauty of their dreams. It does not matter how slowly you go as long as you do not stop. Act as if what you do makes a difference. It does. The mind is everything. What you think you become. Change your thoughts and you change your world. What lies behind us and what lies before us are tiny matters compared to what lies within us. Be the change that you wish to see in the world."
+        ];
+        
+        const mediumTexts = [
+            "Programming is the art of telling a computer what to do. It requires patience, logic, and creativity to write efficient code. The internet has revolutionized how we communicate, work, and learn. It connects people across the globe instantly. Machine learning algorithms can analyze vast amounts of data to find patterns and make predictions. Climate change is one of the most pressing challenges of our time, requiring global cooperation and innovation. Effective communication is essential in both personal and professional relationships. It builds trust and understanding. Technology continues to evolve at an unprecedented pace, transforming every aspect of our lives. From smartphones to artificial intelligence, these innovations shape how we interact with the world. Education is the most powerful weapon which you can use to change the world. Knowledge is power, but sharing knowledge is even more powerful. The pursuit of knowledge should never end. Every problem is an opportunity in disguise. Challenges help us grow and become stronger versions of ourselves. Resilience is the ability to bounce back from adversity stronger than before. Success is not about avoiding failure, but about learning from it and moving forward."
+        ];
+        
+        const hardTexts = [
+            "Quantum computing leverages quantum-mechanical phenomena such as superposition and entanglement to perform computations exponentially faster than classical computers. The implementation of artificial neural networks in deep learning has enabled breakthroughs in image recognition, natural language processing, and autonomous systems. Cryptocurrency and blockchain technology are disrupting traditional financial systems by enabling decentralized, secure, and transparent transactions without intermediaries. The CRISPR-Cas9 gene editing technology has revolutionized molecular biology by allowing precise modifications to DNA sequences, opening new possibilities in medicine and agriculture. The Internet of Things (IoT) ecosystem connects billions of devices, sensors, and systems, creating smart environments that collect and analyze data in real-time. Edge computing brings computation and data storage closer to the location where it is needed, improving response times and saving bandwidth. Augmented reality and virtual reality are transforming entertainment, education, and training by creating immersive digital experiences. 5G networks promise unprecedented speed and connectivity, enabling new applications in telemedicine, autonomous vehicles, and smart cities. Cybersecurity remains a critical concern as digital threats become increasingly sophisticated, requiring advanced defense mechanisms and constant vigilance."
+        ];
 
         let currentText = '';
         let currentIndex = 0;
@@ -1959,6 +2223,7 @@
         let maxCombo = 1;
         let timeRemaining = 0;
         let timerCountdownInterval = null;
+        let currentLevel = 1;
 
         const textDisplay = document.getElementById('textDisplay');
         const typingInput = document.getElementById('typingInput');
@@ -1971,8 +2236,8 @@
         const progressFill = document.getElementById('progressFill');
         const accuracyCircle = document.getElementById('accuracyCircle');
         const startBtn = document.getElementById('startBtn');
-        const difficultySelect = document.getElementById('difficulty');
-        const timerSelect = document.getElementById('timer');
+        const levelSelect = document.getElementById('levelSelect');
+        const levelInfo = document.getElementById('levelInfo');
         const showKeyboardCheckbox = document.getElementById('showKeyboard');
         const highlightNextCheckbox = document.getElementById('highlightNext');
         const fingerGuideCheckbox = document.getElementById('fingerGuide');
@@ -1980,6 +2245,47 @@
         const timerDisplay = document.getElementById('timerDisplay');
         const timerCountdown = document.getElementById('timerCountdown');
 
+        // Initialize level selector
+        function initializeLevelSelector() {
+            for (let i = 1; i <= 50; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Level ${i}`;
+                levelSelect.appendChild(option);
+            }
+            levelSelect.value = currentLevel;
+            updateLevelInfo();
+        }
+        
+        // Update level info display
+        function updateLevelInfo() {
+            const level = gameLevels[currentLevel - 1];
+            levelInfo.textContent = `${level.durationDisplay} • ${level.difficulty}`;
+        }
+        
+        // Generate text based on level
+        function generateTextForLevel(level) {
+            const levelData = gameLevels[level - 1];
+            let baseText;
+            
+            if (levelData.difficulty === 'Easy') {
+                baseText = easyTexts[0];
+            } else if (levelData.difficulty === 'Medium') {
+                baseText = mediumTexts[0];
+            } else {
+                baseText = hardTexts[0];
+            }
+            
+            // Extend text to match required content length
+            let generatedText = '';
+            while (generatedText.length < levelData.contentLength) {
+                generatedText += baseText + ' ';
+            }
+            
+            // Trim to exact length
+            return generatedText.substring(0, levelData.contentLength).trim();
+        }
+        
         function loadNewText() {
             const storedLesson = localStorage.getItem('typingLesson');
             
@@ -1989,10 +2295,9 @@
                 document.getElementById('lessonTitle').textContent = `${lesson.chapter} - ${lesson.title}`;
                 localStorage.removeItem('typingLesson');
             } else {
-                const difficulty = difficultySelect.value;
-                const samples = textSamples[difficulty];
-                currentText = samples[Math.floor(Math.random() * samples.length)];
-                document.getElementById('lessonTitle').textContent = 'Typing Practice';
+                currentLevel = parseInt(levelSelect.value);
+                currentText = generateTextForLevel(currentLevel);
+                document.getElementById('lessonTitle').textContent = `Level ${currentLevel} - ${gameLevels[currentLevel - 1].difficulty}`;
             }
             
             currentIndex = 0;
@@ -2007,7 +2312,7 @@
             wpmDisplay.textContent = '0';
             accuracyDisplay.textContent = '100%';
             cpmDisplay.textContent = '0';
-            charCountDisplay.textContent = '0/0';
+            charCountDisplay.textContent = `0/${currentText.length}`;
             streakDisplay.textContent = '0';
             comboDisplay.textContent = 'x1';
             progressFill.style.width = '0%';
@@ -2032,21 +2337,19 @@
             startBtn.disabled = true;
             updateDisplay();
             
-            const timerDuration = parseInt(timerSelect.value);
-            if (timerDuration > 0) {
-                timeRemaining = timerDuration;
-                timerDisplay.style.display = 'flex';
+            const levelData = gameLevels[currentLevel - 1];
+            timeRemaining = levelData.duration;
+            timerDisplay.style.display = 'flex';
+            updateTimerDisplay();
+            
+            timerCountdownInterval = setInterval(() => {
+                timeRemaining--;
                 updateTimerDisplay();
                 
-                timerCountdownInterval = setInterval(() => {
-                    timeRemaining--;
-                    updateTimerDisplay();
-                    
-                    if (timeRemaining <= 0) {
-                        endTyping();
-                    }
-                }, 1000);
-            }
+                if (timeRemaining <= 0) {
+                    endTyping();
+                }
+            }, 1000);
         }
 
         function updateTimerDisplay() {
@@ -2094,6 +2397,25 @@
             document.getElementById('resultModal').style.display = 'none';
             loadNewText();
         }
+        
+        // Level select change event
+        levelSelect.addEventListener('change', function() {
+            currentLevel = parseInt(this.value);
+            updateLevelInfo();
+            loadNewText();
+        });
+        
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            initializeLevelSelector();
+            loadNewText();
+            
+            // Check for guide parameter in URL and open guide automatically
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('guide') === 'true') {
+                openGuide();
+            }
+        });
 
         function resetTyping() {
             if (isTyping) {
@@ -2130,14 +2452,6 @@
             document.getElementById('guideModal').style.display = 'flex';
         }
 
-        // Check for guide parameter in URL and open guide automatically
-        window.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('guide') === 'true') {
-                openGuide();
-            }
-        });
-
         function closeGuide() {
             document.getElementById('guideModal').style.display = 'none';
         }
@@ -2163,7 +2477,7 @@
         }
 
         let currentGuidePage = 0;
-        const totalGuidePages = 4;
+        const totalGuidePages = 5;
 
         function nextGuidePage() {
             const lang = document.querySelector('.guide-content-english.active') ? 'english' : 'hindi';
