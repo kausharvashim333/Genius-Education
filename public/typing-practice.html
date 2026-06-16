@@ -561,7 +561,7 @@
         }
 
         .key.space {
-            min-width: 350px;
+            min-width: 400px;
         }
 
         .key.shift {
@@ -2934,9 +2934,9 @@
                 charCount += lineLength + 1; // +1 for space
             }
             
-            // Card-based display: show only current line and adjacent lines
+            // Card-based display: show only current line
             let displayHTML = '';
-            const visibleLines = [currentLineIndex - 1, currentLineIndex, currentLineIndex + 1];
+            const visibleLines = [currentLineIndex];
             
             for (let i = 0; i < lines.length; i++) {
                 if (!visibleLines.includes(i)) {
