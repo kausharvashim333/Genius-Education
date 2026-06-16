@@ -242,45 +242,84 @@
         }
 
         .header-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #e0e0e0;
-            padding: 8px 16px;
-            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .header-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .header-btn.primary {
-            background: #667eea;
+        .header-btn:active {
+            transform: translateY(0);
+        }
+
+        .header-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            box-shadow: none;
+        }
+
+        .header-btn.secondary:hover {
+            background: rgba(102, 126, 234, 0.2);
             border-color: #667eea;
         }
 
-        .header-btn.primary:hover {
-            background: #5568d3;
+        .header-btn.success {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        }
+
+        .header-btn.success:hover {
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+        }
+
+        .header-btn i {
+            font-size: 16px;
         }
 
         .difficulty-select {
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(102, 126, 234, 0.5);
             color: #e0e0e0;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        .difficulty-select:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .difficulty-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
 
         .difficulty-select option {
             background: #1a1a2e;
             color: #e0e0e0;
+            padding: 10px;
         }
 
         /* Content Area */
@@ -389,35 +428,49 @@
             max-width: 900px;
         }
 
+        .keyboard-title {
+            color: #e0e0e0;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
         .keyboard {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             align-items: center;
+            background: rgba(30, 30, 50, 0.5);
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .keyboard-row {
             display: flex;
-            gap: 6px;
+            gap: 8px;
+            justify-content: center;
         }
 
         .key {
-            min-width: 45px;
-            height: 45px;
-            background: linear-gradient(145deg, #3a3a4a, #2a2a3a);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+            min-width: 50px;
+            height: 50px;
+            background: linear-gradient(145deg, #4a4a5a, #3a3a4a);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
             color: #e0e0e0;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 15px;
+            font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.1s ease;
+            transition: all 0.15s ease;
             transform-style: preserve-3d;
             perspective: 1000px;
             position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
         .key::before {
@@ -426,8 +479,8 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 50%;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
+            height: 40%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.15), transparent);
             border-radius: 8px 8px 0 0;
             pointer-events: none;
         }
@@ -435,49 +488,212 @@
         .key::after {
             content: '';
             position: absolute;
-            bottom: 2px;
+            bottom: 3px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            background: rgba(102, 126, 234, 0.3);
+            background: rgba(102, 126, 234, 0.4);
             border-radius: 50%;
             transition: width 0.3s, height 0.3s;
         }
 
         .key.active::after {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
         }
 
         .key.active {
             background: linear-gradient(145deg, #667eea, #5568d3);
-            transform: translateY(2px);
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+            transform: translateY(3px);
+            box-shadow: 0 2px 12px rgba(102, 126, 234, 0.5);
+            border-color: #667eea;
         }
 
         .key.space {
-            min-width: 300px;
+            min-width: 350px;
         }
 
         .key.shift {
-            min-width: 90px;
+            min-width: 100px;
         }
 
         .key.caps {
-            min-width: 80px;
+            min-width: 90px;
         }
 
         .key.tab {
-            min-width: 70px;
-        }
-
-        .key.enter {
             min-width: 80px;
         }
 
-        .key.backspace {
+        .key.enter {
             min-width: 90px;
+        }
+
+        .key.backspace {
+            min-width: 100px;
+        }
+
+        /* Finger guide legend */
+        .finger-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+            padding: 15px;
+            background: rgba(40, 40, 60, 0.5);
+            border-radius: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #b0b0b0;
+            font-size: 13px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-pinky { background: #ef4444; }
+        .legend-ring { background: #f59e0b; }
+        .legend-middle { background: #22c55e; }
+        .legend-index { background: #3b82f6; }
+        .legend-thumb { background: #8b5cf6; }
+
+        /* Guide Modal */
+        .guide-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .guide-content {
+            background: rgba(30, 30, 50, 0.98);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 40px;
+        }
+
+        .guide-content h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .guide-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(40, 40, 60, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .guide-section h3 {
+            color: #e0e0e0;
+            margin-bottom: 15px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .guide-section h3 i {
+            color: #667eea;
+        }
+
+        .guide-section p, .guide-section li {
+            color: #b0b0b0;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .guide-section ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .guide-section li {
+            margin-bottom: 10px;
+        }
+
+        .language-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .language-tab {
+            padding: 10px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            border-radius: 10px;
+            color: #e0e0e0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .language-tab.active {
+            background: #667eea;
+            border-color: #667eea;
+        }
+
+        .language-tab:hover {
+            border-color: #667eea;
+        }
+
+        .guide-content-hindi, .guide-content-english {
+            display: none;
+        }
+
+        .guide-content-hindi.active, .guide-content-english.active {
+            display: block;
+        }
+
+        .close-guide {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
+            color: #ef4444;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-guide:hover {
+            background: #ef4444;
+            color: white;
         }
 
         /* Finger guide colors */
@@ -733,13 +949,16 @@
                         <option value="300">5 min</option>
                         <option value="0">Unlimited</option>
                     </select>
-                    <button class="header-btn" onclick="loadNewText()">
+                    <button class="header-btn secondary" onclick="loadNewText()">
                         <i class="fas fa-redo"></i> New Text
                     </button>
-                    <button class="header-btn primary" id="startBtn" onclick="startTyping()">
+                    <button class="header-btn success" id="startBtn" onclick="startTyping()">
                         <i class="fas fa-play"></i> Start
                     </button>
-                    <button class="header-btn" onclick="window.location.href='course-viewer.html'">
+                    <button class="header-btn secondary" onclick="openGuide()">
+                        <i class="fas fa-question-circle"></i> Guide
+                    </button>
+                    <button class="header-btn secondary" onclick="window.location.href='course-viewer.html'">
                         <i class="fas fa-book"></i> Lessons
                     </button>
                 </div>
@@ -757,6 +976,7 @@
                     </div>
 
                     <div class="keyboard-section" id="keyboardSection">
+                        <div class="keyboard-title"><i class="fas fa-keyboard"></i> Virtual Keyboard</div>
                         <div class="keyboard">
                             <div class="keyboard-row">
                                 <div class="key pinky-left" data-key="`">`</div>
@@ -823,11 +1043,140 @@
                                 <div class="key thumb" data-key=" ">Space</div>
                             </div>
                         </div>
+                        
+                        <div class="finger-legend">
+                            <div class="legend-item">
+                                <div class="legend-color legend-pinky"></div>
+                                <span>Pinky Finger</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-ring"></div>
+                                <span>Ring Finger</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-middle"></div>
+                                <span>Middle Finger</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-index"></div>
+                                <span>Index Finger</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-thumb"></div>
+                                <span>Thumb</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="live-graph" id="liveGraphSection">
                         <canvas id="wpmGraph"></canvas>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="guide-modal" id="guideModal">
+        <div class="guide-content" style="position: relative;">
+            <button class="close-guide" onclick="closeGuide()">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2><i class="fas fa-graduation-cap"></i> Typing Guide / टाइपिंग गाइड</h2>
+            
+            <div class="language-tabs">
+                <button class="language-tab active" onclick="switchLanguage('english')">English</button>
+                <button class="language-tab" onclick="switchLanguage('hindi')">हिंदी</button>
+            </div>
+            
+            <div class="guide-content-english active">
+                <div class="guide-section">
+                    <h3><i class="fas fa-hand-paper"></i> Finger Placement</h3>
+                    <p>Place your fingers on the home row keys:</p>
+                    <ul>
+                        <li><strong>Left Pinky:</strong> A key</li>
+                        <li><strong>Left Ring:</strong> S key</li>
+                        <li><strong>Left Middle:</strong> D key</li>
+                        <li><strong>Left Index:</strong> F key</li>
+                        <li><strong>Right Index:</strong> J key</li>
+                        <li><strong>Right Middle:</strong> K key</li>
+                        <li><strong>Right Ring:</strong> L key</li>
+                        <li><strong>Right Pinky:</strong> ; key</li>
+                        <li><strong>Thumbs:</strong> Space bar</li>
+                    </ul>
+                </div>
+                
+                <div class="guide-section">
+                    <h3><i class="fas fa-keyboard"></i> Basic Rules</h3>
+                    <ul>
+                        <li>Always keep your fingers on the home row</li>
+                        <li>Don't look at the keyboard while typing</li>
+                        <li>Use the correct finger for each key</li>
+                        <li>Press keys gently and release quickly</li>
+                        <li>Take breaks to avoid fatigue</li>
+                    </ul>
+                </div>
+                
+                <div class="guide-section">
+                    <h3><i class="fas fa-chart-line"></i> Tips for Improvement</h3>
+                    <ul>
+                        <li>Practice daily for at least 15-20 minutes</li>
+                        <li>Start with slow speed and focus on accuracy</li>
+                        <li>Gradually increase your speed as you improve</li>
+                        <li>Use lessons from beginner to advanced level</li>
+                        <li>Track your progress and celebrate improvements</li>
+                    </ul>
+                </div>
+                
+                <div class="guide-section">
+                    <h3><i class="fas fa-tachometer-alt"></i> Understanding WPM</h3>
+                    <p><strong>WPM (Words Per Minute)</strong> measures your typing speed. One word is typically 5 characters. For example, typing "hello world" counts as 2 words.</p>
+                    <p><strong>Accuracy</strong> shows how many characters you typed correctly. Aim for 95%+ accuracy before focusing on speed.</p>
+                </div>
+            </div>
+            
+            <div class="guide-content-hindi">
+                <div class="guide-section">
+                    <h3><i class="fas fa-hand-paper"></i> उंगलियों की स्थिति (Finger Placement)</h3>
+                    <p>अपनी उंगलियों को होम रो कीज पर रखें:</p>
+                    <ul>
+                        <li><strong>बाया छोटी उंगली:</strong> A की</li>
+                        <li><strong>बाया अनामिका:</strong> S की</li>
+                        <li><strong>बाया मध्यमा:</strong> D की</li>
+                        <li><strong>बाया तर्जनी:</strong> F की</li>
+                        <li><strong>दाया तर्जनी:</strong> J की</li>
+                        <li><strong>दाया मध्यमा:</strong> K की</li>
+                        <li><strong>दाया अनामिका:</strong> L की</li>
+                        <li><strong>दाया छोटी उंगली:</strong> ; की</li>
+                        <li><strong>अंगूठे:</strong> स्पेस बार</li>
+                    </ul>
+                </div>
+                
+                <div class="guide-section">
+                    <h3><i class="fas fa-keyboard"></i> बुनियादी नियम (Basic Rules)</h3>
+                    <ul>
+                        <li>हमेशा अपनी उंगलियों को होम रो पर रखें</li>
+                        <li>टाइप करते समय कीबोर्ड को न देखें</li>
+                        <li>हर की के लिए सही उंगली का प्रयोग करें</li>
+                        <li>कीज को हल्के से दबाएं और जल्दी छोड़ें</li>
+                        <li>थकावट से बचने के लिए ब्रेक लें</li>
+                    </ul>
+                </div>
+                
+                <div class="guide-section">
+                    <h3><i class="fas fa-chart-line"></i> सुधार के लिए टिप्स (Tips for Improvement)</h3>
+                    <ul>
+                        <li>रोजाना कम से कम 15-20 मिनट प्रैक्टिस करें</li>
+                        <li>धीमी गति से शुरू करें और सटीकता पर ध्यान दें</li>
+                        <li>सुधार के साथ धीरे-धीरे गति बढ़ाएं</li>
+                        <li>शुरुआती से लेकर उन्नत स्तर तक पाठ का उपयोग करें</li>
+                        <li>अपनी प्रगति को ट्रैक करें और सुधार का जश्न मनाएं</li>
+                    </ul>
+                </div>
+                
+                <div class="guide-section">
+                    <h3><i class="fas fa-tachometer-alt"></i> WPM को समझना (Understanding WPM)</h3>
+                    <p><strong>WPM (Words Per Minute)</strong> आपकी टाइपिंग गति मापता है। आमतौर पर एक शब्द 5 अक्षरों का होता है। उदाहरण के लिए, "hello world" टाइप करना 2 शब्द गिना जाता है।</p>
+                    <p><strong>सटीकता (Accuracy)</strong> दिखाती है कि आपने कितने अक्षर सही टाइप किए। गति पर ध्यान देने से पहले 95%+ सटीकता का लक्ष्य रखें।</p>
                 </div>
             </div>
         </div>
@@ -996,6 +1345,32 @@
         function closeResultModal() {
             document.getElementById('resultModal').style.display = 'none';
             loadNewText();
+        }
+
+        function openGuide() {
+            document.getElementById('guideModal').style.display = 'flex';
+        }
+
+        function closeGuide() {
+            document.getElementById('guideModal').style.display = 'none';
+        }
+
+        function switchLanguage(lang) {
+            const tabs = document.querySelectorAll('.language-tab');
+            const englishContent = document.querySelector('.guide-content-english');
+            const hindiContent = document.querySelector('.guide-content-hindi');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            if (lang === 'english') {
+                tabs[0].classList.add('active');
+                englishContent.classList.add('active');
+                hindiContent.classList.remove('active');
+            } else {
+                tabs[1].classList.add('active');
+                hindiContent.classList.add('active');
+                englishContent.classList.remove('active');
+            }
         }
 
         function updateDisplay() {
