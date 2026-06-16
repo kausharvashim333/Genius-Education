@@ -1400,6 +1400,7 @@ function initializeRequiredFields() {
 // Auto-save draft functionality
 const DRAFT_KEY = 'admission_form_draft';
 let autoSaveTimeout;
+let formSubmitted = false;
 
 function setupAutoSave() {
     const form = document.getElementById('applyForm');
@@ -1418,6 +1419,7 @@ function setupAutoSave() {
 }
 
 function saveDraft() {
+    if (formSubmitted) return; // Don't re-save after submission
     const form = document.getElementById('applyForm');
     const formData = new FormData(form);
     const draftData = {};
@@ -1459,6 +1461,7 @@ function loadDraft() {
 }
 
 function clearDraft() {
+    clearTimeout(autoSaveTimeout); // Cancel any pending auto-save
     localStorage.removeItem(DRAFT_KEY);
 }
 
@@ -1481,10 +1484,11 @@ function showAutoSaveIndicator(status) {
     }
 }
 
-// Clear draft on successful submission
-const originalSubmit = document.getElementById('applyForm').onsubmit;
+// Cancel any pending auto-save when the form is submitted.
+// The draft is actually cleared only after a SUCCESSFUL submission (see /api/students success block),
+// so a cancelled payment keeps the user's draft intact.
 document.getElementById('applyForm').addEventListener('submit', function(e) {
-    clearDraft();
+    clearTimeout(autoSaveTimeout);
 });
 
 // Global formatDate function for DD-MMM-YYYY format (with month name)
@@ -2373,6 +2377,9 @@ async function submitApplication(paymentMode, paymentType, amountPaid, upiId = '
         const res = await fetch('/api/students', { method:'POST', body:fd });
         const data = await res.json();
         if (data.success) {
+            // Mark submitted & clear draft so old data (incl. step 4) never reappears
+            formSubmitted = true;
+            clearDraft();
             closePaymentModal();
             populatePrintSection(data.student, paymentMode, paymentType, amountPaid);
             document.getElementById('printSection').style.display = 'block';
