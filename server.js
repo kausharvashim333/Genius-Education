@@ -7391,8 +7391,50 @@ app.get('/api/tickets/:id/responses', (req, res) => {
     const tickets = readData('tickets.json') || [];
     const ticket = tickets.find(t => t.id == req.params.id);
     if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
-    
+
     res.json({ success: true, responses: ticket.responses || [] });
+});
+
+// --- Typing Practice Leaderboard ---
+app.get('/api/typing-scores', (req, res) => {
+    const scores = readData('typing-scores.json') || [];
+    // Sort by WPM descending, then by accuracy descending
+    scores.sort((a, b) => b.wpm - a.wpm || b.accuracy - a.accuracy);
+    res.json({ success: true, scores: scores.slice(0, 50) });
+});
+
+app.post('/api/typing-scores', (req, res) => {
+    const { studentId, studentName, wpm, accuracy, difficulty, duration } = req.body;
+    
+    if (!studentId || !studentName || wpm === undefined || accuracy === undefined) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    const scores = readData('typing-scores.json') || [];
+    const newScore = {
+        id: Date.now(),
+        studentId,
+        studentName,
+        wpm: parseInt(wpm),
+        accuracy: parseInt(accuracy),
+        difficulty: difficulty || 'medium',
+        duration: parseInt(duration) || 60,
+        createdAt: new Date().toISOString()
+    };
+    
+    scores.push(newScore);
+    writeData('typing-scores.json', scores);
+    res.json({ success: true, score: newScore });
+});
+
+app.delete('/api/typing-scores/:id', (req, res) => {
+    const scores = readData('typing-scores.json') || [];
+    const idx = scores.findIndex(s => s.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Score not found' });
+    
+    scores.splice(idx, 1);
+    writeData('typing-scores.json', scores);
+    res.json({ success: true });
 });
 
 // --- Backup & Recovery ---
