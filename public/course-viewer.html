@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course Viewer - Genius Computer Education</title>
+    <title>Typing Practice Course - Genius Computer Education</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -647,8 +647,8 @@
 <body>
     <div class="app-header">
         <div class="app-logo">
-            <i class="fas fa-graduation-cap"></i>
-            <span>Course Viewer</span>
+            <i class="fas fa-keyboard"></i>
+            <span>Typing Practice Course</span>
         </div>
         <div class="app-controls">
             <div class="view-toggle">
@@ -711,337 +711,337 @@
     </div>
 
     <script>
-        // Course Data with 30+ chapters
+        // Typing Practice Course Data for Beginners
         const courseData = {
             chapters: [
                 {
                     id: 1,
-                    title: "Introduction to Programming",
-                    description: "Getting started with programming fundamentals",
+                    title: "Basic Letters (A-Z)",
+                    description: "Learn to type all letters of the alphabet",
                     lessons: [
-                        { id: 1, title: "What is Programming?", description: "Understanding the basics of programming", duration: "15 min", icon: "fa-code", completed: true },
-                        { id: 2, title: "Setting Up Environment", description: "Install and configure your development tools", duration: "20 min", icon: "fa-cog", completed: true },
-                        { id: 3, title: "Your First Program", description: "Write and run your first program", duration: "25 min", icon: "fa-play", completed: false },
-                        { id: 4, title: "Understanding Variables", description: "Learn about variables and data types", duration: "30 min", icon: "fa-database", completed: false }
+                        { id: 1, title: "Home Row Keys", description: "Practice ASDF JKL; home row", duration: "10 min", icon: "fa-keyboard", completed: false, text: "asdf jkl; asdf jkl; asdf jkl; asdf jkl;" },
+                        { id: 2, title: "Top Row Keys", description: "Practice QWERTYUIOP top row", duration: "10 min", icon: "fa-keyboard", completed: false, text: "qwertyuiop qwertyuiop qwertyuiop qwertyuiop" },
+                        { id: 3, title: "Bottom Row Keys", description: "Practice ZXCVBNM bottom row", duration: "10 min", icon: "fa-keyboard", completed: false, text: "zxcvbnm zxcvbnm zxcvbnm zxcvbnm" },
+                        { id: 4, title: "All Letters Mixed", description: "Practice all letters together", duration: "15 min", icon: "fa-keyboard", completed: false, text: "the quick brown fox jumps over the lazy dog" }
                     ]
                 },
                 {
                     id: 2,
-                    title: "HTML Fundamentals",
-                    description: "Learn the building blocks of web pages",
+                    title: "Simple Words",
+                    description: "Practice typing simple common words",
                     lessons: [
-                        { id: 5, title: "HTML Structure", description: "Understanding HTML document structure", duration: "20 min", icon: "fa-file-code", completed: false },
-                        { id: 6, title: "HTML Elements", description: "Working with HTML elements and tags", duration: "25 min", icon: "fa-tags", completed: false },
-                        { id: 7, title: "HTML Attributes", description: "Using attributes in HTML elements", duration: "15 min", icon: "fa-attribute", completed: false },
-                        { id: 8, title: "HTML Forms", description: "Creating interactive forms", duration: "30 min", icon: "fa-form", completed: false }
+                        { id: 5, title: "3-Letter Words", description: "Common three letter words", duration: "10 min", icon: "fa-font", completed: false, text: "cat dog run sun fun big red hot cup pen" },
+                        { id: 6, title: "4-Letter Words", description: "Common four letter words", duration: "10 min", icon: "fa-font", completed: false, text: "good time work play book read love like home" },
+                        { id: 7, title: "5-Letter Words", description: "Common five letter words", duration: "10 min", icon: "fa-font", completed: false, text: "happy world great small light house water music" },
+                        { id: 8, title: "Mixed Short Words", description: "Mix of short words", duration: "15 min", icon: "fa-font", completed: false, text: "the and for are but not you all can will" }
                     ]
                 },
                 {
                     id: 3,
-                    title: "CSS Styling",
-                    description: "Style your web pages with CSS",
+                    title: "Numbers (0-9)",
+                    description: "Learn to type numbers and digits",
                     lessons: [
-                        { id: 9, title: "CSS Introduction", description: "Introduction to Cascading Style Sheets", duration: "20 min", icon: "fa-palette", completed: false },
-                        { id: 10, title: "CSS Selectors", description: "Targeting elements with selectors", duration: "25 min", icon: "fa-crosshairs", completed: false },
-                        { id: 11, title: "CSS Box Model", description: "Understanding the box model", duration: "30 min", icon: "fa-cube", completed: false },
-                        { id: 12, title: "CSS Layouts", description: "Creating layouts with CSS", duration: "35 min", icon: "fa-th", completed: false }
+                        { id: 9, title: "Basic Numbers", description: "Practice 1-2-3-4-5-6-7-8-9-0", duration: "10 min", icon: "fa-hashtag", completed: false, text: "1234567890 1234567890 1234567890" },
+                        { id: 10, title: "Number Words", description: "Type number words", duration: "10 min", icon: "fa-hashtag", completed: false, text: "one two three four five six seven eight nine ten" },
+                        { id: 11, title: "Phone Numbers", description: "Practice phone number format", duration: "10 min", icon: "fa-phone", completed: false, text: "9876543210 1234567890 5551234567" },
+                        { id: 12, title: "Numbers in Text", description: "Numbers mixed with words", duration: "15 min", icon: "fa-hashtag", completed: false, text: "I have 5 apples and 3 oranges" }
                     ]
                 },
                 {
                     id: 4,
-                    title: "JavaScript Basics",
-                    description: "Add interactivity to your web pages",
+                    title: "Simple Stories",
+                    description: "Practice typing short stories",
                     lessons: [
-                        { id: 13, title: "JavaScript Introduction", description: "Getting started with JavaScript", duration: "25 min", icon: "fa-js", completed: false },
-                        { id: 14, title: "Variables and Data Types", description: "Working with variables in JavaScript", duration: "30 min", icon: "fa-database", completed: false },
-                        { id: 15, title: "Functions", description: "Creating and using functions", duration: "35 min", icon: "fa-function", completed: false },
-                        { id: 16, title: "DOM Manipulation", description: "Interacting with the DOM", duration: "40 min", icon: "fa-sitemap", completed: false }
+                        { id: 13, title: "The Cat Story", description: "A simple story about a cat", duration: "10 min", icon: "fa-book", completed: false, text: "The cat sat on the mat. The cat was black. The cat liked to sleep." },
+                        { id: 14, title: "The Dog Story", description: "A simple story about a dog", duration: "10 min", icon: "fa-book", completed: false, text: "The dog ran in the park. The dog was brown. The dog liked to play." },
+                        { id: 15, title: "The Bird Story", description: "A simple story about a bird", duration: "10 min", icon: "fa-book", completed: false, text: "The bird flew in the sky. The bird was blue. The bird sang a song." },
+                        { id: 16, title: "The Fish Story", description: "A simple story about a fish", duration: "10 min", icon: "fa-book", completed: false, text: "The fish swam in the sea. The fish was gold. The fish was small." }
                     ]
                 },
                 {
                     id: 5,
-                    title: "Advanced JavaScript",
-                    description: "Deep dive into JavaScript concepts",
+                    title: "Simple Poems",
+                    description: "Practice typing short poems",
                     lessons: [
-                        { id: 17, title: "Arrays and Objects", description: "Working with complex data structures", duration: "35 min", icon: "fa-layer-group", completed: false },
-                        { id: 18, title: "Async JavaScript", description: "Understanding asynchronous programming", duration: "40 min", icon: "fa-sync", completed: false },
-                        { id: 19, title: "ES6+ Features", description: "Modern JavaScript features", duration: "45 min", icon: "fa-star", completed: false },
-                        { id: 20, title: "Error Handling", description: "Handling errors gracefully", duration: "30 min", icon: "fa-bug", completed: false }
+                        { id: 17, title: "Twinkle Twinkle", description: "Classic nursery rhyme", duration: "10 min", icon: "fa-music", completed: false, text: "Twinkle twinkle little star, how I wonder what you are." },
+                        { id: 18, title: "Baa Baa Black Sheep", description: "Classic nursery rhyme", duration: "10 min", icon: "fa-music", completed: false, text: "Baa baa black sheep, have you any wool?" },
+                        { id: 19, title: "Mary Had a Little Lamb", description: "Classic nursery rhyme", duration: "10 min", icon: "fa-music", completed: false, text: "Mary had a little lamb, its fleece was white as snow." },
+                        { id: 20, title: "Humpty Dumpty", description: "Classic nursery rhyme", duration: "10 min", icon: "fa-music", completed: false, text: "Humpty Dumpty sat on a wall, Humpty Dumpty had a great fall." }
                     ]
                 },
                 {
                     id: 6,
-                    title: "React Fundamentals",
-                    description: "Build modern web applications with React",
+                    title: "Sentences",
+                    description: "Practice typing complete sentences",
                     lessons: [
-                        { id: 21, title: "React Introduction", description: "Getting started with React", duration: "30 min", icon: "fa-react", completed: false },
-                        { id: 22, title: "Components", description: "Building React components", duration: "35 min", icon: "fa-puzzle-piece", completed: false },
-                        { id: 23, title: "State and Props", description: "Managing component state", duration: "40 min", icon: "fa-state", completed: false },
-                        { id: 24, title: "Hooks", description: "Using React hooks", duration: "45 min", icon: "fa-hook", completed: false }
+                        { id: 21, title: "Simple Sentences", description: "Basic sentence structure", duration: "10 min", icon: "fa-align-left", completed: false, text: "I like to play. She is my friend. We go to school." },
+                        { id: 22, title: "Questions", description: "Practice question sentences", duration: "10 min", icon: "fa-question", completed: false, text: "What is your name? How are you? Where do you live?" },
+                        { id: 23, title: "Statements", description: "Practice statement sentences", duration: "10 min", icon: "fa-align-left", completed: false, text: "The sun is bright. The sky is blue. The grass is green." },
+                        { id: 24, title: "Mixed Sentences", description: "Mix of sentence types", duration: "15 min", icon: "fa-align-left", completed: false, text: "Do you like ice cream? Yes, I do. It is very sweet." }
                     ]
                 },
                 {
                     id: 7,
-                    title: "Node.js Basics",
-                    description: "Server-side JavaScript with Node.js",
+                    title: "Capital Letters",
+                    description: "Practice typing with capital letters",
                     lessons: [
-                        { id: 25, title: "Node.js Introduction", description: "Getting started with Node.js", duration: "30 min", icon: "fa-server", completed: false },
-                        { id: 26, title: "Modules", description: "Working with Node.js modules", duration: "35 min", icon: "fa-cubes", completed: false },
-                        { id: 27, title: "File System", description: "Working with files in Node.js", duration: "40 min", icon: "fa-file", completed: false },
-                        { id: 28, title: "HTTP Server", description: "Creating HTTP servers", duration: "45 min", icon: "fa-network", completed: false }
+                        { id: 25, title: "Capitalize First Letter", description: "Capitalize the first letter", duration: "10 min", icon: "fa-font", completed: false, text: "The Dog The Cat The Bird The Fish" },
+                        { id: 26, title: "Names", description: "Practice typing names", duration: "10 min", icon: "fa-user", completed: false, text: "John Mary Tom Lisa David Sarah Mike" },
+                        { id: 27, title: "Days of Week", description: "Practice days of the week", duration: "10 min", icon: "fa-calendar", completed: false, text: "Monday Tuesday Wednesday Thursday Friday Saturday Sunday" },
+                        { id: 28, title: "Months of Year", description: "Practice months of the year", duration: "10 min", icon: "fa-calendar", completed: false, text: "January February March April May June July August" }
                     ]
                 },
                 {
                     id: 8,
-                    title: "Database Basics",
-                    description: "Working with databases",
+                    title: "Punctuation",
+                    description: "Learn to type punctuation marks",
                     lessons: [
-                        { id: 29, title: "Database Introduction", description: "Understanding databases", duration: "25 min", icon: "fa-database", completed: false },
-                        { id: 30, title: "SQL Basics", description: "Introduction to SQL", duration: "35 min", icon: "fa-sql", completed: false },
-                        { id: 31, title: "MongoDB", description: "Working with MongoDB", duration: "40 min", icon: "fa-leaf", completed: false },
-                        { id: 32, title: "ORM", description: "Using Object-Relational Mapping", duration: "45 min", icon: "fa-map", completed: false }
+                        { id: 29, title: "Period and Comma", description: "Practice . and ,", duration: "10 min", icon: "fa-comma", completed: false, text: "Hello, world. How are you? I am fine." },
+                        { id: 30, title: "Question Mark", description: "Practice question marks", duration: "10 min", icon: "fa-question", completed: false, text: "What? When? Where? Who? Why? How?" },
+                        { id: 31, title: "Exclamation Mark", description: "Practice exclamation marks", duration: "10 min", icon: "fa-exclamation", completed: false, text: "Wow! Great! Amazing! Awesome! Fantastic!" },
+                        { id: 32, title: "All Punctuation", description: "Mix of all punctuation", duration: "15 min", icon: "fa-comma", completed: false, text: "Hello! How are you? I'm fine, thanks." }
                     ]
                 },
                 {
                     id: 9,
-                    title: "API Development",
-                    description: "Building RESTful APIs",
+                    title: "Common Phrases",
+                    description: "Practice typing common phrases",
                     lessons: [
-                        { id: 33, title: "API Introduction", description: "Understanding APIs", duration: "30 min", icon: "fa-api", completed: false },
-                        { id: 34, title: "REST Principles", description: "RESTful API design", duration: "35 min", icon: "fa-rest", completed: false },
-                        { id: 35, title: "Express.js", description: "Building APIs with Express", duration: "40 min", icon: "fa-express", completed: false },
-                        { id: 36, title: "Authentication", description: "Securing your APIs", duration: "45 min", icon: "fa-lock", completed: false }
+                        { id: 33, title: "Greetings", description: "Common greeting phrases", duration: "10 min", icon: "fa-hand-wave", completed: false, text: "Good morning. Good afternoon. Good evening. Good night." },
+                        { id: 34, title: "Thank You Phrases", description: "Polite thank you phrases", duration: "10 min", icon: "fa-heart", completed: false, text: "Thank you very much. Thanks a lot. Many thanks." },
+                        { id: 35, title: "Sorry Phrases", description: "Apology phrases", duration: "10 min", icon: "fa-heart", completed: false, text: "I am sorry. Please forgive me. My apologies." },
+                        { id: 36, title: "Everyday Phrases", description: "Common daily phrases", duration: "15 min", icon: "fa-comment", completed: false, text: "See you later. Have a nice day. Take care." }
                     ]
                 },
                 {
                     id: 10,
-                    title: "Testing",
-                    description: "Testing your applications",
+                    title: "Colors",
+                    description: "Practice typing color names",
                     lessons: [
-                        { id: 37, title: "Testing Introduction", description: "Why testing matters", duration: "25 min", icon: "fa-vial", completed: false },
-                        { id: 38, title: "Unit Testing", description: "Writing unit tests", duration: "35 min", icon: "fa-microscope", completed: false },
-                        { id: 39, title: "Integration Testing", description: "Testing integrations", duration: "40 min", icon: "fa-link", completed: false },
-                        { id: 40, title: "E2E Testing", description: "End-to-end testing", duration: "45 min", icon: "fa-check-double", completed: false }
+                        { id: 37, title: "Basic Colors", description: "Primary and secondary colors", duration: "10 min", icon: "fa-palette", completed: false, text: "red blue green yellow orange purple pink brown black white" },
+                        { id: 38, title: "Color Sentences", description: "Sentences with colors", duration: "10 min", icon: "fa-palette", completed: false, text: "The sky is blue. The grass is green. The sun is yellow." },
+                        { id: 39, title: "Color Objects", description: "Objects and their colors", duration: "10 min", icon: "fa-palette", completed: false, text: "Red apple. Blue ocean. Green tree. Yellow flower." },
+                        { id: 40, title: "Color Stories", description: "Short stories with colors", duration: "15 min", icon: "fa-palette", completed: false, text: "I saw a red bird in the green tree. The blue sky was beautiful." }
                     ]
                 },
                 {
                     id: 11,
-                    title: "Git and Version Control",
-                    description: "Managing code with Git",
+                    title: "Animals",
+                    description: "Practice typing animal names",
                     lessons: [
-                        { id: 41, title: "Git Introduction", description: "Getting started with Git", duration: "30 min", icon: "fa-git", completed: false },
-                        { id: 42, title: "Git Commands", description: "Essential Git commands", duration: "35 min", icon: "fa-terminal", completed: false },
-                        { id: 43, title: "Branching", description: "Working with branches", duration: "40 min", icon: "fa-code-branch", completed: false },
-                        { id: 44, title: "Collaboration", description: "Collaborating with Git", duration: "45 min", icon: "fa-users", completed: false }
+                        { id: 41, title: "Pet Animals", description: "Common pet animals", duration: "10 min", icon: "fa-paw", completed: false, text: "dog cat rabbit hamster fish bird turtle" },
+                        { id: 42, title: "Farm Animals", description: "Farm animal names", duration: "10 min", icon: "fa-paw", completed: false, text: "cow pig sheep horse chicken duck goat" },
+                        { id: 43, title: "Wild Animals", description: "Wild animal names", duration: "10 min", icon: "fa-paw", completed: false, text: "lion tiger elephant giraffe zebra monkey bear" },
+                        { id: 44, title: "Animal Sentences", description: "Sentences about animals", duration: "15 min", icon: "fa-paw", completed: false, text: "The dog barks. The cat meows. The bird sings." }
                     ]
                 },
                 {
                     id: 12,
-                    title: "Deployment",
-                    description: "Deploying your applications",
+                    title: "Food",
+                    description: "Practice typing food names",
                     lessons: [
-                        { id: 45, title: "Deployment Basics", description: "Understanding deployment", duration: "25 min", icon: "fa-rocket", completed: false },
-                        { id: 46, title: "CI/CD", description: "Continuous Integration/Deployment", duration: "40 min", icon: "fa-cogs", completed: false },
-                        { id: 47, title: "Cloud Platforms", description: "Deploying to cloud", duration: "45 min", icon: "fa-cloud", completed: false },
-                        { id: 48, title: "Monitoring", description: "Monitoring deployed apps", duration: "35 min", icon: "fa-chart-line", completed: false }
+                        { id: 45, title: "Fruits", description: "Common fruit names", duration: "10 min", icon: "fa-apple-alt", completed: false, text: "apple banana orange grape mango pear peach" },
+                        { id: 46, title: "Vegetables", description: "Common vegetable names", duration: "10 min", icon: "fa-carrot", completed: false, text: "carrot potato tomato onion cucumber spinach" },
+                        { id: 47, title: "Drinks", description: "Common drink names", duration: "10 min", icon: "fa-coffee", completed: false, text: "water milk juice tea coffee soda" },
+                        { id: 48, title: "Food Sentences", description: "Sentences about food", duration: "15 min", icon: "fa-utensils", completed: false, text: "I like apples. She drinks milk. We eat rice." }
                     ]
                 },
                 {
                     id: 13,
-                    title: "Security",
-                    description: "Securing your applications",
+                    title: "Family",
+                    description: "Practice typing family words",
                     lessons: [
-                        { id: 49, title: "Security Basics", description: "Web security fundamentals", duration: "30 min", icon: "fa-shield-alt", completed: false },
-                        { id: 50, title: "Common Vulnerabilities", description: "OWASP Top 10", duration: "40 min", icon: "fa-exclamation-triangle", completed: false },
-                        { id: 51, title: "Authentication", description: "Implementing authentication", duration: "45 min", icon: "fa-user-lock", completed: false },
-                        { id: 52, title: "Authorization", description: "Managing access control", duration: "35 min", icon: "fa-key", completed: false }
+                        { id: 49, title: "Immediate Family", description: "Close family members", duration: "10 min", icon: "fa-users", completed: false, text: "mother father brother sister son daughter" },
+                        { id: 50, title: "Extended Family", description: "Extended family members", duration: "10 min", icon: "fa-users", completed: false, text: "grandmother grandfather uncle aunt cousin" },
+                        { id: 51, title: "Family Sentences", description: "Sentences about family", duration: "10 min", icon: "fa-users", completed: false, text: "My mother is kind. My father is tall. I love my family." },
+                        { id: 52, title: "Family Stories", description: "Short family stories", duration: "15 min", icon: "fa-users", completed: false, text: "My grandmother cooks well. My grandfather tells stories." }
                     ]
                 },
                 {
                     id: 14,
-                    title: "Performance",
-                    description: "Optimizing application performance",
+                    title: "School Words",
+                    description: "Practice typing school-related words",
                     lessons: [
-                        { id: 53, title: "Performance Basics", description: "Understanding performance", duration: "25 min", icon: "fa-tachometer-alt", completed: false },
-                        { id: 54, title: "Optimization Techniques", description: "Common optimization strategies", duration: "40 min", icon: "fa-bolt", completed: false },
-                        { id: 55, title: "Caching", description: "Implementing caching", duration: "35 min", icon: "fa-memory", completed: false },
-                        { id: 56, title: "Monitoring Performance", description: "Performance monitoring tools", duration: "30 min", icon: "fa-chart-area", completed: false }
+                        { id: 53, title: "School Items", description: "Things used in school", duration: "10 min", icon: "fa-school", completed: false, text: "book pencil pen ruler eraser bag desk chair" },
+                        { id: 54, title: "School Subjects", description: "School subject names", duration: "10 min", icon: "fa-book", completed: false, text: "math science english history art music" },
+                        { id: 55, title: "School Actions", description: "Actions in school", duration: "10 min", icon: "fa-school", completed: false, text: "read write learn study teach listen speak" },
+                        { id: 56, title: "School Sentences", description: "Sentences about school", duration: "15 min", icon: "fa-school", completed: false, text: "I go to school. I read books. I learn math." }
                     ]
                 },
                 {
                     id: 15,
-                    title: "TypeScript",
-                    description: "Adding type safety to JavaScript",
+                    title: "Nature",
+                    description: "Practice typing nature words",
                     lessons: [
-                        { id: 57, title: "TypeScript Introduction", description: "Getting started with TypeScript", duration: "30 min", icon: "fa-ts", completed: false },
-                        { id: 58, title: "Types", description: "Working with types", duration: "35 min", icon: "fa-type", completed: false },
-                        { id: 59, title: "Interfaces", description: "Defining interfaces", duration: "40 min", icon: "fa-interface", completed: false },
-                        { id: 60, title: "Generics", description: "Using generics", duration: "45 min", icon: "fa-generic", completed: false }
+                        { id: 57, title: "Weather Words", description: "Weather related words", duration: "10 min", icon: "fa-cloud-sun", completed: false, text: "sun rain wind snow cloud storm rainbow" },
+                        { id: 58, title: "Nature Elements", description: "Elements of nature", duration: "10 min", icon: "fa-leaf", completed: false, text: "tree flower grass river mountain ocean sky" },
+                        { id: 59, title: "Seasons", description: "Season names", duration: "10 min", icon: "fa-calendar", completed: false, text: "spring summer autumn winter" },
+                        { id: 60, title: "Nature Sentences", description: "Sentences about nature", duration: "15 min", icon: "fa-leaf", completed: false, text: "The sun is hot. The rain is wet. The wind is cool." }
                     ]
                 },
                 {
                     id: 16,
-                    title: "Next.js",
-                    description: "Building full-stack apps with Next.js",
+                    title: "Body Parts",
+                    description: "Practice typing body part names",
                     lessons: [
-                        { id: 61, title: "Next.js Introduction", description: "Getting started with Next.js", duration: "35 min", icon: "fa-next", completed: false },
-                        { id: 62, title: "Pages and Routing", description: "Working with pages", duration: "40 min", icon: "fa-route", completed: false },
-                        { id: 63, title: "API Routes", description: "Creating API routes", duration: "45 min", icon: "fa-api-route", completed: false },
-                        { id: 64, title: "Deployment", description: "Deploying Next.js apps", duration: "30 min", icon: "fa-deploy", completed: false }
+                        { id: 61, title: "Face Parts", description: "Parts of the face", duration: "10 min", icon: "fa-user", completed: false, text: "eye ear nose mouth hair face" },
+                        { id: 62, title: "Body Parts", description: "Parts of the body", duration: "10 min", icon: "fa-user", completed: false, text: "hand arm leg foot head body" },
+                        { id: 63, title: "Body Actions", description: "Actions with body parts", duration: "10 min", icon: "fa-running", completed: false, text: "see hear smell taste touch walk run" },
+                        { id: 64, title: "Body Sentences", description: "Sentences about body", duration: "15 min", icon: "fa-user", completed: false, text: "I see with my eyes. I hear with my ears. I walk with my legs." }
                     ]
                 },
                 {
                     id: 17,
-                    title: "Vue.js",
-                    description: "Building apps with Vue.js",
+                    title: "Time",
+                    description: "Practice typing time-related words",
                     lessons: [
-                        { id: 65, title: "Vue.js Introduction", description: "Getting started with Vue.js", duration: "30 min", icon: "fa-vue", completed: false },
-                        { id: 66, title: "Components", description: "Vue components", duration: "35 min", icon: "fa-vue-component", completed: false },
-                        { id: 67, title: "Vue Router", description: "Routing in Vue", duration: "40 min", icon: "fa-vue-router", completed: false },
-                        { id: 68, title: "Vuex", description: "State management with Vuex", duration: "45 min", icon: "fa-vuex", completed: false }
+                        { id: 65, title: "Time Words", description: "Time related vocabulary", duration: "10 min", icon: "fa-clock", completed: false, text: "hour minute second morning noon evening night" },
+                        { id: 66, title: "Clock Reading", description: "Reading time expressions", duration: "10 min", icon: "fa-clock", completed: false, text: "It is 5 o'clock. It is 10:30. It is quarter past three." },
+                        { id: 67, title: "Time Phrases", description: "Common time phrases", duration: "10 min", icon: "fa-clock", completed: false, text: "right now soon later today tomorrow yesterday" },
+                        { id: 68, title: "Time Sentences", description: "Sentences about time", duration: "15 min", icon: "fa-clock", completed: false, text: "I wake up at 7 AM. I eat lunch at 12 PM. I sleep at 10 PM." }
                     ]
                 },
                 {
                     id: 18,
-                    title: "Angular",
-                    description: "Building enterprise apps with Angular",
+                    title: "Numbers in Sentences",
+                    description: "Practice numbers within sentences",
                     lessons: [
-                        { id: 69, title: "Angular Introduction", description: "Getting started with Angular", duration: "35 min", icon: "fa-angular", completed: false },
-                        { id: 70, title: "Components", description: "Angular components", duration: "40 min", icon: "fa-angular-component", completed: false },
-                        { id: 71, title: "Services", description: "Angular services", duration: "45 min", icon: "fa-angular-service", completed: false },
-                        { id: 72, title: "Routing", description: "Angular routing", duration: "40 min", icon: "fa-angular-route", completed: false }
+                        { id: 69, title: "Counting Objects", description: "Count with numbers", duration: "10 min", icon: "fa-hashtag", completed: false, text: "I have 2 cats. She has 5 dogs. We have 10 books." },
+                        { id: 70, title: "Age", description: "Talking about age", duration: "10 min", icon: "fa-birthday-cake", completed: false, text: "I am 10 years old. She is 8 years old. He is 12 years old." },
+                        { id: 71, title: "Measurements", description: "Simple measurements", duration: "10 min", icon: "fa-ruler", completed: false, text: "The table is 5 feet long. The box is 3 inches wide." },
+                        { id: 72, title: "Number Stories", description: "Stories with numbers", duration: "15 min", icon: "fa-hashtag", completed: false, text: "There are 7 days in a week. There are 12 months in a year." }
                     ]
                 },
                 {
                     id: 19,
-                    title: "Mobile Development",
-                    description: "Building mobile applications",
+                    title: "Places",
+                    description: "Practice typing place names",
                     lessons: [
-                        { id: 73, title: "React Native", description: "Building mobile apps with React Native", duration: "40 min", icon: "fa-mobile", completed: false },
-                        { id: 74, title: "Flutter", description: "Building apps with Flutter", duration: "45 min", icon: "fa-flutter", completed: false },
-                        { id: 75, title: "PWA", description: "Progressive Web Apps", duration: "35 min", icon: "fa-pwa", completed: false },
-                        { id: 76, title: "App Deployment", description: "Deploying mobile apps", duration: "30 min", icon: "fa-app-store", completed: false }
+                        { id: 73, title: "Rooms in House", description: "Rooms in a home", duration: "10 min", icon: "fa-home", completed: false, text: "kitchen bedroom bathroom living room dining room" },
+                        { id: 74, title: "Public Places", description: "Public places", duration: "10 min", icon: "fa-building", completed: false, text: "school hospital bank park library store" },
+                        { id: 75, title: "City Places", description: "Places in a city", duration: "10 min", icon: "fa-city", completed: false, text: "street road bridge station airport mall" },
+                        { id: 76, title: "Place Sentences", description: "Sentences about places", duration: "15 min", icon: "fa-map-marker", completed: false, text: "I live in a house. I go to school. I play in the park." }
                     ]
                 },
                 {
                     id: 20,
-                    title: "DevOps",
-                    description: "DevOps practices and tools",
+                    title: "Transportation",
+                    description: "Practice typing transportation words",
                     lessons: [
-                        { id: 77, title: "DevOps Introduction", description: "Understanding DevOps", duration: "30 min", icon: "fa-devops", completed: false },
-                        { id: 78, title: "Docker", description: "Containerization with Docker", duration: "40 min", icon: "fa-docker", completed: false },
-                        { id: 79, title: "Kubernetes", description: "Orchestration with Kubernetes", duration: "45 min", icon: "fa-k8s", completed: false },
-                        { id: 80, title: "Infrastructure as Code", description: "IaC with Terraform", duration: "40 min", icon: "fa-terraform", completed: false }
+                        { id: 77, title: "Vehicles", description: "Different vehicles", duration: "10 min", icon: "fa-car", completed: false, text: "car bus train bike airplane boat truck" },
+                        { id: 78, title: "Travel Words", description: "Travel related words", duration: "10 min", icon: "fa-plane", completed: false, text: "go come travel ride drive fly walk" },
+                        { id: 79, title: "Transport Sentences", description: "Sentences about transport", duration: "10 min", icon: "fa-car", completed: false, text: "I go by bus. She drives a car. We fly in an airplane." },
+                        { id: 80, title: "Travel Stories", description: "Short travel stories", duration: "15 min", icon: "fa-plane", completed: false, text: "I went to the park by bike. She traveled by train." }
                     ]
                 },
                 {
                     id: 21,
-                    title: "WebSockets",
-                    description: "Real-time communication",
+                    title: "Clothing",
+                    description: "Practice typing clothing words",
                     lessons: [
-                        { id: 81, title: "WebSockets Introduction", description: "Understanding WebSockets", duration: "25 min", icon: "fa-websocket", completed: false },
-                        { id: 82, title: "Socket.io", description: "Using Socket.io", duration: "35 min", icon: "fa-socket", completed: false },
-                        { id: 83, title: "Real-time Features", description: "Building real-time features", duration: "40 min", icon: "fa-realtime", completed: false },
-                        { id: 84, title: "Scaling", description: "Scaling WebSocket apps", duration: "35 min", icon: "fa-scale", completed: false }
+                        { id: 81, title: "Basic Clothes", description: "Common clothing items", duration: "10 min", icon: "fa-tshirt", completed: false, text: "shirt pants dress shoes socks hat coat" },
+                        { id: 82, title: "Accessories", description: "Clothing accessories", duration: "10 min", icon: "fa-glasses", completed: false, text: "glasses watch belt bag scarf gloves" },
+                        { id: 83, title: "Clothing Actions", description: "Actions with clothes", duration: "10 min", icon: "fa-tshirt", completed: false, text: "wear dress put on take off change" },
+                        { id: 84, title: "Clothing Sentences", description: "Sentences about clothes", duration: "15 min", icon: "fa-tshirt", completed: false, text: "I wear a shirt. She puts on a dress. He takes off his shoes." }
                     ]
                 },
                 {
                     id: 22,
-                    title: "GraphQL",
-                    description: "Query language for APIs",
+                    title: "Emotions",
+                    description: "Practice typing emotion words",
                     lessons: [
-                        { id: 85, title: "GraphQL Introduction", description: "Getting started with GraphQL", duration: "30 min", icon: "fa-graphql", completed: false },
-                        { id: 86, title: "Queries and Mutations", description: "Writing GraphQL queries", duration: "35 min", icon: "fa-query", completed: false },
-                        { id: 87, title: "Subscriptions", description: "Real-time with GraphQL", duration: "40 min", icon: "fa-subscribe", completed: false },
-                        { id: 88, title: "Apollo", description: "Using Apollo Client", duration: "45 min", icon: "fa-apollo", completed: false }
+                        { id: 85, title: "Happy Emotions", description: "Positive emotions", duration: "10 min", icon: "fa-smile", completed: false, text: "happy glad joyful excited cheerful delighted" },
+                        { id: 86, title: "Sad Emotions", description: "Negative emotions", duration: "10 min", icon: "fa-frown", completed: false, text: "sad unhappy upset disappointed worried afraid" },
+                        { id: 87, title: "Emotion Sentences", description: "Sentences about feelings", duration: "10 min", icon: "fa-heart", completed: false, text: "I am happy today. She feels sad. He is excited." },
+                        { id: 88, title: "Emotion Stories", description: "Stories with emotions", duration: "15 min", icon: "fa-heart", completed: false, text: "I was happy when I won. She was sad when she lost." }
                     ]
                 },
                 {
                     id: 23,
-                    title: "Microservices",
-                    description: "Building microservices architecture",
+                    title: "Hobbies",
+                    description: "Practice typing hobby words",
                     lessons: [
-                        { id: 89, title: "Microservices Introduction", description: "Understanding microservices", duration: "35 min", icon: "fa-micro", completed: false },
-                        { id: 90, title: "Service Communication", description: "Service-to-service communication", duration: "40 min", icon: "fa-communication", completed: false },
-                        { id: 91, title: "API Gateway", description: "Implementing API Gateway", duration: "45 min", icon: "fa-gateway", completed: false },
-                        { id: 92, title: "Service Discovery", description: "Service discovery patterns", duration: "35 min", icon: "fa-discovery", completed: false }
+                        { id: 89, title: "Common Hobbies", description: "Popular hobbies", duration: "10 min", icon: "fa-gamepad", completed: false, text: "reading drawing singing dancing cooking gardening" },
+                        { id: 90, title: "Sports", description: "Sports activities", duration: "10 min", icon: "fa-futbol", completed: false, text: "football cricket basketball tennis swimming running" },
+                        { id: 91, title: "Hobby Sentences", description: "Sentences about hobbies", duration: "10 min", icon: "fa-gamepad", completed: false, text: "I like reading. She enjoys dancing. He loves cooking." },
+                        { id: 92, title: "Hobby Stories", description: "Stories about hobbies", duration: "15 min", icon: "fa-gamepad", completed: false, text: "My hobby is painting. I paint pictures of nature." }
                     ]
                 },
                 {
                     id: 24,
-                    title: "WebAssembly",
-                    description: "High-performance web applications",
+                    title: "Short Stories (Level 2)",
+                    description: "Practice typing longer stories",
                     lessons: [
-                        { id: 93, title: "WebAssembly Introduction", description: "Getting started with WebAssembly", duration: "30 min", icon: "fa-wasm", completed: false },
-                        { id: 94, title: "Rust for WebAssembly", description: "Using Rust with WebAssembly", duration: "45 min", icon: "fa-rust", completed: false },
-                        { id: 95, title: "Performance", description: "Optimizing with WebAssembly", duration: "40 min", icon: "fa-perf", completed: false },
-                        { id: 96, title: "Integration", description: "Integrating WebAssembly", duration: "35 min", icon: "fa-integration", completed: false }
+                        { id: 93, title: "The Lost Puppy", description: "Story about a lost puppy", duration: "15 min", icon: "fa-book", completed: false, text: "Once there was a little puppy. He got lost in the big city. A kind girl found him and took him home. Now he is happy." },
+                        { id: 94, title: "The Magic Tree", description: "Story about a magic tree", duration: "15 min", icon: "fa-book", completed: false, text: "In the garden there was a magic tree. It grew golden apples. One day a bird ate an apple and could speak. The bird told wonderful stories." },
+                        { id: 95, title: "The Brave Mouse", description: "Story about a brave mouse", duration: "15 min", icon: "fa-book", completed: false, text: "A tiny mouse lived in a big house. One day he saw a cat. The mouse was brave and helped his friend escape. Everyone was proud of him." },
+                        { id: 96, title: "The Rainbow Day", description: "Story about a rainbow", duration: "15 min", icon: "fa-book", completed: false, text: "After the rain stopped, a big rainbow appeared. It had seven colors. Children ran outside to see it. It was the most beautiful rainbow ever." }
                     ]
                 },
                 {
                     id: 25,
-                    title: "Machine Learning",
-                    description: "ML for web developers",
+                    title: "Simple Poems (Level 2)",
+                    description: "Practice typing longer poems",
                     lessons: [
-                        { id: 97, title: "ML Introduction", description: "Introduction to Machine Learning", duration: "35 min", icon: "fa-ml", completed: false },
-                        { id: 98, title: "TensorFlow.js", description: "ML in the browser", duration: "45 min", icon: "fa-tfjs", completed: false },
-                        { id: 99, title: "Models", description: "Working with ML models", duration: "40 min", icon: "fa-model", completed: false },
-                        { id: 100, title: "Deployment", description: "Deploying ML models", duration: "35 min", icon: "fa-ml-deploy", completed: false }
+                        { id: 97, title: "The Wind", description: "Poem about the wind", duration: "15 min", icon: "fa-music", completed: false, text: "Who has seen the wind? Neither I nor you. But when the leaves hang trembling, the wind is passing through." },
+                        { id: 98, title: "The Rain", description: "Poem about rain", duration: "15 min", icon: "fa-music", completed: false, text: "Rain rain go away, come again another day. Little Johnny wants to play. Rain rain go away." },
+                        { id: 99, title: "The Star", description: "Poem about a star", duration: "15 min", icon: "fa-music", completed: false, text: "Star light star bright, first star I see tonight. I wish I may I wish I might, have the wish I wish tonight." },
+                        { id: 100, title: "The Flower", description: "Poem about a flower", duration: "15 min", icon: "fa-music", completed: false, text: "Little flower in the garden, growing tall and bright. You bring so much beauty, with your colors light." }
                     ]
                 },
                 {
                     id: 26,
-                    title: "Web3",
-                    description: "Decentralized web development",
+                    title: "Paragraphs",
+                    description: "Practice typing full paragraphs",
                     lessons: [
-                        { id: 101, title: "Web3 Introduction", description: "Understanding Web3", duration: "30 min", icon: "fa-web3", completed: false },
-                        { id: 102, title: "Smart Contracts", description: "Writing smart contracts", duration: "45 min", icon: "fa-contract", completed: false },
-                        { id: 103, title: "DApps", description: "Building decentralized apps", duration: "40 min", icon: "fa-dapp", completed: false },
-                        { id: 104, title: "Integration", description: "Integrating Web3", duration: "35 min", icon: "fa-web3-integration", completed: false }
+                        { id: 101, title: "My Best Friend", description: "Paragraph about friendship", duration: "15 min", icon: "fa-align-left", completed: false, text: "My best friend is Tom. We go to the same school. We play together every day. He helps me with my homework. I help him with his problems. We are very happy together." },
+                        { id: 102, title: "My School", description: "Paragraph about school", duration: "15 min", icon: "fa-school", completed: false, text: "My school is very big. It has many classrooms. The teachers are kind and helpful. I learn many new things every day. My friends are also in my school. I love my school very much." },
+                        { id: 103, title: "My Family", description: "Paragraph about family", duration: "15 min", icon: "fa-users", completed: false, text: "I have a small family. There are four members in my family. My father is a doctor. My mother is a teacher. I have one younger sister. We live together happily. We love each other very much." },
+                        { id: 104, title: "My Daily Routine", description: "Paragraph about daily routine", duration: "15 min", icon: "fa-clock", completed: false, text: "I wake up early in the morning. I brush my teeth and wash my face. Then I eat my breakfast. After that, I go to school. In the evening, I do my homework. At night, I go to sleep." }
                     ]
                 },
                 {
                     id: 27,
-                    title: "Accessibility",
-                    description: "Building accessible applications",
+                    title: "Numbers Advanced",
+                    description: "Advanced number practice",
                     lessons: [
-                        { id: 105, title: "A11y Introduction", description: "Web accessibility basics", duration: "25 min", icon: "fa-a11y", completed: false },
-                        { id: 106, title: "ARIA", description: "Using ARIA attributes", duration: "35 min", icon: "fa-aria", completed: false },
-                        { id: 107, title: "Testing", description: "Testing accessibility", duration: "30 min", icon: "fa-a11y-test", completed: false },
-                        { id: 108, title: "Best Practices", description: "Accessibility best practices", duration: "40 min", icon: "fa-best-practice", completed: false }
+                        { id: 105, title: "Large Numbers", description: "Practice large numbers", duration: "10 min", icon: "fa-hashtag", completed: false, text: "100 200 300 400 500 1000 2000 5000 10000" },
+                        { id: 106, title: "Math Problems", description: "Simple math in words", duration: "10 min", icon: "fa-calculator", completed: false, text: "Five plus three equals eight. Ten minus four equals six." },
+                        { id: 107, title: "Phone Numbers", description: "Complex phone numbers", duration: "10 min", icon: "fa-phone", completed: false, text: "+91 98765 43210 +1 555 123 4567 +44 20 1234 5678" },
+                        { id: 108, title: "Dates", description: "Practice typing dates", duration: "15 min", icon: "fa-calendar", completed: false, text: "January 1, 2024. December 25, 2024. March 15, 2024." }
                     ]
                 },
                 {
                     id: 28,
-                    title: "SEO",
-                    description: "Search Engine Optimization",
+                    title: "Mixed Practice",
+                    description: "Mixed content for comprehensive practice",
                     lessons: [
-                        { id: 109, title: "SEO Basics", description: "Understanding SEO", duration: "30 min", icon: "fa-seo", completed: false },
-                        { id: 110, title: "Technical SEO", description: "Technical SEO practices", duration: "35 min", icon: "fa-tech-seo", completed: false },
-                        { id: 111, title: "Content SEO", description: "Content optimization", duration: "30 min", icon: "fa-content-seo", completed: false },
-                        { id: 112, title: "Analytics", description: "SEO analytics", duration: "25 min", icon: "fa-analytics", completed: false }
+                        { id: 109, title: "Letters and Numbers", description: "Mix of letters and numbers", duration: "15 min", icon: "fa-keyboard", completed: false, text: "A1 B2 C3 D4 E5 F6 G7 H8 I9 J10" },
+                        { id: 110, title: "Words and Numbers", description: "Mix of words and numbers", duration: "15 min", icon: "fa-font", completed: false, text: "I have 5 apples. She is 10 years old. There are 7 days." },
+                        { id: 111, title: "All Characters", description: "Mix of all character types", duration: "15 min", icon: "fa-keyboard", completed: false, text: "Hello! I have 2 cats. They are 3 years old. I love them!" },
+                        { id: 112, title: "Complex Sentences", description: "Longer complex sentences", duration: "20 min", icon: "fa-align-left", completed: false, text: "Although it was raining heavily, we decided to go for a picnic because we had planned it for a long time and did not want to cancel our plans." }
                     ]
                 },
                 {
                     id: 29,
-                    title: "Design Patterns",
-                    description: "Software design patterns",
+                    title: "Fairy Tales",
+                    description: "Practice typing fairy tale stories",
                     lessons: [
-                        { id: 113, title: "Patterns Introduction", description: "Understanding design patterns", duration: "30 min", icon: "fa-pattern", completed: false },
-                        { id: 114, title: "Creational Patterns", description: "Creational design patterns", duration: "40 min", icon: "fa-creational", completed: false },
-                        { id: 115, title: "Structural Patterns", description: "Structural design patterns", duration: "40 min", icon: "fa-structural", completed: false },
-                        { id: 116, title: "Behavioral Patterns", description: "Behavioral design patterns", duration: "45 min", icon: "fa-behavioral", completed: false }
+                        { id: 113, title: "Cinderella", description: "Cinderella story excerpt", duration: "20 min", icon: "fa-book", completed: false, text: "Once upon a time, there lived a beautiful girl named Cinderella. She lived with her wicked stepmother and stepsisters. They made her do all the housework. One day, the prince invited everyone to a grand ball." },
+                        { id: 114, title: "The Three Little Pigs", description: "Three pigs story excerpt", duration: "20 min", icon: "fa-book", completed: false, text: "Once there were three little pigs. They decided to build houses. The first pig built a house of straw. The second pig built a house of sticks. The third pig built a house of bricks. A big bad wolf came to blow their houses down." },
+                        { id: 115, title: "Goldilocks", description: "Goldilocks story excerpt", duration: "20 min", icon: "fa-book", completed: false, text: "Once upon a time, there was a girl named Goldilocks. She went for a walk in the forest. She came to a house. Inside, she saw three bowls of porridge. She tasted each one until she found the one that was just right." },
+                        { id: 116, title: "The Gingerbread Man", description: "Gingerbread man story excerpt", duration: "20 min", icon: "fa-book", completed: false, text: "Once an old woman baked a gingerbread man. When she opened the oven, the gingerbread man jumped out and ran away. He ran past a cow, a horse, and many others. He could not be caught!" }
                     ]
                 },
                 {
                     id: 30,
-                    title: "Career Development",
-                    description: "Growing your development career",
+                    title: "Final Challenge",
+                    description: "Comprehensive typing challenge",
                     lessons: [
-                        { id: 117, title: "Portfolio", description: "Building your portfolio", duration: "30 min", icon: "fa-portfolio", completed: false },
-                        { id: 118, title: "Interview Prep", description: "Preparing for interviews", duration: "40 min", icon: "fa-interview", completed: false },
-                        { id: 119, title: "Networking", description: "Professional networking", duration: "25 min", icon: "fa-networking", completed: false },
-                        { id: 120, title: "Continuous Learning", description: "Staying updated", duration: "30 min", icon: "fa-learning", completed: false }
+                        { id: 117, title: "Speed Test 1", description: "Test your typing speed", duration: "15 min", icon: "fa-tachometer-alt", completed: false, text: "The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump!" },
+                        { id: 118, title: "Speed Test 2", description: "Another speed test", duration: "15 min", icon: "fa-tachometer-alt", completed: false, text: "Sphinx of black quartz, judge my vow. The five boxing wizards jump quickly. Jackdaws love my big sphinx of quartz." },
+                        { id: 119, title: "Accuracy Test", description: "Test your accuracy", duration: "20 min", icon: "fa-bullseye", completed: false, text: "A journey of a thousand miles begins with a single step. Practice makes perfect. Learning to type fast is a valuable skill in today's digital world." },
+                        { id: 120, title: "Final Exam", description: "Complete typing challenge", duration: "25 min", icon: "fa-trophy", completed: false, text: "Congratulations on completing all the lessons! You have learned to type letters, numbers, words, sentences, stories, poems, and much more. Keep practicing to improve your speed and accuracy. Typing is an important skill that will help you in school, work, and everyday life. Well done!" }
                     ]
                 }
             ]
@@ -1233,9 +1233,24 @@
             container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
         }
 
-        // Open lesson (placeholder)
+        // Open lesson - redirect to typing practice page
         function openLesson(lessonId) {
-            alert(`Opening lesson ${lessonId}. This would navigate to the lesson content.`);
+            const chapter = courseData.chapters[currentChapterIndex];
+            const lesson = chapter.lessons.find(l => l.id === lessonId);
+            
+            if (lesson && lesson.text) {
+                // Store lesson data in localStorage
+                localStorage.setItem('typingLesson', JSON.stringify({
+                    title: lesson.title,
+                    text: lesson.text,
+                    chapter: chapter.title
+                }));
+                
+                // Redirect to typing practice page
+                window.location.href = 'typing-practice.html';
+            } else {
+                alert('Lesson content not available.');
+            }
         }
 
         // Initialize on load

@@ -1465,9 +1465,23 @@
         }
 
         function loadNewText() {
-            const difficulty = difficultySelect.value;
-            const samples = textSamples[difficulty];
-            currentText = samples[Math.floor(Math.random() * samples.length)];
+            // Check if there's a lesson from course viewer
+            const storedLesson = localStorage.getItem('typingLesson');
+            
+            if (storedLesson) {
+                const lesson = JSON.parse(storedLesson);
+                currentText = lesson.text;
+                // Update title to show lesson info
+                document.querySelector('h1').textContent = `${lesson.chapter} - ${lesson.title}`;
+                // Clear stored lesson after loading
+                localStorage.removeItem('typingLesson');
+            } else {
+                const difficulty = difficultySelect.value;
+                const samples = textSamples[difficulty];
+                currentText = samples[Math.floor(Math.random() * samples.length)];
+                document.querySelector('h1').textContent = 'Typing Practice';
+            }
+            
             currentIndex = 0;
             mistakes = 0;
             updateDisplay();
