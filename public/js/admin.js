@@ -5614,6 +5614,7 @@ async function loadTicketsTable() {
             html += '<td>' + t.status + '</td>';
             html += '<td>' + formatDate(t.createdAt) + '</td>';
             html += '<td>';
+            html += '<button class="action-btn" onclick="openTicketConversation(' + t.id + ')" title="Conversation"><i class="fas fa-comments"></i></button>';
             html += '<button class="action-btn edit-btn" onclick="editTicket(' + t.id + ')">Edit</button>';
             html += '<button class="action-btn delete-btn" onclick="deleteTicket(' + t.id + ')">Delete</button>';
             html += '</td>';
@@ -5626,7 +5627,7 @@ async function loadTicketsTable() {
     }
 }
 
-function openTicketModal() {
+async function openTicketModal() {
     document.getElementById('ticketModalTitle').textContent = 'Create Ticket';
     document.getElementById('ticketId').value = '';
     document.getElementById('ticketSubject').value = '';
@@ -5635,11 +5636,54 @@ function openTicketModal() {
     document.getElementById('ticketPriority').value = 'Medium';
     document.getElementById('ticketStatus').value = 'Open';
     document.getElementById('ticketAssignedTo').value = '';
+
+    // Load students into dropdown
+    const studentSelect = document.getElementById('ticketStudentId');
+    studentSelect.innerHTML = '<option value="">Select Student</option>';
+    try {
+        const res = await fetch('/api/students');
+        const data = await res.json();
+        if (data.success && data.students) {
+            data.students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.id;
+                option.textContent = `${student.name} (${student.rollNo})`;
+                studentSelect.appendChild(option);
+            });
+        }
+    } catch (err) {
+        console.error('Error loading students:', err);
+    }
+
     document.getElementById('ticketModal').classList.add('active');
 }
 
 async function saveTicket() {
     const ticketId = document.getElementById('ticketId').value;
+    const studentId = document.getElementById('ticketStudentId').value;
+
+    if (!studentId) {
+        showNotification('Please select a student', 'error');
+        return;
+    }
+
+    // Get student details
+    let studentName = 'Unknown';
+    let studentEmail = '';
+    try {
+        const res = await fetch('/api/students');
+        const data = await res.json();
+        if (data.success && data.students) {
+            const student = data.students.find(s => s.id == studentId);
+            if (student) {
+                studentName = student.name;
+                studentEmail = student.email;
+            }
+        }
+    } catch (err) {
+        console.error('Error fetching student details:', err);
+    }
+
     const data = {
         subject: document.getElementById('ticketSubject').value,
         description: document.getElementById('ticketDescription').value,
@@ -5647,23 +5691,23 @@ async function saveTicket() {
         priority: document.getElementById('ticketPriority').value,
         status: document.getElementById('ticketStatus').value,
         assignedTo: document.getElementById('ticketAssignedTo').value,
-        studentId: 0,
-        studentName: 'Admin',
-        studentEmail: 'admin@genius.com'
+        studentId: studentId,
+        studentName: studentName,
+        studentEmail: studentEmail
     };
-    
+
     try {
         const url = ticketId ? '/api/tickets/' + ticketId : '/api/tickets';
         const method = ticketId ? 'PUT' : 'POST';
-        
+
         const res = await fetch(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-        
+
         const responseData = await res.json();
-        
+
         if (responseData.success) {
             closeModal('ticketModal');
             loadTicketsTable();
@@ -5748,6 +5792,88 @@ async function deleteSelectedTickets() {
     } catch (e) {
         console.error('Error deleting tickets:', e);
         showNotification('Error deleting tickets', 'error');
+    }
+}
+
+async function openTicketConversation(ticketId) {
+    try {
+        const res = await fetch('/api/tickets/' + ticketId);
+        const data = await res.json();
+        if (!data || !data.id) {
+            showNotification('Failed to load ticket', 'error');
+            return;
+        }
+        const ticket = data;
+        document.getElementById('ticketConversationTitle').textContent = ticket.subject;
+        document.getElementById('conversationTicketId').value = ticket.id;
+        document.getElementById('ticketConversationInfo').innerHTML = `
+            <p><strong>Student:</strong> ${ticket.studentName}</p>
+            <p><strong>Status:</strong> ${ticket.status}</p>
+            <p><strong>Category:</strong> ${ticket.category}</p>
+            <p><strong>Priority:</strong> ${ticket.priority}</p>
+        `;
+
+        let threadHtml = '';
+        if (ticket.description) {
+            threadHtml += `
+                <div style="margin-bottom:15px;padding:10px;background:#e0f2fe;border-radius:5px;border-left:3px solid #0284c7;">
+                    <p style="margin:0 0 5px;font-weight:600;color:#0369a1;">${ticket.studentName} (Initial)</p>
+                    <p style="margin:0;">${ticket.description}</p>
+                </div>
+            `;
+        }
+        if (ticket.responses && ticket.responses.length > 0) {
+            ticket.responses.forEach(resp => {
+                const isAdmin = resp.sender === 'admin';
+                threadHtml += `
+                    <div style="margin-bottom:15px;padding:10px;background:${isAdmin ? '#fef3c7' : '#e0f2fe'};border-radius:5px;border-left:3px solid ${isAdmin ? '#d97706' : '#0284c7'};">
+                        <p style="margin:0 0 5px;font-weight:600;color:${isAdmin ? '#92400e' : '#0369a1'};">${isAdmin ? 'Admin' : ticket.studentName}</p>
+                        <p style="margin:0;">${resp.message}</p>
+                        <p style="margin:5px 0 0;font-size:12px;color:#64748b;">${formatDate(resp.timestamp || resp.createdAt)}</p>
+                    </div>
+                `;
+            });
+        }
+        if (!threadHtml) {
+            threadHtml = '<p style="color:#64748b;text-align:center;">No responses yet.</p>';
+        }
+        document.getElementById('ticketConversationThread').innerHTML = threadHtml;
+        document.getElementById('ticketAdminReply').value = '';
+        document.getElementById('ticketConversationModal').classList.add('active');
+    } catch (e) {
+        console.error('Error loading ticket conversation:', e);
+        showNotification('Error loading conversation', 'error');
+    }
+}
+
+async function sendAdminReply() {
+    const ticketId = document.getElementById('conversationTicketId').value;
+    const message = document.getElementById('ticketAdminReply').value.trim();
+
+    if (!message) {
+        showNotification('Please enter a reply', 'error');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/tickets/' + ticketId + '/respond', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                sender: 'admin',
+                message: message
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            openTicketConversation(ticketId);
+            showNotification('Reply sent!', 'success');
+        } else {
+            showNotification('Failed to send reply', 'error');
+        }
+    } catch (e) {
+        console.error('Error sending reply:', e);
+        showNotification('Error sending reply', 'error');
     }
 }
 

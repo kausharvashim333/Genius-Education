@@ -609,6 +609,7 @@
                 </ul>
             </li>
             <li><a href="#" data-section="fees"><i class="fas fa-rupee-sign"></i> Fees</a></li>
+            <li><a href="#" data-section="helpdesk"><i class="fas fa-headset"></i> Helpdesk</a></li>
             <li class="dropdown">
                 <a href="#" class="dropdown-toggle"><i class="fas fa-folder"></i> Resources <i class="fas fa-chevron-down" style="margin-left:auto;font-size:10px;"></i></a>
                 <ul class="dropdown-menu">
@@ -976,6 +977,15 @@
             <h3><i class="fas fa-file-alt"></i> Question Papers</h3>
             <div id="questionPapersSection"></div>
         </div>
+
+        <!-- Helpdesk Section -->
+        <div class="portal-section" id="section-helpdesk">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3><i class="fas fa-headset"></i> Helpdesk / Support</h3>
+                <button class="action-btn action-btn-primary" onclick="openStudentTicketModal()" style="padding:8px 16px;border-radius:5px;"><i class="fas fa-plus"></i> New Ticket</button>
+            </div>
+            <div id="studentTicketsSection"></div>
+        </div>
     </main>
 </div>
 
@@ -1165,6 +1175,62 @@
                 </div>
             </form>
         </div>
+    </div>
+</div>
+
+<!-- Student Ticket Modal -->
+<div id="studentTicketModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:10000;align-items:center;justify-content:center;">
+    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.2);padding:30px;border-radius:16px;width:100%;max-width:600px;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-height:90vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h2>Create New Ticket</h2>
+            <button onclick="closeStudentTicketModal()" style="background:none;border:none;font-size:24px;cursor:pointer;">&times;</button>
+        </div>
+        <div style="margin-bottom:15px;">
+            <label style="display:block;margin-bottom:5px;">Subject</label>
+            <input type="text" id="ticketSubject" placeholder="Enter ticket subject" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:#fff;">
+        </div>
+        <div style="margin-bottom:15px;">
+            <label style="display:block;margin-bottom:5px;">Category</label>
+            <select id="ticketCategory" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:#fff;">
+                <option value="Academic">Academic</option>
+                <option value="Technical">Technical</option>
+                <option value="Fees">Fees</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div style="margin-bottom:15px;">
+            <label style="display:block;margin-bottom:5px;">Priority</label>
+            <select id="ticketPriority" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:#fff;">
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+            </select>
+        </div>
+        <div style="margin-bottom:15px;">
+            <label style="display:block;margin-bottom:5px;">Description</label>
+            <textarea id="ticketDescription" rows="5" placeholder="Describe your issue in detail" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:#fff;resize:vertical;"></textarea>
+        </div>
+        <div id="ticketError" style="color:#ff6b6b;margin-bottom:15px;display:none;"></div>
+        <button onclick="submitStudentTicket()" class="action-btn action-btn-primary" style="width:100%;padding:12px;border-radius:8px;">Submit Ticket</button>
+    </div>
+</div>
+
+<!-- Student Ticket Conversation Modal -->
+<div id="studentTicketConversationModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:10000;align-items:center;justify-content:center;">
+    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.2);padding:30px;border-radius:16px;width:100%;max-width:700px;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-height:90vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h2 id="ticketConversationTitle">Ticket Conversation</h2>
+            <button onclick="closeStudentTicketConversationModal()" style="background:none;border:none;font-size:24px;cursor:pointer;">&times;</button>
+        </div>
+        <div id="ticketConversationInfo" style="margin-bottom:15px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;"></div>
+        <div id="ticketConversationThread" style="max-height:300px;overflow-y:auto;margin-bottom:15px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;"></div>
+        <div style="margin-bottom:15px;">
+            <label style="display:block;margin-bottom:5px;">Your Reply</label>
+            <textarea id="ticketReply" rows="3" placeholder="Type your reply here" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:#fff;resize:vertical;"></textarea>
+        </div>
+        <div id="ticketReplyError" style="color:#ff6b6b;margin-bottom:15px;display:none;"></div>
+        <button onclick="submitTicketReply()" class="action-btn action-btn-primary" style="width:100%;padding:12px;border-radius:8px;">Send Reply</button>
     </div>
 </div>
 
@@ -3763,6 +3829,7 @@ function showSection(section) {
     if (section === 'fees') loadFees();
     else if (section === 'exam-registration') loadStudentExamRegistration();
     else if (section === 'my-admit-cards') loadStudentMyAdmitCards();
+    else if (section === 'helpdesk') loadStudentTickets();
 }
 
 function toggleVideoTheme() {
@@ -5377,6 +5444,205 @@ async function loadFavicon() {
     }
 }
 loadFavicon();
+
+// Student Helpdesk Functions
+let currentTicketId = null;
+
+async function loadStudentTickets() {
+    try {
+        const stored = localStorage.getItem('portalStudent');
+        if (!stored) return;
+        const student = JSON.parse(stored);
+        const res = await fetch(`/api/tickets/student/${student.id}`);
+        const data = await res.json();
+        const section = document.getElementById('studentTicketsSection');
+        if (!data.success || !data.tickets || data.tickets.length === 0) {
+            section.innerHTML = '<p style="color:rgba(255,255,255,0.6);text-align:center;padding:20px;">No tickets found. Click "New Ticket" to create one.</p>';
+            return;
+        }
+        let html = '<div style="display:grid;gap:15px;">';
+        data.tickets.forEach(ticket => {
+            const statusColor = ticket.status === 'Open' ? '#22c55e' : ticket.status === 'In Progress' ? '#eab308' : ticket.status === 'Resolved' ? '#3b82f6' : '#6b7280';
+            const priorityColor = ticket.priority === 'Urgent' ? '#ef4444' : ticket.priority === 'High' ? '#f97316' : ticket.priority === 'Medium' ? '#eab308' : '#6b7280';
+            html += `
+                <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:15px;cursor:pointer;" onclick="openTicketConversation(${ticket.id})">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                        <div style="flex:1;">
+                            <h4 style="margin:0 0 5px;color:#fff;">${ticket.subject}</h4>
+                            <p style="margin:0;color:rgba(255,255,255,0.6);font-size:13px;">${ticket.category} • ${new Date(ticket.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <span style="background:${statusColor}20;color:${statusColor};padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;">${ticket.status}</span>
+                            <span style="background:${priorityColor}20;color:${priorityColor};padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;">${ticket.priority}</span>
+                        </div>
+                    </div>
+                    <p style="margin:0;color:rgba(255,255,255,0.7);font-size:14px;max-height:40px;overflow:hidden;text-overflow:ellipsis;">${ticket.description}</p>
+                </div>
+            `;
+        });
+        html += '</div>';
+        section.innerHTML = html;
+    } catch (err) {
+        console.error('Error loading tickets:', err);
+        document.getElementById('studentTicketsSection').innerHTML = '<p style="color:#ef4444;text-align:center;padding:20px;">Failed to load tickets.</p>';
+    }
+}
+
+function openStudentTicketModal() {
+    document.getElementById('studentTicketModal').style.display = 'flex';
+    document.getElementById('ticketSubject').value = '';
+    document.getElementById('ticketCategory').value = 'Academic';
+    document.getElementById('ticketPriority').value = 'Medium';
+    document.getElementById('ticketDescription').value = '';
+    document.getElementById('ticketError').style.display = 'none';
+}
+
+function closeStudentTicketModal() {
+    document.getElementById('studentTicketModal').style.display = 'none';
+}
+
+async function submitStudentTicket() {
+    const subject = document.getElementById('ticketSubject').value.trim();
+    const category = document.getElementById('ticketCategory').value;
+    const priority = document.getElementById('ticketPriority').value;
+    const description = document.getElementById('ticketDescription').value.trim();
+    const errorDiv = document.getElementById('ticketError');
+    
+    if (!subject || !description) {
+        errorDiv.textContent = 'Please fill in subject and description.';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    try {
+        const stored = localStorage.getItem('portalStudent');
+        if (!stored) return;
+        const student = JSON.parse(stored);
+        
+        const res = await fetch('/api/tickets', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                studentId: student.id,
+                studentName: student.name,
+                subject,
+                category,
+                priority,
+                description,
+                status: 'Open'
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeStudentTicketModal();
+            loadStudentTickets();
+        } else {
+            errorDiv.textContent = data.message || 'Failed to create ticket.';
+            errorDiv.style.display = 'block';
+        }
+    } catch (err) {
+        console.error('Error creating ticket:', err);
+        errorDiv.textContent = 'Failed to create ticket. Please try again.';
+        errorDiv.style.display = 'block';
+    }
+}
+
+async function openTicketConversation(ticketId) {
+    currentTicketId = ticketId;
+    try {
+        const res = await fetch(`/api/tickets/${ticketId}`);
+        const data = await res.json();
+        if (!data.success || !data.ticket) {
+            alert('Failed to load ticket details.');
+            return;
+        }
+        const ticket = data.ticket;
+        document.getElementById('ticketConversationTitle').textContent = ticket.subject;
+        document.getElementById('ticketConversationInfo').innerHTML = `
+            <p style="margin:5px 0;"><strong>Status:</strong> ${ticket.status}</p>
+            <p style="margin:5px 0;"><strong>Category:</strong> ${ticket.category}</p>
+            <p style="margin:5px 0;"><strong>Priority:</strong> ${ticket.priority}</p>
+            <p style="margin:5px 0;"><strong>Created:</strong> ${new Date(ticket.createdAt).toLocaleString()}</p>
+        `;
+        
+        let threadHtml = '';
+        if (ticket.description) {
+            threadHtml += `
+                <div style="margin-bottom:15px;padding:10px;background:rgba(59,130,246,0.1);border-radius:8px;border-left:3px solid #3b82f6;">
+                    <p style="margin:0 0 5px;font-weight:600;color:#3b82f6;">You (Initial)</p>
+                    <p style="margin:0;color:rgba(255,255,255,0.8);">${ticket.description}</p>
+                </div>
+            `;
+        }
+        if (ticket.responses && ticket.responses.length > 0) {
+            ticket.responses.forEach(resp => {
+                const isAdmin = resp.sender === 'admin';
+                threadHtml += `
+                    <div style="margin-bottom:15px;padding:10px;background:${isAdmin ? 'rgba(234,179,8,0.1)' : 'rgba(59,130,246,0.1)'};border-radius:8px;border-left:3px solid ${isAdmin ? '#eab308' : '#3b82f6'};">
+                        <p style="margin:0 0 5px;font-weight:600;color:${isAdmin ? '#eab308' : '#3b82f6'};">${isAdmin ? 'Admin' : 'You'}</p>
+                        <p style="margin:0;color:rgba(255,255,255,0.8);">${resp.message}</p>
+                        <p style="margin:5px 0 0;font-size:12px;color:rgba(255,255,255,0.5);">${new Date(resp.timestamp).toLocaleString()}</p>
+                    </div>
+                `;
+            });
+        }
+        if (!threadHtml) {
+            threadHtml = '<p style="color:rgba(255,255,255,0.5);text-align:center;">No responses yet.</p>';
+        }
+        document.getElementById('ticketConversationThread').innerHTML = threadHtml;
+        document.getElementById('ticketReply').value = '';
+        document.getElementById('ticketReplyError').style.display = 'none';
+        document.getElementById('studentTicketConversationModal').style.display = 'flex';
+    } catch (err) {
+        console.error('Error loading ticket conversation:', err);
+        alert('Failed to load ticket conversation.');
+    }
+}
+
+function closeStudentTicketConversationModal() {
+    document.getElementById('studentTicketConversationModal').style.display = 'none';
+    currentTicketId = null;
+}
+
+async function submitTicketReply() {
+    const reply = document.getElementById('ticketReply').value.trim();
+    const errorDiv = document.getElementById('ticketReplyError');
+    
+    if (!reply) {
+        errorDiv.textContent = 'Please enter your reply.';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (!currentTicketId) {
+        errorDiv.textContent = 'No ticket selected.';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    try {
+        const res = await fetch(`/api/tickets/${currentTicketId}/respond`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                sender: 'student',
+                message: reply
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            openTicketConversation(currentTicketId);
+            loadStudentTickets();
+        } else {
+            errorDiv.textContent = data.message || 'Failed to send reply.';
+            errorDiv.style.display = 'block';
+        }
+    } catch (err) {
+        console.error('Error sending reply:', err);
+        errorDiv.textContent = 'Failed to send reply. Please try again.';
+        errorDiv.style.display = 'block';
+    }
+}
 </script>
 
 <!-- Video Player Modal Removed -->

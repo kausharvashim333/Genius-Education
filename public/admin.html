@@ -4310,6 +4310,7 @@
         <div class="modal-content" style="max-width: 600px;">
             <h3 id="ticketModalTitle">Create Ticket</h3>
             <input type="hidden" id="ticketId">
+            <div class="form-group"><label>Student *</label><select id="ticketStudentId" required><option value="">Select Student</option></select></div>
             <div class="form-group"><label>Subject *</label><input type="text" id="ticketSubject" required></div>
             <div class="form-group"><label>Description *</label><textarea id="ticketDescription" rows="4" required></textarea></div>
             <div class="form-group"><label>Category</label><select id="ticketCategory"><option value="General">General</option><option value="Technical">Technical</option><option value="Academic">Academic</option><option value="Financial">Financial</option><option value="Other">Other</option></select></div>
@@ -4318,6 +4319,19 @@
             <div class="form-group"><label>Assigned To</label><input type="text" id="ticketAssignedTo" placeholder="Admin name"></div>
             <button type="button" class="btn btn-primary" onclick="saveTicket()"><i class="fas fa-save"></i> Save Ticket</button>
             <button type="button" class="btn" onclick="closeModal('ticketModal')" style="margin-left:10px;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Ticket Conversation Modal -->
+    <div id="ticketConversationModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <h3 id="ticketConversationTitle">Ticket Conversation</h3>
+            <input type="hidden" id="conversationTicketId">
+            <div id="ticketConversationInfo" style="background:rgba(0,0,0,0.1);padding:10px;border-radius:5px;margin-bottom:15px;"></div>
+            <div id="ticketConversationThread" style="max-height:300px;overflow-y:auto;background:rgba(0,0,0,0.05);padding:10px;border-radius:5px;margin-bottom:15px;"></div>
+            <div class="form-group"><label>Your Reply</label><textarea id="ticketAdminReply" rows="3" placeholder="Type your reply here"></textarea></div>
+            <button type="button" class="btn btn-primary" onclick="sendAdminReply()"><i class="fas fa-paper-plane"></i> Send Reply</button>
+            <button type="button" class="btn" onclick="closeModal('ticketConversationModal')" style="margin-left:10px;">Close</button>
         </div>
     </div>
 

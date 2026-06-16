@@ -7276,12 +7276,19 @@ app.get('/api/tickets/:id', (req, res) => {
 });
 
 app.get('/api/tickets/student/:studentId', (req, res) => {
+    const student = getAuthenticatedStudent(req, req.params.studentId);
+    if (!student) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
     const tickets = readData('tickets.json') || [];
     const studentTickets = tickets.filter(t => t.studentId == req.params.studentId);
-    res.json(studentTickets);
+    res.json({ success: true, tickets: studentTickets });
 });
 
 app.post('/api/tickets', (req, res) => {
+    const studentId = req.body.studentId;
+    const student = getAuthenticatedStudent(req, studentId);
+    if (!student) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
     const tickets = readData('tickets.json') || [];
     const ticket = {
         id: Date.now(),
@@ -7337,7 +7344,7 @@ app.post('/api/tickets/:id/response', (req, res) => {
     const tickets = readData('tickets.json') || [];
     const ticket = tickets.find(t => t.id == req.params.id);
     if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
-    
+
     const response = {
         id: Date.now(),
         message: req.body.message,
@@ -7345,11 +7352,37 @@ app.post('/api/tickets/:id/response', (req, res) => {
         senderName: req.body.senderName,
         createdAt: new Date().toISOString()
     };
-    
+
     if (!ticket.responses) ticket.responses = [];
     ticket.responses.push(response);
     ticket.updatedAt = new Date().toISOString();
-    
+
+    writeData('tickets.json', tickets);
+    res.json({ success: true, response });
+});
+
+app.post('/api/tickets/:id/respond', (req, res) => {
+    const tickets = readData('tickets.json') || [];
+    const ticket = tickets.find(t => t.id == req.params.id);
+    if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
+
+    // If sender is student, verify they own this ticket
+    if (req.body.sender === 'student') {
+        const student = getAuthenticatedStudent(req, ticket.studentId);
+        if (!student) return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const response = {
+        id: Date.now(),
+        message: req.body.message,
+        sender: req.body.sender, // student or admin
+        timestamp: new Date().toISOString()
+    };
+
+    if (!ticket.responses) ticket.responses = [];
+    ticket.responses.push(response);
+    ticket.updatedAt = new Date().toISOString();
+
     writeData('tickets.json', tickets);
     res.json({ success: true, response });
 });
