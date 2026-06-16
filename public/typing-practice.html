@@ -2930,6 +2930,9 @@
                 charCount += lineLength + 1; // +1 for space
             }
             
+            // Check if line actually changed
+            const lineChanged = currentLineIndex !== previousLineIndex;
+            
             // Card-based display: show only current line and adjacent lines
             let displayHTML = '';
             const visibleLines = [currentLineIndex - 1, currentLineIndex, currentLineIndex + 1];
@@ -2950,7 +2953,7 @@
                 }
                 
                 // Add animation class only when line actually changes
-                if (i === currentLineIndex && currentLineIndex !== previousLineIndex) {
+                if (i === currentLineIndex && lineChanged) {
                     lineClass += ' slide-in';
                 }
                 
@@ -2984,8 +2987,8 @@
             
             charCountDisplay.textContent = `${currentIndex}/${currentText.length}`;
             
-            // Update previous line index for animation
-            if (currentLineIndex !== previousLineIndex) {
+            // Update previous line index after rendering
+            if (lineChanged) {
                 previousLineIndex = currentLineIndex;
             }
             
