@@ -566,6 +566,235 @@
         .legend-index { background: #3b82f6; }
         .legend-thumb { background: #8b5cf6; }
 
+        /* Window Title Bar */
+        .window-title-bar {
+            background: linear-gradient(180deg, #3a3a4a 0%, #2a2a3a 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            -webkit-app-region: drag;
+        }
+
+        .window-title {
+            color: #e0e0e0;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .window-title i {
+            color: #667eea;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .window-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .window-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .window-btn.close {
+            background: #ff5f57;
+        }
+
+        .window-btn.minimize {
+            background: #febc2e;
+        }
+
+        .window-btn.maximize {
+            background: #28c840;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: rgba(30, 30, 50, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #888;
+            flex-shrink: 0;
+        }
+
+        .status-left, .status-right {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-item i {
+            color: #667eea;
+        }
+
+        .status-value {
+            color: #e0e0e0;
+            font-weight: 600;
+        }
+
+        /* Splash Screen */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .splash-logo {
+            font-size: 80px;
+            color: #667eea;
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .splash-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #e0e0e0;
+            margin-bottom: 10px;
+        }
+
+        .splash-subtitle {
+            font-size: 18px;
+            color: #888;
+            margin-bottom: 40px;
+        }
+
+        .splash-loader {
+            width: 200px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .splash-loader-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+            animation: loading 2s ease-in-out forwards;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes loading {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* Achievement Badges */
+        .achievements-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(40, 40, 60, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .achievements-section h3 {
+            color: #e0e0e0;
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 10px;
+        }
+
+        .badge {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            opacity: 0.3;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .badge.unlocked {
+            opacity: 1;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: #667eea;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+        }
+
+        .badge:hover {
+            transform: scale(1.1);
+        }
+
+        .badge-tooltip {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 50, 0.95);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #e0e0e0;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .badge:hover .badge-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
         /* Guide Modal */
         .guide-modal {
             display: none;
@@ -856,7 +1085,32 @@
     </style>
 </head>
 <body>
+    <!-- Splash Screen -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-logo">
+            <i class="fas fa-keyboard"></i>
+        </div>
+        <div class="splash-title">Genius Typing Pro</div>
+        <div class="splash-subtitle">Professional Typing Practice Software</div>
+        <div class="splash-loader">
+            <div class="splash-loader-bar"></div>
+        </div>
+    </div>
+
     <div class="app-container">
+        <!-- Window Title Bar -->
+        <div class="window-title-bar">
+            <div class="window-title">
+                <i class="fas fa-keyboard"></i>
+                <span>Genius Typing Pro</span>
+            </div>
+            <div class="window-controls">
+                <button class="window-btn minimize" onclick="minimizeWindow()" title="Minimize"></button>
+                <button class="window-btn maximize" onclick="maximizeWindow()" title="Maximize"></button>
+                <button class="window-btn close" onclick="closeWindow()" title="Close"></button>
+            </div>
+        </div>
+
         <!-- Sidebar -->
         <div class="app-sidebar">
             <div class="sidebar-header">
@@ -942,6 +1196,44 @@
                         <input type="checkbox" id="fingerGuide" checked>
                         <span class="toggle-slider"></span>
                     </label>
+                </div>
+            </div>
+
+            <div class="achievements-section">
+                <h3><i class="fas fa-medal"></i> Achievements</h3>
+                <div class="badges-grid">
+                    <div class="badge" id="badge-first" data-achievement="First Steps">
+                        <i class="fas fa-play"></i>
+                        <div class="badge-tooltip">First Steps - Complete your first typing session</div>
+                    </div>
+                    <div class="badge" id="badge-speed20" data-achievement="Speed Demon">
+                        <i class="fas fa-bolt"></i>
+                        <div class="badge-tooltip">Speed Demon - Reach 20 WPM</div>
+                    </div>
+                    <div class="badge" id="badge-speed40" data-achievement="Typing Master">
+                        <i class="fas fa-fire"></i>
+                        <div class="badge-tooltip">Typing Master - Reach 40 WPM</div>
+                    </div>
+                    <div class="badge" id="badge-speed60" data-achievement="Keyboard Wizard">
+                        <i class="fas fa-magic"></i>
+                        <div class="badge-tooltip">Keyboard Wizard - Reach 60 WPM</div>
+                    </div>
+                    <div class="badge" id="badge-accuracy95" data-achievement="Precision">
+                        <i class="fas fa-bullseye"></i>
+                        <div class="badge-tooltip">Precision - Achieve 95% accuracy</div>
+                    </div>
+                    <div class="badge" id="badge-accuracy100" data-achievement="Perfectionist">
+                        <i class="fas fa-star"></i>
+                        <div class="badge-tooltip">Perfectionist - Achieve 100% accuracy</div>
+                    </div>
+                    <div class="badge" id="badge-streak10" data-achievement="On Fire">
+                        <i class="fas fa-fire-alt"></i>
+                        <div class="badge-tooltip">On Fire - 10 character streak</div>
+                    </div>
+                    <div class="badge" id="badge-sessions10" data-achievement="Dedicated">
+                        <i class="fas fa-calendar-check"></i>
+                        <div class="badge-tooltip">Dedicated - Complete 10 sessions</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1090,6 +1382,38 @@
                     <div class="live-graph" id="liveGraphSection">
                         <canvas id="wpmGraph"></canvas>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <div class="status-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Time: <span class="status-value" id="statusTime">00:00</span></span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-keyboard"></i>
+                    <span>Mode: <span class="status-value" id="statusMode">Ready</span></span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Lesson: <span class="status-value" id="statusLesson">Free Type</span></span>
+                </div>
+            </div>
+            <div class="status-right">
+                <div class="status-item">
+                    <i class="fas fa-memory"></i>
+                    <span>Session: <span class="status-value" id="sessionCount">0</span> words</span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-trophy"></i>
+                    <span>Best: <span class="status-value" id="bestWpm">0</span> WPM</span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Press <span class="status-value">F1</span> for help</span>
                 </div>
             </div>
         </div>
@@ -1559,17 +1883,53 @@
             const wpm = Math.round(wordsTyped / timeElapsed) || 0;
             const accuracy = Math.round(((currentText.length - mistakes) / currentText.length) * 100);
             
+            saveBestWpm(wpm);
+            playSound('complete');
+            checkAchievements(wpm, accuracy, maxStreak);
+            
             document.getElementById('finalWpm').textContent = wpm;
             document.getElementById('finalAccuracy').textContent = accuracy + '%';
             document.getElementById('finalChars').textContent = currentText.length;
             document.getElementById('finalErrors').textContent = mistakes;
             
             document.getElementById('resultModal').style.display = 'flex';
+            updateStatusBar();
         }
 
         function closeResultModal() {
             document.getElementById('resultModal').style.display = 'none';
             loadNewText();
+        }
+
+        function resetTyping() {
+            if (isTyping) {
+                isTyping = false;
+                typingInput.disabled = true;
+                startBtn.disabled = false;
+                
+                if (timerInterval) {
+                    clearTimeout(timerInterval);
+                    timerInterval = null;
+                }
+            }
+            
+            currentIndex = 0;
+            mistakes = 0;
+            streak = 0;
+            combo = 1;
+            wpmHistory = [];
+            
+            typingInput.value = '';
+            textDisplay.textContent = 'Click "Start" to begin typing...';
+            wpmDisplay.textContent = '0';
+            accuracyDisplay.textContent = '100%';
+            cpmDisplay.textContent = '0';
+            charCountDisplay.textContent = '0/0';
+            streakDisplay.textContent = '0';
+            comboDisplay.textContent = 'x1';
+            progressFill.style.width = '0%';
+            accuracyCircle.style.strokeDashoffset = '339.292';
+            updateStatusBar();
         }
 
         function openGuide() {
@@ -1597,6 +1957,231 @@
                 englishContent.classList.remove('active');
             }
         }
+
+        // Window controls
+        function minimizeWindow() {
+            // In a real app, this would minimize the window
+            alert('Minimize feature - In a desktop app, this would minimize the window');
+        }
+
+        function maximizeWindow() {
+            // In a real app, this would maximize the window
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen();
+            }
+        }
+
+        function closeWindow() {
+            if (confirm('Are you sure you want to exit?')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // F1 - Open guide
+            if (e.key === 'F1') {
+                e.preventDefault();
+                openGuide();
+            }
+            
+            // Escape - Close modals
+            if (e.key === 'Escape') {
+                closeGuide();
+                document.getElementById('resultModal').style.display = 'none';
+            }
+            
+            // Ctrl/Cmd + N - New text
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                loadNewText();
+            }
+            
+            // Ctrl/Cmd + R - Reset
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                e.preventDefault();
+                resetTyping();
+            }
+            
+            // Space - Start typing (when not typing)
+            if (e.key === ' ' && !isTyping && !typingInput.disabled) {
+                e.preventDefault();
+                startTyping();
+            }
+        });
+
+        // Sound effects
+        function playSound(type) {
+            if (!document.getElementById('soundEffects').checked) return;
+            
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            if (type === 'correct') {
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.value = 0.1;
+            } else if (type === 'error') {
+                oscillator.frequency.value = 200;
+                oscillator.type = 'sawtooth';
+                gainNode.gain.value = 0.15;
+            } else if (type === 'complete') {
+                oscillator.frequency.value = 600;
+                oscillator.type = 'sine';
+                gainNode.gain.value = 0.2;
+            }
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        // Update status bar
+        function updateStatusBar() {
+            const statusTime = document.getElementById('statusTime');
+            const statusMode = document.getElementById('statusMode');
+            const statusLesson = document.getElementById('statusLesson');
+            const sessionCount = document.getElementById('sessionCount');
+            const bestWpm = document.getElementById('bestWpm');
+            
+            if (isTyping && startTime) {
+                const elapsed = Math.floor((new Date() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                statusTime.textContent = `${minutes}:${seconds}`;
+                statusMode.textContent = 'Typing';
+            } else {
+                statusTime.textContent = '00:00';
+                statusMode.textContent = 'Ready';
+            }
+            
+            sessionCount.textContent = currentIndex;
+            
+            const storedBest = localStorage.getItem('bestWpm') || 0;
+            bestWpm.textContent = storedBest;
+        }
+
+        // Save best WPM
+        function saveBestWpm(wpm) {
+            const currentBest = localStorage.getItem('bestWpm') || 0;
+            if (wpm > currentBest) {
+                localStorage.setItem('bestWpm', wpm);
+            }
+        }
+
+        // Achievement system
+        const achievements = {
+            'badge-first': false,
+            'badge-speed20': false,
+            'badge-speed40': false,
+            'badge-speed60': false,
+            'badge-accuracy95': false,
+            'badge-accuracy100': false,
+            'badge-streak10': false,
+            'badge-sessions10': false
+        };
+
+        function loadAchievements() {
+            const saved = localStorage.getItem('achievements');
+            if (saved) {
+                Object.assign(achievements, JSON.parse(saved));
+                updateBadgesUI();
+            }
+        }
+
+        function saveAchievements() {
+            localStorage.setItem('achievements', JSON.stringify(achievements));
+        }
+
+        function updateBadgesUI() {
+            Object.keys(achievements).forEach(badgeId => {
+                const badge = document.getElementById(badgeId);
+                if (badge && achievements[badgeId]) {
+                    badge.classList.add('unlocked');
+                }
+            });
+        }
+
+        function unlockAchievement(badgeId) {
+            if (!achievements[badgeId]) {
+                achievements[badgeId] = true;
+                saveAchievements();
+                updateBadgesUI();
+                
+                // Show notification
+                const badge = document.getElementById(badgeId);
+                const achievementName = badge.dataset.achievement;
+                showAchievementNotification(achievementName);
+            }
+        }
+
+        function showAchievementNotification(name) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+                z-index: 10000;
+                animation: slideIn 0.5s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-weight: 600;
+            `;
+            notification.innerHTML = `<i class="fas fa-medal"></i> Achievement Unlocked: ${name}`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.5s ease';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        function checkAchievements(wpm, accuracy, currentStreak) {
+            // First session
+            unlockAchievement('badge-first');
+            
+            // Speed achievements
+            if (wpm >= 20) unlockAchievement('badge-speed20');
+            if (wpm >= 40) unlockAchievement('badge-speed40');
+            if (wpm >= 60) unlockAchievement('badge-speed60');
+            
+            // Accuracy achievements
+            if (accuracy >= 95) unlockAchievement('badge-accuracy95');
+            if (accuracy >= 100) unlockAchievement('badge-accuracy100');
+            
+            // Streak achievement
+            if (currentStreak >= 10) unlockAchievement('badge-streak10');
+            
+            // Session count
+            const sessionCount = parseInt(localStorage.getItem('sessionCount') || 0) + 1;
+            localStorage.setItem('sessionCount', sessionCount);
+            if (sessionCount >= 10) unlockAchievement('badge-sessions10');
+        }
+
+        // Add CSS for notification animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
 
         function updateDisplay() {
             const typed = currentText.substring(0, currentIndex);
@@ -1688,14 +2273,17 @@
                 combo = Math.min(combo + 0.1, 5);
                 maxStreak = Math.max(maxStreak, streak);
                 maxCombo = Math.max(maxCombo, combo);
+                playSound('correct');
             } else {
                 mistakes++;
                 streak = 0;
                 combo = 1;
+                playSound('error');
             }
             
             e.target.value = '';
             updateDisplay();
+            updateStatusBar();
             
             if (currentIndex >= currentText.length) {
                 endTyping();
@@ -1730,7 +2318,16 @@
         });
 
         // Initialize
-        loadNewText();
+        window.addEventListener('load', function() {
+            // Hide splash screen after 2.5 seconds
+            setTimeout(() => {
+                document.getElementById('splashScreen').classList.add('hidden');
+            }, 2500);
+            
+            loadAchievements();
+            loadNewText();
+            updateStatusBar();
+        });
     </script>
 </body>
 </html>
