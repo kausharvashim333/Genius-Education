@@ -2741,8 +2741,8 @@
             timerDisplay.style.display = 'none';
             
             const timeElapsed = (new Date() - startTime) / 1000 / 60;
-            const wordsTyped = currentText.split(' ').filter(w => w.length > 0).length;
-            const wpm = Math.round(wordsTyped / timeElapsed) || 0;
+            // Standard WPM calculation: (characters typed / 5) / time in minutes
+            const wpm = Math.round((currentIndex / 5) / timeElapsed) || 0;
             const accuracy = currentIndex > 0 ? Math.round(((currentIndex - mistakes) / currentIndex) * 100) : 100;
             
             saveBestWpm(wpm);
@@ -3436,7 +3436,7 @@
             if (isTyping && startTime) {
                 const timeElapsed = (new Date() - startTime) / 1000 / 60;
                 const wordsTyped = typed.split(' ').filter(w => w.length > 0).length;
-                const wpm = Math.round(wordsTyped / timeElapsed) || 0;
+                const wpm = Math.round((currentIndex / 5) / timeElapsed) || 0;
                 const cpm = Math.round(currentIndex / timeElapsed) || 0;
                 const accuracy = currentIndex > 0 ? Math.round(((currentIndex - mistakes) / currentIndex) * 100) : 100;
                 
