@@ -1777,10 +1777,10 @@ async function loadApplyCourses() {
 async function checkDuplicateMobile() {
     const phone = document.getElementById('aPhone').value;
     const errorMsg = document.getElementById('phoneError');
-    
+
     if (phone.length === 10 && /^[6-9]/.test(phone)) {
         try {
-            const res = await fetch(`/api/students/check-mobile?phone=${phone}`);
+            const res = await fetch(`/api/check-mobile?phone=${phone}`);
             const data = await res.json();
             if (data.exists) {
                 errorMsg.textContent = '⚠️ This mobile number is already registered!';
@@ -1804,10 +1804,10 @@ async function checkDuplicateMobile() {
 async function checkDuplicateEmail() {
     const email = document.getElementById('aEmail').value;
     const errorMsg = document.getElementById('emailError');
-    
+
     if (email && email.includes('@')) {
         try {
-            const res = await fetch(`/api/students/check-email?email=${encodeURIComponent(email)}`);
+            const res = await fetch(`/api/check-email?email=${encodeURIComponent(email)}`);
             const data = await res.json();
             if (data.exists) {
                 errorMsg.textContent = '⚠️ This email is already registered!';
@@ -1831,10 +1831,10 @@ async function checkDuplicateEmail() {
 async function checkDuplicateAadhar() {
     const aadhar = document.getElementById('aAadhar').value;
     const errorMsg = document.getElementById('aadharError');
-    
+
     if (aadhar && aadhar.length === 12) {
         try {
-            const res = await fetch(`/api/students/check-aadhar?aadhar=${aadhar}`);
+            const res = await fetch(`/api/check-aadhar?aadhar=${aadhar}`);
             const data = await res.json();
             if (data.exists) {
                 errorMsg.textContent = '⚠️ This Aadhar number is already registered!';
