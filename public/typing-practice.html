@@ -357,7 +357,8 @@
             font-size: 18px;
             line-height: 1.6;
             color: #e0e0e0;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            margin-top: 30px;
             user-select: none;
             text-align: left;
             max-width: 900px;
@@ -529,36 +530,37 @@
         .keyboard {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 6px;
             align-items: center;
-            background: rgba(30, 30, 50, 0.5);
-            padding: 25px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(180deg, #1e1e2e, #181825);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .keyboard-row {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             justify-content: center;
         }
 
         .key {
-            min-width: 40px;
-            height: 40px;
-            background: linear-gradient(145deg, #3a3a4a, #2a2a3a);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
+            min-width: 45px;
+            height: 45px;
+            background: linear-gradient(180deg, #2d2d3d, #252535);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
             color: #e0e0e0;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all 0.2s ease;
             position: relative;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
         }
 
         .key::before {
@@ -567,23 +569,28 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 30%;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
-            border-radius: 4px 4px 0 0;
+            height: 40%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.08), transparent);
+            border-radius: 6px 6px 0 0;
             pointer-events: none;
         }
 
+        .key:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
         .key.active {
-            background: linear-gradient(145deg, #667eea, #5568d3);
+            background: linear-gradient(180deg, #667eea, #5568d3);
             transform: translateY(2px);
             box-shadow: 0 1px 8px rgba(102, 126, 234, 0.4);
             border-color: #667eea;
         }
 
         .key.highlighted {
-            background: linear-gradient(145deg, #f59e0b, #d97706);
+            background: linear-gradient(180deg, #f59e0b, #d97706);
             border-color: #f59e0b;
-            box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+            box-shadow: 0 0 16px rgba(245, 158, 11, 0.7);
             animation: pulse 1s ease-in-out infinite;
         }
 
