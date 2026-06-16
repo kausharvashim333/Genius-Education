@@ -1910,9 +1910,7 @@
             isTyping = true;
             startTime = new Date();
             typingInput.disabled = false;
-            typingInput.focus();
             startBtn.disabled = true;
-            textDisplay.textContent = currentText;
             updateDisplay();
             
             const timerDuration = parseInt(timerSelect.value) * 1000;
@@ -2034,36 +2032,80 @@
             }
         }
 
-        // Keyboard shortcuts
+        // Keyboard shortcuts and typing capture
         document.addEventListener('keydown', function(e) {
             // F1 - Open guide
             if (e.key === 'F1') {
                 e.preventDefault();
                 openGuide();
+                return;
             }
             
             // Escape - Close modals
             if (e.key === 'Escape') {
                 closeGuide();
                 document.getElementById('resultModal').style.display = 'none';
+                return;
             }
             
             // Ctrl/Cmd + N - New text
             if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
                 e.preventDefault();
                 loadNewText();
+                return;
             }
             
             // Ctrl/Cmd + R - Reset
             if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
                 e.preventDefault();
                 resetTyping();
+                return;
             }
             
             // Space - Start typing (when not typing)
             if (e.key === ' ' && !isTyping && !typingInput.disabled) {
                 e.preventDefault();
                 startTyping();
+                return;
+            }
+            
+            // Capture typing when isTyping is true
+            if (isTyping && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                const key = e.key;
+                
+                // Ignore special keys
+                if (key.length === 1 || key === 'Backspace' || key === 'Delete') {
+                    e.preventDefault();
+                    
+                    if (key === 'Backspace' && currentIndex > 0) {
+                        currentIndex--;
+                        updateDisplay();
+                        updateStatusBar();
+                    } else if (key.length === 1) {
+                        const expectedChar = currentText[currentIndex];
+                        
+                        if (key === expectedChar) {
+                            currentIndex++;
+                            streak++;
+                            combo = Math.min(combo + 0.1, 5);
+                            maxStreak = Math.max(maxStreak, streak);
+                            maxCombo = Math.max(maxCombo, combo);
+                            playSound('correct');
+                        } else {
+                            mistakes++;
+                            streak = 0;
+                            combo = 1;
+                            playSound('error');
+                        }
+                        
+                        updateDisplay();
+                        updateStatusBar();
+                        
+                        if (currentIndex >= currentText.length) {
+                            endTyping();
+                        }
+                    }
+                }
             }
         });
 
