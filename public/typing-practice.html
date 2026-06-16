@@ -2297,6 +2297,7 @@
         let currentLevel = 1;
         let incorrectChars = new Set(); // Track positions of incorrectly typed characters
         let lastCompletedLine = -1; // Track last completed line for scrolling
+        let previousLineIndex = -1; // Track previous line index for animation
 
         const textDisplay = document.getElementById('textDisplay');
         const typingInput = document.getElementById('typingInput');
@@ -2383,6 +2384,7 @@
             wpmHistory = [];
             incorrectChars.clear();
             lastCompletedLine = -1;
+            previousLineIndex = -1;
             typingInput.value = '';
             typingInput.disabled = true;
             wpmDisplay.textContent = '0';
@@ -2947,8 +2949,8 @@
                     lineClass += ' active';
                 }
                 
-                // Add animation class for new active line
-                if (i === currentLineIndex && i > lastCompletedLine) {
+                // Add animation class only when line actually changes
+                if (i === currentLineIndex && currentLineIndex !== previousLineIndex) {
                     lineClass += ' slide-in';
                 }
                 
@@ -2981,6 +2983,11 @@
             progressPercentage.textContent = Math.round(progress) + '%';
             
             charCountDisplay.textContent = `${currentIndex}/${currentText.length}`;
+            
+            // Update previous line index for animation
+            if (currentLineIndex !== previousLineIndex) {
+                previousLineIndex = currentLineIndex;
+            }
             
             // Update last completed line
             if (currentLineIndex > lastCompletedLine) {
