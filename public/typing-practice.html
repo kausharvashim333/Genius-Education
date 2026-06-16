@@ -588,7 +588,7 @@
         }
 
         .key.space {
-            min-width: 280px;
+            min-width: 350px;
         }
 
         .key.shift {
@@ -2930,8 +2930,9 @@
                 charCount += lineLength + 1; // +1 for space
             }
             
-            // Check if line actually changed
-            const lineChanged = currentLineIndex !== previousLineIndex;
+            // Check if line actually changed AND current index is at the start of new line
+            const lineChanged = currentLineIndex !== previousLineIndex && 
+                              (currentIndex === 0 || currentIndex === lineCharCounts[currentLineIndex]);
             
             // Card-based display: show only current line and adjacent lines
             let displayHTML = '';
