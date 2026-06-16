@@ -2895,35 +2895,50 @@
             const typed = currentText.substring(0, currentIndex);
             const remaining = currentText.substring(currentIndex);
             
-            // Split text into lines (handle both \n and wrap at reasonable width)
-            const lines = currentText.split('\n');
+            // Wrap text into lines of reasonable length (80 characters)
+            const words = currentText.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            for (const word of words) {
+                if ((currentLine + ' ' + word).trim().length > 80) {
+                    if (currentLine.trim()) {
+                        lines.push(currentLine.trim());
+                    }
+                    currentLine = word;
+                } else {
+                    currentLine += (currentLine ? ' ' : '') + word;
+                }
+            }
+            if (currentLine.trim()) {
+                lines.push(currentLine.trim());
+            }
             
             // Calculate which line we're on
             let charCount = 0;
             let currentLineIndex = 0;
+            let lineCharCounts = [];
             
             for (let i = 0; i < lines.length; i++) {
+                lineCharCounts.push(charCount);
                 const lineLength = lines[i].length;
                 if (currentIndex >= charCount && currentIndex < charCount + lineLength) {
                     currentLineIndex = i;
-                    break;
                 }
-                charCount += lineLength + 1; // +1 for newline
+                charCount += lineLength + 1; // +1 for space
             }
             
             // Card-based display: show only current line and adjacent lines
             let displayHTML = '';
             const visibleLines = [currentLineIndex - 1, currentLineIndex, currentLineIndex + 1];
             
-            charCount = 0;
             for (let i = 0; i < lines.length; i++) {
                 if (!visibleLines.includes(i)) {
-                    charCount += lines[i].length + 1;
                     continue;
                 }
                 
                 const line = lines[i];
-                const lineStart = charCount;
+                const lineStart = lineCharCounts[i];
                 
                 let lineClass = 'text-line';
                 if (i < currentLineIndex) {
@@ -2957,7 +2972,6 @@
                 }
                 
                 displayHTML += '</div>';
-                charCount += line.length + 1; // +1 for newline
             }
             
             textDisplay.innerHTML = displayHTML;
