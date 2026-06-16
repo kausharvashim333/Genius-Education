@@ -2222,6 +2222,113 @@ app.post('/api/student-auth/verify-otp', (req, res) => {
     });
 });
 
+// ===== Logged-in Student - Email Verification (OTP) =====
+// Validate that the request belongs to the logged-in student identified by rollNo.
+function getAuthenticatedStudent(req, rollNo) {
+    if (!rollNo) return null;
+    const students = readData('students.json') || [];
+    const student = students.find(s => s.rollNo === rollNo);
+    if (!student) return null;
+    const token = getStudentSessionToken(req);
+    if (!token) return null;
+    const sessions = readData('student-sessions.json') || [];
+    const match = sessions.find(s => s.token === token &&
+        (String(s.studentId) === String(student.id) || String(s.studentId) === String(student.rollNo)));
+    return match ? student : null;
+}
+
+// Send a 6-digit OTP to the student's registered email
+app.post('/api/student/send-email-verification', async (req, res) => {
+    try {
+        const { rollNo } = req.body;
+        const student = getAuthenticatedStudent(req, rollNo);
+        if (!student) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+        const email = (student.email || '').trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ success: false, message: 'Aapke account me valid email nahi hai. Pehle profile me email update karein.' });
+        }
+        if (student.emailVerified) {
+            return res.json({ success: false, message: 'Email pehle se verified hai' });
+        }
+
+        // Rate-limit: max 5 requests per rollNo per hour
+        const otps = readData('student-email-verify-otps.json') || [];
+        const recent = otps.filter(o => o.rollNo === rollNo && (Date.now() - (o.createdAt || 0)) < 60 * 60 * 1000);
+        if (recent.length >= 5) {
+            return res.status(429).json({ success: false, message: 'Bahut zyada requests. 1 ghante baad try karein.' });
+        }
+
+        const otp = crypto.randomInt(100000, 1000000).toString();
+        const record = {
+            rollNo,
+            email: email.toLowerCase(),
+            otp,
+            createdAt: Date.now(),
+            expiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes
+        };
+        const filtered = otps.filter(o => o.rollNo !== rollNo);
+        filtered.push(record);
+        writeData('student-email-verify-otps.json', filtered);
+
+        const settings = readData('settings.json') || {};
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
+        if (!smtpUser || !smtpPass) {
+            return res.status(500).json({ success: false, message: 'Email service abhi unavailable hai. Admin se contact karein.' });
+        }
+        const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpSecure,
+            auth: { user: smtpUser, pass: smtpPass }
+        });
+        const inst = settings.name || 'Genius Computer Education';
+        const rendered = renderEmailTemplate('student-otp', {
+            name: student.name,
+            otp,
+            inst
+        });
+        await transporter.sendMail({
+            from: `${inst} <${smtpUser}>`,
+            to: email,
+            subject: rendered.subject,
+            html: rendered.html
+        });
+        logActivity('student.send-email-verification', { type: 'student', id: rollNo }, { email }, req);
+        res.json({ success: true, message: 'OTP aapke email par bhej diya gaya hai' });
+    } catch (e) {
+        logEmailFailure('student-email-verify', (req.body && req.body.rollNo) || '', e);
+        res.status(500).json({ success: false, message: 'OTP nahi bhej paaye. Thodi der baad try karein.' });
+    }
+});
+
+// Verify the OTP and mark the student's email as verified
+app.post('/api/student/verify-email', (req, res) => {
+    const { rollNo, otp } = req.body;
+    const student = getAuthenticatedStudent(req, rollNo);
+    if (!student) return res.status(401).json({ success: false, message: 'Unauthorized' });
+    if (!otp) return res.status(400).json({ success: false, message: 'OTP zaroori hai' });
+
+    const otps = readData('student-email-verify-otps.json') || [];
+    const idx = otps.findIndex(o => o.rollNo === rollNo && o.otp === otp);
+    if (idx === -1) return res.status(400).json({ success: false, message: 'Galat OTP' });
+    if (Date.now() > otps[idx].expiresAt) return res.status(400).json({ success: false, message: 'OTP expire ho gaya. Naya OTP mangaiye.' });
+
+    // Mark verified in students.json
+    const students = readData('students.json') || [];
+    const sIdx = students.findIndex(s => s.rollNo === rollNo);
+    if (sIdx === -1) return res.status(404).json({ success: false, message: 'Student not found' });
+    students[sIdx].emailVerified = true;
+    students[sIdx].emailVerifiedAt = new Date().toISOString();
+    writeData('students.json', students);
+
+    // Remove used OTPs for this student
+    writeData('student-email-verify-otps.json', otps.filter(o => o.rollNo !== rollNo));
+    logActivity('student.verify-email', { type: 'student', id: rollNo }, { email: student.email }, req);
+
+    res.json({ success: true, message: 'Email successfully verified', emailVerified: true });
+});
+
 // Student 2FA Setup
 app.post('/api/student/enable-2fa', async (req, res) => {
     try {

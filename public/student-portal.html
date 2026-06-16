@@ -680,7 +680,7 @@
                     <div class="info-row"><span class="label">Gender</span><span class="val" id="pGender">—</span></div>
                     <div class="info-row"><span class="label">Category</span><span class="val" id="pCategory">—</span></div>
                     <div class="info-row"><span class="label">Mobile</span><span class="val" id="pPhone">—</span></div>
-                    <div class="info-row"><span class="label">Email</span><span class="val" id="pEmail">—</span></div>
+                    <div class="info-row"><span class="label">Email</span><span class="val" id="pEmail" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;"><span id="pEmailText">—</span><span id="emailVerifyWrap"></span></span></div>
                     <div class="info-row"><span class="label">Aadhar</span><span class="val" id="pAadhar">—</span></div>
                 </div>
                 <div class="info-card">
@@ -1113,6 +1113,24 @@
                 <button type="submit" style="flex:1;padding:12px;background:rgba(102,126,234,0.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(102,126,234,0.5);color:white;border-radius:6px;cursor:pointer;">Save Changes</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Email Verification Modal -->
+<div id="emailVerifyModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:10000;align-items:center;justify-content:center;">
+    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.2);padding:30px;border-radius:16px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <h2 style="margin:0;"><i class="fas fa-envelope-circle-check" style="color:#16a34a;"></i> Verify Email</h2>
+            <button onclick="closeEmailVerifyModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#fff;">&times;</button>
+        </div>
+        <p style="color:rgba(255,255,255,0.8);font-size:14px;margin:0 0 6px;">OTP aapke registered email par bheja gaya hai:</p>
+        <p id="emailVerifyTarget" style="color:#fff;font-weight:600;font-size:14px;margin:0 0 16px;word-break:break-all;">—</p>
+        <input type="text" id="emailVerifyOtp" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" placeholder="6-digit OTP" oninput="this.value=this.value.replace(/\D/g,'')" style="width:100%;padding:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:18px;letter-spacing:6px;text-align:center;margin-bottom:8px;box-sizing:border-box;">
+        <div id="emailVerifyError" style="display:none;color:#fca5a5;font-size:13px;margin-bottom:8px;"></div>
+        <button id="emailVerifySubmitBtn" onclick="submitEmailVerification()" style="width:100%;padding:12px;background:rgba(22,163,74,0.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(22,163,74,0.6);color:#fff;border-radius:8px;cursor:pointer;font-weight:600;margin-bottom:10px;"><i class="fas fa-check"></i> Verify</button>
+        <div style="text-align:center;">
+            <button id="emailVerifyResendBtn" onclick="sendEmailVerification(true)" style="background:none;border:none;color:#93c5fd;cursor:pointer;font-size:13px;text-decoration:underline;">OTP dobara bhejein</button>
+        </div>
     </div>
 </div>
 
@@ -1681,7 +1699,8 @@ function showDashboard(s) {
     document.getElementById('pGender').textContent = s.gender || '—';
     document.getElementById('pCategory').textContent = s.category || '—';
     document.getElementById('pPhone').textContent = s.phone || '—';
-    document.getElementById('pEmail').textContent = s.email || '—';
+    document.getElementById('pEmailText').textContent = s.email || '—';
+    renderEmailVerifyState(s);
     document.getElementById('pAadhar').textContent = s.aadhar ? s.aadhar.replace(/(.{4})/g,'$1 ').trim() : '—';
     document.getElementById('pAddress').textContent = s.address || '—';
     
@@ -3309,6 +3328,97 @@ function closeEditProfileModal() {
     document.getElementById('editPhoto').value = '';
     document.getElementById('croppedImageData').value = '';
     document.getElementById('editProfileModal').style.display = 'none';
+}
+
+// ===== Email Verification =====
+function renderEmailVerifyState(s) {
+    const wrap = document.getElementById('emailVerifyWrap');
+    if (!wrap) return;
+    if (!s.email) { wrap.innerHTML = ''; return; }
+    if (s.emailVerified) {
+        wrap.innerHTML = '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(22,163,74,0.2);border:1px solid rgba(22,163,74,0.5);color:#22c55e;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;"><i class="fas fa-circle-check"></i> Verified</span>';
+    } else {
+        wrap.innerHTML = '<button onclick="sendEmailVerification(false)" style="display:inline-flex;align-items:center;gap:4px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.5);color:#fbbf24;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;cursor:pointer;"><i class="fas fa-shield-halved"></i> Verify Email</button>';
+    }
+}
+
+async function sendEmailVerification(isResend) {
+    const stored = localStorage.getItem('portalStudent');
+    if (!stored) { showNotification('Please login again', 'warning'); return; }
+    const student = JSON.parse(stored);
+
+    const errEl = document.getElementById('emailVerifyError');
+    if (errEl) errEl.style.display = 'none';
+
+    const btn = isResend ? document.getElementById('emailVerifyResendBtn') : null;
+    if (btn) { btn.disabled = true; btn.textContent = 'Bhej rahe hain...'; }
+
+    try {
+        const res = await fetch('/api/student/send-email-verification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rollNo: student.rollNo })
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('emailVerifyTarget').textContent = student.email || '';
+            document.getElementById('emailVerifyOtp').value = '';
+            document.getElementById('emailVerifyModal').style.display = 'flex';
+            if (isResend) showNotification('Naya OTP bhej diya gaya', 'success');
+        } else {
+            showNotification(data.message || 'OTP nahi bhej paaye', 'error');
+        }
+    } catch (e) {
+        showNotification('Network error. Dobara try karein.', 'error');
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'OTP dobara bhejein'; }
+}
+
+function closeEmailVerifyModal() {
+    document.getElementById('emailVerifyModal').style.display = 'none';
+}
+
+async function submitEmailVerification() {
+    const stored = localStorage.getItem('portalStudent');
+    if (!stored) { showNotification('Please login again', 'warning'); return; }
+    const student = JSON.parse(stored);
+
+    const otp = document.getElementById('emailVerifyOtp').value.trim();
+    const errEl = document.getElementById('emailVerifyError');
+    if (!otp || otp.length !== 6) {
+        errEl.textContent = '6-digit OTP daalein.';
+        errEl.style.display = 'block';
+        return;
+    }
+    errEl.style.display = 'none';
+
+    const btn = document.getElementById('emailVerifySubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+
+    try {
+        const res = await fetch('/api/student/verify-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rollNo: student.rollNo, otp })
+        });
+        const data = await res.json();
+        if (data.success) {
+            student.emailVerified = true;
+            localStorage.setItem('portalStudent', JSON.stringify(student));
+            renderEmailVerifyState(student);
+            closeEmailVerifyModal();
+            showNotification('Email successfully verified!', 'success');
+        } else {
+            errEl.textContent = data.message || 'Verification fail hua.';
+            errEl.style.display = 'block';
+        }
+    } catch (e) {
+        errEl.textContent = 'Network error. Dobara try karein.';
+        errEl.style.display = 'block';
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> Verify';
 }
 
 // Handle photo preview and cropping
