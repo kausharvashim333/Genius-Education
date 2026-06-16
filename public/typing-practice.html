@@ -531,27 +531,46 @@
         .keyboard {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             align-items: center;
-            background: linear-gradient(180deg, #1e1e2e, #181825);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(180deg, #0f0f1a, #0a0a12);
+            padding: 25px 30px;
+            border-radius: 16px;
+            border: 3px solid #1a1a2a;
+            box-shadow: 
+                0 0 0 1px #2a2a3a,
+                0 10px 40px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .keyboard-row {
             display: flex;
-            gap: 6px;
+            gap: 5px;
             justify-content: center;
         }
 
+        .keyboard-row:nth-child(1) {
+            padding-left: 10px;
+        }
+
+        .keyboard-row:nth-child(2) {
+            padding-left: 20px;
+        }
+
+        .keyboard-row:nth-child(3) {
+            padding-left: 25px;
+        }
+
+        .keyboard-row:nth-child(4) {
+            padding-left: 30px;
+        }
+
         .key {
-            min-width: 45px;
-            height: 45px;
-            background: linear-gradient(180deg, #2d2d3d, #252535);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
+            min-width: 48px;
+            height: 50px;
+            background: linear-gradient(180deg, #3a3a4a 0%, #2a2a3a 50%, #1a1a2a 100%);
+            border: 1px solid #4a4a5a;
+            border-radius: 5px;
             color: #e0e0e0;
             font-size: 14px;
             font-weight: 500;
@@ -559,9 +578,12 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             position: relative;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+            box-shadow: 
+                0 4px 0 #1a1a2a,
+                0 5px 5px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
         .key::before {
@@ -570,67 +592,88 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 40%;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.08), transparent);
-            border-radius: 6px 6px 0 0;
+            height: 45%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.12), transparent);
+            border-radius: 4px 4px 0 0;
+            pointer-events: none;
+        }
+
+        .key::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 2px;
+            right: 2px;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0 0 3px 3px;
             pointer-events: none;
         }
 
         .key:active {
-            transform: translateY(2px);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transform: translateY(3px);
+            box-shadow: 
+                0 1px 0 #1a1a2a,
+                0 2px 3px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
         .key.active {
-            background: linear-gradient(180deg, #667eea, #5568d3);
-            transform: translateY(2px);
-            box-shadow: 0 1px 8px rgba(102, 126, 234, 0.4);
-            border-color: #667eea;
+            background: linear-gradient(180deg, #667eea 0%, #5568d3 50%, #4458c3 100%);
+            transform: translateY(3px);
+            box-shadow: 
+                0 1px 0 #3a4aa3,
+                0 2px 3px rgba(102, 126, 234, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-color: #7788ff;
         }
 
         .key.highlighted {
-            background: linear-gradient(180deg, #f59e0b, #d97706);
-            border-color: #f59e0b;
-            box-shadow: 0 0 16px rgba(245, 158, 11, 0.7);
+            background: linear-gradient(180deg, #f59e0b 0%, #d97706 50%, #c86a05 100%);
+            border-color: #ffb84d;
+            box-shadow: 
+                0 4px 0 #a85a00,
+                0 5px 5px rgba(245, 158, 11, 0.5),
+                0 0 20px rgba(245, 158, 11, 0.6);
             animation: pulse 1s ease-in-out infinite;
         }
 
         .key.space {
             flex: 1;
-            min-width: 300px;
+            min-width: 350px;
         }
 
         .key.shift {
-            min-width: 80px;
+            min-width: 100px;
         }
 
         .key.caps {
-            min-width: 70px;
+            min-width: 85px;
         }
 
         .key.tab {
-            min-width: 60px;
-        }
-
-        .key.enter {
             min-width: 70px;
         }
 
+        .key.enter {
+            min-width: 110px;
+        }
+
         .key.backspace {
-            min-width: 80px;
+            min-width: 100px;
         }
 
         .key.win-key {
-            min-width: 50px;
-            font-size: 14px;
+            min-width: 55px;
+            font-size: 13px;
         }
 
         .key.alt-key {
-            min-width: 50px;
+            min-width: 55px;
         }
 
         .key.ctrl-key {
-            min-width: 50px;
+            min-width: 55px;
         }
 
         /* Finger guide legend */
