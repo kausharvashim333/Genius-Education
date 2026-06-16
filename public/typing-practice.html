@@ -502,8 +502,28 @@
             color: #e0e0e0;
             font-size: 16px;
             font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .finger-guide-display {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            border-radius: 8px;
+            padding: 12px 20px;
             margin-bottom: 20px;
             text-align: center;
+            color: #667eea;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .finger-guide-display i {
+            font-size: 18px;
         }
 
         .keyboard {
@@ -1489,6 +1509,9 @@
 
                     <div class="keyboard-section" id="keyboardSection">
                         <div class="keyboard-title"><i class="fas fa-keyboard"></i> Virtual Keyboard</div>
+                        <div class="finger-guide-display" id="fingerGuideDisplay">
+                            <i class="fas fa-hand-point-up"></i> <span id="fingerGuideText">Start typing to see finger guide</span>
+                        </div>
                         <div class="keyboard">
                             <div class="keyboard-row">
                                 <div class="key pinky-left" data-key="`">`</div>
@@ -1552,6 +1575,7 @@
                                 <div class="key pinky-right shift" data-key="Shift">Shift</div>
                             </div>
                             <div class="keyboard-row">
+                                <div class="key ctrl-key" data-key="Control">Ctrl</div>
                                 <div class="key win-key" data-key="Meta">⊞</div>
                                 <div class="key alt-key" data-key="Alt">Alt</div>
                                 <div class="key thumb" data-key=" ">Space</div>
@@ -2311,6 +2335,7 @@
         const progressFillSidebar = document.getElementById('progressFillSidebar');
         const progressPercentage = document.getElementById('progressPercentage');
         const accuracyCircle = document.getElementById('accuracyCircle');
+        const fingerGuideText = document.getElementById('fingerGuideText');
         const startBtn = document.getElementById('startBtn');
         const levelSelect = document.getElementById('levelSelect');
         const levelInfo = document.getElementById('levelInfo');
@@ -3004,7 +3029,7 @@
             
             charCountDisplay.textContent = `${currentIndex}/${currentText.length}`;
             
-            // Highlight next key on virtual keyboard
+            // Highlight next key on virtual keyboard and show finger guide
             if (highlightNextCheckbox.checked && currentIndex < currentText.length) {
                 const nextChar = currentText[currentIndex];
                 const keyElement = document.querySelector(`[data-key="${nextChar}"]`);
@@ -3017,7 +3042,27 @@
                 // Add highlight to next key
                 if (keyElement) {
                     keyElement.classList.add('highlighted');
+                    
+                    // Determine finger to use
+                    let finger = '';
+                    if (keyElement.classList.contains('pinky-left') || keyElement.classList.contains('pinky-right')) {
+                        finger = 'Pinky Finger';
+                    } else if (keyElement.classList.contains('ring-left') || keyElement.classList.contains('ring-right')) {
+                        finger = 'Ring Finger';
+                    } else if (keyElement.classList.contains('middle-left') || keyElement.classList.contains('middle-right')) {
+                        finger = 'Middle Finger';
+                    } else if (keyElement.classList.contains('index-left') || keyElement.classList.contains('index-right')) {
+                        finger = 'Index Finger';
+                    } else if (keyElement.classList.contains('thumb')) {
+                        finger = 'Thumb';
+                    } else {
+                        finger = 'Use appropriate finger';
+                    }
+                    
+                    fingerGuideText.textContent = `Press '${nextChar}' with ${finger}`;
                 }
+            } else {
+                fingerGuideText.textContent = 'Start typing to see finger guide';
             }
             
             // Update last completed line
