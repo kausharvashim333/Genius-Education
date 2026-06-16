@@ -359,7 +359,17 @@ body {
     background: rgba(22, 163, 74, 0.5) !important;
     border-color: rgba(22, 163, 74, 0.7) !important;
     box-shadow: 0 8px 20px rgba(22, 163, 74, 0.4) !important;
-    color: #fff !important;
+}
+
+.nav-typing {
+    background: rgba(249, 115, 22, 0.3) !important;
+    border: 1px solid rgba(249, 115, 22, 0.5) !important;
+}
+
+.nav-typing:hover {
+    background: rgba(249, 115, 22, 0.5) !important;
+    border-color: rgba(249, 115, 22, 0.7) !important;
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4) !important;
 }
 
 .nav-faculty {
