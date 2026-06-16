@@ -589,6 +589,7 @@
 
         .key.space {
             min-width: 500px;
+            flex-grow: 1;
         }
 
         .key.shift {
@@ -1254,11 +1255,149 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
+        .btn-info {
+            background: #0ea5e9;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #0284c7;
+        }
+
         .result-buttons {
             display: flex;
             gap: 12px;
             justify-content: center;
             margin-top: 20px;
+        }
+
+        /* Leaderboard Modal */
+        .leaderboard-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .leaderboard-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .leaderboard-header h2 {
+            color: #e0e0e0;
+            font-size: 24px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .level-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .level-selector label {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .level-selector select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #e0e0e0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #e0e0e0;
+        }
+
+        .leaderboard-table {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .leaderboard-row {
+            display: grid;
+            grid-template-columns: 60px 80px 100px 100px 150px;
+            gap: 10px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            align-items: center;
+        }
+
+        .leaderboard-row.header {
+            background: rgba(102, 126, 234, 0.2);
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .leaderboard-row .rank {
+            font-weight: 600;
+            color: #f59e0b;
+        }
+
+        .leaderboard-row .rank:nth-child(1) {
+            color: #ffd700;
+        }
+
+        .leaderboard-row .rank:nth-child(2) {
+            color: #c0c0c0;
+        }
+
+        .leaderboard-row .rank:nth-child(3) {
+            color: #cd7f32;
+        }
+
+        .leaderboard-row > div {
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #888;
+            padding: 40px;
+            font-size: 16px;
         }
 
         /* Responsive */
@@ -1508,7 +1647,6 @@
                     <input type="text" class="typing-input" id="typingInput" placeholder="Start typing here..." disabled style="display: none;">
 
                     <div class="keyboard-section" id="keyboardSection">
-                        <div class="keyboard-title"><i class="fas fa-keyboard"></i> Virtual Keyboard</div>
                         <div class="finger-guide-display" id="fingerGuideDisplay">
                             <i class="fas fa-hand-point-up"></i> <span id="fingerGuideText">Start typing to see finger guide</span>
                         </div>
@@ -2245,9 +2383,41 @@
                 <button class="btn btn-secondary" onclick="closeResultModal()">
                     <i class="fas fa-redo"></i> Try Again
                 </button>
+                <button class="btn btn-info" onclick="openLeaderboard()">
+                    <i class="fas fa-trophy"></i> Leaderboard
+                </button>
                 <button class="btn btn-primary" id="nextLevelBtn" onclick="goToNextLevel()">
                     <i class="fas fa-arrow-right"></i> Next Level
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="leaderboard-modal" id="leaderboardModal">
+        <div class="leaderboard-content">
+            <div class="leaderboard-header">
+                <h2><i class="fas fa-trophy"></i> Leaderboard</h2>
+                <div class="level-selector">
+                    <label for="leaderboardLevel">Level:</label>
+                    <select id="leaderboardLevel" onchange="loadLeaderboard()">
+                        <option value="all">All Levels</option>
+                    </select>
+                </div>
+                <button class="close-btn" onclick="closeLeaderboard()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="leaderboard-table">
+                <div class="leaderboard-row header">
+                    <div class="rank">Rank</div>
+                    <div class="level">Level</div>
+                    <div class="wpm">WPM</div>
+                    <div class="accuracy">Accuracy</div>
+                    <div class="date">Date</div>
+                </div>
+                <div id="leaderboardBody">
+                    <div class="no-data">No scores yet</div>
+                </div>
             </div>
         </div>
     </div>
@@ -2486,6 +2656,7 @@
             const accuracy = currentIndex > 0 ? Math.round(((currentIndex - mistakes) / currentIndex) * 100) : 100;
             
             saveBestWpm(wpm);
+            saveScore(wpm, accuracy);
             playSound('complete');
             checkAchievements(wpm, accuracy, maxStreak);
             
@@ -2511,6 +2682,80 @@
                 document.getElementById('resultModal').style.display = 'none';
                 loadNewText();
             }
+        }
+
+        // Leaderboard functions
+        function openLeaderboard() {
+            document.getElementById('leaderboardModal').style.display = 'flex';
+            initializeLeaderboardLevelSelector();
+            loadLeaderboard();
+        }
+
+        function closeLeaderboard() {
+            document.getElementById('leaderboardModal').style.display = 'none';
+        }
+
+        function initializeLeaderboardLevelSelector() {
+            const select = document.getElementById('leaderboardLevel');
+            select.innerHTML = '<option value="all">All Levels</option>';
+            for (let i = 1; i <= 50; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Level ${i}`;
+                select.appendChild(option);
+            }
+            select.value = currentLevel;
+        }
+
+        function saveScore(wpm, accuracy) {
+            const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+            const newScore = {
+                level: currentLevel,
+                wpm: wpm,
+                accuracy: accuracy,
+                date: new Date().toISOString()
+            };
+            scores.push(newScore);
+            localStorage.setItem('typingScores', JSON.stringify(scores));
+        }
+
+        function loadLeaderboard() {
+            const levelFilter = document.getElementById('leaderboardLevel').value;
+            const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+            
+            let filteredScores = scores;
+            if (levelFilter !== 'all') {
+                filteredScores = scores.filter(score => score.level === parseInt(levelFilter));
+            }
+            
+            // Sort by WPM descending
+            filteredScores.sort((a, b) => b.wpm - a.wpm);
+            
+            // Take top 10
+            filteredScores = filteredScores.slice(0, 10);
+            
+            const leaderboardBody = document.getElementById('leaderboardBody');
+            
+            if (filteredScores.length === 0) {
+                leaderboardBody.innerHTML = '<div class="no-data">No scores yet</div>';
+                return;
+            }
+            
+            let html = '';
+            filteredScores.forEach((score, index) => {
+                const date = new Date(score.date).toLocaleDateString();
+                html += `
+                    <div class="leaderboard-row">
+                        <div class="rank">#${index + 1}</div>
+                        <div class="level">Level ${score.level}</div>
+                        <div class="wpm">${score.wpm}</div>
+                        <div class="accuracy">${score.accuracy}%</div>
+                        <div class="date">${date}</div>
+                    </div>
+                `;
+            });
+            
+            leaderboardBody.innerHTML = html;
         }
         
         // Level select change event
