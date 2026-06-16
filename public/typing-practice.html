@@ -2811,6 +2811,11 @@
                 select.appendChild(option);
             }
             select.value = currentLevel;
+            
+            // Add change event listener
+            select.addEventListener('change', function() {
+                loadLeaderboard();
+            });
         }
 
         function saveScore(wpm, accuracy) {
