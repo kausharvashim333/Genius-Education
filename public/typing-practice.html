@@ -417,6 +417,25 @@
             color: #666;
         }
 
+        .timer-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .timer-display i {
+            font-size: 20px;
+        }
+
         .typing-input {
             width: 100%;
             max-width: 600px;
@@ -1308,10 +1327,12 @@
                         <option value="hard">Hard</option>
                     </select>
                     <select class="difficulty-select" id="timer">
+                        <option value="15">15 sec</option>
                         <option value="30">30 sec</option>
                         <option value="60" selected>1 min</option>
                         <option value="120">2 min</option>
                         <option value="300">5 min</option>
+                        <option value="600">10 min</option>
                         <option value="0">Unlimited</option>
                     </select>
                     <button class="header-btn secondary" onclick="loadNewText()">
@@ -1331,6 +1352,10 @@
 
             <div class="app-content">
                 <div class="typing-area">
+                    <div class="timer-display" id="timerDisplay" style="display: none;">
+                        <i class="fas fa-clock"></i>
+                        <span id="timerCountdown">00:00</span>
+                    </div>
                     <div class="text-display" id="textDisplay">Click "Start" to begin typing...</div>
                     <input type="text" class="typing-input" id="typingInput" placeholder="Start typing here..." disabled style="display: none;">
                     
@@ -1850,6 +1875,8 @@
         let maxStreak = 0;
         let combo = 1;
         let maxCombo = 1;
+        let timeRemaining = 0;
+        let timerCountdownInterval = null;
 
         const textDisplay = document.getElementById('textDisplay');
         const typingInput = document.getElementById('typingInput');
@@ -1868,6 +1895,8 @@
         const highlightNextCheckbox = document.getElementById('highlightNext');
         const fingerGuideCheckbox = document.getElementById('fingerGuide');
         const keyboardSection = document.getElementById('keyboardSection');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerCountdown = document.getElementById('timerCountdown');
 
         function loadNewText() {
             const storedLesson = localStorage.getItem('typingLesson');
@@ -1891,10 +1920,8 @@
             maxStreak = 0;
             maxCombo = 1;
             wpmHistory = [];
-            updateDisplay();
             typingInput.value = '';
             typingInput.disabled = true;
-            textDisplay.textContent = 'Click "Start" to begin typing...';
             wpmDisplay.textContent = '0';
             accuracyDisplay.textContent = '100%';
             cpmDisplay.textContent = '0';
@@ -1904,6 +1931,16 @@
             progressFill.style.width = '0%';
             accuracyCircle.style.strokeDashoffset = '339.292';
             startBtn.disabled = false;
+            
+            // Show "Click Start" message
+            textDisplay.innerHTML = '<div class="text-line">Click "Start" to begin typing...</div>';
+            
+            // Reset timer display
+            timerDisplay.style.display = 'none';
+            if (timerCountdownInterval) {
+                clearInterval(timerCountdownInterval);
+                timerCountdownInterval = null;
+            }
         }
 
         function startTyping() {
@@ -1913,12 +1950,27 @@
             startBtn.disabled = true;
             updateDisplay();
             
-            const timerDuration = parseInt(timerSelect.value) * 1000;
+            const timerDuration = parseInt(timerSelect.value);
             if (timerDuration > 0) {
-                timerInterval = setTimeout(() => {
-                    endTyping();
-                }, timerDuration);
+                timeRemaining = timerDuration;
+                timerDisplay.style.display = 'flex';
+                updateTimerDisplay();
+                
+                timerCountdownInterval = setInterval(() => {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                    
+                    if (timeRemaining <= 0) {
+                        endTyping();
+                    }
+                }, 1000);
             }
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timerCountdown.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
         function endTyping() {
@@ -1931,10 +1983,17 @@
                 timerInterval = null;
             }
             
+            if (timerCountdownInterval) {
+                clearInterval(timerCountdownInterval);
+                timerCountdownInterval = null;
+            }
+            
+            timerDisplay.style.display = 'none';
+            
             const timeElapsed = (new Date() - startTime) / 1000 / 60;
-            const wordsTyped = currentText.split(' ').length;
+            const wordsTyped = currentText.split(' ').filter(w => w.length > 0).length;
             const wpm = Math.round(wordsTyped / timeElapsed) || 0;
-            const accuracy = Math.round(((currentText.length - mistakes) / currentText.length) * 100);
+            const accuracy = currentIndex > 0 ? Math.round(((currentIndex - mistakes) / currentIndex) * 100) : 100;
             
             saveBestWpm(wpm);
             playSound('complete');
@@ -1942,7 +2001,7 @@
             
             document.getElementById('finalWpm').textContent = wpm;
             document.getElementById('finalAccuracy').textContent = accuracy + '%';
-            document.getElementById('finalChars').textContent = currentText.length;
+            document.getElementById('finalChars').textContent = currentIndex;
             document.getElementById('finalErrors').textContent = mistakes;
             
             document.getElementById('resultModal').style.display = 'flex';
@@ -2102,12 +2161,25 @@
                         updateStatusBar();
                         
                         if (currentIndex >= currentText.length) {
-                            endTyping();
+                            // Auto-load new text if timer is still running
+                            if (timeRemaining > 0 || timerCountdownInterval) {
+                                loadNextText();
+                            } else {
+                                endTyping();
+                            }
                         }
                     }
                 }
             }
         });
+
+        function loadNextText() {
+            const difficulty = difficultySelect.value;
+            const samples = textSamples[difficulty];
+            currentText = samples[Math.floor(Math.random() * samples.length)];
+            currentIndex = 0;
+            updateDisplay();
+        }
 
         // Sound effects
         function playSound(type) {
@@ -2281,10 +2353,15 @@
         document.head.appendChild(style);
 
         function updateDisplay() {
+            if (!currentText || currentText.length === 0) {
+                textDisplay.innerHTML = '<div class="text-line">Click "Start" to begin typing...</div>';
+                return;
+            }
+
             const typed = currentText.substring(0, currentIndex);
             const remaining = currentText.substring(currentIndex);
             
-            // Split text into lines
+            // Split text into lines (handle both \n and wrap at reasonable width)
             const lines = currentText.split('\n');
             let displayHTML = '';
             
@@ -2306,7 +2383,6 @@
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
                 const lineStart = charCount;
-                const lineEnd = charCount + line.length;
                 
                 let lineClass = 'text-line';
                 if (i < currentLineIndex) {
