@@ -2533,6 +2533,9 @@
                         <option value="all">All Levels</option>
                     </select>
                 </div>
+                <button class="btn btn-danger" onclick="clearLeaderboardData()" style="margin-right: 10px;">
+                    <i class="fas fa-trash"></i> Clear Data
+                </button>
                 <button class="close-btn" onclick="closeLeaderboard()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -2857,6 +2860,13 @@
 
         function closeLeaderboard() {
             document.getElementById('leaderboardModal').style.display = 'none';
+        }
+
+        function clearLeaderboardData() {
+            if (confirm('Are you sure you want to clear all leaderboard data? This cannot be undone.')) {
+                localStorage.removeItem('typingScores');
+                loadLeaderboard();
+            }
         }
 
         function initializeLeaderboardLevelSelector() {
