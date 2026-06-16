@@ -2746,7 +2746,9 @@
             const accuracy = currentIndex > 0 ? Math.round(((currentIndex - mistakes) / currentIndex) * 100) : 100;
             
             saveBestWpm(wpm);
-            saveScore(wpm, accuracy);
+            // Store final stats for saving when user clicks a button
+            window.finalWpm = wpm;
+            window.finalAccuracy = accuracy;
             playSound('complete');
             checkAchievements(wpm, accuracy, maxStreak);
             
@@ -2760,11 +2762,25 @@
         }
 
         function closeResultModal() {
+            // Save score before closing
+            if (window.finalWpm && window.finalAccuracy) {
+                saveScore(window.finalWpm, window.finalAccuracy);
+                window.finalWpm = null;
+                window.finalAccuracy = null;
+            }
+            document.getElementById('studentName').value = '';
             document.getElementById('resultModal').style.display = 'none';
             loadNewText();
         }
         
         function goToNextLevel() {
+            // Save score before going to next level
+            if (window.finalWpm && window.finalAccuracy) {
+                saveScore(window.finalWpm, window.finalAccuracy);
+                window.finalWpm = null;
+                window.finalAccuracy = null;
+            }
+            document.getElementById('studentName').value = '';
             if (currentLevel < 50) {
                 currentLevel++;
                 levelSelect.value = currentLevel;
