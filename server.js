@@ -147,7 +147,7 @@ const limiter = rateLimit({
 });
 // Apply limiter to /api/ but skip public duplicate check endpoints
 app.use('/api/', (req, res, next) => {
-    if (req.path.startsWith('/check-mobile') || req.path.startsWith('/check-email') || req.path.startsWith('/check-aadhar') || req.path.startsWith('/batches')) {
+    if (req.path.startsWith('/check-mobile') || req.path.startsWith('/check-email') || req.path.startsWith('/check-aadhar') || req.path.startsWith('/batches') || req.path.startsWith('/api/check-mobile') || req.path.startsWith('/api/check-email') || req.path.startsWith('/api/check-aadhar')) {
         next();
     } else {
         limiter(req, res, next);
