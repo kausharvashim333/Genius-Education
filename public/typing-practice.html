@@ -361,33 +361,62 @@
             user-select: none;
             text-align: left;
             max-width: 900px;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-            word-break: break-word;
-            overflow-wrap: break-word;
-            padding: 15px;
-            background: rgba(30, 30, 50, 0.5);
+            padding: 10px;
+            background: transparent;
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            max-height: 200px;
-            overflow-y: auto;
-            scroll-behavior: smooth;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .text-line {
-            margin: 8px 0;
-            padding: 8px 12px;
-            border-radius: 6px;
-            transition: background 0.3s ease;
+            margin: 0;
+            padding: 16px 20px;
+            border-radius: 12px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        .text-line.slide-out {
+            animation: slideOut 0.4s ease-out forwards;
         }
 
         .text-line.active {
-            background: rgba(102, 126, 234, 0.15);
-            border-left: 3px solid #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border: 2px solid #667eea;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+            transform: scale(1.02);
         }
 
         .text-line.completed {
-            opacity: 0.5;
+            opacity: 0.4;
+            transform: scale(0.98);
         }
 
         .text-display .correct {
@@ -402,7 +431,7 @@
         }
 
         .text-display .current {
-            background: rgba(102, 126, 234, 0.4);
+            background: rgba(102, 126, 234, 0.5);
             border-radius: 3px;
             padding: 2px 4px;
             margin: -2px -4px;
@@ -2868,7 +2897,6 @@
             
             // Split text into lines (handle both \n and wrap at reasonable width)
             const lines = currentText.split('\n');
-            let displayHTML = '';
             
             // Calculate which line we're on
             let charCount = 0;
@@ -2883,9 +2911,17 @@
                 charCount += lineLength + 1; // +1 for newline
             }
             
-            // Display each line
+            // Card-based display: show only current line and adjacent lines
+            let displayHTML = '';
+            const visibleLines = [currentLineIndex - 1, currentLineIndex, currentLineIndex + 1];
+            
             charCount = 0;
             for (let i = 0; i < lines.length; i++) {
+                if (!visibleLines.includes(i)) {
+                    charCount += lines[i].length + 1;
+                    continue;
+                }
+                
                 const line = lines[i];
                 const lineStart = charCount;
                 
@@ -2894,6 +2930,11 @@
                     lineClass += ' completed';
                 } else if (i === currentLineIndex) {
                     lineClass += ' active';
+                }
+                
+                // Add animation class for new active line
+                if (i === currentLineIndex && i > lastCompletedLine) {
+                    lineClass += ' slide-in';
                 }
                 
                 displayHTML += `<div class="${lineClass}">`;
@@ -2927,13 +2968,9 @@
             
             charCountDisplay.textContent = `${currentIndex}/${currentText.length}`;
             
-            // Auto-scroll only when line is completed
+            // Update last completed line
             if (currentLineIndex > lastCompletedLine) {
-                const currentLineElement = textDisplay.querySelector('.text-line.active');
-                if (currentLineElement) {
-                    currentLineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    lastCompletedLine = currentLineIndex;
-                }
+                lastCompletedLine = currentLineIndex;
             }
             
             if (isTyping && startTime) {
