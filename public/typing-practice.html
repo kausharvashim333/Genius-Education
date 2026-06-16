@@ -596,9 +596,8 @@
         }
 
         .key.space {
-            min-width: 500px;
-            flex-grow: 1;
-            max-width: 600px;
+            flex: 1;
+            min-width: 300px;
         }
 
         .key.shift {
@@ -1628,6 +1627,10 @@
                     <div class="app-title" id="lessonTitle">Typing Practice</div>
                 </div>
                 <div class="app-header-right">
+                    <div class="timer-display" id="timerDisplay" style="display: none;">
+                        <i class="fas fa-clock"></i>
+                        <span id="timerCountdown">00:00</span>
+                    </div>
                     <div class="level-selector">
                         <span class="level-label">Level:</span>
                         <select class="difficulty-select" id="levelSelect">
@@ -1648,10 +1651,6 @@
 
             <div class="app-content">
                 <div class="typing-area">
-                    <div class="timer-display" id="timerDisplay" style="display: none;">
-                        <i class="fas fa-clock"></i>
-                        <span id="timerCountdown">00:00</span>
-                    </div>
                     <div class="text-display" id="textDisplay">Click "Start" to begin typing...</div>
                     <input type="text" class="typing-input" id="typingInput" placeholder="Start typing here..." disabled style="display: none;">
 
@@ -1728,6 +1727,7 @@
                                 <div class="key thumb" data-key=" ">Space</div>
                                 <div class="key alt-key" data-key="Alt">Alt</div>
                                 <div class="key win-key" data-key="Meta">⊞</div>
+                                <div class="key ctrl-key" data-key="Menu">☰</div>
                                 <div class="key ctrl-key" data-key="Control">Ctrl</div>
                             </div>
                         </div>
