@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Viewer - Genius Computer Education</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .app-header {
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .app-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #e0e0e0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .app-logo i {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .app-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .view-btn:hover {
+            color: #e0e0e0;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .view-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: #e0e0e0;
+            font-size: 14px;
+            width: 200px;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: #888;
+        }
+
+        .search-box i {
+            color: #888;
+        }
+
+        /* Main Content */
+        .app-main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .app-sidebar {
+            width: 280px;
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h3 {
+            color: #e0e0e0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .sidebar-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .chapter-item {
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #b0b0b0;
+        }
+
+        .chapter-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+
+        .chapter-item.active {
+            background: rgba(102, 126, 234, 0.3);
+            color: white;
+            border: 1px solid rgba(102, 126, 234, 0.5);
+        }
+
+        .chapter-number {
+            width: 32px;
+            height: 32px;
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .chapter-item.active .chapter-number {
+            background: #667eea;
+        }
+
+        .chapter-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chapter-title {
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chapter-lessons {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* Content Area */
+        .app-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-title h2 {
+            color: #e0e0e0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .content-title p {
+            color: #888;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .progress-bar {
+            width: 200px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .content-body {
+            flex: 1;
+            overflow: hidden;
+            padding: 20px 30px;
+        }
+
+        /* Grid View */
+        .grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .grid-view::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .grid-view::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .grid-view::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .lesson-card {
+            background: rgba(40, 40, 60, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+        }
+
+        .lesson-card.completed {
+            border-color: #22c55e;
+        }
+
+        .lesson-card.completed::before {
+            content: '✓';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            background: #22c55e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .lesson-card {
+            position: relative;
+        }
+
+        .lesson-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 20px;
+            color: white;
+        }
+
+        .lesson-title {
+            color: #e0e0e0;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .lesson-description {
+            color: #888;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .lesson-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .lesson-duration {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* List View */
+        .list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .list-view::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .list-view::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .list-view::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .lesson-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: rgba(40, 40, 60, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lesson-row:hover {
+            background: rgba(50, 50, 70, 0.9);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .lesson-row.completed {
+            border-color: #22c55e;
+        }
+
+        .lesson-row-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .lesson-row-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .lesson-row-title {
+            color: #e0e0e0;
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .lesson-row-desc {
+            color: #888;
+            font-size: 13px;
+        }
+
+        .lesson-row-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            color: #888;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        /* Carousel View */
+        .carousel-view {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            height: 100%;
+            position: relative;
+        }
+
+        .carousel-container {
+            flex: 1;
+            overflow-x: auto;
+            display: flex;
+            gap: 20px;
+            padding: 20px 0;
+            scroll-behavior: smooth;
+        }
+
+        .carousel-container::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .carousel-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .carousel-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .carousel-card {
+            min-width: 350px;
+            max-width: 350px;
+            background: rgba(40, 40, 60, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-card:hover {
+            transform: scale(1.02);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .carousel-card.completed {
+            border-color: #22c55e;
+        }
+
+        .carousel-card-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: white;
+        }
+
+        .carousel-card-title {
+            color: #e0e0e0;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .carousel-card-desc {
+            color: #888;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .carousel-nav {
+            width: 50px;
+            height: 50px;
+            background: rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            color: white;
+            font-size: 18px;
+        }
+
+        .carousel-nav:hover {
+            background: #667eea;
+            transform: scale(1.1);
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            background: #667eea;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .app-sidebar {
+                width: 240px;
+            }
+
+            .search-box input {
+                width: 150px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-sidebar {
+                display: none;
+            }
+
+            .app-controls {
+                gap: 8px;
+            }
+
+            .search-box {
+                display: none;
+            }
+
+            .view-toggle {
+                padding: 2px;
+            }
+
+            .view-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .view-btn span {
+                display: none;
+            }
+
+            .content-header {
+                padding: 15px 20px;
+            }
+
+            .content-body {
+                padding: 15px 20px;
+            }
+
+            .grid-view {
+                grid-template-columns: 1fr;
+            }
+
+            .carousel-card {
+                min-width: 280px;
+                max-width: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <div class="app-logo">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Course Viewer</span>
+        </div>
+        <div class="app-controls">
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="grid" onclick="switchView('grid')">
+                    <i class="fas fa-th-large"></i>
+                    <span>Grid</span>
+                </button>
+                <button class="view-btn" data-view="list" onclick="switchView('list')">
+                    <i class="fas fa-list"></i>
+                    <span>List</span>
+                </button>
+                <button class="view-btn" data-view="carousel" onclick="switchView('carousel')">
+                    <i class="fas fa-images"></i>
+                    <span>Carousel</span>
+                </button>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search lessons..." id="searchInput" oninput="filterLessons()">
+            </div>
+        </div>
+    </div>
+
+    <div class="app-main">
+        <div class="app-sidebar">
+            <div class="sidebar-header">
+                <h3>Chapters</h3>
+            </div>
+            <div class="sidebar-content" id="chapterList">
+                <!-- Chapters will be loaded here -->
+            </div>
+        </div>
+
+        <div class="app-content">
+            <div class="content-header">
+                <div class="content-title">
+                    <h2 id="currentChapterTitle">Chapter 1: Introduction</h2>
+                    <p id="currentChapterDesc">Getting started with the course</p>
+                </div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" id="prevChapter" onclick="navigateChapter(-1)" disabled>
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <button class="nav-btn" id="nextChapter" onclick="navigateChapter(1)">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="chapterProgress" style="width: 0%"></div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <div class="grid-view" id="lessonsContainer">
+                        <!-- Lessons will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Course Data with 30+ chapters
+        const courseData = {
+            chapters: [
+                {
+                    id: 1,
+                    title: "Introduction to Programming",
+                    description: "Getting started with programming fundamentals",
+                    lessons: [
+                        { id: 1, title: "What is Programming?", description: "Understanding the basics of programming", duration: "15 min", icon: "fa-code", completed: true },
+                        { id: 2, title: "Setting Up Environment", description: "Install and configure your development tools", duration: "20 min", icon: "fa-cog", completed: true },
+                        { id: 3, title: "Your First Program", description: "Write and run your first program", duration: "25 min", icon: "fa-play", completed: false },
+                        { id: 4, title: "Understanding Variables", description: "Learn about variables and data types", duration: "30 min", icon: "fa-database", completed: false }
+                    ]
+                },
+                {
+                    id: 2,
+                    title: "HTML Fundamentals",
+                    description: "Learn the building blocks of web pages",
+                    lessons: [
+                        { id: 5, title: "HTML Structure", description: "Understanding HTML document structure", duration: "20 min", icon: "fa-file-code", completed: false },
+                        { id: 6, title: "HTML Elements", description: "Working with HTML elements and tags", duration: "25 min", icon: "fa-tags", completed: false },
+                        { id: 7, title: "HTML Attributes", description: "Using attributes in HTML elements", duration: "15 min", icon: "fa-attribute", completed: false },
+                        { id: 8, title: "HTML Forms", description: "Creating interactive forms", duration: "30 min", icon: "fa-form", completed: false }
+                    ]
+                },
+                {
+                    id: 3,
+                    title: "CSS Styling",
+                    description: "Style your web pages with CSS",
+                    lessons: [
+                        { id: 9, title: "CSS Introduction", description: "Introduction to Cascading Style Sheets", duration: "20 min", icon: "fa-palette", completed: false },
+                        { id: 10, title: "CSS Selectors", description: "Targeting elements with selectors", duration: "25 min", icon: "fa-crosshairs", completed: false },
+                        { id: 11, title: "CSS Box Model", description: "Understanding the box model", duration: "30 min", icon: "fa-cube", completed: false },
+                        { id: 12, title: "CSS Layouts", description: "Creating layouts with CSS", duration: "35 min", icon: "fa-th", completed: false }
+                    ]
+                },
+                {
+                    id: 4,
+                    title: "JavaScript Basics",
+                    description: "Add interactivity to your web pages",
+                    lessons: [
+                        { id: 13, title: "JavaScript Introduction", description: "Getting started with JavaScript", duration: "25 min", icon: "fa-js", completed: false },
+                        { id: 14, title: "Variables and Data Types", description: "Working with variables in JavaScript", duration: "30 min", icon: "fa-database", completed: false },
+                        { id: 15, title: "Functions", description: "Creating and using functions", duration: "35 min", icon: "fa-function", completed: false },
+                        { id: 16, title: "DOM Manipulation", description: "Interacting with the DOM", duration: "40 min", icon: "fa-sitemap", completed: false }
+                    ]
+                },
+                {
+                    id: 5,
+                    title: "Advanced JavaScript",
+                    description: "Deep dive into JavaScript concepts",
+                    lessons: [
+                        { id: 17, title: "Arrays and Objects", description: "Working with complex data structures", duration: "35 min", icon: "fa-layer-group", completed: false },
+                        { id: 18, title: "Async JavaScript", description: "Understanding asynchronous programming", duration: "40 min", icon: "fa-sync", completed: false },
+                        { id: 19, title: "ES6+ Features", description: "Modern JavaScript features", duration: "45 min", icon: "fa-star", completed: false },
+                        { id: 20, title: "Error Handling", description: "Handling errors gracefully", duration: "30 min", icon: "fa-bug", completed: false }
+                    ]
+                },
+                {
+                    id: 6,
+                    title: "React Fundamentals",
+                    description: "Build modern web applications with React",
+                    lessons: [
+                        { id: 21, title: "React Introduction", description: "Getting started with React", duration: "30 min", icon: "fa-react", completed: false },
+                        { id: 22, title: "Components", description: "Building React components", duration: "35 min", icon: "fa-puzzle-piece", completed: false },
+                        { id: 23, title: "State and Props", description: "Managing component state", duration: "40 min", icon: "fa-state", completed: false },
+                        { id: 24, title: "Hooks", description: "Using React hooks", duration: "45 min", icon: "fa-hook", completed: false }
+                    ]
+                },
+                {
+                    id: 7,
+                    title: "Node.js Basics",
+                    description: "Server-side JavaScript with Node.js",
+                    lessons: [
+                        { id: 25, title: "Node.js Introduction", description: "Getting started with Node.js", duration: "30 min", icon: "fa-server", completed: false },
+                        { id: 26, title: "Modules", description: "Working with Node.js modules", duration: "35 min", icon: "fa-cubes", completed: false },
+                        { id: 27, title: "File System", description: "Working with files in Node.js", duration: "40 min", icon: "fa-file", completed: false },
+                        { id: 28, title: "HTTP Server", description: "Creating HTTP servers", duration: "45 min", icon: "fa-network", completed: false }
+                    ]
+                },
+                {
+                    id: 8,
+                    title: "Database Basics",
+                    description: "Working with databases",
+                    lessons: [
+                        { id: 29, title: "Database Introduction", description: "Understanding databases", duration: "25 min", icon: "fa-database", completed: false },
+                        { id: 30, title: "SQL Basics", description: "Introduction to SQL", duration: "35 min", icon: "fa-sql", completed: false },
+                        { id: 31, title: "MongoDB", description: "Working with MongoDB", duration: "40 min", icon: "fa-leaf", completed: false },
+                        { id: 32, title: "ORM", description: "Using Object-Relational Mapping", duration: "45 min", icon: "fa-map", completed: false }
+                    ]
+                },
+                {
+                    id: 9,
+                    title: "API Development",
+                    description: "Building RESTful APIs",
+                    lessons: [
+                        { id: 33, title: "API Introduction", description: "Understanding APIs", duration: "30 min", icon: "fa-api", completed: false },
+                        { id: 34, title: "REST Principles", description: "RESTful API design", duration: "35 min", icon: "fa-rest", completed: false },
+                        { id: 35, title: "Express.js", description: "Building APIs with Express", duration: "40 min", icon: "fa-express", completed: false },
+                        { id: 36, title: "Authentication", description: "Securing your APIs", duration: "45 min", icon: "fa-lock", completed: false }
+                    ]
+                },
+                {
+                    id: 10,
+                    title: "Testing",
+                    description: "Testing your applications",
+                    lessons: [
+                        { id: 37, title: "Testing Introduction", description: "Why testing matters", duration: "25 min", icon: "fa-vial", completed: false },
+                        { id: 38, title: "Unit Testing", description: "Writing unit tests", duration: "35 min", icon: "fa-microscope", completed: false },
+                        { id: 39, title: "Integration Testing", description: "Testing integrations", duration: "40 min", icon: "fa-link", completed: false },
+                        { id: 40, title: "E2E Testing", description: "End-to-end testing", duration: "45 min", icon: "fa-check-double", completed: false }
+                    ]
+                },
+                {
+                    id: 11,
+                    title: "Git and Version Control",
+                    description: "Managing code with Git",
+                    lessons: [
+                        { id: 41, title: "Git Introduction", description: "Getting started with Git", duration: "30 min", icon: "fa-git", completed: false },
+                        { id: 42, title: "Git Commands", description: "Essential Git commands", duration: "35 min", icon: "fa-terminal", completed: false },
+                        { id: 43, title: "Branching", description: "Working with branches", duration: "40 min", icon: "fa-code-branch", completed: false },
+                        { id: 44, title: "Collaboration", description: "Collaborating with Git", duration: "45 min", icon: "fa-users", completed: false }
+                    ]
+                },
+                {
+                    id: 12,
+                    title: "Deployment",
+                    description: "Deploying your applications",
+                    lessons: [
+                        { id: 45, title: "Deployment Basics", description: "Understanding deployment", duration: "25 min", icon: "fa-rocket", completed: false },
+                        { id: 46, title: "CI/CD", description: "Continuous Integration/Deployment", duration: "40 min", icon: "fa-cogs", completed: false },
+                        { id: 47, title: "Cloud Platforms", description: "Deploying to cloud", duration: "45 min", icon: "fa-cloud", completed: false },
+                        { id: 48, title: "Monitoring", description: "Monitoring deployed apps", duration: "35 min", icon: "fa-chart-line", completed: false }
+                    ]
+                },
+                {
+                    id: 13,
+                    title: "Security",
+                    description: "Securing your applications",
+                    lessons: [
+                        { id: 49, title: "Security Basics", description: "Web security fundamentals", duration: "30 min", icon: "fa-shield-alt", completed: false },
+                        { id: 50, title: "Common Vulnerabilities", description: "OWASP Top 10", duration: "40 min", icon: "fa-exclamation-triangle", completed: false },
+                        { id: 51, title: "Authentication", description: "Implementing authentication", duration: "45 min", icon: "fa-user-lock", completed: false },
+                        { id: 52, title: "Authorization", description: "Managing access control", duration: "35 min", icon: "fa-key", completed: false }
+                    ]
+                },
+                {
+                    id: 14,
+                    title: "Performance",
+                    description: "Optimizing application performance",
+                    lessons: [
+                        { id: 53, title: "Performance Basics", description: "Understanding performance", duration: "25 min", icon: "fa-tachometer-alt", completed: false },
+                        { id: 54, title: "Optimization Techniques", description: "Common optimization strategies", duration: "40 min", icon: "fa-bolt", completed: false },
+                        { id: 55, title: "Caching", description: "Implementing caching", duration: "35 min", icon: "fa-memory", completed: false },
+                        { id: 56, title: "Monitoring Performance", description: "Performance monitoring tools", duration: "30 min", icon: "fa-chart-area", completed: false }
+                    ]
+                },
+                {
+                    id: 15,
+                    title: "TypeScript",
+                    description: "Adding type safety to JavaScript",
+                    lessons: [
+                        { id: 57, title: "TypeScript Introduction", description: "Getting started with TypeScript", duration: "30 min", icon: "fa-ts", completed: false },
+                        { id: 58, title: "Types", description: "Working with types", duration: "35 min", icon: "fa-type", completed: false },
+                        { id: 59, title: "Interfaces", description: "Defining interfaces", duration: "40 min", icon: "fa-interface", completed: false },
+                        { id: 60, title: "Generics", description: "Using generics", duration: "45 min", icon: "fa-generic", completed: false }
+                    ]
+                },
+                {
+                    id: 16,
+                    title: "Next.js",
+                    description: "Building full-stack apps with Next.js",
+                    lessons: [
+                        { id: 61, title: "Next.js Introduction", description: "Getting started with Next.js", duration: "35 min", icon: "fa-next", completed: false },
+                        { id: 62, title: "Pages and Routing", description: "Working with pages", duration: "40 min", icon: "fa-route", completed: false },
+                        { id: 63, title: "API Routes", description: "Creating API routes", duration: "45 min", icon: "fa-api-route", completed: false },
+                        { id: 64, title: "Deployment", description: "Deploying Next.js apps", duration: "30 min", icon: "fa-deploy", completed: false }
+                    ]
+                },
+                {
+                    id: 17,
+                    title: "Vue.js",
+                    description: "Building apps with Vue.js",
+                    lessons: [
+                        { id: 65, title: "Vue.js Introduction", description: "Getting started with Vue.js", duration: "30 min", icon: "fa-vue", completed: false },
+                        { id: 66, title: "Components", description: "Vue components", duration: "35 min", icon: "fa-vue-component", completed: false },
+                        { id: 67, title: "Vue Router", description: "Routing in Vue", duration: "40 min", icon: "fa-vue-router", completed: false },
+                        { id: 68, title: "Vuex", description: "State management with Vuex", duration: "45 min", icon: "fa-vuex", completed: false }
+                    ]
+                },
+                {
+                    id: 18,
+                    title: "Angular",
+                    description: "Building enterprise apps with Angular",
+                    lessons: [
+                        { id: 69, title: "Angular Introduction", description: "Getting started with Angular", duration: "35 min", icon: "fa-angular", completed: false },
+                        { id: 70, title: "Components", description: "Angular components", duration: "40 min", icon: "fa-angular-component", completed: false },
+                        { id: 71, title: "Services", description: "Angular services", duration: "45 min", icon: "fa-angular-service", completed: false },
+                        { id: 72, title: "Routing", description: "Angular routing", duration: "40 min", icon: "fa-angular-route", completed: false }
+                    ]
+                },
+                {
+                    id: 19,
+                    title: "Mobile Development",
+                    description: "Building mobile applications",
+                    lessons: [
+                        { id: 73, title: "React Native", description: "Building mobile apps with React Native", duration: "40 min", icon: "fa-mobile", completed: false },
+                        { id: 74, title: "Flutter", description: "Building apps with Flutter", duration: "45 min", icon: "fa-flutter", completed: false },
+                        { id: 75, title: "PWA", description: "Progressive Web Apps", duration: "35 min", icon: "fa-pwa", completed: false },
+                        { id: 76, title: "App Deployment", description: "Deploying mobile apps", duration: "30 min", icon: "fa-app-store", completed: false }
+                    ]
+                },
+                {
+                    id: 20,
+                    title: "DevOps",
+                    description: "DevOps practices and tools",
+                    lessons: [
+                        { id: 77, title: "DevOps Introduction", description: "Understanding DevOps", duration: "30 min", icon: "fa-devops", completed: false },
+                        { id: 78, title: "Docker", description: "Containerization with Docker", duration: "40 min", icon: "fa-docker", completed: false },
+                        { id: 79, title: "Kubernetes", description: "Orchestration with Kubernetes", duration: "45 min", icon: "fa-k8s", completed: false },
+                        { id: 80, title: "Infrastructure as Code", description: "IaC with Terraform", duration: "40 min", icon: "fa-terraform", completed: false }
+                    ]
+                },
+                {
+                    id: 21,
+                    title: "WebSockets",
+                    description: "Real-time communication",
+                    lessons: [
+                        { id: 81, title: "WebSockets Introduction", description: "Understanding WebSockets", duration: "25 min", icon: "fa-websocket", completed: false },
+                        { id: 82, title: "Socket.io", description: "Using Socket.io", duration: "35 min", icon: "fa-socket", completed: false },
+                        { id: 83, title: "Real-time Features", description: "Building real-time features", duration: "40 min", icon: "fa-realtime", completed: false },
+                        { id: 84, title: "Scaling", description: "Scaling WebSocket apps", duration: "35 min", icon: "fa-scale", completed: false }
+                    ]
+                },
+                {
+                    id: 22,
+                    title: "GraphQL",
+                    description: "Query language for APIs",
+                    lessons: [
+                        { id: 85, title: "GraphQL Introduction", description: "Getting started with GraphQL", duration: "30 min", icon: "fa-graphql", completed: false },
+                        { id: 86, title: "Queries and Mutations", description: "Writing GraphQL queries", duration: "35 min", icon: "fa-query", completed: false },
+                        { id: 87, title: "Subscriptions", description: "Real-time with GraphQL", duration: "40 min", icon: "fa-subscribe", completed: false },
+                        { id: 88, title: "Apollo", description: "Using Apollo Client", duration: "45 min", icon: "fa-apollo", completed: false }
+                    ]
+                },
+                {
+                    id: 23,
+                    title: "Microservices",
+                    description: "Building microservices architecture",
+                    lessons: [
+                        { id: 89, title: "Microservices Introduction", description: "Understanding microservices", duration: "35 min", icon: "fa-micro", completed: false },
+                        { id: 90, title: "Service Communication", description: "Service-to-service communication", duration: "40 min", icon: "fa-communication", completed: false },
+                        { id: 91, title: "API Gateway", description: "Implementing API Gateway", duration: "45 min", icon: "fa-gateway", completed: false },
+                        { id: 92, title: "Service Discovery", description: "Service discovery patterns", duration: "35 min", icon: "fa-discovery", completed: false }
+                    ]
+                },
+                {
+                    id: 24,
+                    title: "WebAssembly",
+                    description: "High-performance web applications",
+                    lessons: [
+                        { id: 93, title: "WebAssembly Introduction", description: "Getting started with WebAssembly", duration: "30 min", icon: "fa-wasm", completed: false },
+                        { id: 94, title: "Rust for WebAssembly", description: "Using Rust with WebAssembly", duration: "45 min", icon: "fa-rust", completed: false },
+                        { id: 95, title: "Performance", description: "Optimizing with WebAssembly", duration: "40 min", icon: "fa-perf", completed: false },
+                        { id: 96, title: "Integration", description: "Integrating WebAssembly", duration: "35 min", icon: "fa-integration", completed: false }
+                    ]
+                },
+                {
+                    id: 25,
+                    title: "Machine Learning",
+                    description: "ML for web developers",
+                    lessons: [
+                        { id: 97, title: "ML Introduction", description: "Introduction to Machine Learning", duration: "35 min", icon: "fa-ml", completed: false },
+                        { id: 98, title: "TensorFlow.js", description: "ML in the browser", duration: "45 min", icon: "fa-tfjs", completed: false },
+                        { id: 99, title: "Models", description: "Working with ML models", duration: "40 min", icon: "fa-model", completed: false },
+                        { id: 100, title: "Deployment", description: "Deploying ML models", duration: "35 min", icon: "fa-ml-deploy", completed: false }
+                    ]
+                },
+                {
+                    id: 26,
+                    title: "Web3",
+                    description: "Decentralized web development",
+                    lessons: [
+                        { id: 101, title: "Web3 Introduction", description: "Understanding Web3", duration: "30 min", icon: "fa-web3", completed: false },
+                        { id: 102, title: "Smart Contracts", description: "Writing smart contracts", duration: "45 min", icon: "fa-contract", completed: false },
+                        { id: 103, title: "DApps", description: "Building decentralized apps", duration: "40 min", icon: "fa-dapp", completed: false },
+                        { id: 104, title: "Integration", description: "Integrating Web3", duration: "35 min", icon: "fa-web3-integration", completed: false }
+                    ]
+                },
+                {
+                    id: 27,
+                    title: "Accessibility",
+                    description: "Building accessible applications",
+                    lessons: [
+                        { id: 105, title: "A11y Introduction", description: "Web accessibility basics", duration: "25 min", icon: "fa-a11y", completed: false },
+                        { id: 106, title: "ARIA", description: "Using ARIA attributes", duration: "35 min", icon: "fa-aria", completed: false },
+                        { id: 107, title: "Testing", description: "Testing accessibility", duration: "30 min", icon: "fa-a11y-test", completed: false },
+                        { id: 108, title: "Best Practices", description: "Accessibility best practices", duration: "40 min", icon: "fa-best-practice", completed: false }
+                    ]
+                },
+                {
+                    id: 28,
+                    title: "SEO",
+                    description: "Search Engine Optimization",
+                    lessons: [
+                        { id: 109, title: "SEO Basics", description: "Understanding SEO", duration: "30 min", icon: "fa-seo", completed: false },
+                        { id: 110, title: "Technical SEO", description: "Technical SEO practices", duration: "35 min", icon: "fa-tech-seo", completed: false },
+                        { id: 111, title: "Content SEO", description: "Content optimization", duration: "30 min", icon: "fa-content-seo", completed: false },
+                        { id: 112, title: "Analytics", description: "SEO analytics", duration: "25 min", icon: "fa-analytics", completed: false }
+                    ]
+                },
+                {
+                    id: 29,
+                    title: "Design Patterns",
+                    description: "Software design patterns",
+                    lessons: [
+                        { id: 113, title: "Patterns Introduction", description: "Understanding design patterns", duration: "30 min", icon: "fa-pattern", completed: false },
+                        { id: 114, title: "Creational Patterns", description: "Creational design patterns", duration: "40 min", icon: "fa-creational", completed: false },
+                        { id: 115, title: "Structural Patterns", description: "Structural design patterns", duration: "40 min", icon: "fa-structural", completed: false },
+                        { id: 116, title: "Behavioral Patterns", description: "Behavioral design patterns", duration: "45 min", icon: "fa-behavioral", completed: false }
+                    ]
+                },
+                {
+                    id: 30,
+                    title: "Career Development",
+                    description: "Growing your development career",
+                    lessons: [
+                        { id: 117, title: "Portfolio", description: "Building your portfolio", duration: "30 min", icon: "fa-portfolio", completed: false },
+                        { id: 118, title: "Interview Prep", description: "Preparing for interviews", duration: "40 min", icon: "fa-interview", completed: false },
+                        { id: 119, title: "Networking", description: "Professional networking", duration: "25 min", icon: "fa-networking", completed: false },
+                        { id: 120, title: "Continuous Learning", description: "Staying updated", duration: "30 min", icon: "fa-learning", completed: false }
+                    ]
+                }
+            ]
+        };
+
+        let currentChapterIndex = 0;
+        let currentView = 'grid';
+        let filteredLessons = [];
+
+        // Initialize
+        function init() {
+            loadChapterList();
+            loadChapter(0);
+        }
+
+        // Load chapter list in sidebar
+        function loadChapterList() {
+            const chapterList = document.getElementById('chapterList');
+            chapterList.innerHTML = courseData.chapters.map((chapter, index) => `
+                <div class="chapter-item ${index === currentChapterIndex ? 'active' : ''}" onclick="loadChapter(${index})">
+                    <div class="chapter-number">${chapter.id}</div>
+                    <div class="chapter-info">
+                        <div class="chapter-title">${chapter.title}</div>
+                        <div class="chapter-lessons">${chapter.lessons.length} lessons</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load specific chapter
+        function loadChapter(index) {
+            currentChapterIndex = index;
+            const chapter = courseData.chapters[index];
+            
+            document.getElementById('currentChapterTitle').textContent = `Chapter ${chapter.id}: ${chapter.title}`;
+            document.getElementById('currentChapterDesc').textContent = chapter.description;
+            
+            // Update navigation buttons
+            document.getElementById('prevChapter').disabled = index === 0;
+            document.getElementById('nextChapter').disabled = index === courseData.chapters.length - 1;
+            
+            // Update chapter list active state
+            document.querySelectorAll('.chapter-item').forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+            
+            // Calculate progress
+            const completed = chapter.lessons.filter(l => l.completed).length;
+            const progress = (completed / chapter.lessons.length) * 100;
+            document.getElementById('chapterProgress').style.width = progress + '%';
+            
+            // Load lessons
+            filteredLessons = chapter.lessons;
+            renderLessons();
+        }
+
+        // Navigate between chapters
+        function navigateChapter(direction) {
+            const newIndex = currentChapterIndex + direction;
+            if (newIndex >= 0 && newIndex < courseData.chapters.length) {
+                loadChapter(newIndex);
+            }
+        }
+
+        // Switch view mode
+        function switchView(view) {
+            currentView = view;
+            
+            // Update button states
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === view);
+            });
+            
+            renderLessons();
+        }
+
+        // Filter lessons based on search
+        function filterLessons() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const chapter = courseData.chapters[currentChapterIndex];
+            
+            if (searchTerm) {
+                filteredLessons = chapter.lessons.filter(lesson =>
+                    lesson.title.toLowerCase().includes(searchTerm) ||
+                    lesson.description.toLowerCase().includes(searchTerm)
+                );
+            } else {
+                filteredLessons = chapter.lessons;
+            }
+            
+            renderLessons();
+        }
+
+        // Render lessons based on current view
+        function renderLessons() {
+            const container = document.getElementById('lessonsContainer');
+            container.className = currentView + '-view';
+            
+            if (currentView === 'carousel') {
+                container.innerHTML = `
+                    <div class="carousel-nav" onclick="scrollCarousel(-1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </div>
+                    <div class="carousel-container" id="carouselContainer">
+                        ${filteredLessons.map(lesson => renderCarouselCard(lesson)).join('')}
+                    </div>
+                    <div class="carousel-nav" onclick="scrollCarousel(1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = filteredLessons.map(lesson => {
+                    if (currentView === 'grid') {
+                        return renderGridCard(lesson);
+                    } else {
+                        return renderListRow(lesson);
+                    }
+                }).join('');
+            }
+        }
+
+        // Render grid card
+        function renderGridCard(lesson) {
+            return `
+                <div class="lesson-card ${lesson.completed ? 'completed' : ''}" onclick="openLesson(${lesson.id})">
+                    <div class="lesson-icon">
+                        <i class="fas ${lesson.icon}"></i>
+                    </div>
+                    <div class="lesson-title">${lesson.title}</div>
+                    <div class="lesson-description">${lesson.description}</div>
+                    <div class="lesson-meta">
+                        <div class="lesson-duration">
+                            <i class="fas fa-clock"></i>
+                            ${lesson.duration}
+                        </div>
+                        <div class="lesson-status">
+                            ${lesson.completed ? '<i class="fas fa-check-circle" style="color: #22c55e;"></i> Completed' : 'In Progress'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render list row
+        function renderListRow(lesson) {
+            return `
+                <div class="lesson-row ${lesson.completed ? 'completed' : ''}" onclick="openLesson(${lesson.id})">
+                    <div class="lesson-row-icon">
+                        <i class="fas ${lesson.icon}"></i>
+                    </div>
+                    <div class="lesson-row-info">
+                        <div class="lesson-row-title">${lesson.title}</div>
+                        <div class="lesson-row-desc">${lesson.description}</div>
+                    </div>
+                    <div class="lesson-row-meta">
+                        <span><i class="fas fa-clock"></i> ${lesson.duration}</span>
+                        <span>${lesson.completed ? '<i class="fas fa-check-circle" style="color: #22c55e;"></i> Completed' : 'In Progress'}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render carousel card
+        function renderCarouselCard(lesson) {
+            return `
+                <div class="carousel-card ${lesson.completed ? 'completed' : ''}" onclick="openLesson(${lesson.id})">
+                    <div class="carousel-card-icon">
+                        <i class="fas ${lesson.icon}"></i>
+                    </div>
+                    <div class="carousel-card-title">${lesson.title}</div>
+                    <div class="carousel-card-desc">${lesson.description}</div>
+                    <div class="lesson-meta">
+                        <div class="lesson-duration">
+                            <i class="fas fa-clock"></i>
+                            ${lesson.duration}
+                        </div>
+                        <div class="lesson-status">
+                            ${lesson.completed ? '<i class="fas fa-check-circle" style="color: #22c55e;"></i> Completed' : 'In Progress'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Scroll carousel
+        function scrollCarousel(direction) {
+            const container = document.getElementById('carouselContainer');
+            const scrollAmount = 370;
+            container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+        }
+
+        // Open lesson (placeholder)
+        function openLesson(lessonId) {
+            alert(`Opening lesson ${lessonId}. This would navigate to the lesson content.`);
+        }
+
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html>
