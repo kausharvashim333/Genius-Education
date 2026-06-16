@@ -354,10 +354,10 @@
         }
 
         .text-display {
-            font-size: 24px;
-            line-height: 1.8;
+            font-size: 18px;
+            line-height: 1.6;
             color: #e0e0e0;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             user-select: none;
             text-align: left;
             max-width: 900px;
@@ -365,7 +365,7 @@
             white-space: pre-wrap;
             word-break: break-word;
             overflow-wrap: break-word;
-            padding: 20px;
+            padding: 15px;
             background: rgba(30, 30, 50, 0.5);
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -519,23 +519,21 @@
         }
 
         .key {
-            min-width: 50px;
-            height: 50px;
-            background: linear-gradient(145deg, #4a4a5a, #3a3a4a);
-            border: 2px solid rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
+            min-width: 40px;
+            height: 40px;
+            background: linear-gradient(145deg, #3a3a4a, #2a2a3a);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
             color: #e0e0e0;
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.15s ease;
-            transform-style: preserve-3d;
-            perspective: 1000px;
             position: relative;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .key::before {
@@ -544,59 +542,41 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 40%;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.15), transparent);
-            border-radius: 8px 8px 0 0;
+            height: 30%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
+            border-radius: 4px 4px 0 0;
             pointer-events: none;
-        }
-
-        .key::after {
-            content: '';
-            position: absolute;
-            bottom: 3px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            background: rgba(102, 126, 234, 0.4);
-            border-radius: 50%;
-            transition: width 0.3s, height 0.3s;
-        }
-
-        .key.active::after {
-            width: 120px;
-            height: 120px;
         }
 
         .key.active {
             background: linear-gradient(145deg, #667eea, #5568d3);
-            transform: translateY(3px);
-            box-shadow: 0 2px 12px rgba(102, 126, 234, 0.5);
+            transform: translateY(2px);
+            box-shadow: 0 1px 8px rgba(102, 126, 234, 0.4);
             border-color: #667eea;
         }
 
         .key.space {
-            min-width: 350px;
+            min-width: 280px;
         }
 
         .key.shift {
-            min-width: 100px;
-        }
-
-        .key.caps {
-            min-width: 90px;
-        }
-
-        .key.tab {
             min-width: 80px;
         }
 
+        .key.caps {
+            min-width: 70px;
+        }
+
+        .key.tab {
+            min-width: 60px;
+        }
+
         .key.enter {
-            min-width: 90px;
+            min-width: 70px;
         }
 
         .key.backspace {
-            min-width: 100px;
+            min-width: 80px;
         }
 
         /* Finger guide legend */
@@ -2310,7 +2290,7 @@
             typingInput.value = '';
             typingInput.disabled = true;
             wpmDisplay.textContent = '0';
-            accuracyDisplay.textContent = '100%';
+            accuracyDisplay.textContent = '0%';
             cpmDisplay.textContent = '0';
             charCountDisplay.textContent = `0/${currentText.length}`;
             streakDisplay.textContent = '0';
