@@ -2816,6 +2816,13 @@
             const levelFilter = document.getElementById('leaderboardLevel').value;
             const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
             
+            // Migrate old scores without name field
+            scores.forEach(score => {
+                if (!score.name) {
+                    score.name = 'Anonymous';
+                }
+            });
+            
             let filteredScores = scores;
             if (levelFilter !== 'all') {
                 filteredScores = scores.filter(score => score.level === parseInt(levelFilter));
@@ -2837,10 +2844,11 @@
             let html = '';
             filteredScores.forEach((score, index) => {
                 const date = new Date(score.date).toLocaleDateString();
+                const displayName = score.name || 'Anonymous';
                 html += `
                     <div class="leaderboard-row">
                         <div class="rank">#${index + 1}</div>
-                        <div class="name">${score.name}</div>
+                        <div class="name">${displayName}</div>
                         <div class="level">Level ${score.level}</div>
                         <div class="wpm">${score.wpm}</div>
                         <div class="accuracy">${score.accuracy}%</div>
