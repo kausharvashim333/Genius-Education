@@ -1245,6 +1245,22 @@
             background: #5568d3;
         }
 
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .result-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .app-sidebar {
@@ -2221,9 +2237,14 @@
                     <div class="result-stat-label">Errors</div>
                 </div>
             </div>
-            <button class="btn btn-primary" onclick="closeResultModal()">
-                <i class="fas fa-redo"></i> Try Again
-            </button>
+            <div class="result-buttons">
+                <button class="btn btn-secondary" onclick="closeResultModal()">
+                    <i class="fas fa-redo"></i> Try Again
+                </button>
+                <button class="btn btn-primary" id="nextLevelBtn" onclick="goToNextLevel()">
+                    <i class="fas fa-arrow-right"></i> Next Level
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2475,6 +2496,16 @@
         function closeResultModal() {
             document.getElementById('resultModal').style.display = 'none';
             loadNewText();
+        }
+        
+        function goToNextLevel() {
+            if (currentLevel < 50) {
+                currentLevel++;
+                levelSelect.value = currentLevel;
+                updateLevelInfo();
+                document.getElementById('resultModal').style.display = 'none';
+                loadNewText();
+            }
         }
         
         // Level select change event
@@ -2951,11 +2982,6 @@
                     lineClass += ' completed';
                 } else if (i === currentLineIndex) {
                     lineClass += ' active';
-                }
-                
-                // Add animation class only when line actually changes
-                if (i === currentLineIndex && lineChanged) {
-                    lineClass += ' slide-in';
                 }
                 
                 displayHTML += `<div class="${lineClass}">`;
