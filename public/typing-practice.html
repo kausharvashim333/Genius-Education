@@ -20,6 +20,11 @@
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            transition: background 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
         }
 
         .container {
@@ -29,6 +34,81 @@
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode .container {
+            background: rgba(30, 30, 50, 0.95);
+            color: #e0e0e0;
+        }
+
+        body.dark-mode h1 {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .stats-bar {
+            background: rgba(50, 50, 70, 0.8);
+        }
+
+        body.dark-mode .stat-label {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .stat-value {
+            color: #667eea;
+        }
+
+        body.dark-mode .typing-area {
+            background: rgba(50, 50, 70, 0.8);
+        }
+
+        body.dark-mode .text-display {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .typing-input {
+            background: rgba(40, 40, 60, 0.8);
+            color: #e0e0e0;
+            border-color: #444;
+        }
+
+        body.dark-mode .typing-input::placeholder {
+            color: #888;
+        }
+
+        body.dark-mode .key {
+            background: linear-gradient(145deg, #3a3a4a, #2a2a3a);
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .live-graph {
+            background: rgba(50, 50, 70, 0.8);
+        }
+
+        body.dark-mode .leaderboard {
+            background: rgba(50, 50, 70, 0.8);
+        }
+
+        body.dark-mode .leaderboard h2 {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .leaderboard-table th {
+            background: #667eea;
+        }
+
+        body.dark-mode .leaderboard-table tr:hover {
+            background: rgba(80, 80, 100, 0.5);
+        }
+
+        body.dark-mode .result-content {
+            background: rgba(30, 30, 50, 0.95);
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .result-content h2 {
+            color: #667eea;
         }
 
         h1 {
@@ -122,6 +202,7 @@
 
         .stat-item {
             text-align: center;
+            position: relative;
         }
 
         .stat-label {
@@ -134,6 +215,112 @@
             font-size: 28px;
             font-weight: bold;
             color: #667eea;
+        }
+
+        /* Circular Gauge Styles */
+        .circular-gauge {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: #e0e0e0;
+            stroke-width: 8;
+        }
+
+        .gauge-fill {
+            fill: none;
+            stroke: #667eea;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .gauge-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .gauge-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        /* Live Graph Styles */
+        .live-graph {
+            width: 100%;
+            height: 100px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .live-graph canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Streak Counter */
+        .streak-counter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); }
+        }
+
+        /* Combo Meter */
+        .combo-meter {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .combo-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            border-radius: 15px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .combo-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
 
         .typing-area {
@@ -297,6 +484,142 @@
 
         .key.backspace {
             width: 90px;
+        }
+
+        /* Finger placement colors */
+        .key.pinky-left {
+            border-color: #ef4444;
+        }
+        .key.pinky-left::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+
+        .key.ring-left {
+            border-color: #f97316;
+        }
+        .key.ring-left::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #f97316;
+            border-radius: 50%;
+        }
+
+        .key.middle-left {
+            border-color: #eab308;
+        }
+        .key.middle-left::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #eab308;
+            border-radius: 50%;
+        }
+
+        .key.index-left {
+            border-color: #22c55e;
+        }
+        .key.index-left::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #22c55e;
+            border-radius: 50%;
+        }
+
+        .key.index-right {
+            border-color: #06b6d4;
+        }
+        .key.index-right::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #06b6d4;
+            border-radius: 50%;
+        }
+
+        .key.middle-right {
+            border-color: #3b82f6;
+        }
+        .key.middle-right::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #3b82f6;
+            border-radius: 50%;
+        }
+
+        .key.ring-right {
+            border-color: #8b5cf6;
+        }
+        .key.ring-right::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #8b5cf6;
+            border-radius: 50%;
+        }
+
+        .key.pinky-right {
+            border-color: #ec4899;
+        }
+        .key.pinky-right::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #ec4899;
+            border-radius: 50%;
+        }
+
+        .key.thumb {
+            border-color: #6366f1;
+        }
+        .key.thumb::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #6366f1;
+            border-radius: 50%;
         }
 
         .action-buttons {
@@ -533,6 +856,20 @@
                     <span class="toggle-slider"></span>
                 </label>
             </div>
+            <div class="settings-selector">
+                <label for="fingerGuide">Finger Guide:</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="fingerGuide" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="settings-selector">
+                <label for="darkMode">Dark Mode:</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="darkMode">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
         </div>
 
         <div class="progress-bar">
@@ -541,12 +878,24 @@
 
         <div class="stats-bar">
             <div class="stat-item">
-                <div class="stat-label">WPM</div>
-                <div class="stat-value" id="wpm">0</div>
+                <div class="circular-gauge" id="wpmGauge">
+                    <svg width="120" height="120">
+                        <circle class="gauge-bg" cx="60" cy="60" r="50"></circle>
+                        <circle class="gauge-fill" id="wpmGaugeFill" cx="60" cy="60" r="50" stroke-dasharray="314" stroke-dashoffset="314"></circle>
+                    </svg>
+                    <div class="gauge-value" id="wpm">0</div>
+                    <div class="gauge-label">WPM</div>
+                </div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">Accuracy</div>
-                <div class="stat-value" id="accuracy">100%</div>
+                <div class="circular-gauge" id="accuracyGauge">
+                    <svg width="120" height="120">
+                        <circle class="gauge-bg" cx="60" cy="60" r="50"></circle>
+                        <circle class="gauge-fill" id="accuracyGaugeFill" cx="60" cy="60" r="50" stroke-dasharray="314" stroke-dashoffset="314" style="stroke: #22c55e;"></circle>
+                    </svg>
+                    <div class="gauge-value" id="accuracy">100%</div>
+                    <div class="gauge-label">Accuracy</div>
+                </div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">Time</div>
@@ -558,6 +907,21 @@
             </div>
         </div>
 
+        <div class="streak-counter" id="streakCounter" style="display:none;">
+            <i class="fas fa-fire"></i>
+            <span id="streakValue">0</span> Streak
+        </div>
+
+        <div class="combo-meter" id="comboMeter" style="display:none;">
+            <div class="combo-fill" id="comboFill" style="width: 0%;">
+                <div class="combo-text" id="comboText">Combo x1</div>
+            </div>
+        </div>
+
+        <div class="live-graph" id="liveGraph" style="display:none;">
+            <canvas id="wpmGraph"></canvas>
+        </div>
+
         <div class="typing-area">
             <div class="text-display" id="textDisplay">Click "Start" to begin typing...</div>
             <textarea class="typing-input" id="typingInput" placeholder="Type here..." disabled></textarea>
@@ -565,68 +929,68 @@
 
         <div class="keyboard" id="keyboard">
             <div class="keyboard-row">
-                <div class="key" data-key="`">`</div>
-                <div class="key" data-key="1">1</div>
-                <div class="key" data-key="2">2</div>
-                <div class="key" data-key="3">3</div>
-                <div class="key" data-key="4">4</div>
-                <div class="key" data-key="5">5</div>
-                <div class="key" data-key="6">6</div>
-                <div class="key" data-key="7">7</div>
-                <div class="key" data-key="8">8</div>
-                <div class="key" data-key="9">9</div>
-                <div class="key" data-key="0">0</div>
-                <div class="key" data-key="-">-</div>
-                <div class="key" data-key="=">=</div>
-                <div class="key backspace" data-key="Backspace">⌫</div>
+                <div class="key pinky-left" data-key="`">`</div>
+                <div class="key pinky-left" data-key="1">1</div>
+                <div class="key ring-left" data-key="2">2</div>
+                <div class="key middle-left" data-key="3">3</div>
+                <div class="key index-left" data-key="4">4</div>
+                <div class="key index-left" data-key="5">5</div>
+                <div class="key index-right" data-key="6">6</div>
+                <div class="key index-right" data-key="7">7</div>
+                <div class="key middle-right" data-key="8">8</div>
+                <div class="key ring-right" data-key="9">9</div>
+                <div class="key pinky-right" data-key="0">0</div>
+                <div class="key pinky-right" data-key="-">-</div>
+                <div class="key pinky-right" data-key="=">=</div>
+                <div class="key pinky-right backspace" data-key="Backspace">⌫</div>
             </div>
             <div class="keyboard-row">
-                <div class="key tab" data-key="Tab">Tab</div>
-                <div class="key" data-key="q">Q</div>
-                <div class="key" data-key="w">W</div>
-                <div class="key" data-key="e">E</div>
-                <div class="key" data-key="r">R</div>
-                <div class="key" data-key="t">T</div>
-                <div class="key" data-key="y">Y</div>
-                <div class="key" data-key="u">U</div>
-                <div class="key" data-key="i">I</div>
-                <div class="key" data-key="o">O</div>
-                <div class="key" data-key="p">P</div>
-                <div class="key" data-key="[">[</div>
-                <div class="key" data-key="]">]</div>
-                <div class="key" data-key="\">\</div>
+                <div class="key pinky-left tab" data-key="Tab">Tab</div>
+                <div class="key pinky-left" data-key="q">Q</div>
+                <div class="key ring-left" data-key="w">W</div>
+                <div class="key middle-left" data-key="e">E</div>
+                <div class="key index-left" data-key="r">R</div>
+                <div class="key index-left" data-key="t">T</div>
+                <div class="key index-right" data-key="y">Y</div>
+                <div class="key index-right" data-key="u">U</div>
+                <div class="key middle-right" data-key="i">I</div>
+                <div class="key ring-right" data-key="o">O</div>
+                <div class="key pinky-right" data-key="p">P</div>
+                <div class="key pinky-right" data-key="[">[</div>
+                <div class="key pinky-right" data-key="]">]</div>
+                <div class="key pinky-right" data-key="\">\</div>
             </div>
             <div class="keyboard-row">
-                <div class="key caps" data-key="CapsLock">Caps</div>
-                <div class="key" data-key="a">A</div>
-                <div class="key" data-key="s">S</div>
-                <div class="key" data-key="d">D</div>
-                <div class="key" data-key="f">F</div>
-                <div class="key" data-key="g">G</div>
-                <div class="key" data-key="h">H</div>
-                <div class="key" data-key="j">J</div>
-                <div class="key" data-key="k">K</div>
-                <div class="key" data-key="l">L</div>
-                <div class="key" data-key=";">;</div>
-                <div class="key" data-key="'">'</div>
-                <div class="key enter" data-key="Enter">Enter</div>
+                <div class="key pinky-left caps" data-key="CapsLock">Caps</div>
+                <div class="key pinky-left" data-key="a">A</div>
+                <div class="key ring-left" data-key="s">S</div>
+                <div class="key middle-left" data-key="d">D</div>
+                <div class="key index-left" data-key="f">F</div>
+                <div class="key index-left" data-key="g">G</div>
+                <div class="key index-right" data-key="h">H</div>
+                <div class="key index-right" data-key="j">J</div>
+                <div class="key middle-right" data-key="k">K</div>
+                <div class="key ring-right" data-key="l">L</div>
+                <div class="key ring-right" data-key=";">;</div>
+                <div class="key pinky-right" data-key="'">'</div>
+                <div class="key pinky-right enter" data-key="Enter">Enter</div>
             </div>
             <div class="keyboard-row">
-                <div class="key shift" data-key="Shift">Shift</div>
-                <div class="key" data-key="z">Z</div>
-                <div class="key" data-key="x">X</div>
-                <div class="key" data-key="c">C</div>
-                <div class="key" data-key="v">V</div>
-                <div class="key" data-key="b">B</div>
-                <div class="key" data-key="n">N</div>
-                <div class="key" data-key="m">M</div>
-                <div class="key" data-key=",">,</div>
-                <div class="key" data-key=".">.</div>
-                <div class="key" data-key="/">/</div>
-                <div class="key shift" data-key="Shift">Shift</div>
+                <div class="key pinky-left shift" data-key="Shift">Shift</div>
+                <div class="key pinky-left" data-key="z">Z</div>
+                <div class="key ring-left" data-key="x">X</div>
+                <div class="key middle-left" data-key="c">C</div>
+                <div class="key index-left" data-key="v">V</div>
+                <div class="key index-left" data-key="b">B</div>
+                <div class="key index-right" data-key="n">N</div>
+                <div class="key index-right" data-key="m">M</div>
+                <div class="key middle-right" data-key=",">,</div>
+                <div class="key ring-right" data-key=".">.</div>
+                <div class="key pinky-right" data-key="/">/</div>
+                <div class="key pinky-right shift" data-key="Shift">Shift</div>
             </div>
             <div class="keyboard-row">
-                <div class="key space" data-key=" ">Space</div>
+                <div class="key thumb space" data-key=" ">Space</div>
             </div>
         </div>
 
@@ -724,6 +1088,10 @@
         let timeLeft = 60;
         let totalDuration = 60;
         let startTime = null;
+        let streak = 0;
+        let combo = 1;
+        let wpmHistory = [];
+        let keyUsage = {};
 
         const textDisplay = document.getElementById('textDisplay');
         const typingInput = document.getElementById('typingInput');
@@ -738,7 +1106,18 @@
         const showKeyboardToggle = document.getElementById('showKeyboard');
         const highlightNextToggle = document.getElementById('highlightNext');
         const soundEffectsToggle = document.getElementById('soundEffects');
+        const fingerGuideToggle = document.getElementById('fingerGuide');
+        const darkModeToggle = document.getElementById('darkMode');
         const keyboard = document.getElementById('keyboard');
+        const wpmGaugeFill = document.getElementById('wpmGaugeFill');
+        const accuracyGaugeFill = document.getElementById('accuracyGaugeFill');
+        const streakCounter = document.getElementById('streakCounter');
+        const streakValue = document.getElementById('streakValue');
+        const comboMeter = document.getElementById('comboMeter');
+        const comboFill = document.getElementById('comboFill');
+        const comboText = document.getElementById('comboText');
+        const liveGraph = document.getElementById('liveGraph');
+        const wpmGraph = document.getElementById('wpmGraph');
 
         // Audio context for sound effects
         let audioContext = null;
@@ -776,20 +1155,148 @@
             keyboard.style.display = this.checked ? 'flex' : 'none';
         });
 
+        // Toggle finger guide
+        fingerGuideToggle.addEventListener('change', function() {
+            const keys = document.querySelectorAll('.key');
+            keys.forEach(key => {
+                if (this.checked) {
+                    // Keep the finger color classes
+                } else {
+                    // Remove finger color classes
+                    key.classList.remove('pinky-left', 'ring-left', 'middle-left', 'index-left',
+                                    'index-right', 'middle-right', 'ring-right', 'pinky-right', 'thumb');
+                }
+            });
+        });
+
+        // Toggle dark mode
+        darkModeToggle.addEventListener('change', function() {
+            document.body.classList.toggle('dark-mode', this.checked);
+            // Save preference to localStorage
+            localStorage.setItem('darkMode', this.checked);
+        });
+
+        // Load dark mode preference
+        if (localStorage.getItem('darkMode') === 'true') {
+            darkModeToggle.checked = true;
+            document.body.classList.add('dark-mode');
+        }
+
         // Highlight next key to press
         function highlightNextKey() {
             if (!highlightNextToggle.checked || !isTyping || currentIndex >= currentText.length) {
                 document.querySelectorAll('.key').forEach(k => k.classList.remove('next-key'));
                 return;
             }
-            
+
             const nextChar = currentText[currentIndex].toLowerCase();
             document.querySelectorAll('.key').forEach(k => k.classList.remove('next-key'));
-            
+
             const keyElement = document.querySelector(`.key[data-key="${nextChar}"]`) ||
                             document.querySelector(`.key[data-key="${currentText[currentIndex]}"]`);
             if (keyElement) {
                 keyElement.classList.add('next-key');
+            }
+        }
+
+        // Update circular gauges
+        function updateGauges() {
+            const wpm = calculateWPM();
+            const accuracy = calculateAccuracy();
+
+            // WPM Gauge (max 100 WPM for full circle)
+            const wpmPercent = Math.min(wpm / 100, 1);
+            const wpmOffset = 314 - (wpmPercent * 314);
+            wpmGaugeFill.style.strokeDashoffset = wpmOffset;
+
+            // Accuracy Gauge
+            const accuracyPercent = accuracy / 100;
+            const accuracyOffset = 314 - (accuracyPercent * 314);
+            accuracyGaugeFill.style.strokeDashoffset = accuracyOffset;
+        }
+
+        // Update streak counter
+        function updateStreak(isCorrect) {
+            if (isCorrect) {
+                streak++;
+                streakCounter.style.display = 'flex';
+                streakValue.textContent = streak;
+            } else {
+                streak = 0;
+                streakCounter.style.display = 'none';
+            }
+        }
+
+        // Update combo meter
+        function updateCombo() {
+            if (streak >= 10) {
+                combo = Math.min(Math.floor(streak / 10) + 1, 5);
+                comboMeter.style.display = 'block';
+                const comboPercent = (combo / 5) * 100;
+                comboFill.style.width = comboPercent + '%';
+                comboText.textContent = 'Combo x' + combo;
+            } else {
+                combo = 1;
+                comboMeter.style.display = 'none';
+            }
+        }
+
+        // Track key usage for heatmap
+        function trackKeyUsage(key) {
+            if (!keyUsage[key]) {
+                keyUsage[key] = 0;
+            }
+            keyUsage[key]++;
+        }
+
+        // Draw live WPM graph
+        function drawLiveGraph() {
+            if (!isTyping) return;
+
+            const ctx = wpmGraph.getContext('2d');
+            const width = wpmGraph.width = wpmGraph.offsetWidth;
+            const height = wpmGraph.height = wpmGraph.offsetHeight;
+
+            // Add current WPM to history
+            const currentWPM = calculateWPM();
+            wpmHistory.push(currentWPM);
+
+            // Keep only last 30 data points
+            if (wpmHistory.length > 30) {
+                wpmHistory.shift();
+            }
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw graph
+            if (wpmHistory.length > 1) {
+                ctx.beginPath();
+                ctx.strokeStyle = '#667eea';
+                ctx.lineWidth = 2;
+
+                const maxWPM = Math.max(...wpmHistory, 60);
+                const stepX = width / (wpmHistory.length - 1);
+
+                wpmHistory.forEach((wpm, index) => {
+                    const x = index * stepX;
+                    const y = height - (wpm / maxWPM) * height;
+
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+
+                ctx.stroke();
+
+                // Fill area under graph
+                ctx.lineTo(width, height);
+                ctx.lineTo(0, height);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(102, 126, 234, 0.2)';
+                ctx.fill();
             }
         }
 
@@ -837,9 +1344,21 @@
             timeLeft = totalDuration;
             startTime = Date.now();
 
+            // Reset stats
+            streak = 0;
+            combo = 1;
+            wpmHistory = [];
+            keyUsage = {};
+            streakCounter.style.display = 'none';
+            comboMeter.style.display = 'none';
+            liveGraph.style.display = 'block';
+
             if (totalDuration > 0) {
                 timer = setInterval(updateTimer, 1000);
             }
+
+            // Start graph update interval
+            setInterval(drawLiveGraph, 1000);
 
             updateDisplay();
             highlightNextKey();
@@ -886,6 +1405,9 @@
                     mistakes++;
                 }
                 playKeystrokeSound(isCorrect);
+                updateStreak(isCorrect);
+                updateCombo();
+                trackKeyUsage(typed[i]);
             }
 
             currentIndex = typedLength;
@@ -914,6 +1436,9 @@
 
             const progress = (currentIndex / currentText.length) * 100;
             progressFill.style.width = progress + '%';
+
+            // Update gauges
+            updateGauges();
 
             // Highlight next key
             highlightNextKey();
@@ -953,6 +1478,10 @@
             
             currentIndex = 0;
             mistakes = 0;
+            streak = 0;
+            combo = 1;
+            wpmHistory = [];
+            keyUsage = {};
             timeLeft = parseInt(timerSelect.value);
             timeLeftDisplay.textContent = timeLeft + 's';
             wpmDisplay.textContent = '0';
@@ -960,6 +1489,15 @@
             charCountDisplay.textContent = '0/0';
             progressFill.style.width = '0%';
             textDisplay.textContent = 'Click "Start" to begin typing...';
+
+            // Reset gauges
+            wpmGaugeFill.style.strokeDashoffset = 314;
+            accuracyGaugeFill.style.strokeDashoffset = 0;
+
+            // Hide streak and combo
+            streakCounter.style.display = 'none';
+            comboMeter.style.display = 'none';
+            liveGraph.style.display = 'none';
         }
 
         function showResultModal() {
