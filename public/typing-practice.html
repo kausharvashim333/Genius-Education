@@ -560,8 +560,15 @@
             border-color: #667eea;
         }
 
+        .key.highlighted {
+            background: linear-gradient(145deg, #f59e0b, #d97706);
+            border-color: #f59e0b;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
         .key.space {
-            min-width: 400px;
+            min-width: 500px;
         }
 
         .key.shift {
@@ -2942,7 +2949,7 @@
             for (let i = 0; i < lines.length; i++) {
                 const lineStart = lineCharCounts[i];
                 const lineEnd = lineStart + lines[i].length;
-                if (currentIndex >= lineStart && currentIndex < lineEnd) {
+                if (currentIndex >= lineStart && currentIndex <= lineEnd) {
                     currentLineIndex = i;
                     break;
                 }
@@ -2996,6 +3003,22 @@
             progressPercentage.textContent = Math.round(progress) + '%';
             
             charCountDisplay.textContent = `${currentIndex}/${currentText.length}`;
+            
+            // Highlight next key on virtual keyboard
+            if (highlightNextCheckbox.checked && currentIndex < currentText.length) {
+                const nextChar = currentText[currentIndex];
+                const keyElement = document.querySelector(`[data-key="${nextChar}"]`);
+                
+                // Remove highlight from all keys
+                document.querySelectorAll('.key').forEach(key => {
+                    key.classList.remove('highlighted');
+                });
+                
+                // Add highlight to next key
+                if (keyElement) {
+                    keyElement.classList.add('highlighted');
+                }
+            }
             
             // Update last completed line
             if (currentLineIndex > lastCompletedLine) {
