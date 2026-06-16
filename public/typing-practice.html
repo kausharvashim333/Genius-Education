@@ -354,17 +354,37 @@
         }
 
         .text-display {
-            font-size: 28px;
-            line-height: 2;
+            font-size: 24px;
+            line-height: 1.8;
             color: #e0e0e0;
             margin-bottom: 30px;
             user-select: none;
-            text-align: center;
+            text-align: left;
             max-width: 900px;
             word-wrap: break-word;
             white-space: pre-wrap;
             word-break: break-word;
             overflow-wrap: break-word;
+            padding: 20px;
+            background: rgba(30, 30, 50, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .text-line {
+            margin: 8px 0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background 0.3s ease;
+        }
+
+        .text-line.active {
+            background: rgba(102, 126, 234, 0.15);
+            border-left: 3px solid #667eea;
+        }
+
+        .text-line.completed {
+            opacity: 0.5;
         }
 
         .text-display .correct {
@@ -385,6 +405,12 @@
             margin: -2px -4px;
             color: #fff;
             font-weight: 600;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
 
         .text-display .remaining {
@@ -1306,7 +1332,7 @@
             <div class="app-content">
                 <div class="typing-area">
                     <div class="text-display" id="textDisplay">Click "Start" to begin typing...</div>
-                    <input type="text" class="typing-input" id="typingInput" placeholder="Start typing here..." disabled>
+                    <input type="text" class="typing-input" id="typingInput" placeholder="Start typing here..." disabled style="display: none;">
                     
                     <div class="progress-container">
                         <div class="progress-bar">
@@ -2216,16 +2242,54 @@
             const typed = currentText.substring(0, currentIndex);
             const remaining = currentText.substring(currentIndex);
             
+            // Split text into lines
+            const lines = currentText.split('\n');
             let displayHTML = '';
             
-            for (let i = 0; i < currentText.length; i++) {
-                if (i < currentIndex) {
-                    displayHTML += `<span class="correct">${currentText[i]}</span>`;
-                } else if (i === currentIndex) {
-                    displayHTML += `<span class="current">${currentText[i]}</span>`;
-                } else {
-                    displayHTML += `<span class="remaining">${currentText[i]}</span>`;
+            // Calculate which line we're on
+            let charCount = 0;
+            let currentLineIndex = 0;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const lineLength = lines[i].length;
+                if (currentIndex >= charCount && currentIndex < charCount + lineLength) {
+                    currentLineIndex = i;
+                    break;
                 }
+                charCount += lineLength + 1; // +1 for newline
+            }
+            
+            // Display each line
+            charCount = 0;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const lineStart = charCount;
+                const lineEnd = charCount + line.length;
+                
+                let lineClass = 'text-line';
+                if (i < currentLineIndex) {
+                    lineClass += ' completed';
+                } else if (i === currentLineIndex) {
+                    lineClass += ' active';
+                }
+                
+                displayHTML += `<div class="${lineClass}">`;
+                
+                // Process each character in the line
+                for (let j = 0; j < line.length; j++) {
+                    const globalIndex = lineStart + j;
+                    
+                    if (globalIndex < currentIndex) {
+                        displayHTML += `<span class="correct">${line[j]}</span>`;
+                    } else if (globalIndex === currentIndex) {
+                        displayHTML += `<span class="current">${line[j]}</span>`;
+                    } else {
+                        displayHTML += `<span class="remaining">${line[j]}</span>`;
+                    }
+                }
+                
+                displayHTML += '</div>';
+                charCount += line.length + 1; // +1 for newline
             }
             
             textDisplay.innerHTML = displayHTML;
