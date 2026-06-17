@@ -458,18 +458,16 @@
         }
 
         .timer-display {
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            font-size: 24px;
+            font-size: 18px;
             font-weight: 600;
             color: #667eea;
-            margin-bottom: 20px;
-            margin-top: 20px;
-            padding: 10px 20px;
+            padding: 8px 16px;
             background: rgba(102, 126, 234, 0.1);
-            border-radius: 10px;
+            border-radius: 8px;
             border: 2px solid rgba(102, 126, 234, 0.3);
         }
 
@@ -3187,6 +3185,8 @@
             const keyboardSection = document.getElementById('keyboardSection');
             const showKeyboard = document.getElementById('showKeyboard').checked;
             keyboardSection.style.display = showKeyboard ? 'block' : 'none';
+            // Update finger guide visibility when keyboard toggles
+            updateFingerGuide();
         }
 
         function toggleHighlight() {
@@ -3214,8 +3214,12 @@
         function updateFingerGuide() {
             const fingerGuideEnabled = localStorage.getItem('fingerGuide') !== 'false';
             const fingerGuideDisplay = document.getElementById('fingerGuideDisplay');
-            if (fingerGuideDisplay) {
-                fingerGuideDisplay.style.display = fingerGuideEnabled ? 'flex' : 'none';
+            const keyboardSection = document.getElementById('keyboardSection');
+
+            if (fingerGuideDisplay && keyboardSection) {
+                // Only show finger guide if both it's enabled AND keyboard is visible
+                const keyboardVisible = keyboardSection.style.display !== 'none';
+                fingerGuideDisplay.style.display = (fingerGuideEnabled && keyboardVisible) ? 'flex' : 'none';
             }
         }
 
