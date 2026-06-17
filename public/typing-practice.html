@@ -222,7 +222,15 @@
         }
 
         .app-header {
-            display: none;
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
         }
 
         .app-header-left {
@@ -842,8 +850,7 @@
         }
 
         .window-controls {
-            display: flex;
-            height: 100%;
+            display: none;
         }
 
         .window-btn {
