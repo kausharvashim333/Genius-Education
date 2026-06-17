@@ -14585,8 +14585,40 @@ function loadTypingLevelContent() {
     const level = document.getElementById('typingLevelSelect').value;
     if (!level) return;
     
-    document.getElementById('typingLevelText').value = 'Level ' + level + ' content would be loaded here...';
-    document.getElementById('typingContentLength').value = 500 + (parseInt(level) - 1) * 110;
+    try {
+        const typingTexts = JSON.parse(localStorage.getItem('typingTexts') || '{}');
+        let textArray;
+        let contentLength;
+        
+        if (level <= 5) {
+            textArray = typingTexts.homeRowTexts || [];
+            contentLength = 500;
+        } else if (level <= 10) {
+            textArray = typingTexts.topRowTexts || [];
+            contentLength = 1050;
+        } else if (level <= 15) {
+            textArray = typingTexts.homeTopTexts || [];
+            contentLength = 1600;
+        } else if (level <= 20) {
+            textArray = typingTexts.bottomRowTexts || [];
+            contentLength = 2150;
+        } else if (level <= 25) {
+            textArray = typingTexts.shortSentences || [];
+            contentLength = 2700;
+        } else {
+            textArray = typingTexts.detailedParagraphs || [];
+            contentLength = 3250;
+        }
+        
+        const textIndex = (parseInt(level) - 1) % textArray.length;
+        const text = textArray[textIndex] || 'No text available for this level';
+        
+        document.getElementById('typingLevelText').value = text;
+        document.getElementById('typingContentLength').value = contentLength;
+    } catch (e) {
+        showNotification('Error loading level content: ' + e.message, 'error');
+        document.getElementById('typingLevelText').value = 'Error loading content. Please open the typing practice page first to initialize the text data.';
+    }
 }
 
 // Save typing level content
@@ -14600,7 +14632,47 @@ function saveTypingLevelContent() {
         return;
     }
     
-    showNotification('Level content saved (placeholder - implement backend storage)', 'success');
+    try {
+        const typingTexts = JSON.parse(localStorage.getItem('typingTexts') || '{}');
+        let textArray;
+        
+        if (level <= 5) {
+            textArray = typingTexts.homeRowTexts || [];
+        } else if (level <= 10) {
+            textArray = typingTexts.topRowTexts || [];
+        } else if (level <= 15) {
+            textArray = typingTexts.homeTopTexts || [];
+        } else if (level <= 20) {
+            textArray = typingTexts.bottomRowTexts || [];
+        } else if (level <= 25) {
+            textArray = typingTexts.shortSentences || [];
+        } else {
+            textArray = typingTexts.detailedParagraphs || [];
+        }
+        
+        const textIndex = (parseInt(level) - 1) % textArray.length;
+        textArray[textIndex] = text;
+        
+        // Update the appropriate array in storage
+        if (level <= 5) {
+            typingTexts.homeRowTexts = textArray;
+        } else if (level <= 10) {
+            typingTexts.topRowTexts = textArray;
+        } else if (level <= 15) {
+            typingTexts.homeTopTexts = textArray;
+        } else if (level <= 20) {
+            typingTexts.bottomRowTexts = textArray;
+        } else if (level <= 25) {
+            typingTexts.shortSentences = textArray;
+        } else {
+            typingTexts.detailedParagraphs = textArray;
+        }
+        
+        localStorage.setItem('typingTexts', JSON.stringify(typingTexts));
+        showNotification('Level content saved successfully', 'success');
+    } catch (e) {
+        showNotification('Error saving level content: ' + e.message, 'error');
+    }
 }
 
 // Load typing leaderboard

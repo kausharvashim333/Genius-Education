@@ -2428,6 +2428,19 @@
             "The human brain is the most complex organ in the human body, containing approximately 86 billion neurons connected by trillions of synapses. This remarkable organ is responsible for consciousness, thought, memory, emotion, and all the cognitive functions that define our humanity. Neuroscience has made tremendous progress in understanding how the brain works, yet much remains to be discovered. Advances in neuroimaging techniques have allowed researchers to observe brain activity in real-time, while molecular biology has revealed the intricate chemical processes that underlie neural communication. The study of the brain has important implications for medicine, as understanding neurological disorders such as Alzheimer's, Parkinson's, and depression could lead to better treatments and potentially cures. Artificial intelligence researchers are also drawing inspiration from the brain's architecture to develop more sophisticated neural networks. The brain's ability to learn, adapt, and reorganize itself in response to experience, known as neuroplasticity, offers hope for recovery from brain injuries and the development of new skills throughout life. As our understanding of the brain deepens, we may unlock new possibilities for enhancing human cognition and treating mental health disorders."
         ];
 
+        // Store text arrays in localStorage for admin panel access
+        function storeTypingTextsInStorage() {
+            const typingTexts = {
+                homeRowTexts: homeRowTexts,
+                topRowTexts: topRowTexts,
+                homeTopTexts: homeTopTexts,
+                bottomRowTexts: bottomRowTexts,
+                shortSentences: shortSentences,
+                detailedParagraphs: detailedParagraphs
+            };
+            localStorage.setItem('typingTexts', JSON.stringify(typingTexts));
+        }
+
         let currentText = '';
         let currentIndex = 0;
         let mistakes = 0;
@@ -2492,19 +2505,55 @@
             let baseText;
             let textArray;
             
-            // Select text array based on level group
-            if (level <= 5) {
-                textArray = homeRowTexts;
-            } else if (level <= 10) {
-                textArray = topRowTexts;
-            } else if (level <= 15) {
-                textArray = homeTopTexts;
-            } else if (level <= 20) {
-                textArray = bottomRowTexts;
-            } else if (level <= 25) {
-                textArray = shortSentences;
+            // Try to get text from localStorage first (for admin edits)
+            const storedTexts = localStorage.getItem('typingTexts');
+            if (storedTexts) {
+                try {
+                    const typingTexts = JSON.parse(storedTexts);
+                    if (level <= 5) {
+                        textArray = typingTexts.homeRowTexts || homeRowTexts;
+                    } else if (level <= 10) {
+                        textArray = typingTexts.topRowTexts || topRowTexts;
+                    } else if (level <= 15) {
+                        textArray = typingTexts.homeTopTexts || homeTopTexts;
+                    } else if (level <= 20) {
+                        textArray = typingTexts.bottomRowTexts || bottomRowTexts;
+                    } else if (level <= 25) {
+                        textArray = typingTexts.shortSentences || shortSentences;
+                    } else {
+                        textArray = typingTexts.detailedParagraphs || detailedParagraphs;
+                    }
+                } catch (e) {
+                    // Fallback to hardcoded arrays if localStorage is corrupted
+                    if (level <= 5) {
+                        textArray = homeRowTexts;
+                    } else if (level <= 10) {
+                        textArray = topRowTexts;
+                    } else if (level <= 15) {
+                        textArray = homeTopTexts;
+                    } else if (level <= 20) {
+                        textArray = bottomRowTexts;
+                    } else if (level <= 25) {
+                        textArray = shortSentences;
+                    } else {
+                        textArray = detailedParagraphs;
+                    }
+                }
             } else {
-                textArray = detailedParagraphs;
+                // Use hardcoded arrays if localStorage not available
+                if (level <= 5) {
+                    textArray = homeRowTexts;
+                } else if (level <= 10) {
+                    textArray = topRowTexts;
+                } else if (level <= 15) {
+                    textArray = homeTopTexts;
+                } else if (level <= 20) {
+                    textArray = bottomRowTexts;
+                } else if (level <= 25) {
+                    textArray = shortSentences;
+                } else {
+                    textArray = detailedParagraphs;
+                }
             }
             
             // Select text from array (cycle through if needed)
@@ -2810,6 +2859,9 @@
         window.addEventListener('DOMContentLoaded', function() {
             initializeLevelSelector();
             loadNewText();
+            
+            // Store typing texts in localStorage for admin panel
+            storeTypingTextsInStorage();
             
             // Check for guide parameter in URL and open guide automatically
             const urlParams = new URLSearchParams(window.location.search);
