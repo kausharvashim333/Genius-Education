@@ -2318,9 +2318,6 @@
                         <option value="all">All Levels</option>
                     </select>
                 </div>
-                <button class="btn btn-danger" onclick="clearLeaderboardData()" style="margin-right: 10px;">
-                    <i class="fas fa-trash"></i> Clear Data
-                </button>
                 <button class="close-btn" onclick="closeLeaderboard()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -2695,13 +2692,6 @@
             document.getElementById('leaderboardModal').style.display = 'none';
         }
 
-        function clearLeaderboardData() {
-            if (confirm('Are you sure you want to clear all leaderboard data? This cannot be undone.')) {
-                localStorage.removeItem('typingScores');
-                loadLeaderboard();
-            }
-        }
-
         function initializeLeaderboardLevelSelector() {
             const select = document.getElementById('leaderboardLevel');
             select.innerHTML = '<option value="all">All Levels</option>';
@@ -2794,6 +2784,29 @@
         });
         
         // Initialize on page load
+        // Automatic weekly leaderboard clearing
+        function checkAndClearLeaderboardWeekly() {
+            const lastCleared = localStorage.getItem('typingScoresLastCleared');
+            const now = new Date();
+            const oneWeek = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+            
+            if (!lastCleared) {
+                // First time, set the timestamp
+                localStorage.setItem('typingScoresLastCleared', now.toISOString());
+                return;
+            }
+            
+            const lastClearedDate = new Date(lastCleared);
+            const timeSinceLastClear = now - lastClearedDate;
+            
+            if (timeSinceLastClear >= oneWeek) {
+                // Clear leaderboard data
+                localStorage.removeItem('typingScores');
+                localStorage.setItem('typingScoresLastCleared', now.toISOString());
+                console.log('Leaderboard data cleared automatically (weekly reset)');
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', function() {
             initializeLevelSelector();
             loadNewText();
@@ -2803,6 +2816,9 @@
             if (urlParams.get('guide') === 'true') {
                 openGuide();
             }
+            
+            // Check and clear leaderboard weekly
+            checkAndClearLeaderboardWeekly();
         });
 
         function resetTyping() {

@@ -14667,6 +14667,7 @@ function clearTypingLeaderboard() {
     if (!confirm('Are you sure you want to clear ALL leaderboard data? This cannot be undone.')) return;
     try {
         localStorage.removeItem('typingScores');
+        localStorage.setItem('typingScoresLastCleared', new Date().toISOString());
         loadTypingLeaderboard();
         showNotification('Leaderboard cleared successfully', 'success');
     } catch (e) {
