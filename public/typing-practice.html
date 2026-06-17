@@ -459,7 +459,7 @@
         }
 
         .timer-display {
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
@@ -470,6 +470,10 @@
             background: rgba(102, 126, 234, 0.1);
             border-radius: 8px;
             border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .timer-display.hidden {
+            display: none;
         }
 
         .timer-display i {
@@ -2835,7 +2839,7 @@
             textDisplay.innerHTML = '<div class="text-line">Click "Start" to begin typing...</div>';
             
             // Reset timer display
-            timerDisplay.style.display = 'none';
+            timerDisplay.classList.add('hidden');
             if (timerCountdownInterval) {
                 clearInterval(timerCountdownInterval);
                 timerCountdownInterval = null;
@@ -2852,7 +2856,7 @@
 
             const levelData = gameLevels[currentLevel - 1];
             timeRemaining = levelData.duration;
-            timerDisplay.style.display = 'flex';
+            timerDisplay.classList.remove('hidden');
             updateTimerDisplay();
 
             timerCountdownInterval = setInterval(() => {
@@ -2886,7 +2890,7 @@
                 timerCountdownInterval = null;
             }
             
-            timerDisplay.style.display = 'none';
+            timerDisplay.classList.add('hidden');
             
             const timeElapsed = (new Date() - startTime) / 1000 / 60;
             // Standard WPM calculation: (characters typed / 5) / time in minutes
@@ -3738,21 +3742,30 @@
             
             charCountDisplay.textContent = `${currentIndex}/${currentText.length}`;
             
-            // Highlight next key on virtual keyboard and show finger guide
+            // Highlight next key on virtual keyboard
             const highlightEnabled = localStorage.getItem('highlightNext') !== 'false';
             if (highlightEnabled && currentIndex < currentText.length) {
                 const nextChar = currentText[currentIndex];
                 const keyElement = document.querySelector(`[data-key="${nextChar}"]`);
-                
+
                 // Remove highlight from all keys
                 document.querySelectorAll('.key').forEach(key => {
                     key.classList.remove('highlighted');
                 });
-                
+
                 // Add highlight to next key
                 if (keyElement) {
                     keyElement.classList.add('highlighted');
-                    
+                }
+            }
+
+            // Show finger guide (separate from highlight)
+            const fingerGuideEnabled = localStorage.getItem('fingerGuide') !== 'false';
+            if (fingerGuideEnabled && currentIndex < currentText.length) {
+                const nextChar = currentText[currentIndex];
+                const keyElement = document.querySelector(`[data-key="${nextChar}"]`);
+
+                if (keyElement) {
                     // Determine finger to use
                     let finger = '';
                     if (keyElement.classList.contains('pinky-left') || keyElement.classList.contains('pinky-right')) {
@@ -3768,8 +3781,10 @@
                     } else {
                         finger = 'Use appropriate finger';
                     }
-                    
+
                     fingerGuideText.textContent = `Press '${nextChar}' with ${finger}`;
+                } else {
+                    fingerGuideText.textContent = 'Start typing to see finger guide';
                 }
             } else {
                 fingerGuideText.textContent = 'Start typing to see finger guide';
