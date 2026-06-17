@@ -1876,6 +1876,12 @@
                 <canvas id="wpmGraph"></canvas>
             </div>
 
+            <!-- Timer -->
+            <div class="stat-card">
+                <div class="stat-label">Timer</div>
+                <div class="stat-value" id="sidebarTimer">00:00</div>
+            </div>
+
             <div class="achievements-section">
                 <h3><i class="fas fa-medal"></i> Achievements</h3>
                 <div class="badges-grid">
@@ -3418,22 +3424,54 @@
             const statusLesson = document.getElementById('statusLesson');
             const sessionCount = document.getElementById('sessionCount');
             const bestWpm = document.getElementById('bestWpm');
-            
+
             if (isTyping && startTime) {
                 const elapsed = Math.floor((new Date() - startTime) / 1000);
                 const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
                 const seconds = (elapsed % 60).toString().padStart(2, '0');
                 statusTime.textContent = `${minutes}:${seconds}`;
                 statusMode.textContent = 'Typing';
+
+                // Update sidebar timer
+                const sidebarTimer = document.getElementById('sidebarTimer');
+                if (sidebarTimer) {
+                    sidebarTimer.textContent = `${minutes}:${seconds}`;
+                }
             } else {
                 statusTime.textContent = '00:00';
                 statusMode.textContent = 'Ready';
             }
-            
+
             sessionCount.textContent = currentIndex;
-            
+
             const storedBest = localStorage.getItem('bestWpm') || 0;
             bestWpm.textContent = storedBest;
+        }
+
+        function updateSidebarStats() {
+            if (!isTyping || !startTime) return;
+
+            const timeElapsed = (new Date() - startTime) / 1000 / 60;
+            const wpm = Math.round((currentIndex / 5) / timeElapsed) || 0;
+            const cpm = Math.round(currentIndex / timeElapsed) || 0;
+            const accuracy = currentIndex > 0 ? Math.round(((currentIndex - mistakes) / currentIndex) * 100) : 100;
+
+            wpmDisplay.textContent = wpm;
+            cpmDisplay.textContent = cpm;
+            accuracyDisplay.textContent = accuracy + '%';
+
+            const accuracyOffset = 226.195 - (226.195 * accuracy / 100);
+            accuracyCircle.style.strokeDashoffset = accuracyOffset;
+
+            // Update progress
+            const progress = Math.round((currentIndex / currentText.length) * 100);
+            progressFillSidebar.style.width = progress + '%';
+            progressPercentage.textContent = progress + '%';
+
+            // Update live graph
+            wpmHistory.push(wpm);
+            if (wpmHistory.length > 60) wpmHistory.shift();
+            drawGraph();
         }
 
         // Save best WPM
@@ -3775,7 +3813,8 @@
             e.target.value = '';
             updateDisplay();
             updateStatusBar();
-            
+            updateSidebarStats();
+
             if (currentIndex >= currentText.length) {
                 endTyping();
             }
