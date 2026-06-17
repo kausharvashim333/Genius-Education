@@ -129,6 +129,11 @@
             margin-top: auto;
             padding-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+
+        .settings-section.show {
+            display: block;
         }
 
         .settings-section h3 {
@@ -893,6 +898,11 @@
             background: rgba(40, 40, 60, 0.5);
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+
+        .achievements-section.show {
+            display: block;
         }
 
         .achievements-section h3 {
@@ -1826,6 +1836,9 @@
                         </select>
                         <span class="level-info" id="levelInfo">1 min • Easy</span>
                     </div>
+                    <button class="header-btn secondary" onclick="toggleSettings()">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
                     <button class="header-btn secondary" onclick="loadNewText()">
                         <i class="fas fa-redo"></i> New Text
                     </button>
@@ -2749,6 +2762,9 @@
             playSound('complete');
             checkAchievements(wpm, accuracy, maxStreak);
             
+            // Show achievements after level completion
+            document.querySelector('.achievements-section').classList.add('show');
+            
             document.getElementById('finalWpm').textContent = wpm;
             document.getElementById('finalAccuracy').textContent = accuracy + '%';
             document.getElementById('finalChars').textContent = currentIndex;
@@ -2984,6 +3000,11 @@
 
         function closeGuide() {
             document.getElementById('guideModal').style.display = 'none';
+        }
+
+        function toggleSettings() {
+            const settingsSection = document.querySelector('.settings-section');
+            settingsSection.classList.toggle('show');
         }
 
         function switchLanguage(lang) {
