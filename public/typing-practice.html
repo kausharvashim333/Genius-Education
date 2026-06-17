@@ -3093,6 +3093,9 @@
             // Initialize settings from localStorage
             initializeSettings();
 
+            // Start stats update interval
+            setInterval(updateSidebarStats, 500);
+
             // Check for guide parameter in URL and open guide automatically
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('guide') === 'true') {
@@ -3185,6 +3188,8 @@
             // Highlight next key functionality
             const highlightNext = document.getElementById('highlightNext').checked;
             localStorage.setItem('highlightNext', highlightNext);
+            // Update the checkbox reference
+            highlightNextCheckbox.checked = highlightNext;
         }
 
         function toggleSound() {
@@ -3195,14 +3200,18 @@
         function toggleFingerGuide() {
             const fingerGuide = document.getElementById('fingerGuide').checked;
             const fingerGuideDisplay = document.getElementById('fingerGuideDisplay');
-            fingerGuideDisplay.style.display = fingerGuide ? 'flex' : 'none';
+            if (fingerGuideDisplay) {
+                fingerGuideDisplay.style.display = fingerGuide ? 'flex' : 'none';
+            }
             localStorage.setItem('fingerGuide', fingerGuide);
         }
 
         function toggleFingerLegend() {
             const showFingerLegend = document.getElementById('showFingerLegend').checked;
             const fingerLegend = document.querySelector('.finger-legend');
-            fingerLegend.style.display = showFingerLegend ? 'flex' : 'none';
+            if (fingerLegend) {
+                fingerLegend.style.display = showFingerLegend ? 'flex' : 'none';
+            }
             localStorage.setItem('showFingerLegend', showFingerLegend);
         }
 
@@ -3456,17 +3465,26 @@
             const cpm = Math.round(currentIndex / timeElapsed) || 0;
             const accuracy = currentIndex > 0 ? Math.round(((currentIndex - mistakes) / currentIndex) * 100) : 100;
 
-            wpmDisplay.textContent = wpm;
-            cpmDisplay.textContent = cpm;
-            accuracyDisplay.textContent = accuracy + '%';
+            const wpmEl = document.getElementById('wpmDisplay');
+            const cpmEl = document.getElementById('cpmDisplay');
+            const accEl = document.getElementById('accuracyDisplay');
+            const accCircle = document.getElementById('accuracyCircle');
+            const progFill = document.getElementById('progressFillSidebar');
+            const progPct = document.getElementById('progressPercentage');
 
-            const accuracyOffset = 226.195 - (226.195 * accuracy / 100);
-            accuracyCircle.style.strokeDashoffset = accuracyOffset;
+            if (wpmEl) wpmEl.textContent = wpm;
+            if (cpmEl) cpmEl.textContent = cpm;
+            if (accEl) accEl.textContent = accuracy + '%';
+
+            if (accCircle) {
+                const accuracyOffset = 226.195 - (226.195 * accuracy / 100);
+                accCircle.style.strokeDashoffset = accuracyOffset;
+            }
 
             // Update progress
             const progress = Math.round((currentIndex / currentText.length) * 100);
-            progressFillSidebar.style.width = progress + '%';
-            progressPercentage.textContent = progress + '%';
+            if (progFill) progFill.style.width = progress + '%';
+            if (progPct) progPct.textContent = progress + '%';
 
             // Update live graph
             wpmHistory.push(wpm);
@@ -3697,7 +3715,8 @@
             charCountDisplay.textContent = `${currentIndex}/${currentText.length}`;
             
             // Highlight next key on virtual keyboard and show finger guide
-            if (highlightNextCheckbox.checked && currentIndex < currentText.length) {
+            const highlightEnabled = localStorage.getItem('highlightNext') !== 'false';
+            if (highlightEnabled && currentIndex < currentText.length) {
                 const nextChar = currentText[currentIndex];
                 const keyElement = document.querySelector(`[data-key="${nextChar}"]`);
                 
