@@ -366,8 +366,8 @@
             font-size: 18px;
             line-height: 1.6;
             color: #e0e0e0;
-            margin-bottom: 30px;
-            margin-top: 30px;
+            margin-bottom: 15px;
+            margin-top: 15px;
             user-select: none;
             text-align: left;
             max-width: 100%;
@@ -505,8 +505,8 @@
 
         /* Keyboard Section */
         .keyboard-section {
-            margin-top: 30px;
-            padding-top: 30px;
+            margin-top: 15px;
+            padding-top: 15px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             width: 100%;
             max-width: 100%;
@@ -1755,6 +1755,50 @@
         <div class="app-main-wrapper">
             <!-- Sidebar -->
             <div class="app-sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-keyboard"></i> Typing Stats</h2>
+            </div>
+
+            <div class="stats-section">
+                <!-- WPM -->
+                <div class="stat-card">
+                    <div class="stat-label">WPM</div>
+                    <div class="stat-value" id="wpmDisplay">0</div>
+                    <div class="stat-unit">words/min</div>
+                </div>
+
+                <!-- CPM -->
+                <div class="stat-card">
+                    <div class="stat-label">CPM</div>
+                    <div class="stat-value" id="cpmDisplay">0</div>
+                    <div class="stat-unit">chars/min</div>
+                </div>
+
+                <!-- Accuracy -->
+                <div class="stat-card">
+                    <div class="stat-label">Accuracy</div>
+                    <div class="circular-stat">
+                        <svg width="80" height="80" viewBox="0 0 80 80">
+                            <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6"/>
+                            <circle cx="40" cy="40" r="36" fill="none" stroke="#667eea" stroke-width="6" 
+                                    stroke-dasharray="226.195" stroke-dashoffset="226.195" id="accuracyCircle"
+                                    style="transition: stroke-dashoffset 0.3s ease;"/>
+                        </svg>
+                        <div class="stat-value" id="accuracyDisplay">100%</div>
+                    </div>
+                </div>
+
+                <!-- Progress -->
+                <div class="stat-card">
+                    <div class="stat-label">Progress</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-sidebar">
+                            <div class="progress-fill-sidebar" id="progressFillSidebar" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-percentage" id="progressPercentage">0%</div>
+                    </div>
+                </div>
+            </div>
 
             <div class="settings-section">
                 <h3>Settings</h3>
@@ -1874,36 +1918,6 @@
                     <div class="text-display" id="textDisplay">Click "Start" to begin typing...</div>
                     <input type="text" class="typing-input" id="typingInput" placeholder="Start typing here..." disabled style="display: none;">
 
-                    <!-- Horizontal Stats Bar -->
-                    <div class="stats-bar">
-                        <div class="stat-card-mini">
-                            <div class="stat-label">WPM</div>
-                            <div class="stat-value" id="wpmDisplay">0</div>
-                            <div class="stat-unit">w/m</div>
-                        </div>
-                        <div class="stat-card-mini circular">
-                            <div class="stat-label">Accuracy</div>
-                            <div class="circular-stat">
-                                <svg width="60" height="60" viewBox="0 0 60 60">
-                                    <circle cx="30" cy="30" r="27" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="5"/>
-                                    <circle cx="30" cy="30" r="27" fill="none" stroke="#667eea" stroke-width="5"
-                                            stroke-dasharray="169.646" stroke-dashoffset="169.646" id="accuracyCircle"
-                                            style="transition: stroke-dashoffset 0.3s ease;"/>
-                                </svg>
-                                <div class="stat-value" id="accuracyDisplay">100%</div>
-                            </div>
-                        </div>
-                        <div class="stat-card-mini progress">
-                            <div class="stat-label">Progress</div>
-                            <div class="progress-bar-container">
-                                <div class="progress-bar-sidebar">
-                                    <div class="progress-fill-sidebar" id="progressFillSidebar" style="width: 0%"></div>
-                                </div>
-                                <div class="progress-percentage" id="progressPercentage">0%</div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="keyboard-section" id="keyboardSection">
                         <div class="finger-guide-display" id="fingerGuideDisplay">
                             <i class="fas fa-hand-point-up"></i> <span id="fingerGuideText">Start typing to see finger guide</span>
@@ -1981,33 +1995,6 @@
                                 <div class="key ctrl-key" data-key="Control">Ctrl</div>
                             </div>
                         </div>
-                        
-                        <div class="finger-legend">
-                            <div class="legend-item">
-                                <div class="legend-color legend-pinky"></div>
-                                <span>Pinky Finger</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color legend-ring"></div>
-                                <span>Ring Finger</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color legend-middle"></div>
-                                <span>Middle Finger</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color legend-index"></div>
-                                <span>Index Finger</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color legend-thumb"></div>
-                                <span>Thumb</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="live-graph" id="liveGraphSection">
-                        <canvas id="wpmGraph"></canvas>
                     </div>
                 </div>
             </div>
@@ -2594,6 +2581,7 @@
         const textDisplay = document.getElementById('textDisplay');
         const typingInput = document.getElementById('typingInput');
         const wpmDisplay = document.getElementById('wpmDisplay');
+        const cpmDisplay = document.getElementById('cpmDisplay');
         const accuracyDisplay = document.getElementById('accuracyDisplay');
         const progressFillSidebar = document.getElementById('progressFillSidebar');
         const progressPercentage = document.getElementById('progressPercentage');
@@ -2728,7 +2716,8 @@
             accuracyDisplay.textContent = '0%';
             progressFillSidebar.style.width = '0%';
             progressPercentage.textContent = '0%';
-            accuracyCircle.style.strokeDashoffset = '169.646';
+            accuracyCircle.style.strokeDashoffset = '226.195';
+            cpmDisplay.textContent = '0';
             startBtn.disabled = false;
             
             // Show "Click Start" message
@@ -3023,7 +3012,8 @@
             wpmDisplay.textContent = '0';
             accuracyDisplay.textContent = '100%';
             progressFill.style.width = '0%';
-            accuracyCircle.style.strokeDashoffset = '169.646';
+            accuracyCircle.style.strokeDashoffset = '226.195';
+            cpmDisplay.textContent = '0';
             updateStatusBar();
         }
 
@@ -3549,8 +3539,9 @@
                 wpmDisplay.textContent = wpm;
                 accuracyDisplay.textContent = accuracy + '%';
                 
-                const accuracyOffset = 169.646 - (169.646 * accuracy / 100);
+                const accuracyOffset = 226.195 - (226.195 * accuracy / 100);
                 accuracyCircle.style.strokeDashoffset = accuracyOffset;
+                cpmDisplay.textContent = cpm;
                 
                 wpmHistory.push(wpm);
                 if (wpmHistory.length > 60) wpmHistory.shift();
