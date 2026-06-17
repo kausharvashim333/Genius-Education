@@ -504,6 +504,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 'settings': loadSettings,
                 'helpdesk': loadTicketsTable,
                 'backup': loadBackupsList,
+                'typing-users': loadTypingUsers,
+                'typing-content': () => {},
+                'typing-leaderboard': loadTypingLeaderboard,
+                'typing-analytics': loadTypingAnalytics,
+                'typing-settings': () => {},
                 'blog-pending': loadPendingBlogs,
                 'roles': loadRolesTable,
                 'about': loadAbout,
@@ -14501,3 +14506,315 @@ async function saveLegalPage() {
         showNotification('Error saving page', 'error');
     }
 }
+
+// ===== Typing Practice Admin Functions =====
+
+// Load typing practice users
+async function loadTypingUsers() {
+    try {
+        const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+        const users = {};
+        
+        scores.forEach(score => {
+            if (!users[score.name]) {
+                users[score.name] = {
+                    name: score.name,
+                    totalWPM: 0,
+                    totalAccuracy: 0,
+                    attempts: 0,
+                    completedLevels: new Set(),
+                    lastActive: score.date
+                };
+            }
+            users[score.name].totalWPM += score.wpm;
+            users[score.name].totalAccuracy += score.accuracy;
+            users[score.name].attempts++;
+            users[score.name].completedLevels.add(score.level);
+            if (new Date(score.date) > new Date(users[score.name].lastActive)) {
+                users[score.name].lastActive = score.date;
+            }
+        });
+        
+        const usersArray = Object.values(users).map(user => ({
+            ...user,
+            avgWPM: (user.totalWPM / user.attempts).toFixed(1),
+            avgAccuracy: (user.totalAccuracy / user.attempts).toFixed(1),
+            completedLevels: user.completedLevels.size
+        }));
+        
+        const table = document.getElementById('typingUsersTable');
+        if (usersArray.length === 0) {
+            table.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center;">No users found</td></tr>';
+            return;
+        }
+        
+        table.innerHTML = usersArray.map(user => `
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                <td style="padding:12px;">${esc(user.name)}</td>
+                <td style="padding:12px;">${user.avgWPM}</td>
+                <td style="padding:12px;">${user.avgAccuracy}%</td>
+                <td style="padding:12px;">${user.completedLevels}</td>
+                <td style="padding:12px;">${user.attempts}</td>
+                <td style="padding:12px;">${formatDate(user.lastActive)}</td>
+                <td style="padding:12px;">
+                    <button class="btn btn-danger" onclick="deleteTypingUser('${esc(user.name)}')" style="padding:4px 8px; font-size:12px;">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        showNotification('Error loading users: ' + e.message, 'error');
+    }
+}
+
+// Delete typing practice user
+function deleteTypingUser(name) {
+    if (!confirm(`Are you sure you want to delete all data for user "${name}"?`)) return;
+    try {
+        const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+        const filteredScores = scores.filter(score => score.name !== name);
+        localStorage.setItem('typingScores', JSON.stringify(filteredScores));
+        loadTypingUsers();
+        showNotification('User deleted successfully', 'success');
+    } catch (e) {
+        showNotification('Error deleting user: ' + e.message, 'error');
+    }
+}
+
+// Load typing level content
+function loadTypingLevelContent() {
+    const level = document.getElementById('typingLevelSelect').value;
+    if (!level) return;
+    
+    document.getElementById('typingLevelText').value = 'Level ' + level + ' content would be loaded here...';
+    document.getElementById('typingContentLength').value = 500 + (parseInt(level) - 1) * 110;
+}
+
+// Save typing level content
+function saveTypingLevelContent() {
+    const level = document.getElementById('typingLevelSelect').value;
+    const text = document.getElementById('typingLevelText').value;
+    const length = document.getElementById('typingContentLength').value;
+    
+    if (!level) {
+        showNotification('Please select a level first', 'warning');
+        return;
+    }
+    
+    showNotification('Level content saved (placeholder - implement backend storage)', 'success');
+}
+
+// Load typing leaderboard
+async function loadTypingLeaderboard() {
+    try {
+        const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+        const levelFilter = document.getElementById('typingLeaderboardLevelFilter').value;
+        
+        let filteredScores = scores;
+        if (levelFilter !== 'all') {
+            filteredScores = scores.filter(score => score.level === parseInt(levelFilter));
+        }
+        
+        filteredScores.sort((a, b) => b.wpm - a.wpm);
+        filteredScores = filteredScores.slice(0, 50);
+        
+        const table = document.getElementById('typingLeaderboardTable');
+        if (filteredScores.length === 0) {
+            table.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center;">No scores found</td></tr>';
+            return;
+        }
+        
+        table.innerHTML = filteredScores.map((score, index) => {
+            let rankDisplay = `#${index + 1}`;
+            if (index === 0) rankDisplay = '🥇';
+            if (index === 1) rankDisplay = '🥈';
+            if (index === 2) rankDisplay = '🥉';
+            
+            return `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <td style="padding:12px;">${rankDisplay}</td>
+                    <td style="padding:12px;">${esc(score.name)}</td>
+                    <td style="padding:12px;">${score.level}</td>
+                    <td style="padding:12px;">${score.wpm}</td>
+                    <td style="padding:12px;">${score.accuracy}%</td>
+                    <td style="padding:12px;">${formatDate(score.date)}</td>
+                    <td style="padding:12px;">
+                        <button class="btn btn-danger" onclick="deleteTypingScore(${index})" style="padding:4px 8px; font-size:12px;">Delete</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } catch (e) {
+        showNotification('Error loading leaderboard: ' + e.message, 'error');
+    }
+}
+
+// Delete typing score
+function deleteTypingScore(index) {
+    if (!confirm('Are you sure you want to delete this score?')) return;
+    try {
+        const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+        scores.splice(index, 1);
+        localStorage.setItem('typingScores', JSON.stringify(scores));
+        loadTypingLeaderboard();
+        showNotification('Score deleted successfully', 'success');
+    } catch (e) {
+        showNotification('Error deleting score: ' + e.message, 'error');
+    }
+}
+
+// Clear typing leaderboard
+function clearTypingLeaderboard() {
+    if (!confirm('Are you sure you want to clear ALL leaderboard data? This cannot be undone.')) return;
+    try {
+        localStorage.removeItem('typingScores');
+        loadTypingLeaderboard();
+        showNotification('Leaderboard cleared successfully', 'success');
+    } catch (e) {
+        showNotification('Error clearing leaderboard: ' + e.message, 'error');
+    }
+}
+
+// Export typing leaderboard to CSV
+function exportTypingLeaderboard() {
+    try {
+        const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+        if (scores.length === 0) {
+            showNotification('No data to export', 'warning');
+            return;
+        }
+        
+        const csv = 'Rank,Name,Level,WPM,Accuracy,Date\n' + 
+            scores.map((score, index) => 
+                `${index + 1},"${score.name}",${score.level},${score.wpm},${score.accuracy}%,${formatDate(score.date)}`
+            ).join('\n');
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'typing-leaderboard.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        showNotification('Leaderboard exported successfully', 'success');
+    } catch (e) {
+        showNotification('Error exporting leaderboard: ' + e.message, 'error');
+    }
+}
+
+// Load typing analytics
+async function loadTypingAnalytics() {
+    try {
+        const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+        
+        const totalUsers = new Set(scores.map(s => s.name)).size;
+        const totalAttempts = scores.length;
+        const avgWPM = scores.length > 0 ? (scores.reduce((sum, s) => sum + s.wpm, 0) / scores.length).toFixed(1) : 0;
+        const avgAccuracy = scores.length > 0 ? (scores.reduce((sum, s) => sum + s.accuracy, 0) / scores.length).toFixed(1) : 0;
+        
+        document.getElementById('typingTotalUsers').textContent = totalUsers;
+        document.getElementById('typingTotalAttempts').textContent = totalAttempts;
+        document.getElementById('typingAvgWPM').textContent = avgWPM;
+        document.getElementById('typingAvgAccuracy').textContent = avgAccuracy + '%';
+        
+        const wpmByLevel = {};
+        scores.forEach(score => {
+            if (!wpmByLevel[score.level]) {
+                wpmByLevel[score.level] = { total: 0, count: 0 };
+            }
+            wpmByLevel[score.level].total += score.wpm;
+            wpmByLevel[score.level].count++;
+        });
+        
+        const wpmByLevelHtml = Object.entries(wpmByLevel)
+            .sort((a, b) => a[0] - b[0])
+            .map(([level, data]) => {
+                const avg = (data.total / data.count).toFixed(1);
+                return `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <span>Level ${level}</span>
+                    <span>${avg} WPM (${data.count} attempts)</span>
+                </div>`;
+            }).join('');
+        
+        document.getElementById('typingWpmByLevel').innerHTML = wpmByLevelHtml || '<p style="text-align:center; padding:20px;">No data available</p>';
+        
+        const levelAttempts = {};
+        scores.forEach(score => {
+            levelAttempts[score.level] = (levelAttempts[score.level] || 0) + 1;
+        });
+        
+        const completionHtml = Object.entries(levelAttempts)
+            .sort((a, b) => a[0] - b[0])
+            .map(([level, count]) => {
+                return `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <span>Level ${level}</span>
+                    <span>${count} attempts</span>
+                </div>`;
+            }).join('');
+        
+        document.getElementById('typingCompletionByLevel').innerHTML = completionHtml || '<p style="text-align:center; padding:20px;">No data available</p>';
+        
+    } catch (e) {
+        showNotification('Error loading analytics: ' + e.message, 'error');
+    }
+}
+
+// Save typing settings
+function saveTypingSettings() {
+    try {
+        const settings = {
+            defaultTime: document.getElementById('typingDefaultTime').value,
+            wpmMethod: document.getElementById('typingWpmMethod').value,
+            enableLeaderboard: document.getElementById('typingEnableLeaderboard').checked,
+            enableFingerGuide: document.getElementById('typingEnableFingerGuide').checked,
+            enableKeyboardHighlight: document.getElementById('typingEnableKeyboardHighlight').checked,
+            minWpm: document.getElementById('typingMinWpm').value,
+            minAccuracy: document.getElementById('typingMinAccuracy').value
+        };
+        
+        localStorage.setItem('typingSettings', JSON.stringify(settings));
+        showNotification('Settings saved successfully', 'success');
+    } catch (e) {
+        showNotification('Error saving settings: ' + e.message, 'error');
+    }
+}
+
+// Initialize typing practice admin pages
+function initTypingAdminPages() {
+    const levelSelect = document.getElementById('typingLevelSelect');
+    if (levelSelect) {
+        for (let i = 1; i <= 50; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `Level ${i}`;
+            levelSelect.appendChild(option);
+        }
+    }
+    
+    const levelFilter = document.getElementById('typingLeaderboardLevelFilter');
+    if (levelFilter) {
+        for (let i = 1; i <= 50; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `Level ${i}`;
+            levelFilter.appendChild(option);
+        }
+    }
+    
+    const savedSettings = localStorage.getItem('typingSettings');
+    if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        document.getElementById('typingDefaultTime').value = settings.defaultTime || 1;
+        document.getElementById('typingWpmMethod').value = settings.wpmMethod || 'standard';
+        document.getElementById('typingEnableLeaderboard').checked = settings.enableLeaderboard !== false;
+        document.getElementById('typingEnableFingerGuide').checked = settings.enableFingerGuide !== false;
+        document.getElementById('typingEnableKeyboardHighlight').checked = settings.enableKeyboardHighlight !== false;
+        document.getElementById('typingMinWpm').value = settings.minWpm || 0;
+        document.getElementById('typingMinAccuracy').value = settings.minAccuracy || 80;
+    }
+}
+
+// Add initialization for typing admin pages
+document.addEventListener('DOMContentLoaded', function() {
+    initTypingAdminPages();
+});

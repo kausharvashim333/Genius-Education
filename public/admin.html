@@ -840,6 +840,16 @@
                     </ul>
                 </li>
                 <li class="dropdown">
+                    <a href="#" class="dropdown-toggle"><i class="fas fa-keyboard"></i> Typing Practice <i class="fas fa-chevron-down" style="margin-left:auto;font-size:10px;"></i></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" data-page="typing-users"><i class="fas fa-users"></i> User Management</a></li>
+                        <li><a href="#" data-page="typing-content"><i class="fas fa-file-alt"></i> Content Management</a></li>
+                        <li><a href="#" data-page="typing-leaderboard"><i class="fas fa-trophy"></i> Leaderboard</a></li>
+                        <li><a href="#" data-page="typing-analytics"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                        <li><a href="#" data-page="typing-settings"><i class="fas fa-cog"></i> Settings</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
                     <a href="#" class="dropdown-toggle"><i class="fas fa-calendar-alt"></i> Calendar <i class="fas fa-chevron-down" style="margin-left:auto;font-size:10px;"></i></a>
                     <ul class="dropdown-menu">
                         <li><a href="#" data-page="attendance"><i class="fas fa-calendar-check"></i> Attendance</a></li>
@@ -2116,6 +2126,186 @@
                         <a id="legalPreviewLink" href="/privacy.html" target="_blank" class="btn"><i class="fas fa-external-link-alt"></i> Preview Live Page</a>
                         <span id="legalUpdatedAt" style="color:#64748b; font-size:0.9rem; margin-left:auto;"></span>
                     </div>
+                </div>
+            </div>
+
+            <!-- Typing Practice - User Management -->
+            <div id="page-typing-users" class="page-content hidden">
+                <div class="data-table">
+                    <h3 style="margin-bottom: 8px;"><i class="fas fa-users"></i> User Management</h3>
+                    <p style="color:#64748b; margin-bottom: 16px;">Manage typing practice users, view stats, and delete accounts.</p>
+                    
+                    <div style="display:flex; gap:10px; margin-bottom:16px;">
+                        <input type="text" id="typingUserSearch" placeholder="Search users..." style="padding:8px; border:1px solid #e2e8f0; border-radius:6px; flex:1;">
+                        <button type="button" class="btn btn-primary" onclick="loadTypingUsers()"><i class="fas fa-sync"></i> Refresh</button>
+                    </div>
+                    
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:rgba(102,126,234,0.1);">
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Name</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Avg WPM</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Avg Accuracy</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Completed Levels</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Total Attempts</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Last Active</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="typingUsersTable">
+                                <tr><td colspan="7" style="padding:20px; text-align:center;">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Practice - Content Management -->
+            <div id="page-typing-content" class="page-content hidden">
+                <div class="data-table">
+                    <h3 style="margin-bottom: 8px;"><i class="fas fa-file-alt"></i> Content Management</h3>
+                    <p style="color:#64748b; margin-bottom: 16px;">Manage level content, text, and lessons.</p>
+                    
+                    <div style="display:flex; gap:10px; margin-bottom:16px;">
+                        <select id="typingLevelSelect" style="padding:8px; border:1px solid #e2e8f0; border-radius:6px;">
+                            <option value="">Select Level</option>
+                        </select>
+                        <button type="button" class="btn btn-primary" onclick="loadTypingLevelContent()"><i class="fas fa-load"></i> Load Content</button>
+                        <button type="button" class="btn btn-success" onclick="saveTypingLevelContent()"><i class="fas fa-save"></i> Save Changes</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Level Text Content</label>
+                        <textarea id="typingLevelText" rows="10" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:6px; font-family:monospace;"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Content Length (characters)</label>
+                        <input type="number" id="typingContentLength" style="padding:8px; border:1px solid #e2e8f0; border-radius:6px; width:150px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Practice - Leaderboard -->
+            <div id="page-typing-leaderboard" class="page-content hidden">
+                <div class="data-table">
+                    <h3 style="margin-bottom: 8px;"><i class="fas fa-trophy"></i> Leaderboard Management</h3>
+                    <p style="color:#64748b; margin-bottom: 16px;">View, filter, and manage leaderboard entries.</p>
+                    
+                    <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+                        <select id="typingLeaderboardLevelFilter" style="padding:8px; border:1px solid #e2e8f0; border-radius:6px;">
+                            <option value="all">All Levels</option>
+                        </select>
+                        <button type="button" class="btn btn-primary" onclick="loadTypingLeaderboard()"><i class="fas fa-sync"></i> Refresh</button>
+                        <button type="button" class="btn btn-danger" onclick="clearTypingLeaderboard()"><i class="fas fa-trash"></i> Clear All</button>
+                        <button type="button" class="btn btn-secondary" onclick="exportTypingLeaderboard()"><i class="fas fa-download"></i> Export CSV</button>
+                    </div>
+                    
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:rgba(102,126,234,0.1);">
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Rank</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Name</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Level</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">WPM</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Accuracy</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Date</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="typingLeaderboardTable">
+                                <tr><td colspan="7" style="padding:20px; text-align:center;">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Practice - Analytics -->
+            <div id="page-typing-analytics" class="page-content hidden">
+                <div class="data-table">
+                    <h3 style="margin-bottom: 8px;"><i class="fas fa-chart-line"></i> Analytics</h3>
+                    <p style="color:#64748b; margin-bottom: 16px;">View typing practice statistics and analytics.</p>
+                    
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:24px;">
+                        <div style="background:linear-gradient(135deg,#667eea,#764ba2); padding:20px; border-radius:12px; color:white;">
+                            <div style="font-size:2rem; font-weight:bold;" id="typingTotalUsers">0</div>
+                            <div style="opacity:0.9;">Total Users</div>
+                        </div>
+                        <div style="background:linear-gradient(135deg,#f093fb,#f5576c); padding:20px; border-radius:12px; color:white;">
+                            <div style="font-size:2rem; font-weight:bold;" id="typingTotalAttempts">0</div>
+                            <div style="opacity:0.9;">Total Attempts</div>
+                        </div>
+                        <div style="background:linear-gradient(135deg,#4facfe,#00f2fe); padding:20px; border-radius:12px; color:white;">
+                            <div style="font-size:2rem; font-weight:bold;" id="typingAvgWPM">0</div>
+                            <div style="opacity:0.9;">Average WPM</div>
+                        </div>
+                        <div style="background:linear-gradient(135deg,#43e97b,#38f9d7); padding:20px; border-radius:12px; color:white;">
+                            <div style="font-size:2rem; font-weight:bold;" id="typingAvgAccuracy">0%</div>
+                            <div style="opacity:0.9;">Average Accuracy</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px;">
+                        <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+                            <h4 style="margin-bottom:12px; color:#667eea;">WPM by Level</h4>
+                            <div id="typingWpmByLevel" style="min-height:200px;"></div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+                            <h4 style="margin-bottom:12px; color:#667eea;">Completion Rate by Level</h4>
+                            <div id="typingCompletionByLevel" style="min-height:200px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Practice - Settings -->
+            <div id="page-typing-settings" class="page-content hidden">
+                <div class="data-table" style="max-width:800px;">
+                    <h3 style="margin-bottom: 8px;"><i class="fas fa-cog"></i> Typing Practice Settings</h3>
+                    <p style="color:#64748b; margin-bottom: 16px;">Configure typing practice parameters and features.</p>
+                    
+                    <div class="form-group">
+                        <label>Default Time Limit (minutes)</label>
+                        <input type="number" id="typingDefaultTime" value="1" min="1" max="60" style="padding:8px; border:1px solid #e2e8f0; border-radius:6px; width:150px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>WPM Calculation Method</label>
+                        <select id="typingWpmMethod" style="padding:8px; border:1px solid #e2e8f0; border-radius:6px; width:250px;">
+                            <option value="standard">Standard (5 chars = 1 word)</option>
+                            <option value="actual">Actual words</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Enable Leaderboard</label>
+                        <input type="checkbox" id="typingEnableLeaderboard" checked style="width:20px; height:20px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Enable Finger Guide</label>
+                        <input type="checkbox" id="typingEnableFingerGuide" checked style="width:20px; height:20px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Enable Keyboard Highlight</label>
+                        <input type="checkbox" id="typingEnableKeyboardHighlight" checked style="width:20px; height:20px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Minimum WPM for Leaderboard</label>
+                        <input type="number" id="typingMinWpm" value="0" min="0" max="200" style="padding:8px; border:1px solid #e2e8f0; border-radius:6px; width:150px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Minimum Accuracy for Leaderboard (%)</label>
+                        <input type="number" id="typingMinAccuracy" value="80" min="0" max="100" style="padding:8px; border:1px solid #e2e8f0; border-radius:6px; width:150px;">
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" onclick="saveTypingSettings()"><i class="fas fa-save"></i> Save Settings</button>
                 </div>
             </div>
 
