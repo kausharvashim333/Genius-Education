@@ -136,6 +136,20 @@
             display: block;
         }
 
+        .graph-section {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(40, 40, 60, 0.8);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .graph-section canvas {
+            width: 100%;
+            height: 120px;
+            display: block;
+        }
+
         .settings-section h3 {
             color: #e0e0e0;
             font-size: 14px;
@@ -1800,6 +1814,12 @@
                 </div>
             </div>
 
+            <!-- Live Graph -->
+            <div class="graph-section">
+                <div class="stat-label">WPM Graph</div>
+                <canvas id="wpmGraph"></canvas>
+            </div>
+
             <div class="settings-section">
                 <h3>Settings</h3>
                 <div class="setting-item">
@@ -1993,6 +2013,29 @@
                                 <div class="key win-key" data-key="Meta">⊞</div>
                                 <div class="key ctrl-key" data-key="Menu">☰</div>
                                 <div class="key ctrl-key" data-key="Control">Ctrl</div>
+                            </div>
+                        </div>
+                        
+                        <div class="finger-legend">
+                            <div class="legend-item">
+                                <div class="legend-color legend-pinky"></div>
+                                <span>Pinky</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-ring"></div>
+                                <span>Ring</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-middle"></div>
+                                <span>Middle</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-index"></div>
+                                <span>Index</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-thumb"></div>
+                                <span>Thumb</span>
                             </div>
                         </div>
                     </div>
