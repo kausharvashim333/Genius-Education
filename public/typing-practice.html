@@ -512,6 +512,84 @@
             max-width: 100%;
         }
 
+        /* Horizontal Stats Cards */
+        .stats-bar {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(40, 40, 60, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-card-mini {
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px 15px;
+            text-align: center;
+            min-width: 80px;
+            flex: 1;
+            max-width: 120px;
+        }
+
+        .stat-card-mini .stat-label {
+            color: #888;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-card-mini .stat-value {
+            color: #667eea;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .stat-card-mini .stat-unit {
+            color: #888;
+            font-size: 9px;
+            margin-left: 2px;
+        }
+
+        .stat-card-mini.circular {
+            min-width: 90px;
+            max-width: 90px;
+            padding: 8px;
+        }
+
+        .stat-card-mini.circular .circular-stat {
+            width: 60px;
+            height: 60px;
+        }
+
+        .stat-card-mini.circular .circular-stat svg {
+            width: 60px;
+            height: 60px;
+        }
+
+        .stat-card-mini.circular .circular-stat .stat-value {
+            font-size: 14px;
+        }
+
+        .stat-card-mini.progress {
+            min-width: 150px;
+            max-width: 200px;
+            flex: 2;
+        }
+
+        .stat-card-mini.progress .progress-bar-container {
+            margin-top: 8px;
+        }
+
+        .stat-card-mini.progress .progress-bar-sidebar {
+            height: 6px;
+        }
+
         .keyboard-title {
             color: #e0e0e0;
             font-size: 16px;
@@ -1677,40 +1755,6 @@
         <div class="app-main-wrapper">
             <!-- Sidebar -->
             <div class="app-sidebar">
-            <div class="sidebar-header">
-                <h2><i class="fas fa-keyboard"></i> Typing Stats</h2>
-            </div>
-
-            <div class="stats-section">
-                <!-- WPM -->
-                <div class="stat-card">
-                    <div class="stat-label">WPM</div>
-                    <div class="stat-value" id="wpmDisplay">0</div>
-                    <div class="stat-unit">words/min</div>
-                </div>
-
-                <!-- Accuracy -->
-                <div class="stat-card">
-                    <div class="stat-label">Accuracy</div>
-                    <div class="circular-stat">
-                        <svg width="80" height="80" viewBox="0 0 80 80">
-                            <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6"/>
-                            <circle cx="40" cy="40" r="36" fill="none" stroke="#667eea" stroke-width="6" 
-                                    stroke-dasharray="226.195" stroke-dashoffset="226.195" id="accuracyCircle"
-                                    style="transition: stroke-dashoffset 0.3s ease;"/>
-                        </svg>
-                        <div class="stat-value" id="accuracyDisplay">100%</div>
-                    </div>
-                </div>
-
-                    <div class="progress-bar-container">
-                        <div class="progress-bar-sidebar">
-                            <div class="progress-fill-sidebar" id="progressFillSidebar" style="width: 0%"></div>
-                        </div>
-                        <div class="progress-percentage" id="progressPercentage">0%</div>
-                    </div>
-                </div>
-            </div>
 
             <div class="settings-section">
                 <h3>Settings</h3>
@@ -1829,6 +1873,36 @@
                 <div class="typing-area">
                     <div class="text-display" id="textDisplay">Click "Start" to begin typing...</div>
                     <input type="text" class="typing-input" id="typingInput" placeholder="Start typing here..." disabled style="display: none;">
+
+                    <!-- Horizontal Stats Bar -->
+                    <div class="stats-bar">
+                        <div class="stat-card-mini">
+                            <div class="stat-label">WPM</div>
+                            <div class="stat-value" id="wpmDisplay">0</div>
+                            <div class="stat-unit">w/m</div>
+                        </div>
+                        <div class="stat-card-mini circular">
+                            <div class="stat-label">Accuracy</div>
+                            <div class="circular-stat">
+                                <svg width="60" height="60" viewBox="0 0 60 60">
+                                    <circle cx="30" cy="30" r="27" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="5"/>
+                                    <circle cx="30" cy="30" r="27" fill="none" stroke="#667eea" stroke-width="5"
+                                            stroke-dasharray="169.646" stroke-dashoffset="169.646" id="accuracyCircle"
+                                            style="transition: stroke-dashoffset 0.3s ease;"/>
+                                </svg>
+                                <div class="stat-value" id="accuracyDisplay">100%</div>
+                            </div>
+                        </div>
+                        <div class="stat-card-mini progress">
+                            <div class="stat-label">Progress</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-sidebar">
+                                    <div class="progress-fill-sidebar" id="progressFillSidebar" style="width: 0%"></div>
+                                </div>
+                                <div class="progress-percentage" id="progressPercentage">0%</div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="keyboard-section" id="keyboardSection">
                         <div class="finger-guide-display" id="fingerGuideDisplay">
@@ -2654,7 +2728,7 @@
             accuracyDisplay.textContent = '0%';
             progressFillSidebar.style.width = '0%';
             progressPercentage.textContent = '0%';
-            accuracyCircle.style.strokeDashoffset = '226.195';
+            accuracyCircle.style.strokeDashoffset = '169.646';
             startBtn.disabled = false;
             
             // Show "Click Start" message
@@ -2949,7 +3023,7 @@
             wpmDisplay.textContent = '0';
             accuracyDisplay.textContent = '100%';
             progressFill.style.width = '0%';
-            accuracyCircle.style.strokeDashoffset = '226.195';
+            accuracyCircle.style.strokeDashoffset = '169.646';
             updateStatusBar();
         }
 
@@ -3475,7 +3549,7 @@
                 wpmDisplay.textContent = wpm;
                 accuracyDisplay.textContent = accuracy + '%';
                 
-                const accuracyOffset = 226.195 - (226.195 * accuracy / 100);
+                const accuracyOffset = 169.646 - (169.646 * accuracy / 100);
                 accuracyCircle.style.strokeDashoffset = accuracyOffset;
                 
                 wpmHistory.push(wpm);
