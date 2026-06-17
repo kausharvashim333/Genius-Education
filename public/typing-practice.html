@@ -287,6 +287,14 @@
             letter-spacing: 0.5px;
         }
 
+        .header-btn.icon-only {
+            padding: 12px;
+            width: 44px;
+            height: 44px;
+            justify-content: center;
+            text-transform: none;
+        }
+
         .header-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
@@ -1875,12 +1883,6 @@
                 <canvas id="wpmGraph"></canvas>
             </div>
 
-            <!-- Timer -->
-            <div class="stat-card">
-                <div class="stat-label">Timer</div>
-                <div class="stat-value" id="sidebarTimer">00:00</div>
-            </div>
-
             <div class="achievements-section">
                 <h3><i class="fas fa-medal"></i> Achievements</h3>
                 <div class="badges-grid">
@@ -1930,7 +1932,7 @@
                     <div class="app-title" id="lessonTitle">Typing Practice</div>
                 </div>
                 <div class="app-header-right">
-                    <div class="timer-display" id="timerDisplay" style="display: none;">
+                    <div class="timer-display" id="timerDisplay">
                         <i class="fas fa-clock"></i>
                         <span id="timerCountdown">00:00</span>
                     </div>
@@ -1940,8 +1942,8 @@
                         </select>
                         <span class="level-info" id="levelInfo">1 min • Easy</span>
                     </div>
-                    <button class="header-btn secondary" onclick="toggleSettings()">
-                        <i class="fas fa-cog"></i> Settings
+                    <button class="header-btn icon-only" onclick="toggleSettings()">
+                        <i class="fas fa-cog"></i>
                     </button>
                     <button class="header-btn secondary" onclick="loadNewText()">
                         <i class="fas fa-redo"></i> New Text
@@ -2828,10 +2830,6 @@
             progressPercentage.textContent = '0%';
             accuracyCircle.style.strokeDashoffset = '226.195';
             cpmDisplay.textContent = '0';
-            const sidebarTimer = document.getElementById('sidebarTimer');
-            if (sidebarTimer) {
-                sidebarTimer.textContent = '00:00';
-            }
             startBtn.disabled = false;
             
             // Show "Click Start" message
@@ -3474,7 +3472,6 @@
             const accCircle = document.getElementById('accuracyCircle');
             const progFill = document.getElementById('progressFillSidebar');
             const progPct = document.getElementById('progressPercentage');
-            const sidebarTimer = document.getElementById('sidebarTimer');
 
             if (wpmEl) wpmEl.textContent = wpm;
             if (cpmEl) cpmEl.textContent = cpm;
@@ -3489,13 +3486,6 @@
             const progress = Math.round((currentIndex / currentText.length) * 100);
             if (progFill) progFill.style.width = progress + '%';
             if (progPct) progPct.textContent = progress + '%';
-
-            // Update timer (countdown)
-            if (sidebarTimer && timeRemaining > 0) {
-                const minutes = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
-                const seconds = (timeRemaining % 60).toString().padStart(2, '0');
-                sidebarTimer.textContent = `${minutes}:${seconds}`;
-            }
 
             // Update live graph
             wpmHistory.push(wpm);
