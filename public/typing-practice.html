@@ -222,15 +222,7 @@
         }
 
         .app-header {
-            background: rgba(30, 30, 50, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
+            display: none;
         }
 
         .app-header-left {
@@ -3491,11 +3483,10 @@
             if (progFill) progFill.style.width = progress + '%';
             if (progPct) progPct.textContent = progress + '%';
 
-            // Update timer
-            const elapsed = Math.floor((new Date() - startTime) / 1000);
-            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-            const seconds = (elapsed % 60).toString().padStart(2, '0');
-            if (sidebarTimer) {
+            // Update timer (countdown)
+            if (sidebarTimer && timeRemaining > 0) {
+                const minutes = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+                const seconds = (timeRemaining % 60).toString().padStart(2, '0');
                 sidebarTimer.textContent = `${minutes}:${seconds}`;
             }
 
