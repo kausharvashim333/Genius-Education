@@ -2829,6 +2829,10 @@
             progressPercentage.textContent = '0%';
             accuracyCircle.style.strokeDashoffset = '226.195';
             cpmDisplay.textContent = '0';
+            const sidebarTimer = document.getElementById('sidebarTimer');
+            if (sidebarTimer) {
+                sidebarTimer.textContent = '00:00';
+            }
             startBtn.disabled = false;
             
             // Show "Click Start" message
@@ -3471,6 +3475,7 @@
             const accCircle = document.getElementById('accuracyCircle');
             const progFill = document.getElementById('progressFillSidebar');
             const progPct = document.getElementById('progressPercentage');
+            const sidebarTimer = document.getElementById('sidebarTimer');
 
             if (wpmEl) wpmEl.textContent = wpm;
             if (cpmEl) cpmEl.textContent = cpm;
@@ -3485,6 +3490,14 @@
             const progress = Math.round((currentIndex / currentText.length) * 100);
             if (progFill) progFill.style.width = progress + '%';
             if (progPct) progPct.textContent = progress + '%';
+
+            // Update timer
+            const elapsed = Math.floor((new Date() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            if (sidebarTimer) {
+                sidebarTimer.textContent = `${minutes}:${seconds}`;
+            }
 
             // Update live graph
             wpmHistory.push(wpm);
