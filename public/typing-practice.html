@@ -2849,16 +2849,17 @@
             typingInput.disabled = false;
             startBtn.disabled = true;
             updateDisplay();
-            
+            updateFingerGuide();
+
             const levelData = gameLevels[currentLevel - 1];
             timeRemaining = levelData.duration;
             timerDisplay.style.display = 'flex';
             updateTimerDisplay();
-            
+
             timerCountdownInterval = setInterval(() => {
                 timeRemaining--;
                 updateTimerDisplay();
-                
+
                 if (timeRemaining <= 0) {
                     endTyping();
                 }
@@ -3094,6 +3095,9 @@
             // Initialize settings from localStorage
             initializeSettings();
 
+            // Initialize finger guide display
+            updateFingerGuide();
+
             // Start stats update interval
             setInterval(updateSidebarStats, 500);
 
@@ -3205,6 +3209,14 @@
                 fingerGuideDisplay.style.display = fingerGuide ? 'flex' : 'none';
             }
             localStorage.setItem('fingerGuide', fingerGuide);
+        }
+
+        function updateFingerGuide() {
+            const fingerGuideEnabled = localStorage.getItem('fingerGuide') !== 'false';
+            const fingerGuideDisplay = document.getElementById('fingerGuideDisplay');
+            if (fingerGuideDisplay) {
+                fingerGuideDisplay.style.display = fingerGuideEnabled ? 'flex' : 'none';
+            }
         }
 
         function toggleFingerLegend() {
