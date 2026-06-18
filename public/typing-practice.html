@@ -2857,6 +2857,7 @@
 
             const levelData = gameLevels[currentLevel - 1];
             timeRemaining = levelData.duration;
+            console.log('Starting timer with duration:', timeRemaining, 'seconds');
             timerDisplay.classList.add('visible');
             timerDisplay.style.display = 'flex';
             updateTimerDisplay();
@@ -2864,8 +2865,10 @@
             timerCountdownInterval = setInterval(() => {
                 timeRemaining--;
                 updateTimerDisplay();
+                console.log('Time remaining:', timeRemaining);
 
                 if (timeRemaining <= 0) {
+                    console.log('Timer ended, calling endTyping');
                     endTyping();
                 }
             }, 1000);
