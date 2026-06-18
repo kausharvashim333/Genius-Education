@@ -4403,6 +4403,10 @@
         let keyPressTimings = [];
         let lastKeyPressTime = null;
 
+        // Speed Consistency Analysis
+        let wpmSnapshots = [];
+        let lastSnapshotTime = null;
+
         // Mistake Tracking
         let mistakeLog = []; // Track which characters were mistyped during current session
 
@@ -4598,6 +4602,17 @@
                 updateTimerDisplay();
                 console.log('Time remaining:', timeRemaining);
 
+                // Capture WPM snapshot every 5 seconds for consistency analysis
+                const currentTime = Date.now();
+                if (lastSnapshotTime === null) {
+                    lastSnapshotTime = currentTime;
+                } else if (currentTime - lastSnapshotTime >= 5000) {
+                    const timeElapsed = (currentTime - startTime) / 1000 / 60;
+                    const currentWpm = Math.round((currentIndex / 5) / timeElapsed) || 0;
+                    wpmSnapshots.push(currentWpm);
+                    lastSnapshotTime = currentTime;
+                }
+
                 if (timeRemaining <= 0) {
                     console.log('Timer ended, calling endTyping');
                     endTyping();
@@ -4686,6 +4701,10 @@
             // Save key press timing analysis
             const timingData = analyzeKeyPressTimings();
             saveKeyPressTimingAnalysis(timingData);
+
+            // Save speed consistency analysis
+            const consistencyData = analyzeSpeedConsistency();
+            saveSpeedConsistencyAnalysis(consistencyData);
 
             document.getElementById('resultModal').style.display = 'flex';
             updateStatusBar();
@@ -5489,6 +5508,8 @@
             wpmHistory = [];
             keyPressTimings = [];
             lastKeyPressTime = null;
+            wpmSnapshots = [];
+            lastSnapshotTime = null;
             
             typingInput.value = '';
             textDisplay.textContent = 'Click "Start" to begin typing...';
@@ -6019,6 +6040,47 @@
             }
 
             localStorage.setItem('keyPressTimingHistory', JSON.stringify(history));
+        }
+
+        function analyzeSpeedConsistency() {
+            if (wpmSnapshots.length < 2) return null;
+
+            const avgWpm = wpmSnapshots.reduce((a, b) => a + b, 0) / wpmSnapshots.length;
+            const variance = wpmSnapshots.reduce((sum, wpm) => sum + Math.pow(wpm - avgWpm, 2), 0) / wpmSnapshots.length;
+            const stdDev = Math.sqrt(variance);
+            const coefficientOfVariation = (stdDev / avgWpm) * 100;
+
+            // Consistency score: lower CV = higher consistency
+            // CV < 10% = Very Consistent, 10-20% = Consistent, 20-30% = Variable, >30% = Inconsistent
+            let consistencyLevel = 'Inconsistent';
+            if (coefficientOfVariation < 10) consistencyLevel = 'Very Consistent';
+            else if (coefficientOfVariation < 20) consistencyLevel = 'Consistent';
+            else if (coefficientOfVariation < 30) consistencyLevel = 'Variable';
+
+            return {
+                averageWpm: Math.round(avgWpm),
+                stdDev: Math.round(stdDev),
+                coefficientOfVariation: Math.round(coefficientOfVariation),
+                consistencyLevel: consistencyLevel,
+                snapshotCount: wpmSnapshots.length
+            };
+        }
+
+        function saveSpeedConsistencyAnalysis(consistencyData) {
+            if (!consistencyData) return;
+
+            const history = JSON.parse(localStorage.getItem('speedConsistencyHistory')) || [];
+            history.push({
+                ...consistencyData,
+                date: new Date().toISOString()
+            });
+
+            // Keep only last 30 entries
+            if (history.length > 30) {
+                history.shift();
+            }
+
+            localStorage.setItem('speedConsistencyHistory', JSON.stringify(history));
         }
 
         function openFingerStatsModal() {
