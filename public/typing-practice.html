@@ -3745,9 +3745,7 @@
             const progress = (currentIndex / currentText.length) * 100;
             progressFillSidebar.style.width = progress + '%';
             progressPercentage.textContent = Math.round(progress) + '%';
-            
-            charCountDisplay.textContent = `${currentIndex}/${currentText.length}`;
-            
+
             // Highlight next key on virtual keyboard
             const highlightEnabled = localStorage.getItem('highlightNext') !== 'false';
             if (highlightEnabled && currentIndex < currentText.length) {
