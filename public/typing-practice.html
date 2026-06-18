@@ -2376,6 +2376,117 @@
             font-size: 12px;
         }
 
+        .daily-challenge-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .daily-challenge-content {
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .daily-challenge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .daily-challenge-header h2 {
+            color: #e0e0e0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .daily-challenge-body {
+            margin-bottom: 20px;
+        }
+
+        .challenge-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .challenge-icon {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .challenge-title {
+            color: #e0e0e0;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .challenge-description {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .challenge-reward {
+            color: #667eea;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .challenge-progress {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .challenge-progress-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .challenge-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .challenge-progress-text {
+            color: #888;
+            font-size: 12px;
+            min-width: 40px;
+        }
+
+        .daily-challenge-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
         .leaderboard-content {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             border-radius: 16px;
@@ -2769,6 +2880,9 @@
                     </button>
                     <button class="header-btn secondary" onclick="openLessonsModal()">
                         <i class="fas fa-graduation-cap"></i> Lessons
+                    </button>
+                    <button class="header-btn secondary" onclick="openDailyChallengeModal()">
+                        <i class="fas fa-trophy"></i> Daily Challenge
                     </button>
                     <button class="header-btn secondary" onclick="loadNewText()">
                         <i class="fas fa-redo"></i> New Text
@@ -3609,6 +3723,40 @@
         </div>
     </div>
 
+    <div class="daily-challenge-modal" id="dailyChallengeModal">
+        <div class="daily-challenge-content">
+            <div class="daily-challenge-header">
+                <h2><i class="fas fa-trophy"></i> Daily Challenge</h2>
+                <button class="close-btn" onclick="closeDailyChallengeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="daily-challenge-body">
+                <div class="challenge-card" id="challengeCard">
+                    <div class="challenge-icon">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="challenge-title" id="challengeTitle">Loading...</div>
+                    <div class="challenge-description" id="challengeDescription">Loading...</div>
+                    <div class="challenge-reward">
+                        <span>Reward: </span>
+                        <span id="challengeReward">0 XP</span>
+                    </div>
+                    <div class="challenge-progress">
+                        <div class="challenge-progress-bar">
+                            <div class="challenge-progress-fill" id="challengeProgressFill" style="width: 0%"></div>
+                        </div>
+                        <span class="challenge-progress-text" id="challengeProgressText">0%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="daily-challenge-buttons">
+                <button class="btn btn-secondary" onclick="closeDailyChallengeModal()">Close</button>
+                <button class="btn btn-primary" id="startChallengeBtn" onclick="startDailyChallenge()">Start Challenge</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 50-Level Game System
         const gameLevels = [];
@@ -3767,6 +3915,20 @@
         ];
 
         let currentLessonId = null;
+
+        // Daily Challenge
+        const dailyChallenges = [
+            { id: 1, title: 'Speed Demon', description: 'Type at 40+ WPM for 1 minute', targetWPM: 40, duration: 60, reward: 100 },
+            { id: 2, title: 'Accuracy Master', description: 'Achieve 98%+ accuracy', targetAccuracy: 98, duration: 60, reward: 150 },
+            { id: 3, title: 'Marathon Typist', description: 'Type for 5 minutes straight', duration: 300, reward: 200 },
+            { id: 4, title: 'Error Free', description: 'Complete a session with 0 errors', targetErrors: 0, duration: 60, reward: 250 },
+            { id: 5, title: 'Combo King', description: 'Reach a 20+ character streak', targetStreak: 20, duration: 60, reward: 150 }
+        ];
+
+        let currentChallenge = null;
+        let challengeProgress = 0;
+        let isChallengeMode = false;
+        let challengeDuration = 60;
 
         // Mistake Tracking
         let mistakeLog = []; // Track which characters were mistyped during current session
@@ -4028,6 +4190,9 @@
                 updateLessonProgress(currentLessonId, accuracy);
                 currentLessonId = null;
             }
+
+            // Check challenge completion
+            checkChallengeCompletion(wpm, accuracy, mistakes, maxStreak);
 
             // Save session to history
             saveSessionToHistory(wpm, accuracy, currentIndex, mistakes, xpEarned);
@@ -4305,6 +4470,100 @@
                 }
                 saveLessonsProgress();
             }
+        }
+
+        function openDailyChallengeModal() {
+            document.getElementById('dailyChallengeModal').style.display = 'flex';
+            loadDailyChallenge();
+        }
+
+        function closeDailyChallengeModal() {
+            document.getElementById('dailyChallengeModal').style.display = 'none';
+        }
+
+        function loadDailyChallenge() {
+            // Get today's challenge based on date
+            const today = new Date().toDateString();
+            const savedChallenge = JSON.parse(localStorage.getItem('dailyChallenge')) || {};
+            const challengeIndex = (new Date().getDate() + new Date().getMonth()) % dailyChallenges.length;
+            currentChallenge = dailyChallenges[challengeIndex];
+
+            // Load progress
+            if (savedChallenge.date === today) {
+                challengeProgress = savedChallenge.progress || 0;
+            } else {
+                challengeProgress = 0;
+            }
+
+            // Update UI
+            document.getElementById('challengeTitle').textContent = currentChallenge.title;
+            document.getElementById('challengeDescription').textContent = currentChallenge.description;
+            document.getElementById('challengeReward').textContent = currentChallenge.reward + ' XP';
+            document.getElementById('challengeProgressFill').style.width = challengeProgress + '%';
+            document.getElementById('challengeProgressText').textContent = challengeProgress + '%';
+
+            // Check if completed
+            if (challengeProgress >= 100) {
+                document.getElementById('startChallengeBtn').textContent = 'Completed';
+                document.getElementById('startChallengeBtn').disabled = true;
+            } else {
+                document.getElementById('startChallengeBtn').textContent = 'Start Challenge';
+                document.getElementById('startChallengeBtn').disabled = false;
+            }
+        }
+
+        function saveChallengeProgress() {
+            const today = new Date().toDateString();
+            localStorage.setItem('dailyChallenge', JSON.stringify({
+                date: today,
+                progress: challengeProgress,
+                challengeId: currentChallenge.id
+            }));
+        }
+
+        function startDailyChallenge() {
+            if (challengeProgress >= 100) return;
+
+            // Set challenge mode
+            isChallengeMode = true;
+            challengeDuration = currentChallenge.duration;
+
+            // Load new text
+            loadNewText();
+
+            closeDailyChallengeModal();
+            resetTyping();
+            textDisplay.innerHTML = '<div class="text-line">Click "Start" to begin the challenge...</div>';
+        }
+
+        function checkChallengeCompletion(wpm, accuracy, errors, maxStreak) {
+            if (!isChallengeMode || !currentChallenge) return;
+
+            let completed = false;
+
+            if (currentChallenge.targetWPM && wpm >= currentChallenge.targetWPM) {
+                completed = true;
+            }
+            if (currentChallenge.targetAccuracy && accuracy >= currentChallenge.targetAccuracy) {
+                completed = true;
+            }
+            if (currentChallenge.targetErrors !== undefined && errors <= currentChallenge.targetErrors) {
+                completed = true;
+            }
+            if (currentChallenge.targetStreak && maxStreak >= currentChallenge.targetStreak) {
+                completed = true;
+            }
+
+            if (completed) {
+                challengeProgress = 100;
+                saveChallengeProgress();
+                totalXP += currentChallenge.reward;
+                localStorage.setItem('totalXP', totalXP);
+                userLevel = Math.floor(totalXP / 1000) + 1;
+                updateXPDisplay();
+            }
+
+            isChallengeMode = false;
         }
 
         // Update character count for custom text input
