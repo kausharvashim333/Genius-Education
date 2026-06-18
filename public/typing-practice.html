@@ -2976,6 +2976,125 @@
             font-weight: 600;
         }
 
+        .more-options-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .more-options-content {
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+        }
+
+        .more-options-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .more-options-header h2 {
+            color: #e0e0e0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .more-options-body {
+            margin-bottom: 20px;
+        }
+
+        .more-options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .more-option-btn {
+            background: rgba(40, 40, 60, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: #e0e0e0;
+        }
+
+        .more-option-btn:hover {
+            background: rgba(50, 50, 70, 0.7);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .more-option-btn i {
+            font-size: 24px;
+            color: #667eea;
+        }
+
+        .more-option-btn span {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .more-option-text-size {
+            background: rgba(40, 40, 60, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: #e0e0e0;
+        }
+
+        .more-option-text-size i {
+            font-size: 24px;
+            color: #667eea;
+        }
+
+        .more-option-text-size span {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .more-options-select {
+            background: rgba(40, 40, 60, 0.8);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .more-options-select option {
+            background: #1a1a2e;
+            color: #e0e0e0;
+        }
+
         body.high-contrast {
             --bg-primary: #000000;
             --bg-secondary: #1a1a1a;
@@ -3460,39 +3579,9 @@
                     <button class="header-btn icon-only" onclick="toggleSettings()">
                         <i class="fas fa-cog"></i>
                     </button>
-                    <button class="header-btn secondary" onclick="openCustomTextModal()">
-                        <i class="fas fa-edit"></i> Custom Text
+                    <button class="header-btn secondary" onclick="openMoreOptionsModal()">
+                        <i class="fas fa-ellipsis-h"></i> More
                     </button>
-                    <button class="header-btn secondary" onclick="openKeyPracticeModal()">
-                        <i class="fas fa-key"></i> Key Practice
-                    </button>
-                    <button class="header-btn secondary" onclick="openLessonsModal()">
-                        <i class="fas fa-graduation-cap"></i> Lessons
-                    </button>
-                    <button class="header-btn secondary" onclick="openDailyChallengeModal()">
-                        <i class="fas fa-trophy"></i> Daily Challenge
-                    </button>
-                    <button class="header-btn secondary" onclick="openBadgesModal()">
-                        <i class="fas fa-medal"></i> Badges
-                    </button>
-                    <button class="header-btn secondary" onclick="openFingerStatsModal()">
-                        <i class="fas fa-hand-paper"></i> Finger Stats
-                    </button>
-                    <button class="header-btn secondary" onclick="openHeatmapModal()">
-                        <i class="fas fa-fire"></i> Heat Map
-                    </button>
-                    <button class="header-btn secondary" onclick="openWarmupModal()">
-                        <i class="fas fa-fire-alt"></i> Warm-up
-                    </button>
-                    <button class="header-btn secondary" onclick="toggleHighContrastMode()">
-                        <i class="fas fa-adjust"></i> High Contrast
-                    </button>
-                    <select class="header-select" id="textSizeSelect" onchange="setTextSizePreset(this.value)">
-                        <option value="small">A-</option>
-                        <option value="medium">A</option>
-                        <option value="large">A+</option>
-                        <option value="extra-large">A++</option>
-                    </select>
                     <button class="header-btn secondary" onclick="loadNewText()">
                         <i class="fas fa-redo"></i> New Text
                     </button>
@@ -4438,6 +4527,67 @@
             <div class="warmup-body">
                 <div class="warmup-exercises" id="warmupExercises">
                     <!-- Warm-up exercises will be generated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="more-options-modal" id="moreOptionsModal">
+        <div class="more-options-content">
+            <div class="more-options-header">
+                <h2><i class="fas fa-ellipsis-h"></i> More Options</h2>
+                <button class="close-btn" onclick="closeMoreOptionsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="more-options-body">
+                <div class="more-options-grid">
+                    <button class="more-option-btn" onclick="openCustomTextModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-edit"></i>
+                        <span>Custom Text</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openKeyPracticeModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-key"></i>
+                        <span>Key Practice</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openLessonsModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Lessons</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openDailyChallengeModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-trophy"></i>
+                        <span>Daily Challenge</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openBadgesModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-medal"></i>
+                        <span>Badges</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openFingerStatsModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-hand-paper"></i>
+                        <span>Finger Stats</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openHeatmapModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-fire"></i>
+                        <span>Heat Map</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openWarmupModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-fire-alt"></i>
+                        <span>Warm-up</span>
+                    </button>
+                    <button class="more-option-btn" onclick="toggleHighContrastMode(); closeMoreOptionsModal();">
+                        <i class="fas fa-adjust"></i>
+                        <span>High Contrast</span>
+                    </button>
+                    <div class="more-option-text-size">
+                        <i class="fas fa-text-height"></i>
+                        <span>Text Size:</span>
+                        <select class="more-options-select" id="textSizeSelectModal" onchange="setTextSizePreset(this.value)">
+                            <option value="small">A-</option>
+                            <option value="medium">A</option>
+                            <option value="large">A+</option>
+                            <option value="extra-large">A++</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -6707,6 +6857,15 @@
             currentFontSize = textSizePresets[currentTextSizePreset];
             localStorage.setItem('fontSize', currentFontSize);
             applyFontSize();
+        }
+
+        function openMoreOptionsModal() {
+            document.getElementById('moreOptionsModal').style.display = 'flex';
+            document.getElementById('textSizeSelectModal').value = currentTextSizePreset;
+        }
+
+        function closeMoreOptionsModal() {
+            document.getElementById('moreOptionsModal').style.display = 'none';
         }
 
         // Achievement system
