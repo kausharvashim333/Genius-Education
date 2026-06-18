@@ -363,6 +363,27 @@
             transform: translateY(0);
         }
 
+        .header-select {
+            background: rgba(40, 40, 60, 0.8);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .header-select:hover {
+            background: rgba(50, 50, 70, 0.9);
+            border-color: #667eea;
+        }
+
+        .header-select option {
+            background: #1a1a2e;
+            color: #e0e0e0;
+        }
+
         .header-btn.secondary {
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(102, 126, 234, 0.5);
@@ -3459,6 +3480,12 @@
                     <button class="header-btn secondary" onclick="toggleHighContrastMode()">
                         <i class="fas fa-adjust"></i> High Contrast
                     </button>
+                    <select class="header-select" id="textSizeSelect" onchange="setTextSizePreset(this.value)">
+                        <option value="small">A-</option>
+                        <option value="medium">A</option>
+                        <option value="large">A+</option>
+                        <option value="extra-large">A++</option>
+                    </select>
                     <button class="header-btn secondary" onclick="loadNewText()">
                         <i class="fas fa-redo"></i> New Text
                     </button>
@@ -4550,6 +4577,15 @@
 
         // High Contrast Mode
         let highContrastMode = localStorage.getItem('highContrastMode') === 'true';
+
+        // Text Size Presets
+        const textSizePresets = {
+            'small': 14,
+            'medium': 18,
+            'large': 24,
+            'extra-large': 32
+        };
+        let currentTextSizePreset = localStorage.getItem('textSizePreset') || 'medium';
 
         // Keyboard Layout
         let currentLayout = localStorage.getItem('keyboardLayout') || 'qwerty';
@@ -5662,6 +5698,10 @@
             setTheme(currentTheme);
             updateKeyboardLayout();
             applyHighContrastMode();
+            applyTextSizePreset();
+
+            // Set text size select value
+            document.getElementById('textSizeSelect').value = currentTextSizePreset;
 
             // Store typing texts in localStorage for admin panel
             storeTypingTextsInStorage();
@@ -6646,6 +6686,20 @@
             } else {
                 document.body.classList.remove('high-contrast');
             }
+        }
+
+        function setTextSizePreset(preset) {
+            currentTextSizePreset = preset;
+            localStorage.setItem('textSizePreset', preset);
+            currentFontSize = textSizePresets[preset];
+            localStorage.setItem('fontSize', currentFontSize);
+            applyFontSize();
+        }
+
+        function applyTextSizePreset() {
+            currentFontSize = textSizePresets[currentTextSizePreset];
+            localStorage.setItem('fontSize', currentFontSize);
+            applyFontSize();
         }
 
         // Achievement system
