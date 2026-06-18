@@ -4100,6 +4100,10 @@
 
         let earnedMilestones = JSON.parse(localStorage.getItem('earnedMilestones')) || [];
 
+        // Key Press Timing Analysis
+        let keyPressTimings = [];
+        let lastKeyPressTime = null;
+
         // Mistake Tracking
         let mistakeLog = []; // Track which characters were mistyped during current session
 
@@ -4379,6 +4383,10 @@
 
             // Save finger usage data
             saveFingerUsage();
+
+            // Save key press timing analysis
+            const timingData = analyzeKeyPressTimings();
+            saveKeyPressTimingAnalysis(timingData);
 
             document.getElementById('resultModal').style.display = 'flex';
             updateStatusBar();
@@ -5180,6 +5188,8 @@
             streak = 0;
             combo = 1;
             wpmHistory = [];
+            keyPressTimings = [];
+            lastKeyPressTime = null;
             
             typingInput.value = '';
             textDisplay.textContent = 'Click "Start" to begin typing...';
@@ -5672,6 +5682,46 @@
             }
         }
 
+        function analyzeKeyPressTimings() {
+            if (keyPressTimings.length === 0) return null;
+
+            const avgTime = keyPressTimings.reduce((a, b) => a + b, 0) / keyPressTimings.length;
+            const sortedTimings = [...keyPressTimings].sort((a, b) => a - b);
+            const medianTime = sortedTimings[Math.floor(sortedTimings.length / 2)];
+            const minTime = Math.min(...keyPressTimings);
+            const maxTime = Math.max(...keyPressTimings);
+
+            // Calculate standard deviation
+            const variance = keyPressTimings.reduce((sum, time) => sum + Math.pow(time - avgTime, 2), 0) / keyPressTimings.length;
+            const stdDev = Math.sqrt(variance);
+
+            return {
+                average: Math.round(avgTime),
+                median: Math.round(medianTime),
+                min: Math.round(minTime),
+                max: Math.round(maxTime),
+                stdDev: Math.round(stdDev),
+                count: keyPressTimings.length
+            };
+        }
+
+        function saveKeyPressTimingAnalysis(timingData) {
+            if (!timingData) return;
+
+            const history = JSON.parse(localStorage.getItem('keyPressTimingHistory')) || [];
+            history.push({
+                ...timingData,
+                date: new Date().toISOString()
+            });
+
+            // Keep only last 30 entries
+            if (history.length > 30) {
+                history.shift();
+            }
+
+            localStorage.setItem('keyPressTimingHistory', JSON.stringify(history));
+        }
+
         // Achievement system
         const achievements = {
             'badge-first': false,
@@ -6129,11 +6179,19 @@
 
         typingInput.addEventListener('input', function(e) {
             if (!isTyping) return;
-            
+
             const inputValue = e.target.value;
             const inputChar = inputValue.slice(-1);
             const expectedChar = currentText[currentIndex];
-            
+
+            // Track key press timing
+            const currentTime = Date.now();
+            if (lastKeyPressTime !== null) {
+                const timeBetweenKeys = currentTime - lastKeyPressTime;
+                keyPressTimings.push(timeBetweenKeys);
+            }
+            lastKeyPressTime = currentTime;
+
             if (inputChar === expectedChar) {
                 currentIndex++;
                 streak++;
