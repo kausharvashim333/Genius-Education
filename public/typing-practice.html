@@ -459,7 +459,7 @@
         }
 
         .timer-display {
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             gap: 10px;
@@ -472,8 +472,8 @@
             border: 2px solid rgba(102, 126, 234, 0.3);
         }
 
-        .timer-display.hidden {
-            display: none;
+        .timer-display.visible {
+            display: flex;
         }
 
         .timer-display i {
@@ -2839,7 +2839,7 @@
             textDisplay.innerHTML = '<div class="text-line">Click "Start" to begin typing...</div>';
             
             // Reset timer display
-            timerDisplay.classList.add('hidden');
+            timerDisplay.classList.remove('visible');
             if (timerCountdownInterval) {
                 clearInterval(timerCountdownInterval);
                 timerCountdownInterval = null;
@@ -2856,7 +2856,7 @@
 
             const levelData = gameLevels[currentLevel - 1];
             timeRemaining = levelData.duration;
-            timerDisplay.classList.remove('hidden');
+            timerDisplay.classList.add('visible');
             updateTimerDisplay();
 
             timerCountdownInterval = setInterval(() => {
@@ -2890,7 +2890,7 @@
                 timerCountdownInterval = null;
             }
             
-            timerDisplay.classList.add('hidden');
+            timerDisplay.classList.remove('visible');
             
             const timeElapsed = (new Date() - startTime) / 1000 / 60;
             // Standard WPM calculation: (characters typed / 5) / time in minutes
@@ -3887,22 +3887,6 @@
                 keyElement.classList.add('active');
                 setTimeout(() => keyElement.classList.remove('active'), 100);
             }
-        });
-
-        // Settings
-        showKeyboardCheckbox.addEventListener('change', function() {
-            keyboardSection.style.display = this.checked ? 'block' : 'none';
-        });
-
-        fingerGuideCheckbox.addEventListener('change', function() {
-            const keys = document.querySelectorAll('.key');
-            keys.forEach(key => {
-                if (this.checked) {
-                    key.classList.add('pinky-left', 'ring-left', 'middle-left', 'index-left', 'index-right', 'middle-right', 'ring-right', 'pinky-right', 'thumb');
-                } else {
-                    key.classList.remove('pinky-left', 'ring-left', 'middle-left', 'index-left', 'index-right', 'middle-right', 'ring-right', 'pinky-right', 'thumb');
-                }
-            });
         });
 
         // Initialize
