@@ -86,6 +86,45 @@
             text-align: center;
         }
 
+        .xp-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .streak-card {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(249, 115, 22, 0.2));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .streak-card .stat-value {
+            color: #ef4444;
+        }
+
+        .xp-progress {
+            margin-top: 8px;
+        }
+
+        .xp-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .xp-text {
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+        }
+
         .stat-label {
             color: #888;
             font-size: 10px;
@@ -2019,6 +2058,26 @@
             </div>
 
             <div class="stats-section">
+                <!-- XP & Level -->
+                <div class="stat-card xp-card">
+                    <div class="stat-label">Level <span id="userLevel">1</span></div>
+                    <div class="stat-value" id="totalXP">0</div>
+                    <div class="stat-unit">XP</div>
+                    <div class="xp-progress">
+                        <div class="xp-bar">
+                            <div class="xp-fill" id="xpFill" style="width: 0%"></div>
+                        </div>
+                        <div class="xp-text" id="xpText">0/1000</div>
+                    </div>
+                </div>
+
+                <!-- Daily Streak -->
+                <div class="stat-card streak-card">
+                    <div class="stat-label">Daily Streak</div>
+                    <div class="stat-value" id="streakDisplay">0</div>
+                    <div class="stat-unit">days <i class="fas fa-fire"></i></div>
+                </div>
+
                 <!-- WPM -->
                 <div class="stat-card">
                     <div class="stat-label">WPM</div>
@@ -2039,7 +2098,7 @@
                     <div class="circular-stat">
                         <svg width="80" height="80" viewBox="0 0 80 80">
                             <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6"/>
-                            <circle cx="40" cy="40" r="36" fill="none" stroke="#667eea" stroke-width="6" 
+                            <circle cx="40" cy="40" r="36" fill="none" stroke="#667eea" stroke-width="6"
                                     stroke-dasharray="226.195" stroke-dashoffset="226.195" id="accuracyCircle"
                                     style="transition: stroke-dashoffset 0.3s ease;"/>
                         </svg>
@@ -2922,6 +2981,18 @@
         let lastCompletedLine = -1; // Track last completed line for scrolling
         let previousLineIndex = -1; // Track previous line index for animation
 
+        // XP System
+        let totalXP = parseInt(localStorage.getItem('totalXP')) || 0;
+        let userLevel = Math.floor(totalXP / 1000) + 1; // Level up every 1000 XP
+        let sessionXP = 0;
+
+        // Daily Streak System
+        let currentStreak = parseInt(localStorage.getItem('currentStreak')) || 0;
+        let lastPracticeDate = localStorage.getItem('lastPracticeDate') || null;
+
+        // Session History
+        let sessionHistory = JSON.parse(localStorage.getItem('sessionHistory')) || [];
+
         const textDisplay = document.getElementById('textDisplay');
         const typingInput = document.getElementById('typingInput');
         const wpmDisplay = document.getElementById('wpmDisplay');
@@ -2940,6 +3011,11 @@
         const keyboardSection = document.getElementById('keyboardSection');
         const timerDisplay = document.getElementById('timerDisplay');
         const timerCountdown = document.getElementById('timerCountdown');
+        const userLevelDisplay = document.getElementById('userLevel');
+        const totalXPDisplay = document.getElementById('totalXP');
+        const xpFill = document.getElementById('xpFill');
+        const xpText = document.getElementById('xpText');
+        const streakDisplay = document.getElementById('streakDisplay');
 
         // Initialize level selector
         function initializeLevelSelector() {
@@ -3131,11 +3207,19 @@
             // Standard WPM calculation: (characters typed / 5) / time in minutes
             const wpm = Math.round((currentIndex / 5) / timeElapsed) || 0;
             const accuracy = currentIndex > 0 ? Math.round(((currentIndex - mistakes) / currentIndex) * 100) : 100;
-            
+
+            // Calculate XP
+            const xpEarned = calculateXP(wpm, accuracy, currentLevel);
+            totalXP += xpEarned;
+            sessionXP += xpEarned;
+            localStorage.setItem('totalXP', totalXP);
+            userLevel = Math.floor(totalXP / 1000) + 1;
+
             saveBestWpm(wpm);
             // Store final stats for saving when user clicks a button
             window.finalWpm = wpm;
             window.finalAccuracy = accuracy;
+            window.finalXP = xpEarned;
             playSound('complete');
             checkAchievements(wpm, accuracy, maxStreak);
 
@@ -3143,7 +3227,14 @@
             document.getElementById('finalAccuracy').textContent = accuracy + '%';
             document.getElementById('finalChars').textContent = currentIndex;
             document.getElementById('finalErrors').textContent = mistakes;
-            
+
+            updateXPDisplay();
+            updateDailyStreak();
+            updateStreakDisplay();
+
+            // Save session to history
+            saveSessionToHistory(wpm, accuracy, currentIndex, mistakes, xpEarned);
+
             document.getElementById('resultModal').style.display = 'flex';
             updateStatusBar();
         }
@@ -3332,6 +3423,8 @@
         window.addEventListener('DOMContentLoaded', function() {
             initializeLevelSelector();
             loadNewText();
+            updateXPDisplay();
+            updateStreakDisplay();
 
             // Store typing texts in localStorage for admin panel
             storeTypingTextsInStorage();
@@ -3840,6 +3933,79 @@
                 notification.style.animation = 'slideOut 0.5s ease';
                 setTimeout(() => notification.remove(), 500);
             }, 3000);
+        }
+
+        function calculateXP(wpm, accuracy, level) {
+            // Base XP from WPM
+            let xp = wpm * 2;
+
+            // Bonus for accuracy
+            if (accuracy >= 100) xp += 50;
+            else if (accuracy >= 95) xp += 30;
+            else if (accuracy >= 90) xp += 20;
+            else if (accuracy >= 80) xp += 10;
+
+            // Level bonus
+            xp += level * 5;
+
+            // Minimum XP
+            return Math.max(xp, 10);
+        }
+
+        function updateXPDisplay() {
+            const xpInCurrentLevel = totalXP % 1000;
+            const xpNeeded = 1000 - xpInCurrentLevel;
+            const progressPercent = (xpInCurrentLevel / 1000) * 100;
+
+            userLevelDisplay.textContent = userLevel;
+            totalXPDisplay.textContent = totalXP;
+            xpFill.style.width = progressPercent + '%';
+            xpText.textContent = `${xpInCurrentLevel}/1000`;
+        }
+
+        function updateStreakDisplay() {
+            streakDisplay.textContent = currentStreak;
+        }
+
+        function saveSessionToHistory(wpm, accuracy, chars, errors, xp) {
+            const session = {
+                date: new Date().toISOString(),
+                wpm: wpm,
+                accuracy: accuracy,
+                characters: chars,
+                errors: errors,
+                xp: xp,
+                level: currentLevel,
+                streak: currentStreak
+            };
+
+            sessionHistory.unshift(session); // Add to beginning
+
+            // Keep only last 100 sessions
+            if (sessionHistory.length > 100) {
+                sessionHistory = sessionHistory.slice(0, 100);
+            }
+
+            localStorage.setItem('sessionHistory', JSON.stringify(sessionHistory));
+        }
+
+        function updateDailyStreak() {
+            const today = new Date().toDateString();
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+            if (lastPracticeDate === today) {
+                // Already practiced today, streak continues
+            } else if (lastPracticeDate === yesterday) {
+                // Practiced yesterday, increment streak
+                currentStreak++;
+            } else if (lastPracticeDate !== today) {
+                // Streak broken or first time
+                currentStreak = 1;
+            }
+
+            lastPracticeDate = today;
+            localStorage.setItem('currentStreak', currentStreak);
+            localStorage.setItem('lastPracticeDate', lastPracticeDate);
         }
 
         function checkAchievements(wpm, accuracy, currentStreak) {
