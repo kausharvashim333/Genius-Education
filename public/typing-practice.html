@@ -67,6 +67,25 @@
             gap: 10px;
         }
 
+        .btn-icon {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #667eea;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-icon:hover {
+            background: rgba(102, 126, 234, 0.3);
+            transform: scale(1.1);
+        }
+
         .sidebar-header h2 i {
             color: #667eea;
         }
@@ -1767,6 +1786,100 @@
             visibility: visible;
         }
 
+        .progress-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .progress-content {
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .progress-header h2 {
+            color: #e0e0e0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .progress-stat {
+            background: rgba(40, 40, 60, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .progress-stat-label {
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .progress-stat-value {
+            color: #667eea;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .progress-charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .chart-container {
+            background: rgba(40, 40, 60, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chart-container h3 {
+            color: #e0e0e0;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .chart-container canvas {
+            width: 100%;
+            height: 200px;
+        }
+
         .leaderboard-content {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             border-radius: 16px;
@@ -2055,6 +2168,9 @@
             <div class="app-sidebar">
             <div class="sidebar-header">
                 <h2><i class="fas fa-keyboard"></i> Typing Stats</h2>
+                <button class="btn-icon" onclick="openProgressModal()" title="View Progress">
+                    <i class="fas fa-chart-line"></i>
+                </button>
             </div>
 
             <div class="stats-section">
@@ -2860,6 +2976,45 @@
         </div>
     </div>
 
+    <div class="progress-modal" id="progressModal">
+        <div class="progress-content">
+            <div class="progress-header">
+                <h2><i class="fas fa-chart-line"></i> Progress Dashboard</h2>
+                <button class="close-btn" onclick="closeProgressModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="progress-stats-grid">
+                <div class="progress-stat">
+                    <div class="progress-stat-label">Total Sessions</div>
+                    <div class="progress-stat-value" id="totalSessions">0</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="progress-stat-label">Average WPM</div>
+                    <div class="progress-stat-value" id="avgWpm">0</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="progress-stat-label">Best WPM</div>
+                    <div class="progress-stat-value" id="bestWpmProgress">0</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="progress-stat-label">Total XP</div>
+                    <div class="progress-stat-value" id="totalXPProgress">0</div>
+                </div>
+            </div>
+            <div class="progress-charts">
+                <div class="chart-container">
+                    <h3>WPM Over Time</h3>
+                    <canvas id="wpmChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Accuracy Over Time</h3>
+                    <canvas id="accuracyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 50-Level Game System
         const gameLevels = [];
@@ -3303,6 +3458,161 @@
 
         function closeAchievements() {
             document.getElementById('achievementsModal').style.display = 'none';
+        }
+
+        function openProgressModal() {
+            document.getElementById('progressModal').style.display = 'flex';
+            loadProgressData();
+        }
+
+        function closeProgressModal() {
+            document.getElementById('progressModal').style.display = 'none';
+        }
+
+        function loadProgressData() {
+            // Update stats
+            document.getElementById('totalSessions').textContent = sessionHistory.length;
+            document.getElementById('totalXPProgress').textContent = totalXP;
+
+            if (sessionHistory.length > 0) {
+                const avgWpm = Math.round(sessionHistory.reduce((sum, s) => sum + s.wpm, 0) / sessionHistory.length);
+                const bestWpm = Math.max(...sessionHistory.map(s => s.wpm));
+
+                document.getElementById('avgWpm').textContent = avgWpm;
+                document.getElementById('bestWpmProgress').textContent = bestWpm;
+            }
+
+            // Render charts
+            renderWPMChart();
+            renderAccuracyChart();
+        }
+
+        function renderWPMChart() {
+            const canvas = document.getElementById('wpmChart');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (sessionHistory.length < 2) {
+                ctx.fillStyle = '#888';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Complete more sessions to see progress', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            // Get last 20 sessions
+            const recentSessions = sessionHistory.slice(0, 20).reverse();
+
+            const padding = 40;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            const maxWpm = Math.max(...recentSessions.map(s => s.wpm));
+            const minWpm = Math.min(...recentSessions.map(s => s.wpm));
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+
+            // Draw line
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            recentSessions.forEach((session, index) => {
+                const x = padding + (index / (recentSessions.length - 1)) * chartWidth;
+                const y = canvas.height - padding - ((session.wpm - minWpm) / (maxWpm - minWpm || 1)) * chartHeight;
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.stroke();
+
+            // Draw points
+            recentSessions.forEach((session, index) => {
+                const x = padding + (index / (recentSessions.length - 1)) * chartWidth;
+                const y = canvas.height - padding - ((session.wpm - minWpm) / (maxWpm - minWpm || 1)) * chartHeight;
+
+                ctx.fillStyle = '#667eea';
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function renderAccuracyChart() {
+            const canvas = document.getElementById('accuracyChart');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (sessionHistory.length < 2) {
+                ctx.fillStyle = '#888';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Complete more sessions to see progress', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            // Get last 20 sessions
+            const recentSessions = sessionHistory.slice(0, 20).reverse();
+
+            const padding = 40;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            const maxAccuracy = 100;
+            const minAccuracy = Math.min(...recentSessions.map(s => s.accuracy));
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+
+            // Draw line
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            recentSessions.forEach((session, index) => {
+                const x = padding + (index / (recentSessions.length - 1)) * chartWidth;
+                const y = canvas.height - padding - ((session.accuracy - minAccuracy) / (maxAccuracy - minAccuracy || 1)) * chartHeight;
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.stroke();
+
+            // Draw points
+            recentSessions.forEach((session, index) => {
+                const x = padding + (index / (recentSessions.length - 1)) * chartWidth;
+                const y = canvas.height - padding - ((session.accuracy - minAccuracy) / (maxAccuracy - minAccuracy || 1)) * chartHeight;
+
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
         }
 
         function initializeLeaderboardLevelSelector() {
