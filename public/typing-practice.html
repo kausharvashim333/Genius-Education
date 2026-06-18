@@ -1381,11 +1381,162 @@
             font-size: 14px;
         }
 
+        .font-size-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .font-size-btn {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #667eea;
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .font-size-btn:hover {
+            background: rgba(102, 126, 234, 0.3);
+            transform: scale(1.1);
+        }
+
+        #fontSizeDisplay {
+            color: #e0e0e0;
+            font-size: 14px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .theme-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .theme-btn {
+            background: rgba(40, 40, 60, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #888;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .theme-btn:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .theme-btn.active {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+            color: #667eea;
+        }
+
         .settings-buttons {
             display: flex;
             gap: 10px;
             justify-content: center;
             margin-top: 25px;
+        }
+
+        /* Light Theme */
+        body.light-theme {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+        }
+
+        body.light-theme .app-container {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-theme .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body.light-theme .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-theme .sidebar-header h2,
+        body.light-theme .stat-label,
+        body.light-theme .stat-unit {
+            color: #333;
+        }
+
+        body.light-theme .stat-value {
+            color: #667eea;
+        }
+
+        body.light-theme .stat-card {
+            background: rgba(240, 240, 245, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-theme .typing-area {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-theme .text-display {
+            color: #333;
+        }
+
+        body.light-theme .char.correct {
+            color: #10b981;
+        }
+
+        body.light-theme .char.incorrect {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        body.light-theme .char.current {
+            background: rgba(102, 126, 234, 0.2);
+            border-bottom: 3px solid #667eea;
+        }
+
+        body.light-theme .key {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            color: #333;
+        }
+
+        body.light-theme .key.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        body.light-theme .settings-modal-content,
+        body.light-theme .result-content,
+        body.light-theme .achievements-content,
+        body.light-theme .progress-content,
+        body.light-theme .custom-text-content {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-theme .settings-modal-item {
+            background: rgba(240, 240, 245, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-theme .settings-modal-item label {
+            color: #333;
         }
 
         /* Result Modal */
@@ -1880,6 +2031,95 @@
             height: 200px;
         }
 
+        .custom-text-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .custom-text-content {
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .custom-text-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .custom-text-header h2 {
+            color: #e0e0e0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .custom-text-body {
+            margin-bottom: 20px;
+        }
+
+        .custom-text-label {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .custom-text-area {
+            width: 100%;
+            height: 200px;
+            background: rgba(40, 40, 60, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            color: #e0e0e0;
+            font-size: 15px;
+            resize: vertical;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .custom-text-area:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .custom-text-area::placeholder {
+            color: #666;
+        }
+
+        .custom-text-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .custom-text-info span {
+            color: #888;
+            font-size: 12px;
+        }
+
+        .custom-text-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
         .leaderboard-content {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             border-radius: 16px;
@@ -2264,6 +2504,9 @@
                     </div>
                     <button class="header-btn icon-only" onclick="toggleSettings()">
                         <i class="fas fa-cog"></i>
+                    </button>
+                    <button class="header-btn secondary" onclick="openCustomTextModal()">
+                        <i class="fas fa-edit"></i> Custom Text
                     </button>
                     <button class="header-btn secondary" onclick="loadNewText()">
                         <i class="fas fa-redo"></i> New Text
@@ -2815,6 +3058,25 @@
                     <span class="toggle-slider"></span>
                 </label>
             </div>
+            <div class="settings-modal-item">
+                <label>Font Size</label>
+                <div class="font-size-controls">
+                    <button class="font-size-btn" onclick="decreaseFontSize()">-</button>
+                    <span id="fontSizeDisplay">18px</span>
+                    <button class="font-size-btn" onclick="increaseFontSize()">+</button>
+                </div>
+            </div>
+            <div class="settings-modal-item">
+                <label>Theme</label>
+                <div class="theme-controls">
+                    <button class="theme-btn active" data-theme="dark" onclick="setTheme('dark')">
+                        <i class="fas fa-moon"></i> Dark
+                    </button>
+                    <button class="theme-btn" data-theme="light" onclick="setTheme('light')">
+                        <i class="fas fa-sun"></i> Light
+                    </button>
+                </div>
+            </div>
             <div class="settings-buttons">
                 <button class="btn btn-primary" onclick="closeSettingsModal()">Close</button>
             </div>
@@ -3015,6 +3277,28 @@
         </div>
     </div>
 
+    <div class="custom-text-modal" id="customTextModal">
+        <div class="custom-text-content">
+            <div class="custom-text-header">
+                <h2><i class="fas fa-edit"></i> Custom Text Practice</h2>
+                <button class="close-btn" onclick="closeCustomTextModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="custom-text-body">
+                <p class="custom-text-label">Paste your own text to practice:</p>
+                <textarea id="customTextInput" class="custom-text-area" placeholder="Enter or paste your text here..."></textarea>
+                <div class="custom-text-info">
+                    <span id="charCount">0 characters</span>
+                </div>
+            </div>
+            <div class="custom-text-buttons">
+                <button class="btn btn-secondary" onclick="closeCustomTextModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="useCustomText()">Start Practice</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 50-Level Game System
         const gameLevels = [];
@@ -3147,6 +3431,28 @@
 
         // Session History
         let sessionHistory = JSON.parse(localStorage.getItem('sessionHistory')) || [];
+
+        // Font Size
+        let currentFontSize = parseInt(localStorage.getItem('fontSize')) || 18;
+
+        // Theme
+        let currentTheme = localStorage.getItem('theme') || 'dark';
+
+        // Mistake Tracking
+        let mistakeLog = []; // Track which characters were mistyped during current session
+
+        // Finger Usage Tracking
+        let fingerUsage = {
+            'pinky-left': 0,
+            'ring-left': 0,
+            'middle-left': 0,
+            'index-left': 0,
+            'index-right': 0,
+            'middle-right': 0,
+            'ring-right': 0,
+            'pinky-right': 0,
+            'thumb': 0
+        };
 
         const textDisplay = document.getElementById('textDisplay');
         const typingInput = document.getElementById('typingInput');
@@ -3390,6 +3696,12 @@
             // Save session to history
             saveSessionToHistory(wpm, accuracy, currentIndex, mistakes, xpEarned);
 
+            // Save mistake analysis
+            saveMistakeAnalysis();
+
+            // Save finger usage data
+            saveFingerUsage();
+
             document.getElementById('resultModal').style.display = 'flex';
             updateStatusBar();
         }
@@ -3468,6 +3780,40 @@
         function closeProgressModal() {
             document.getElementById('progressModal').style.display = 'none';
         }
+
+        function openCustomTextModal() {
+            document.getElementById('customTextModal').style.display = 'flex';
+            document.getElementById('customTextInput').value = '';
+            document.getElementById('charCount').textContent = '0 characters';
+        }
+
+        function closeCustomTextModal() {
+            document.getElementById('customTextModal').style.display = 'none';
+        }
+
+        function useCustomText() {
+            const customText = document.getElementById('customTextInput').value.trim();
+            if (customText.length < 10) {
+                alert('Please enter at least 10 characters');
+                return;
+            }
+
+            currentText = customText;
+            closeCustomTextModal();
+            resetTyping();
+            textDisplay.innerHTML = '<div class="text-line">Click "Start" to begin typing...</div>';
+        }
+
+        // Update character count for custom text input
+        document.addEventListener('DOMContentLoaded', function() {
+            const customTextInput = document.getElementById('customTextInput');
+            if (customTextInput) {
+                customTextInput.addEventListener('input', function() {
+                    const count = this.value.length;
+                    document.getElementById('charCount').textContent = count + ' characters';
+                });
+            }
+        });
 
         function loadProgressData() {
             // Update stats
@@ -3735,6 +4081,8 @@
             loadNewText();
             updateXPDisplay();
             updateStreakDisplay();
+            applyFontSize();
+            setTheme(currentTheme);
 
             // Store typing texts in localStorage for admin panel
             storeTypingTextsInStorage();
@@ -3829,6 +4177,16 @@
             document.getElementById('soundEffects').checked = localStorage.getItem('soundEffects') === 'true';
             document.getElementById('fingerGuide').checked = localStorage.getItem('fingerGuide') !== 'false';
             document.getElementById('showFingerLegend').checked = localStorage.getItem('showFingerLegend') !== 'false';
+            document.getElementById('fontSizeDisplay').textContent = currentFontSize + 'px';
+
+            // Sync theme buttons
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.theme === currentTheme) {
+                    btn.classList.add('active');
+                }
+            });
+
             document.getElementById('settingsModal').style.display = 'flex';
         }
 
@@ -3885,6 +4243,46 @@
                 fingerLegend.style.display = showFingerLegend ? 'flex' : 'none';
             }
             localStorage.setItem('showFingerLegend', showFingerLegend);
+        }
+
+        function increaseFontSize() {
+            if (currentFontSize < 32) {
+                currentFontSize += 2;
+                applyFontSize();
+            }
+        }
+
+        function decreaseFontSize() {
+            if (currentFontSize > 12) {
+                currentFontSize -= 2;
+                applyFontSize();
+            }
+        }
+
+        function applyFontSize() {
+            textDisplay.style.fontSize = currentFontSize + 'px';
+            document.getElementById('fontSizeDisplay').textContent = currentFontSize + 'px';
+            localStorage.setItem('fontSize', currentFontSize);
+        }
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            localStorage.setItem('theme', theme);
+
+            // Update button states
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.theme === theme) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Apply theme
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+            } else {
+                document.body.classList.remove('light-theme');
+            }
         }
 
         function switchLanguage(lang) {
@@ -4299,6 +4697,72 @@
             localStorage.setItem('sessionHistory', JSON.stringify(sessionHistory));
         }
 
+        function saveMistakeAnalysis() {
+            if (mistakeLog.length === 0) return;
+
+            // Get existing mistake data
+            let mistakeData = JSON.parse(localStorage.getItem('mistakeData')) || {};
+
+            // Analyze current session mistakes
+            mistakeLog.forEach(mistake => {
+                const key = `${mistake.expected}→${mistake.typed}`;
+                if (!mistakeData[key]) {
+                    mistakeData[key] = {
+                        expected: mistake.expected,
+                        typed: mistake.typed,
+                        count: 0
+                    };
+                }
+                mistakeData[key].count++;
+            });
+
+            localStorage.setItem('mistakeData', JSON.stringify(mistakeData));
+
+            // Reset for next session
+            mistakeLog = [];
+        }
+
+        function getFingerForChar(char) {
+            const charLower = char.toLowerCase();
+
+            // Left hand
+            if (['1', 'q', 'a', 'z'].includes(charLower)) return 'pinky-left';
+            if (['2', 'w', 's', 'x'].includes(charLower)) return 'ring-left';
+            if (['3', 'e', 'd', 'c'].includes(charLower)) return 'middle-left';
+            if (['4', '5', 'r', 't', 'f', 'g', 'v', 'b'].includes(charLower)) return 'index-left';
+
+            // Right hand
+            if (['6', '7', 'y', 'u', 'h', 'j', 'n', 'm'].includes(charLower)) return 'index-right';
+            if (['8', 'i', 'k', ','].includes(charLower)) return 'middle-right';
+            if (['9', 'o', 'l', '.'].includes(charLower)) return 'ring-right';
+            if (['0', 'p', ';', '/', '[', ']', "'", '-'].includes(charLower)) return 'pinky-right';
+
+            // Space and special keys
+            if (char === ' ') return 'thumb';
+
+            return 'unknown';
+        }
+
+        function saveFingerUsage() {
+            // Get existing finger usage data
+            let fingerData = JSON.parse(localStorage.getItem('fingerData')) || {};
+
+            // Update with current session
+            Object.keys(fingerUsage).forEach(finger => {
+                if (!fingerData[finger]) {
+                    fingerData[finger] = 0;
+                }
+                fingerData[finger] += fingerUsage[finger];
+            });
+
+            localStorage.setItem('fingerData', JSON.stringify(fingerData));
+
+            // Reset for next session
+            Object.keys(fingerUsage).forEach(key => {
+                fingerUsage[key] = 0;
+            });
+        }
+
         function updateDailyStreak() {
             const today = new Date().toDateString();
             const yesterday = new Date(Date.now() - 86400000).toDateString();
@@ -4575,12 +5039,26 @@
                 maxStreak = Math.max(maxStreak, streak);
                 maxCombo = Math.max(maxCombo, combo);
                 playSound('correct');
+
+                // Track finger usage
+                const finger = getFingerForChar(expectedChar);
+                if (finger !== 'unknown') {
+                    fingerUsage[finger]++;
+                }
             } else {
                 mistakes++;
                 incorrectChars.add(currentIndex); // Mark this position as incorrect
                 streak = 0;
                 combo = 1;
                 playSound('error');
+
+                // Log mistake for analysis
+                mistakeLog.push({
+                    expected: expectedChar,
+                    typed: inputChar,
+                    position: currentIndex,
+                    timestamp: Date.now()
+                });
             }
             
             e.target.value = '';
