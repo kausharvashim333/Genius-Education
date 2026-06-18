@@ -4407,6 +4407,11 @@
         let wpmSnapshots = [];
         let lastSnapshotTime = null;
 
+        // Pause Detection
+        let pauses = [];
+        let lastInputTime = null;
+        const PAUSE_THRESHOLD = 3000; // 3 seconds without input = pause
+
         // Mistake Tracking
         let mistakeLog = []; // Track which characters were mistyped during current session
 
@@ -4705,6 +4710,10 @@
             // Save speed consistency analysis
             const consistencyData = analyzeSpeedConsistency();
             saveSpeedConsistencyAnalysis(consistencyData);
+
+            // Save pause analysis
+            const pauseData = analyzePauses();
+            savePauseAnalysis(pauseData);
 
             document.getElementById('resultModal').style.display = 'flex';
             updateStatusBar();
@@ -5510,6 +5519,8 @@
             lastKeyPressTime = null;
             wpmSnapshots = [];
             lastSnapshotTime = null;
+            pauses = [];
+            lastInputTime = null;
             
             typingInput.value = '';
             textDisplay.textContent = 'Click "Start" to begin typing...';
@@ -6081,6 +6092,45 @@
             }
 
             localStorage.setItem('speedConsistencyHistory', JSON.stringify(history));
+        }
+
+        function analyzePauses() {
+            if (pauses.length === 0) {
+                return {
+                    totalPauses: 0,
+                    totalPauseTime: 0,
+                    averagePauseDuration: 0,
+                    longestPause: 0,
+                    pauseFrequency: 0
+                };
+            }
+
+            const totalPauseTime = pauses.reduce((sum, pause) => sum + pause.duration, 0);
+            const averagePauseDuration = totalPauseTime / pauses.length;
+            const longestPause = Math.max(...pauses.map(p => p.duration));
+
+            return {
+                totalPauses: pauses.length,
+                totalPauseTime: Math.round(totalPauseTime),
+                averagePauseDuration: Math.round(averagePauseDuration),
+                longestPause: Math.round(longestPause),
+                pauseFrequency: pauses.length
+            };
+        }
+
+        function savePauseAnalysis(pauseData) {
+            const history = JSON.parse(localStorage.getItem('pauseHistory')) || [];
+            history.push({
+                ...pauseData,
+                date: new Date().toISOString()
+            });
+
+            // Keep only last 30 entries
+            if (history.length > 30) {
+                history.shift();
+            }
+
+            localStorage.setItem('pauseHistory', JSON.stringify(history));
         }
 
         function openFingerStatsModal() {
@@ -6730,6 +6780,18 @@
                 keyPressTimings.push(timeBetweenKeys);
             }
             lastKeyPressTime = currentTime;
+
+            // Track pauses
+            if (lastInputTime !== null) {
+                const timeSinceLastInput = currentTime - lastInputTime;
+                if (timeSinceLastInput >= PAUSE_THRESHOLD) {
+                    pauses.push({
+                        duration: timeSinceLastInput,
+                        timestamp: currentTime - startTime
+                    });
+                }
+            }
+            lastInputTime = currentTime;
 
             if (inputChar === expectedChar) {
                 currentIndex++;
