@@ -2948,6 +2948,105 @@
             font-weight: 600;
         }
 
+        body.high-contrast {
+            --bg-primary: #000000;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #ffff00;
+            --accent: #00ff00;
+            --border: #ffffff;
+        }
+
+        body.high-contrast .main-container {
+            background: var(--bg-primary);
+        }
+
+        body.high-contrast .header {
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--border);
+        }
+
+        body.high-contrast .header-btn {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+
+        body.high-contrast .header-btn:hover {
+            background: var(--accent);
+            color: #000000;
+        }
+
+        body.high-contrast .text-display {
+            color: var(--text-primary);
+        }
+
+        body.high-contrast .char.correct {
+            color: var(--accent);
+        }
+
+        body.high-contrast .char.incorrect {
+            color: #ff0000;
+            background: #ffffff;
+        }
+
+        body.high-contrast .char.current {
+            background: var(--text-secondary);
+            color: #000000;
+        }
+
+        body.high-contrast .sidebar {
+            background: var(--bg-secondary);
+            border-right: 2px solid var(--border);
+        }
+
+        body.high-contrast .stat-value {
+            color: var(--text-primary);
+        }
+
+        body.high-contrast .stat-label {
+            color: var(--text-secondary);
+        }
+
+        body.high-contrast .keyboard-key {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+
+        body.high-contrast .keyboard-key.active {
+            background: var(--accent);
+            color: #000000;
+        }
+
+        body.high-contrast .modal-content,
+        body.high-contrast .badges-content,
+        body.high-contrast .finger-stats-content,
+        body.high-contrast .heatmap-content,
+        body.high-contrast .warmup-content {
+            background: var(--bg-secondary);
+            border: 3px solid var(--border);
+        }
+
+        body.high-contrast .modal-header h2,
+        body.high-contrast .badges-header h2,
+        body.high-contrast .finger-stats-header h2,
+        body.high-contrast .heatmap-header h2,
+        body.high-contrast .warmup-header h2 {
+            color: var(--text-primary);
+        }
+
+        body.high-contrast .badge-item,
+        body.high-contrast .warmup-card {
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+        }
+
+        body.high-contrast .badge-item:hover,
+        body.high-contrast .warmup-card:hover {
+            border-color: var(--accent);
+        }
+
         .leaderboard-content {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             border-radius: 16px;
@@ -3356,6 +3455,9 @@
                     </button>
                     <button class="header-btn secondary" onclick="openWarmupModal()">
                         <i class="fas fa-fire-alt"></i> Warm-up
+                    </button>
+                    <button class="header-btn secondary" onclick="toggleHighContrastMode()">
+                        <i class="fas fa-adjust"></i> High Contrast
                     </button>
                     <button class="header-btn secondary" onclick="loadNewText()">
                         <i class="fas fa-redo"></i> New Text
@@ -4445,6 +4547,9 @@
 
         // Theme
         let currentTheme = localStorage.getItem('theme') || 'dark';
+
+        // High Contrast Mode
+        let highContrastMode = localStorage.getItem('highContrastMode') === 'true';
 
         // Keyboard Layout
         let currentLayout = localStorage.getItem('keyboardLayout') || 'qwerty';
@@ -5556,6 +5661,7 @@
             applyFontSize();
             setTheme(currentTheme);
             updateKeyboardLayout();
+            applyHighContrastMode();
 
             // Store typing texts in localStorage for admin panel
             storeTypingTextsInStorage();
@@ -6525,6 +6631,20 @@
                 updateDisplay();
                 closeWarmupModal();
                 startTyping();
+            }
+        }
+
+        function toggleHighContrastMode() {
+            highContrastMode = !highContrastMode;
+            localStorage.setItem('highContrastMode', highContrastMode);
+            applyHighContrastMode();
+        }
+
+        function applyHighContrastMode() {
+            if (highContrastMode) {
+                document.body.classList.add('high-contrast');
+            } else {
+                document.body.classList.remove('high-contrast');
             }
         }
 
