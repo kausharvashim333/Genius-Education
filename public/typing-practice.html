@@ -1471,6 +1471,103 @@
             z-index: 1000;
         }
 
+        .achievements-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .achievements-content {
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .achievements-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .achievements-header h2 {
+            color: #e0e0e0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 20px;
+        }
+
+        .badge {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            opacity: 0.3;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .badge.unlocked {
+            opacity: 1;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .badge:hover {
+            transform: scale(1.1);
+        }
+
+        .badge-tooltip {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 50, 0.95);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #e0e0e0;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+            text-align: center;
+        }
+
+        .badge:hover .badge-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
         .leaderboard-content {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             border-radius: 16px;
@@ -2420,6 +2517,12 @@
                 <button class="btn btn-primary" onclick="closeResultModal()">
                     <i class="fas fa-redo"></i> Try Again
                 </button>
+                <button class="btn btn-info" onclick="openLeaderboard()">
+                    <i class="fas fa-trophy"></i> Leaderboard
+                </button>
+                <button class="btn btn-warning" onclick="openAchievements()">
+                    <i class="fas fa-medal"></i> Achievements
+                </button>
                 <button class="btn btn-success" id="nextLevelBtn" onclick="goToNextLevel()">
                     <i class="fas fa-arrow-right"></i> Next Level
                 </button>
@@ -2452,6 +2555,51 @@
                 </div>
                 <div id="leaderboardBody">
                     <div class="no-data">No scores yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="achievements-modal" id="achievementsModal">
+        <div class="achievements-content">
+            <div class="achievements-header">
+                <h2><i class="fas fa-medal"></i> Achievements</h2>
+                <button class="close-btn" onclick="closeAchievements()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="badges-grid">
+                <div class="badge" id="badge-first" data-achievement="First Steps">
+                    <i class="fas fa-play"></i>
+                    <div class="badge-tooltip">First Steps - Complete your first typing session</div>
+                </div>
+                <div class="badge" id="badge-speed20" data-achievement="Speed Demon">
+                    <i class="fas fa-bolt"></i>
+                    <div class="badge-tooltip">Speed Demon - Reach 20 WPM</div>
+                </div>
+                <div class="badge" id="badge-speed40" data-achievement="Typing Master">
+                    <i class="fas fa-fire"></i>
+                    <div class="badge-tooltip">Typing Master - Reach 40 WPM</div>
+                </div>
+                <div class="badge" id="badge-speed60" data-achievement="Keyboard Wizard">
+                    <i class="fas fa-magic"></i>
+                    <div class="badge-tooltip">Keyboard Wizard - Reach 60 WPM</div>
+                </div>
+                <div class="badge" id="badge-accuracy95" data-achievement="Precision">
+                    <i class="fas fa-bullseye"></i>
+                    <div class="badge-tooltip">Precision - Achieve 95% accuracy</div>
+                </div>
+                <div class="badge" id="badge-accuracy100" data-achievement="Perfectionist">
+                    <i class="fas fa-star"></i>
+                    <div class="badge-tooltip">Perfectionist - Achieve 100% accuracy</div>
+                </div>
+                <div class="badge" id="badge-streak10" data-achievement="On Fire">
+                    <i class="fas fa-fire-alt"></i>
+                    <div class="badge-tooltip">On Fire - 10 character streak</div>
+                </div>
+                <div class="badge" id="badge-sessions10" data-achievement="Dedicated">
+                    <i class="fas fa-calendar-check"></i>
+                    <div class="badge-tooltip">Dedicated - Complete 10 sessions</div>
                 </div>
             </div>
         </div>
@@ -2859,6 +3007,15 @@
 
         function closeLeaderboard() {
             document.getElementById('leaderboardModal').style.display = 'none';
+        }
+
+        function openAchievements() {
+            document.getElementById('achievementsModal').style.display = 'flex';
+            loadAchievements();
+        }
+
+        function closeAchievements() {
+            document.getElementById('achievementsModal').style.display = 'none';
         }
 
         function initializeLeaderboardLevelSelector() {
