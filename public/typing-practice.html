@@ -6993,6 +6993,38 @@
             }
 
             localStorage.setItem('sessionHistory', JSON.stringify(sessionHistory));
+
+            // Also save to server if student is logged in
+            const studentId = sessionStorage.getItem('typingStudentId');
+            if (studentId) {
+                saveSessionToServer(session, studentId);
+            }
+        }
+
+        async function saveSessionToServer(session, studentId) {
+            try {
+                const sessionData = {
+                    ...session,
+                    mistakeAnalysis: mistakeAnalysis,
+                    fingerUsage: fingerUsage,
+                    heatmap: heatmap,
+                    speedConsistency: speedConsistencyHistory,
+                    pauseAnalysis: pauseHistory,
+                    keyPressTimings: keyPressTimings
+                };
+
+                const res = await fetch(`/api/typing-progress/${studentId}/sessions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(sessionData)
+                });
+
+                if (res.ok) {
+                    console.log('Session saved to server successfully');
+                }
+            } catch (e) {
+                console.error('Error saving session to server:', e);
+            }
         }
 
         function saveMistakeAnalysis() {

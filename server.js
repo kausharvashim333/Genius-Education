@@ -117,13 +117,15 @@ app.use(cors({
 // Trust first proxy (nginx) — required for correct client IP behind reverse proxy
 app.set('trust proxy', 1);
 
-// HTTPS enforcement - redirect HTTP to HTTPS
+// HTTPS enforcement - redirect HTTP to HTTPS (skip for localhost)
 app.use((req, res, next) => {
     // Check if the request is secure (HTTPS)
     // When behind a proxy, check the X-Forwarded-Proto header
     const isSecure = req.secure || req.protocol === 'https' || req.get('X-Forwarded-Proto') === 'https';
-    
-    if (!isSecure) {
+    const isLocalhost = req.hostname === 'localhost' || req.hostname === '127.0.0.1';
+
+    // Skip HTTPS redirect for localhost
+    if (!isSecure && !isLocalhost) {
         // Redirect to HTTPS
         const httpsUrl = 'https://' + req.get('Host') + req.originalUrl;
         return res.redirect(301, httpsUrl);
@@ -12850,6 +12852,121 @@ app.use((err, req, res, next) => {
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
+});
+
+// ===== Typing Progress Tracking API =====
+
+// Get typing progress for a student
+app.get('/api/typing-progress/:studentId', (req, res) => {
+    const typingProgress = readData('typing-progress.json') || [];
+    const studentProgress = typingProgress.find(p => p.studentId == req.params.studentId);
+    res.json({ success: true, progress: studentProgress || null });
+});
+
+// Save typing session data
+app.post('/api/typing-progress/:studentId/sessions', (req, res) => {
+    const typingProgress = readData('typing-progress.json') || [];
+    let studentProgress = typingProgress.find(p => p.studentId == req.params.studentId);
+
+    if (!studentProgress) {
+        studentProgress = {
+            studentId: parseInt(req.params.studentId),
+            totalSessions: 0,
+            totalXP: 0,
+            bestWpm: 0,
+            bestAccuracy: 0,
+            currentStreak: 0,
+            longestStreak: 0,
+            lastPracticeDate: null,
+            sessions: [],
+            achievements: [],
+            mistakeAnalysis: {},
+            fingerUsage: {},
+            heatmap: {},
+            speedConsistency: [],
+            pauseAnalysis: [],
+            keyPressTimings: []
+        };
+        typingProgress.push(studentProgress);
+    }
+
+    const sessionData = req.body;
+    sessionData.id = Date.now();
+    sessionData.date = new Date().toISOString();
+
+    studentProgress.sessions.push(sessionData);
+    studentProgress.totalSessions++;
+
+    // Update stats
+    studentProgress.totalXP += sessionData.xp || 0;
+    if (sessionData.wpm > studentProgress.bestWpm) studentProgress.bestWpm = sessionData.wpm;
+    if (sessionData.accuracy > studentProgress.bestAccuracy) studentProgress.bestAccuracy = sessionData.accuracy;
+
+    // Update streak
+    const today = new Date().toDateString();
+    const lastPractice = studentProgress.lastPracticeDate ? new Date(studentProgress.lastPracticeDate).toDateString() : null;
+
+    if (lastPractice === today) {
+        // Same day, no change
+    } else if (lastPractice === new Date(Date.now() - 86400000).toDateString()) {
+        // Yesterday, increment streak
+        studentProgress.currentStreak++;
+        if (studentProgress.currentStreak > studentProgress.longestStreak) {
+            studentProgress.longestStreak = studentProgress.currentStreak;
+        }
+    } else {
+        // Streak broken
+        studentProgress.currentStreak = 1;
+    }
+
+    studentProgress.lastPracticeDate = new Date().toISOString();
+
+    // Update additional data if provided
+    if (sessionData.mistakeAnalysis) studentProgress.mistakeAnalysis = sessionData.mistakeAnalysis;
+    if (sessionData.fingerUsage) studentProgress.fingerUsage = sessionData.fingerUsage;
+    if (sessionData.heatmap) studentProgress.heatmap = sessionData.heatmap;
+    if (sessionData.speedConsistency) studentProgress.speedConsistency.push(sessionData.speedConsistency);
+    if (sessionData.pauseAnalysis) studentProgress.pauseAnalysis.push(sessionData.pauseAnalysis);
+    if (sessionData.keyPressTimings) studentProgress.keyPressTimings.push(sessionData.keyPressTimings);
+
+    writeData('typing-progress.json', typingProgress);
+    res.json({ success: true, progress: studentProgress });
+});
+
+// Get typing leaderboard
+app.get('/api/typing-leaderboard', (req, res) => {
+    const typingProgress = readData('typing-progress.json') || [];
+    const students = readData('students.json') || [];
+
+    const leaderboard = typingProgress.map(p => {
+        const student = students.find(s => s.id == p.studentId);
+        return {
+            studentId: p.studentId,
+            name: student ? student.name : 'Unknown',
+            rollNo: student ? student.rollNo : 'N/A',
+            bestWpm: p.bestWpm,
+            bestAccuracy: p.bestAccuracy,
+            totalXP: p.totalXP,
+            totalSessions: p.totalSessions,
+            currentStreak: p.currentStreak
+        };
+    }).sort((a, b) => b.bestWpm - a.bestWpm);
+
+    res.json({ success: true, leaderboard });
+});
+
+// Update student achievements
+app.put('/api/typing-progress/:studentId/achievements', (req, res) => {
+    const typingProgress = readData('typing-progress.json') || [];
+    const studentProgress = typingProgress.find(p => p.studentId == req.params.studentId);
+
+    if (!studentProgress) {
+        return res.status(404).json({ success: false, message: 'Student progress not found' });
+    }
+
+    studentProgress.achievements = req.body.achievements || [];
+    writeData('typing-progress.json', typingProgress);
+    res.json({ success: true, achievements: studentProgress.achievements });
 });
 
 app.listen(PORT, '0.0.0.0', () => {

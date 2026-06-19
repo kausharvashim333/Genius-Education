@@ -593,6 +593,7 @@
                     <li><a href="#" data-section="materials"><i class="fas fa-folder-open"></i> Study Materials</a></li>
                     <li><a href="#" data-section="videos"><i class="fas fa-video"></i> Videos</a></li>
                     <li><a href="#" data-section="tests"><i class="fas fa-clipboard-list"></i> Tests</a></li>
+                    <li><a href="#" data-section="typing-practice"><i class="fas fa-keyboard"></i> Typing Practice</a></li>
                 </ul>
             </li>
             <li class="dropdown">
@@ -911,6 +912,55 @@
         <div class="portal-section" id="section-tests">
             <h3><i class="fas fa-clipboard-list"></i> Tests</h3>
             <div id="testsSection"></div>
+        </div>
+
+        <!-- Typing Practice Section -->
+        <div class="portal-section" id="section-typing-practice">
+            <h3><i class="fas fa-keyboard"></i> Typing Practice</h3>
+            <div id="typingPracticeSection">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; color: white;">
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Total Sessions</div>
+                        <div style="font-size: 32px; font-weight: 700;" id="typingTotalSessions">0</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 25px; border-radius: 12px; color: white;">
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Best WPM</div>
+                        <div style="font-size: 32px; font-weight: 700;" id="typingBestWpm">0</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 25px; border-radius: 12px; color: white;">
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Best Accuracy</div>
+                        <div style="font-size: 32px; font-weight: 700;" id="typingBestAccuracy">0%</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 25px; border-radius: 12px; color: white;">
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Total XP</div>
+                        <div style="font-size: 32px; font-weight: 700;" id="typingTotalXP">0</div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 25px; border-radius: 12px; color: white;">
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Current Streak</div>
+                        <div style="font-size: 32px; font-weight: 700;" id="typingCurrentStreak">0</div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">days</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 25px; border-radius: 12px; color: #333;">
+                        <div style="font-size: 14px; opacity: 0.8; margin-bottom: 8px;">Longest Streak</div>
+                        <div style="font-size: 32px; font-weight: 700;" id="typingLongestStreak">0</div>
+                        <div style="font-size: 12px; opacity: 0.6; margin-top: 5px;">days</div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 30px;">
+                    <button class="action-btn action-btn-primary" onclick="startTypingPractice()" style="padding: 15px 30px; font-size: 16px;">
+                        <i class="fas fa-play"></i> Start Typing Practice
+                    </button>
+                    <button class="action-btn action-btn-secondary" onclick="viewTypingLeaderboard()" style="padding: 15px 30px; font-size: 16px;">
+                        <i class="fas fa-trophy"></i> View Leaderboard
+                    </button>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 25px;">
+                    <h4 style="margin: 0 0 20px 0; color: white;"><i class="fas fa-history"></i> Recent Sessions</h4>
+                    <div id="typingRecentSessions"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Announcements Section -->
@@ -1813,7 +1863,10 @@ function showDashboard(s) {
     
     // Load tests
     loadTests();
-    
+
+    // Load typing practice progress
+    loadTypingProgress();
+
     // Load exam calendar
     loadExamCalendar();
     
@@ -4295,6 +4348,131 @@ function cancelTest() {
     document.getElementById('testTakingModal').remove();
     currentTest = null;
     testStartTime = null;
+}
+
+// ===== Typing Practice Functions =====
+async function loadTypingProgress() {
+    try {
+        const stored = localStorage.getItem('portalStudent');
+        if (!stored) return;
+        const student = JSON.parse(stored);
+
+        const res = await fetch(`/api/typing-progress/${student.id}`);
+        const data = await res.json();
+
+        if (data.success && data.progress) {
+            const progress = data.progress;
+            document.getElementById('typingTotalSessions').textContent = progress.totalSessions || 0;
+            document.getElementById('typingBestWpm').textContent = progress.bestWpm || 0;
+            document.getElementById('typingBestAccuracy').textContent = (progress.bestAccuracy || 0) + '%';
+            document.getElementById('typingTotalXP').textContent = progress.totalXP || 0;
+            document.getElementById('typingCurrentStreak').textContent = progress.currentStreak || 0;
+            document.getElementById('typingLongestStreak').textContent = progress.longestStreak || 0;
+
+            // Display recent sessions
+            const recentSessions = (progress.sessions || []).slice(-5).reverse();
+            const sessionsSection = document.getElementById('typingRecentSessions');
+
+            if (recentSessions.length > 0) {
+                sessionsSection.innerHTML = recentSessions.map(session => `
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; color: white; margin-bottom: 5px;">${new Date(session.date).toLocaleDateString()}</div>
+                            <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">
+                                <span style="margin-right: 15px;"><i class="fas fa-tachometer-alt"></i> ${session.wpm} WPM</span>
+                                <span style="margin-right: 15px;"><i class="fas fa-bullseye"></i> ${session.accuracy}% Accuracy</span>
+                                <span><i class="fas fa-star"></i> ${session.xp} XP</span>
+                            </div>
+                        </div>
+                        <div style="background: rgba(102, 126, 234, 0.3); padding: 8px 16px; border-radius: 20px; font-size: 12px; color: white;">
+                            Level ${session.level || 'N/A'}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                sessionsSection.innerHTML = '<div style="text-align: center; padding: 30px; color: rgba(255, 255, 255, 0.6);"><i class="fas fa-keyboard" style="font-size: 32px; margin-bottom: 10px;"></i><p>No sessions yet. Start typing practice!</p></div>';
+            }
+        } else {
+            // No progress data yet
+            document.getElementById('typingTotalSessions').textContent = '0';
+            document.getElementById('typingBestWpm').textContent = '0';
+            document.getElementById('typingBestAccuracy').textContent = '0%';
+            document.getElementById('typingTotalXP').textContent = '0';
+            document.getElementById('typingCurrentStreak').textContent = '0';
+            document.getElementById('typingLongestStreak').textContent = '0';
+            document.getElementById('typingRecentSessions').innerHTML = '<div style="text-align: center; padding: 30px; color: rgba(255, 255, 255, 0.6);"><i class="fas fa-keyboard" style="font-size: 32px; margin-bottom: 10px;"></i><p>No sessions yet. Start typing practice!</p></div>';
+        }
+    } catch (e) {
+        console.error('Error loading typing progress:', e);
+    }
+}
+
+function startTypingPractice() {
+    const stored = localStorage.getItem('portalStudent');
+    if (!stored) {
+        showNotification('Please login to start typing practice', 'warning');
+        return;
+    }
+    const student = JSON.parse(stored);
+    // Store student ID in sessionStorage for typing practice page
+    sessionStorage.setItem('typingStudentId', student.id);
+    sessionStorage.setItem('typingStudentName', student.name);
+    window.location.href = 'typing-practice.html';
+}
+
+async function viewTypingLeaderboard() {
+    try {
+        const res = await fetch('/api/typing-leaderboard');
+        const data = await res.json();
+
+        if (data.success && data.leaderboard) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;';
+
+            modal.innerHTML = `
+                <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); width: 100%; max-width: 700px; max-height: 80vh; overflow-y: auto; border-radius: 16px; padding: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; color: white; font-size: 24px;"><i class="fas fa-trophy" style="color: #fbbf24;"></i> Typing Leaderboard</h3>
+                        <button onclick="this.closest('div').parentElement.remove()" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">✕</button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: rgba(102, 126, 234, 0.3);">
+                                    <th style="padding: 12px; text-align: left; color: white; border-bottom: 2px solid rgba(255,255,255,0.2);">Rank</th>
+                                    <th style="padding: 12px; text-align: left; color: white; border-bottom: 2px solid rgba(255,255,255,0.2);">Name</th>
+                                    <th style="padding: 12px; text-align: left; color: white; border-bottom: 2px solid rgba(255,255,255,0.2);">Roll No</th>
+                                    <th style="padding: 12px; text-align: center; color: white; border-bottom: 2px solid rgba(255,255,255,0.2);">Best WPM</th>
+                                    <th style="padding: 12px; text-align: center; color: white; border-bottom: 2px solid rgba(255,255,255,0.2);">Accuracy</th>
+                                    <th style="padding: 12px; text-align: center; color: white; border-bottom: 2px solid rgba(255,255,255,0.2);">XP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.leaderboard.map((entry, index) => `
+                                    <tr style="${index < 3 ? 'background: rgba(251, 191, 36, 0.1);' : ''}">
+                                        <td style="padding: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                            ${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                                        </td>
+                                        <td style="padding: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: 600;">${entry.name}</td>
+                                        <td style="padding: 12px; color: rgba(255,255,255,0.7); border-bottom: 1px solid rgba(255,255,255,0.1);">${entry.rollNo}</td>
+                                        <td style="padding: 12px; text-align: center; color: white; border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: 700;">${entry.bestWpm}</td>
+                                        <td style="padding: 12px; text-align: center; color: white; border-bottom: 1px solid rgba(255,255,255,0.1);">${entry.bestAccuracy}%</td>
+                                        <td style="padding: 12px; text-align: center; color: white; border-bottom: 1px solid rgba(255,255,255,0.1);">${entry.totalXP}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    ${data.leaderboard.length === 0 ? '<div style="text-align: center; padding: 30px; color: rgba(255,255,255,0.6);">No data available yet</div>' : ''}
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+        }
+    } catch (e) {
+        console.error('Error loading leaderboard:', e);
+        showNotification('Failed to load leaderboard', 'error');
+    }
 }
 
 async function loadNotifications(studentId) {
