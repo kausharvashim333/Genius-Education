@@ -1103,7 +1103,7 @@
             border-radius: 24px;
             max-width: 900px;
             width: 100%;
-            max-height: 90vh;
+            max-height: 95vh;
             display: flex;
             flex-direction: column;
             padding: 0;
@@ -1112,7 +1112,7 @@
 
         .guide-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 30px 40px;
+            padding: 20px 30px;
             border-radius: 24px 24px 0 0;
             position: relative;
             flex-shrink: 0;
@@ -1121,7 +1121,7 @@
         .guide-header h2 {
             color: white;
             margin: 0;
-            font-size: 32px;
+            font-size: 24px;
             text-align: center;
             font-weight: 700;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -1154,7 +1154,7 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            padding: 20px 40px;
+            padding: 15px 30px;
             background: rgba(40, 40, 60, 0.5);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             flex-shrink: 0;
@@ -1184,16 +1184,16 @@
         }
 
         .guide-body {
-            padding: 40px;
+            padding: 20px 30px;
             overflow-y: auto;
             flex: 1;
         }
 
         .guide-section {
-            margin-bottom: 30px;
-            padding: 25px;
+            margin-bottom: 20px;
+            padding: 15px 20px;
             background: rgba(40, 40, 60, 0.6);
-            border-radius: 16px;
+            border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
         }
@@ -1206,11 +1206,11 @@
 
         .guide-section h3 {
             color: #667eea;
-            margin-bottom: 20px;
-            font-size: 22px;
+            margin-bottom: 12px;
+            font-size: 16px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             font-weight: 600;
         }
 
@@ -1218,21 +1218,21 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-size: 26px;
+            font-size: 18px;
         }
 
         .guide-section h4 {
             color: #e0e0e0;
-            margin: 20px 0 12px 0;
-            font-size: 18px;
+            margin: 12px 0 8px 0;
+            font-size: 14px;
             font-weight: 600;
         }
 
         .guide-section p {
             color: #b0b0b0;
-            line-height: 1.8;
-            margin-bottom: 12px;
-            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+            font-size: 13px;
         }
 
         .guide-section p strong {
@@ -1242,30 +1242,36 @@
 
         .guide-diagram {
             background: rgba(20, 20, 35, 0.8);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
             display: flex;
             justify-content: center;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        .guide-diagram svg {
+            max-width: 100%;
+            height: auto;
+            max-height: 120px;
+        }
+
         .guide-tip {
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
             border-left: 4px solid #667eea;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-top: 20px;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-top: 10px;
             color: #e0e0e0;
-            font-size: 14px;
+            font-size: 12px;
             font-style: italic;
         }
 
         .guide-start-button-container {
             display: flex;
             justify-content: center;
-            margin-top: 30px;
-            padding-top: 20px;
+            margin-top: 15px;
+            padding-top: 15px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -1448,9 +1454,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 30px;
-            padding-top: 20px;
+            margin-top: 15px;
+            padding: 15px 30px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
         }
 
         .guide-nav-btn {
@@ -4023,9 +4030,6 @@
                     <button class="header-btn secondary" onclick="loadNewText()">
                         <i class="fas fa-redo"></i> New Text
                     </button>
-                    <button class="header-btn success" id="startBtn" onclick="startTyping()">
-                        <i class="fas fa-play"></i> Start
-                    </button>
                     <button class="header-btn secondary" onclick="openGuide()">
                         <i class="fas fa-question-circle"></i> Guide
                     </button>
@@ -4034,7 +4038,7 @@
 
             <div class="app-content">
                 <div class="typing-area">
-                    <div class="text-display" id="textDisplay">Click "Start" to begin typing...</div>
+                    <div class="text-display" id="textDisplay"></div>
                     <input type="text" class="typing-input" id="typingInput" placeholder="Start typing here..." disabled style="display: none;">
 
                     <div class="keyboard-section" id="keyboardSection">
@@ -4197,7 +4201,7 @@
                         <h3><i class="fas fa-hand-paper"></i> Home Row Finger Placement</h3>
                         
                         <div class="guide-diagram">
-                            <svg width="400" height="200" viewBox="0 0 400 200">
+                            <svg width="300" height="150" viewBox="0 0 400 200">
                                 <!-- Keyboard base -->
                                 <rect x="20" y="50" width="360" height="120" rx="10" fill="#2a2a3a" stroke="#444" stroke-width="2"/>
                                 
@@ -4255,7 +4259,7 @@
                         <h3><i class="fas fa-keyboard"></i> Essential Rules</h3>
                         
                         <div class="guide-diagram">
-                            <svg width="400" height="150" viewBox="0 0 400 150">
+                            <svg width="300" height="110" viewBox="0 0 400 150">
                                 <!-- Rule 1: Home row -->
                                 <circle cx="60" cy="40" r="25" fill="#667eea" opacity="0.3"/>
                                 <text x="60" y="45" fill="#667eea" font-size="20" text-anchor="middle">🏠</text>
@@ -4375,7 +4379,7 @@
                         <h3><i class="fas fa-hand-paper"></i> होम रो उंगली स्थिति</h3>
                         
                         <div class="guide-diagram">
-                            <svg width="400" height="200" viewBox="0 0 400 200">
+                            <svg width="300" height="150" viewBox="0 0 400 200">
                                 <!-- Keyboard base -->
                                 <rect x="20" y="50" width="360" height="120" rx="10" fill="#2a2a3a" stroke="#444" stroke-width="2"/>
                                 
@@ -4433,7 +4437,7 @@
                         <h3><i class="fas fa-keyboard"></i> आवश्यक नियम</h3>
                         
                         <div class="guide-diagram">
-                            <svg width="400" height="150" viewBox="0 0 400 150">
+                            <svg width="300" height="110" viewBox="0 0 400 150">
                                 <!-- Rule 1: Home row -->
                                 <circle cx="60" cy="40" r="25" fill="#667eea" opacity="0.3"/>
                                 <text x="60" y="45" fill="#667eea" font-size="20" text-anchor="middle">🏠</text>
@@ -5334,7 +5338,6 @@
         const progressPercentage = document.getElementById('progressPercentage');
         const accuracyCircle = document.getElementById('accuracyCircle');
         const fingerGuideText = document.getElementById('fingerGuideText');
-        const startBtn = document.getElementById('startBtn');
         const levelSelect = document.getElementById('levelSelect');
         const levelInfo = document.getElementById('levelInfo');
         const showKeyboardCheckbox = document.getElementById('showKeyboard');
@@ -5463,18 +5466,17 @@
             lastCompletedLine = -1;
             previousLineIndex = -1;
             typingInput.value = '';
-            typingInput.disabled = true;
+            typingInput.disabled = false;
             wpmDisplay.textContent = '0';
-            accuracyDisplay.textContent = '0%';
+            accuracyDisplay.textContent = '100%';
             progressFillSidebar.style.width = '0%';
             progressPercentage.textContent = '0%';
             accuracyCircle.style.strokeDashoffset = '226.195';
             cpmDisplay.textContent = '0';
-            startBtn.disabled = false;
-            
-            // Show "Click Start" message
-            textDisplay.innerHTML = '<div class="text-line">Click "Start" to begin typing...</div>';
-            
+
+            // Show text immediately
+            updateDisplay();
+
             // Reset timer display
             timerDisplay.classList.remove('visible');
             timerDisplay.style.display = 'none';
@@ -5487,9 +5489,6 @@
         function startTyping() {
             isTyping = true;
             startTime = new Date();
-            typingInput.disabled = false;
-            startBtn.disabled = true;
-            updateDisplay();
             updateFingerGuide();
 
             const levelData = gameLevels[currentLevel - 1];
@@ -5531,7 +5530,6 @@
         function endTyping() {
             isTyping = false;
             typingInput.disabled = true;
-            startBtn.disabled = false;
             
             if (timerInterval) {
                 clearTimeout(timerInterval);
@@ -6755,21 +6753,22 @@
                 return;
             }
             
-            // Space - Start typing (when not typing)
-            if (e.key === ' ' && !isTyping && !typingInput.disabled) {
-                e.preventDefault();
-                startTyping();
-                return;
+            // Start typing on first keystroke when not typing
+            if (!isTyping && !typingInput.disabled && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                const key = e.key;
+                if (key.length === 1 || key === 'Backspace' || key === 'Delete') {
+                    startTyping();
+                }
             }
-            
+
             // Capture typing when isTyping is true
             if (isTyping && !e.ctrlKey && !e.metaKey && !e.altKey) {
                 const key = e.key;
-                
+
                 // Ignore special keys
                 if (key.length === 1 || key === 'Backspace' || key === 'Delete') {
                     e.preventDefault();
-                    
+
                     if (key === 'Backspace' && currentIndex > 0) {
                         currentIndex--;
                         updateDisplay();
