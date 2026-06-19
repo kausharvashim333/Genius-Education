@@ -6076,17 +6076,6 @@
         }
 
         window.addEventListener('DOMContentLoaded', function() {
-            // Check if user is logged in, if not show login modal
-            const storedUser = localStorage.getItem('currentUser');
-            if (!storedUser) {
-                openUserLoginModal();
-            } else {
-                // Set current user and load data
-                currentUser = storedUser;
-                loadUserData();
-                updateUserDisplay();
-            }
-
             initializeLevelSelector();
             loadNewText();
             updateXPDisplay();
@@ -7351,7 +7340,9 @@
         };
 
         function loadAchievements() {
-            const saved = localStorage.getItem('achievements');
+            if (!currentUser) return;
+            const userPrefix = `user_${currentUser}_`;
+            const saved = localStorage.getItem(userPrefix + 'achievements');
             if (saved) {
                 Object.assign(achievements, JSON.parse(saved));
                 updateBadgesUI();
@@ -7359,7 +7350,9 @@
         }
 
         function saveAchievements() {
-            localStorage.setItem('achievements', JSON.stringify(achievements));
+            if (!currentUser) return;
+            const userPrefix = `user_${currentUser}_`;
+            localStorage.setItem(userPrefix + 'achievements', JSON.stringify(achievements));
         }
 
         function updateBadgesUI() {
@@ -7470,9 +7463,12 @@
 
         function saveMistakeAnalysis() {
             if (mistakeLog.length === 0) return;
+            if (!currentUser) return;
+
+            const userPrefix = `user_${currentUser}_`;
 
             // Get existing mistake data
-            let mistakeData = JSON.parse(localStorage.getItem('mistakeData')) || {};
+            let mistakeData = JSON.parse(localStorage.getItem(userPrefix + 'mistakeData')) || {};
 
             // Analyze current session mistakes
             mistakeLog.forEach(mistake => {
@@ -7487,7 +7483,7 @@
                 mistakeData[key].count++;
             });
 
-            localStorage.setItem('mistakeData', JSON.stringify(mistakeData));
+            localStorage.setItem(userPrefix + 'mistakeData', JSON.stringify(mistakeData));
 
             // Reset for next session
             mistakeLog = [];
@@ -7515,8 +7511,11 @@
         }
 
         function saveFingerUsage() {
+            if (!currentUser) return;
+            const userPrefix = `user_${currentUser}_`;
+
             // Get existing finger usage data
-            let fingerData = JSON.parse(localStorage.getItem('fingerData')) || {};
+            let fingerData = JSON.parse(localStorage.getItem(userPrefix + 'fingerData')) || {};
 
             // Update with current session
             Object.keys(fingerUsage).forEach(finger => {
@@ -7526,7 +7525,7 @@
                 fingerData[finger] += fingerUsage[finger];
             });
 
-            localStorage.setItem('fingerData', JSON.stringify(fingerData));
+            localStorage.setItem(userPrefix + 'fingerData', JSON.stringify(fingerData));
 
             // Reset for next session
             Object.keys(fingerUsage).forEach(key => {
@@ -7535,6 +7534,8 @@
         }
 
         function updateDailyStreak() {
+            if (!currentUser) return;
+            const userPrefix = `user_${currentUser}_`;
             const today = new Date().toDateString();
             const yesterday = new Date(Date.now() - 86400000).toDateString();
 
@@ -7549,8 +7550,8 @@
             }
 
             lastPracticeDate = today;
-            localStorage.setItem('currentStreak', currentStreak);
-            localStorage.setItem('lastPracticeDate', lastPracticeDate);
+            localStorage.setItem(userPrefix + 'dailyStreak', currentStreak);
+            localStorage.setItem(userPrefix + 'lastPracticeDate', lastPracticeDate);
         }
 
         function checkAchievements(wpm, accuracy, currentStreak) {
