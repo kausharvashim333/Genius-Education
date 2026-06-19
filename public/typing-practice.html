@@ -7321,12 +7321,19 @@
         }
 
         function openUserLoginModal() {
-            document.getElementById('userLoginModal').style.display = 'flex';
-            document.getElementById('newUserName').value = '';
-            document.getElementById('newUserError').style.display = 'none';
-            document.getElementById('existingUserError').style.display = 'none';
-            selectedUser = null;
-            switchLoginTab('new');
+            console.log('Opening user login modal');
+            const modal = document.getElementById('userLoginModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.getElementById('newUserName').value = '';
+                document.getElementById('newUserError').style.display = 'none';
+                document.getElementById('existingUserError').style.display = 'none';
+                selectedUser = null;
+                switchLoginTab('new');
+                console.log('User login modal opened successfully');
+            } else {
+                console.error('User login modal element not found');
+            }
         }
 
         function closeUserLoginModal() {
@@ -7882,20 +7889,29 @@
 
         // Initialize
         window.addEventListener('load', function() {
+            console.log('Window loaded, starting initialization');
             // Hide splash screen after 2.5 seconds
             setTimeout(() => {
+                console.log('Hiding splash screen');
                 document.getElementById('splashScreen').classList.add('hidden');
 
+                // Always show login modal for now (debugging)
+                console.log('Opening login modal (debug mode)');
+                openUserLoginModal();
+
                 // Check if user is logged in, if not show login modal
-                const storedUser = localStorage.getItem('currentUser');
-                if (!storedUser) {
-                    openUserLoginModal();
-                } else {
-                    // Set current user and load data
-                    currentUser = storedUser;
-                    loadUserData();
-                    updateUserDisplay();
-                }
+                // const storedUser = localStorage.getItem('currentUser');
+                // console.log('Stored user from localStorage:', storedUser);
+                // if (!storedUser) {
+                //     console.log('No user found, opening login modal');
+                //     openUserLoginModal();
+                // } else {
+                //     console.log('User found, loading data for:', storedUser);
+                //     // Set current user and load data
+                //     currentUser = storedUser;
+                //     loadUserData();
+                //     updateUserDisplay();
+                // }
             }, 2500);
 
             loadAchievements();
