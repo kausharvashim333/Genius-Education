@@ -3095,6 +3095,204 @@
             color: #e0e0e0;
         }
 
+        .user-login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .user-login-content {
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 450px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .user-login-header h2 {
+            color: #e0e0e0;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .user-login-header p {
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+
+        .user-login-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .user-login-tab {
+            flex: 1;
+            padding: 12px;
+            background: rgba(40, 40, 60, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .user-login-tab.active {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .user-login-tab:hover {
+            background: rgba(50, 50, 70, 0.7);
+        }
+
+        .user-login-input-group {
+            margin-bottom: 20px;
+        }
+
+        .user-login-input-group label {
+            display: block;
+            color: #e0e0e0;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .user-login-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(40, 40, 60, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .user-login-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .user-login-input::placeholder {
+            color: #666;
+        }
+
+        .user-login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .user-login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .user-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .user-list-item {
+            background: rgba(40, 40, 60, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            color: #e0e0e0;
+            font-weight: 600;
+        }
+
+        .user-list-item:hover {
+            background: rgba(50, 50, 70, 0.7);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .user-list-item.selected {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .user-login-error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .current-user-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .current-user-display i {
+            color: #667eea;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: #ef4444;
+        }
+
         body.high-contrast {
             --bg-primary: #000000;
             --bg-secondary: #1a1a1a;
@@ -4593,6 +4791,37 @@
         </div>
     </div>
 
+    <div class="user-login-modal" id="userLoginModal">
+        <div class="user-login-content">
+            <div class="user-login-header">
+                <h2><i class="fas fa-user"></i> Student Login</h2>
+                <p>Enter your name to track your progress</p>
+            </div>
+            <div class="user-login-tabs">
+                <div class="user-login-tab active" id="newUserTab" onclick="switchLoginTab('new')">New User</div>
+                <div class="user-login-tab" id="existingUserTab" onclick="switchLoginTab('existing')">Existing User</div>
+            </div>
+            <div id="newUserForm">
+                <div class="user-login-input-group">
+                    <label>Enter Your Name</label>
+                    <input type="text" class="user-login-input" id="newUserName" placeholder="Type your name here..." maxlength="30">
+                </div>
+                <div class="user-login-error" id="newUserError"></div>
+                <button class="user-login-btn" onclick="registerUser()">Start Typing</button>
+            </div>
+            <div id="existingUserForm" style="display: none;">
+                <div class="user-login-input-group">
+                    <label>Select Your Name</label>
+                    <div class="user-list" id="userList">
+                        <!-- User list will be populated by JavaScript -->
+                    </div>
+                </div>
+                <div class="user-login-error" id="existingUserError"></div>
+                <button class="user-login-btn" onclick="loginSelectedUser()">Login</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 50-Level Game System
         const gameLevels = [];
@@ -4715,16 +4944,16 @@
         let previousLineIndex = -1; // Track previous line index for animation
 
         // XP System
-        let totalXP = parseInt(localStorage.getItem('totalXP')) || 0;
-        let userLevel = Math.floor(totalXP / 1000) + 1; // Level up every 1000 XP
+        let totalXP = 0;
+        let userLevel = 1; // Level up every 1000 XP
         let sessionXP = 0;
 
         // Daily Streak System
-        let currentStreak = parseInt(localStorage.getItem('currentStreak')) || 0;
-        let lastPracticeDate = localStorage.getItem('lastPracticeDate') || null;
+        let currentStreak = 0;
+        let lastPracticeDate = null;
 
         // Session History
-        let sessionHistory = JSON.parse(localStorage.getItem('sessionHistory')) || [];
+        let sessionHistory = [];
 
         // Font Size
         let currentFontSize = parseInt(localStorage.getItem('fontSize')) || 18;
@@ -5065,7 +5294,7 @@
             const xpEarned = calculateXP(wpm, accuracy, currentLevel);
             totalXP += xpEarned;
             sessionXP += xpEarned;
-            localStorage.setItem('totalXP', totalXP);
+            saveUserData();
             userLevel = Math.floor(totalXP / 1000) + 1;
 
             saveBestWpm(wpm);
@@ -5477,7 +5706,7 @@
                 challengeProgress = 100;
                 saveChallengeProgress();
                 totalXP += currentChallenge.reward;
-                localStorage.setItem('totalXP', totalXP);
+                saveUserData();
                 userLevel = Math.floor(totalXP / 1000) + 1;
                 updateXPDisplay();
             }
@@ -5498,7 +5727,7 @@
             const grid = document.getElementById('badgesGrid');
             grid.innerHTML = '';
 
-            const bestWpm = parseInt(localStorage.getItem('bestWpm')) || 0;
+            const bestWpm = currentUser ? parseInt(localStorage.getItem(`user_${currentUser}_bestWpm`)) || 0 : 0;
 
             speedBadges.forEach(badge => {
                 const isEarned = earnedBadges.includes(badge.id) || bestWpm >= badge.requirement;
@@ -5847,6 +6076,15 @@
         }
 
         window.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in, if not show login modal
+            if (!currentUser) {
+                openUserLoginModal();
+            } else {
+                // Load user data if already logged in
+                loadUserData();
+                updateUserDisplay();
+            }
+
             initializeLevelSelector();
             loadNewText();
             updateXPDisplay();
@@ -6371,7 +6609,7 @@
 
             sessionCount.textContent = currentIndex;
 
-            const storedBest = localStorage.getItem('bestWpm') || 0;
+            const storedBest = currentUser ? localStorage.getItem(`user_${currentUser}_bestWpm`) || 0 : 0;
             bestWpm.textContent = storedBest;
         }
 
@@ -6412,16 +6650,21 @@
 
         // Save best WPM
         function saveBestWpm(wpm) {
-            const currentBest = localStorage.getItem('bestWpm') || 0;
+            if (!currentUser) return;
+            const userPrefix = `user_${currentUser}_`;
+            const currentBest = parseInt(localStorage.getItem(userPrefix + 'bestWpm')) || 0;
             if (wpm > currentBest) {
-                localStorage.setItem('bestWpm', wpm);
+                localStorage.setItem(userPrefix + 'bestWpm', wpm);
+                bestWpm = wpm;
             }
         }
 
         function saveBestAccuracy(accuracy) {
-            const currentBest = localStorage.getItem('bestAccuracy') || 0;
+            if (!currentUser) return;
+            const userPrefix = `user_${currentUser}_`;
+            const currentBest = parseInt(localStorage.getItem(userPrefix + 'bestAccuracy')) || 0;
             if (accuracy > currentBest) {
-                localStorage.setItem('bestAccuracy', accuracy);
+                localStorage.setItem(userPrefix + 'bestAccuracy', accuracy);
             }
         }
 
@@ -6868,6 +7111,228 @@
             document.getElementById('moreOptionsModal').style.display = 'none';
         }
 
+        // User Login System
+        let currentUser = localStorage.getItem('currentUser') || null;
+        let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+        let selectedUser = null;
+
+        function switchLoginTab(tab) {
+            const newUserTab = document.getElementById('newUserTab');
+            const existingUserTab = document.getElementById('existingUserTab');
+            const newUserForm = document.getElementById('newUserForm');
+            const existingUserForm = document.getElementById('existingUserForm');
+
+            if (tab === 'new') {
+                newUserTab.classList.add('active');
+                existingUserTab.classList.remove('active');
+                newUserForm.style.display = 'block';
+                existingUserForm.style.display = 'none';
+            } else {
+                existingUserTab.classList.add('active');
+                newUserTab.classList.remove('active');
+                existingUserForm.style.display = 'block';
+                newUserForm.style.display = 'none';
+                populateUserList();
+            }
+        }
+
+        function registerUser() {
+            const nameInput = document.getElementById('newUserName');
+            const name = nameInput.value.trim();
+            const errorDiv = document.getElementById('newUserError');
+
+            if (!name) {
+                errorDiv.textContent = 'Please enter your name';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (registeredUsers.includes(name)) {
+                errorDiv.textContent = 'This name is already registered. Please select from existing users.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // Register new user
+            registeredUsers.push(name);
+            localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+
+            // Set as current user
+            currentUser = name;
+            localStorage.setItem('currentUser', currentUser);
+
+            // Initialize user data
+            initializeUserData(name);
+
+            // Close modal and update UI
+            closeUserLoginModal();
+            updateUserDisplay();
+            loadUserData();
+        }
+
+        function populateUserList() {
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+
+            if (registeredUsers.length === 0) {
+                userList.innerHTML = '<div style="color: #a0a0a0; text-align: center; padding: 20px;">No registered users yet. Please register as a new user.</div>';
+                return;
+            }
+
+            registeredUsers.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-list-item';
+                userItem.textContent = user;
+                userItem.onclick = () => selectUser(user, userItem);
+                userList.appendChild(userItem);
+            });
+        }
+
+        function selectUser(user, element) {
+            selectedUser = user;
+
+            // Remove selected class from all items
+            document.querySelectorAll('.user-list-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Add selected class to clicked item
+            element.classList.add('selected');
+        }
+
+        function loginSelectedUser() {
+            const errorDiv = document.getElementById('existingUserError');
+
+            if (!selectedUser) {
+                errorDiv.textContent = 'Please select a user from the list';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // Set as current user
+            currentUser = selectedUser;
+            localStorage.setItem('currentUser', currentUser);
+
+            // Close modal and update UI
+            closeUserLoginModal();
+            updateUserDisplay();
+            loadUserData();
+        }
+
+        function initializeUserData(username) {
+            // Initialize user-specific data if not exists
+            const userPrefix = `user_${username}_`;
+
+            if (!localStorage.getItem(userPrefix + 'totalXP')) {
+                localStorage.setItem(userPrefix + 'totalXP', '0');
+            }
+            if (!localStorage.getItem(userPrefix + 'bestWpm')) {
+                localStorage.setItem(userPrefix + 'bestWpm', '0');
+            }
+            if (!localStorage.getItem(userPrefix + 'bestAccuracy')) {
+                localStorage.setItem(userPrefix + 'bestAccuracy', '0');
+            }
+            if (!localStorage.getItem(userPrefix + 'sessionHistory')) {
+                localStorage.setItem(userPrefix + 'sessionHistory', JSON.stringify([]));
+            }
+            if (!localStorage.getItem(userPrefix + 'achievements')) {
+                localStorage.setItem(userPrefix + 'achievements', JSON.stringify({}));
+            }
+            if (!localStorage.getItem(userPrefix + 'dailyStreak')) {
+                localStorage.setItem(userPrefix + 'dailyStreak', '0');
+            }
+            if (!localStorage.getItem(userPrefix + 'lastPracticeDate')) {
+                localStorage.setItem(userPrefix + 'lastPracticeDate', '');
+            }
+        }
+
+        function loadUserData() {
+            if (!currentUser) return;
+
+            const userPrefix = `user_${currentUser}_`;
+
+            // Load user-specific data
+            totalXP = parseInt(localStorage.getItem(userPrefix + 'totalXP')) || 0;
+            userLevel = Math.floor(totalXP / 1000) + 1;
+            bestWpm = parseInt(localStorage.getItem(userPrefix + 'bestWpm')) || 0;
+            sessionHistory = JSON.parse(localStorage.getItem(userPrefix + 'sessionHistory')) || [];
+            achievements = JSON.parse(localStorage.getItem(userPrefix + 'achievements')) || {};
+            dailyStreak = parseInt(localStorage.getItem(userPrefix + 'dailyStreak')) || 0;
+            lastPracticeDate = localStorage.getItem(userPrefix + 'lastPracticeDate') || '';
+
+            // Update displays
+            updateXPDisplay();
+            updateStreakDisplay();
+        }
+
+        function saveUserData() {
+            if (!currentUser) return;
+
+            const userPrefix = `user_${currentUser}_`;
+
+            // Save user-specific data
+            localStorage.setItem(userPrefix + 'totalXP', totalXP);
+            localStorage.setItem(userPrefix + 'bestWpm', bestWpm);
+            localStorage.setItem(userPrefix + 'bestAccuracy', localStorage.getItem(userPrefix + 'bestAccuracy') || '0');
+            localStorage.setItem(userPrefix + 'sessionHistory', JSON.stringify(sessionHistory));
+            localStorage.setItem(userPrefix + 'achievements', JSON.stringify(achievements));
+            localStorage.setItem(userPrefix + 'dailyStreak', dailyStreak);
+            localStorage.setItem(userPrefix + 'lastPracticeDate', lastPracticeDate);
+        }
+
+        function updateUserDisplay() {
+            const headerRight = document.querySelector('.app-header-right');
+            const existingDisplay = document.querySelector('.current-user-display');
+
+            // Remove existing display if any
+            if (existingDisplay) {
+                existingDisplay.remove();
+            }
+
+            // Add current user display
+            const userDisplay = document.createElement('div');
+            userDisplay.className = 'current-user-display';
+            userDisplay.innerHTML = `
+                <i class="fas fa-user"></i>
+                <span>${currentUser}</span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            `;
+
+            // Insert before the last button
+            headerRight.insertBefore(userDisplay, headerRight.lastElementChild);
+        }
+
+        function logout() {
+            // Save current user data
+            saveUserData();
+
+            // Clear current user
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+
+            // Remove user display
+            const userDisplay = document.querySelector('.current-user-display');
+            if (userDisplay) {
+                userDisplay.remove();
+            }
+
+            // Show login modal
+            openUserLoginModal();
+        }
+
+        function openUserLoginModal() {
+            document.getElementById('userLoginModal').style.display = 'flex';
+            document.getElementById('newUserName').value = '';
+            document.getElementById('newUserError').style.display = 'none';
+            document.getElementById('existingUserError').style.display = 'none';
+            selectedUser = null;
+            switchLoginTab('new');
+        }
+
+        function closeUserLoginModal() {
+            document.getElementById('userLoginModal').style.display = 'none';
+        }
+
         // Achievement system
         const achievements = {
             'badge-first': false,
@@ -6992,38 +7457,9 @@
                 sessionHistory = sessionHistory.slice(0, 100);
             }
 
-            localStorage.setItem('sessionHistory', JSON.stringify(sessionHistory));
-
-            // Also save to server if student is logged in
-            const studentId = sessionStorage.getItem('typingStudentId');
-            if (studentId) {
-                saveSessionToServer(session, studentId);
-            }
-        }
-
-        async function saveSessionToServer(session, studentId) {
-            try {
-                const sessionData = {
-                    ...session,
-                    mistakeAnalysis: mistakeAnalysis,
-                    fingerUsage: fingerUsage,
-                    heatmap: heatmap,
-                    speedConsistency: speedConsistencyHistory,
-                    pauseAnalysis: pauseHistory,
-                    keyPressTimings: keyPressTimings
-                };
-
-                const res = await fetch(`/api/typing-progress/${studentId}/sessions`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(sessionData)
-                });
-
-                if (res.ok) {
-                    console.log('Session saved to server successfully');
-                }
-            } catch (e) {
-                console.error('Error saving session to server:', e);
+            if (currentUser) {
+                const userPrefix = `user_${currentUser}_`;
+                localStorage.setItem(userPrefix + 'sessionHistory', JSON.stringify(sessionHistory));
             }
         }
 
