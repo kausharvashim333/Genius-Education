@@ -7895,6 +7895,16 @@
             loadNewText();
             updateStatusBar();
         });
+
+        // Auto logout on window close
+        window.addEventListener('beforeunload', function() {
+            // Save current user data before logout
+            if (currentUser) {
+                saveUserData();
+            }
+            // Clear current user from localStorage
+            localStorage.removeItem('currentUser');
+        });
     </script>
 </body>
 </html>
