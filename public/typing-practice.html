@@ -1087,7 +1087,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(15, 15, 35, 0.98) 0%, rgba(25, 25, 55, 0.98) 100%);
+            background: rgba(0, 0, 0, 0.85);
             justify-content: center;
             align-items: center;
             z-index: 2000;
@@ -1096,100 +1096,87 @@
         }
 
         .guide-content {
-            background: linear-gradient(145deg, rgba(35, 35, 65, 0.99) 0%, rgba(25, 25, 50, 0.99) 100%);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 3px solid rgba(102, 126, 234, 0.5);
-            border-radius: 32px;
-            max-width: 1000px;
+            background: #1a1a2e;
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            max-width: 850px;
             width: 100%;
-            max-height: 95vh;
+            max-height: 90vh;
             display: flex;
             flex-direction: column;
             padding: 0;
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(102, 126, 234, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         }
 
         .guide-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
-            background-size: 200% 200%;
-            animation: gradientShift 8s ease infinite;
-            padding: 25px 40px;
-            border-radius: 32px 32px 0 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 30px;
+            border-radius: 18px 18px 0 0;
             position: relative;
             flex-shrink: 0;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         .guide-header h2 {
             color: white;
             margin: 0;
-            font-size: 28px;
+            font-size: 24px;
             text-align: center;
-            font-weight: 800;
-            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-            letter-spacing: 1px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
         .close-guide {
             position: absolute;
-            top: 25px;
-            right: 25px;
-            background: rgba(255, 255, 255, 0.25);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
             color: white;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 20px;
-            transition: all 0.3s ease;
+            font-size: 18px;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .close-guide:hover {
-            background: rgba(255, 255, 255, 0.4);
-            transform: rotate(90deg) scale(1.1);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
         }
 
         .language-tabs {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            padding: 20px 40px;
-            background: rgba(45, 45, 75, 0.6);
-            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            gap: 10px;
+            padding: 15px 30px;
+            background: #252540;
+            border-bottom: 1px solid #667eea;
             flex-shrink: 0;
         }
 
         .language-tab {
-            padding: 12px 30px;
-            background: rgba(102, 126, 234, 0.1);
-            border: 2px solid rgba(102, 126, 234, 0.3);
-            border-radius: 12px;
+            padding: 10px 25px;
+            background: transparent;
+            border: 2px solid #667eea;
+            border-radius: 8px;
             color: #e0e0e0;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .language-tab:hover {
             background: rgba(102, 126, 234, 0.2);
-            border-color: rgba(102, 126, 234, 0.5);
         }
 
         .language-tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-color: transparent;
+            background: #667eea;
+            border-color: #667eea;
             color: white;
         }
 
@@ -1197,54 +1184,49 @@
             padding: 20px 30px;
             overflow-y: auto;
             flex: 1;
+            background: #1a1a2e;
         }
 
         .guide-section {
-            margin-bottom: 15px;
-            padding: 15px 20px;
-            background: linear-gradient(145deg, rgba(45, 45, 75, 0.7) 0%, rgba(35, 35, 60, 0.7) 100%);
-            border-radius: 16px;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            padding: 18px 22px;
+            background: #252540;
+            border-radius: 12px;
+            border: 1px solid #3a3a5a;
+            transition: all 0.2s ease;
         }
 
         .guide-section:hover {
-            background: linear-gradient(145deg, rgba(55, 55, 85, 0.8) 0%, rgba(45, 45, 70, 0.8) 100%);
-            border-color: rgba(102, 126, 234, 0.5);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
         }
 
         .guide-section h3 {
             color: #667eea;
-            margin-bottom: 15px;
-            font-size: 20px;
+            margin-bottom: 12px;
+            font-size: 18px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .guide-section h3 i {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 22px;
+            color: #667eea;
+            font-size: 20px;
         }
 
         .guide-section h4 {
-            color: #e0e0e0;
-            margin: 15px 0 10px 0;
-            font-size: 16px;
+            color: #ffffff;
+            margin: 12px 0 8px 0;
+            font-size: 15px;
             font-weight: 700;
         }
 
         .guide-section p {
-            color: #c0c0c0;
-            line-height: 1.7;
-            margin-bottom: 12px;
+            color: #d0d0d0;
+            line-height: 1.6;
+            margin-bottom: 10px;
             font-size: 14px;
         }
 
@@ -1254,28 +1236,27 @@
         }
 
         .guide-diagram {
-            background: linear-gradient(145deg, rgba(25, 25, 45, 0.9) 0%, rgba(20, 20, 35, 0.9) 100%);
-            border-radius: 16px;
-            padding: 20px;
-            margin: 20px 0;
+            background: #202035;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
             display: flex;
             justify-content: center;
-            border: 2px solid rgba(102, 126, 234, 0.3);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(102, 126, 234, 0.1);
+            border: 1px solid #3a3a5a;
         }
 
         .guide-diagram svg {
             max-width: 100%;
             height: auto;
-            max-height: 400px;
+            max-height: 350px;
         }
 
         .guide-tip {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-            border-left: 5px solid #667eea;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-top: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 4px solid #667eea;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-top: 12px;
             color: #e0e0e0;
             font-size: 13px;
             font-style: italic;
@@ -1284,33 +1265,31 @@
         .guide-two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 10px;
+            gap: 15px;
+            margin-top: 12px;
         }
 
         .guide-column {
-            background: linear-gradient(145deg, rgba(40, 40, 70, 0.6) 0%, rgba(30, 30, 55, 0.6) 100%);
-            border-radius: 12px;
-            padding: 12px;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            transition: all 0.3s ease;
+            background: #202035;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #3a3a5a;
+            transition: all 0.2s ease;
         }
 
         .guide-column:hover {
-            border-color: rgba(102, 126, 234, 0.5);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
         }
 
         .guide-column h4 {
             color: #667eea;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .guide-column ul {
@@ -1320,12 +1299,12 @@
         }
 
         .guide-column li {
-            color: #c0c0c0;
-            padding: 4px 0;
-            padding-left: 25px;
+            color: #d0d0d0;
+            padding: 6px 0;
+            padding-left: 24px;
             position: relative;
             font-size: 13px;
-            line-height: 1.3;
+            line-height: 1.4;
         }
 
         .guide-column li::before {
@@ -1339,66 +1318,65 @@
         .guide-start-button-container {
             display: flex;
             justify-content: center;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #3a3a5a;
         }
 
         .guide-start-btn {
-            padding: 16px 40px;
+            padding: 14px 35px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             color: white;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            gap: 8px;
         }
 
         .guide-start-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
         .guide-start-btn:active {
-            transform: translateY(-1px);
+            transform: translateY(0);
         }
 
         .guide-navigation {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 25px 40px;
-            background: rgba(40, 40, 60, 0.5);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0 0 24px 24px;
+            padding: 20px 30px;
+            background: #252540;
+            border-top: 1px solid #3a3a5a;
+            border-radius: 0 0 18px 18px;
             flex-shrink: 0;
         }
 
         .guide-nav-btn {
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 25px;
+            background: #667eea;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             color: white;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .guide-nav-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            background: #764ba2;
+            transform: translateY(-1px);
         }
 
         .guide-nav-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
         }
 
@@ -1407,7 +1385,7 @@
             align-items: center;
             gap: 8px;
             color: #e0e0e0;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
         }
 
@@ -4270,7 +4248,7 @@
                         <h3><i class="fas fa-hand-paper"></i> Home Row Finger Placement</h3>
 
                         <div class="guide-diagram">
-                            <svg width="800" height="450" viewBox="0 0 600 320">
+                            <svg width="700" height="400" viewBox="0 0 600 320">
                                 <!-- Background with gradient -->
                                 <defs>
                                     <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -4527,7 +4505,7 @@
                         <h3><i class="fas fa-hand-paper"></i> होम रो उंगली स्थिति</h3>
 
                         <div class="guide-diagram">
-                            <svg width="800" height="450" viewBox="0 0 600 320">
+                            <svg width="700" height="400" viewBox="0 0 600 320">
                                 <!-- Background with gradient -->
                                 <defs>
                                     <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
