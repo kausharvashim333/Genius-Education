@@ -7295,11 +7295,14 @@
             userDisplay.innerHTML = `
                 <i class="fas fa-user"></i>
                 <span>${currentUser}</span>
-                <button class="logout-btn" onclick="logout()">Logout</button>
+                <button class="logout-btn" id="logoutBtn">Logout</button>
             `;
 
             // Insert before the last button
             headerRight.insertBefore(userDisplay, headerRight.lastElementChild);
+
+            // Add event listener to logout button
+            document.getElementById('logoutBtn').addEventListener('click', logout);
         }
 
         function logout() {
