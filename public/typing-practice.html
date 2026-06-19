@@ -6784,6 +6784,7 @@
 
                     if (key === 'Backspace' && currentIndex > 0) {
                         currentIndex--;
+                        incorrectChars.delete(currentIndex);
                         updateDisplay();
                         updateStatusBar();
                     } else if (key.length === 1) {
