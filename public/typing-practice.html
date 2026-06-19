@@ -3105,7 +3105,7 @@
             background: rgba(0, 0, 0, 0.8);
             justify-content: center;
             align-items: center;
-            z-index: 2000;
+            z-index: 10000;
         }
 
         .user-login-content {
@@ -7878,8 +7878,19 @@
             // Hide splash screen after 2.5 seconds
             setTimeout(() => {
                 document.getElementById('splashScreen').classList.add('hidden');
+
+                // Check if user is logged in, if not show login modal
+                const storedUser = localStorage.getItem('currentUser');
+                if (!storedUser) {
+                    openUserLoginModal();
+                } else {
+                    // Set current user and load data
+                    currentUser = storedUser;
+                    loadUserData();
+                    updateUserDisplay();
+                }
             }, 2500);
-            
+
             loadAchievements();
             loadNewText();
             updateStatusBar();
