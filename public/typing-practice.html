@@ -1261,6 +1261,39 @@
             font-style: italic;
         }
 
+        .guide-start-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .guide-start-btn {
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .guide-start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .guide-start-btn:active {
+            transform: translateY(-1px);
+        }
+
         .guide-navigation {
             display: flex;
             justify-content: space-between;
@@ -3300,6 +3333,30 @@
             max-width: 450px;
             width: 90%;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .user-login-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            color: #e0e0e0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .user-login-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
         }
 
         .user-login-header {
@@ -4294,6 +4351,12 @@
                         <p>Try different text types</p>
 
                         <div class="guide-tip">💡 Your health matters more than speed</div>
+
+                        <div class="guide-start-button-container">
+                            <button class="guide-start-btn" onclick="closeGuide()">
+                                <i class="fas fa-play"></i> Start Typing Practice
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -4465,6 +4528,12 @@
                         <p>विभिन्न टेक्स्ट प्रकार आज़माएं</p>
 
                         <div class="guide-tip">💡 आपका स्वास्थ्य गति से ज़रूरी है</div>
+
+                        <div class="guide-start-button-container">
+                            <button class="guide-start-btn" onclick="closeGuide()">
+                                <i class="fas fa-play"></i> टाइपिंग अभ्यास शुरू करें
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -4982,6 +5051,9 @@
 
     <div class="user-login-modal" id="userLoginModal">
         <div class="user-login-content">
+            <button class="user-login-close-btn" onclick="closeUserLoginModal()">
+                <i class="fas fa-times"></i>
+            </button>
             <div class="user-login-header">
                 <h2><i class="fas fa-user"></i> Student Login</h2>
                 <p>Enter your name to track your progress</p>
@@ -6595,7 +6667,7 @@
 
         function updateGuidePageDisplay(lang) {
             const prefix = lang === 'english' ? '' : 'Hindi';
-            
+
             // Hide all pages
             for (let i = 0; i < totalGuidePages; i++) {
                 const page = document.getElementById(`guidePage${prefix}${i}`);
@@ -6603,20 +6675,27 @@
                     page.style.display = 'none';
                 }
             }
-            
+
             // Show current page
             const currentPage = document.getElementById(`guidePage${prefix}${currentGuidePage}`);
             if (currentPage) {
                 currentPage.style.display = 'block';
             }
-            
+
             // Update navigation buttons
             const prevBtn = document.getElementById(`prevBtn${prefix}`);
             const nextBtn = document.getElementById(`nextBtn${prefix}`);
             const currentPageSpan = document.getElementById(`currentPage${prefix}`);
-            
+
             if (prevBtn) prevBtn.disabled = currentGuidePage === 0;
-            if (nextBtn) nextBtn.disabled = currentGuidePage === totalGuidePages - 1;
+            if (nextBtn) {
+                if (currentGuidePage === totalGuidePages - 1) {
+                    nextBtn.style.display = 'none';
+                } else {
+                    nextBtn.style.display = 'block';
+                    nextBtn.disabled = false;
+                }
+            }
             if (currentPageSpan) currentPageSpan.textContent = currentGuidePage + 1;
         }
 
@@ -7526,7 +7605,10 @@
         }
 
         function closeUserLoginModal() {
-            document.getElementById('userLoginModal').style.display = 'none';
+            const modal = document.getElementById('userLoginModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
         }
 
         // Achievement system
