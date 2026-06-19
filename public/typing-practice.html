@@ -7621,7 +7621,17 @@
         function closeUserLoginModal() {
             const modal = document.getElementById('userLoginModal');
             if (modal) {
-                modal.style.display = 'none';
+                // Only allow closing if user is logged in
+                if (currentUser) {
+                    modal.style.display = 'none';
+                } else {
+                    // Show error if trying to close without login
+                    const errorDiv = document.getElementById('newUserError');
+                    if (errorDiv) {
+                        errorDiv.textContent = 'Please login or register to continue';
+                        errorDiv.style.display = 'block';
+                    }
+                }
             }
         }
 
