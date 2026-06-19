@@ -6077,10 +6077,12 @@
 
         window.addEventListener('DOMContentLoaded', function() {
             // Check if user is logged in, if not show login modal
-            if (!currentUser) {
+            const storedUser = localStorage.getItem('currentUser');
+            if (!storedUser) {
                 openUserLoginModal();
             } else {
-                // Load user data if already logged in
+                // Set current user and load data
+                currentUser = storedUser;
                 loadUserData();
                 updateUserDisplay();
             }
