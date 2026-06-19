@@ -8180,14 +8180,12 @@
             updateStatusBar();
         });
 
-        // Auto logout on window close
+        // Auto save on window close
         window.addEventListener('beforeunload', function() {
-            // Save current user data before logout
+            // Save current user data before closing
             if (currentUser) {
                 saveUserData();
             }
-            // Clear current user from localStorage
-            localStorage.removeItem('currentUser');
         });
     </script>
 </body>
