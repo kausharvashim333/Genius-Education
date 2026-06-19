@@ -1087,7 +1087,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 100%);
             justify-content: center;
             align-items: center;
             z-index: 2000;
@@ -1097,43 +1097,220 @@
 
         .guide-content {
             background: rgba(30, 30, 50, 0.98);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            max-width: 800px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 24px;
+            max-width: 900px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            padding: 40px;
+            padding: 0;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        .guide-content h2 {
-            color: #667eea;
-            margin-bottom: 30px;
-            font-size: 28px;
+        .guide-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 40px;
+            border-radius: 24px 24px 0 0;
+            position: relative;
+        }
+
+        .guide-header h2 {
+            color: white;
+            margin: 0;
+            font-size: 32px;
             text-align: center;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .close-guide {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-guide:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .language-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px 40px;
+            background: rgba(40, 40, 60, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .language-tab {
+            padding: 12px 30px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            color: #e0e0e0;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .language-tab:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .language-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+        }
+
+        .guide-body {
+            padding: 40px;
         }
 
         .guide-section {
             margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(40, 40, 60, 0.5);
-            border-radius: 12px;
+            padding: 25px;
+            background: rgba(40, 40, 60, 0.6);
+            border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .guide-section:hover {
+            background: rgba(40, 40, 60, 0.8);
+            border-color: rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
         }
 
         .guide-section h3 {
-            color: #e0e0e0;
-            margin-bottom: 15px;
-            font-size: 20px;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 22px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-weight: 600;
         }
 
         .guide-section h3 i {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 26px;
+        }
+
+        .guide-section h4 {
+            color: #e0e0e0;
+            margin: 20px 0 12px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .guide-section p {
+            color: #b0b0b0;
+            line-height: 1.8;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .guide-section p strong {
             color: #667eea;
+            font-weight: 600;
+        }
+
+        .guide-diagram {
+            background: rgba(20, 20, 35, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .guide-tip {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #e0e0e0;
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        .guide-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 40px;
+            background: rgba(40, 40, 60, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0 0 24px 24px;
+        }
+
+        .guide-nav-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .guide-nav-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .guide-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .guide-page-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #e0e0e0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .guide-page-indicator span {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .guide-content-english,
+        .guide-content-hindi {
+            display: none;
+        }
+
+        .guide-content-english.active,
+        .guide-content-hindi.active {
+            display: block;
         }
 
         .guide-section p, .guide-section li {
@@ -3937,18 +4114,21 @@
     </div>
 
     <div class="guide-modal" id="guideModal">
-        <div class="guide-content" style="position: relative;">
-            <button class="close-guide" onclick="closeGuide()">
-                <i class="fas fa-times"></i>
-            </button>
-            <h2><i class="fas fa-graduation-cap"></i> Typing Guide / टाइपिंग गाइड</h2>
-            
+        <div class="guide-content">
+            <div class="guide-header">
+                <h2><i class="fas fa-graduation-cap"></i> Typing Guide / टाइपिंग गाइड</h2>
+                <button class="close-guide" onclick="closeGuide()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
             <div class="language-tabs">
                 <button class="language-tab active" onclick="switchLanguage('english')">English</button>
                 <button class="language-tab" onclick="switchLanguage('hindi')">हिंदी</button>
             </div>
-            
-            <div class="guide-content-english active">
+
+            <div class="guide-body">
+                <div class="guide-content-english active">
                 <div class="guide-page" id="guidePage0">
                     <div class="guide-section">
                         <h3><i class="fas fa-hand-paper"></i> Home Row Finger Placement</h3>
@@ -4003,7 +4183,7 @@
                         <p><strong>Left:</strong> A(Pinky) S(Ring) D(Middle) F(Index) G(Index)</p>
                         <p><strong>Right:</strong> H(Index) J(Index) K(Middle) L(Ring) ;(Pinky)</p>
                         <p><strong>Space:</strong> Both thumbs</p>
-                        <p style="color: #667eea; font-size: 13px;">💡 F and J keys have bumps to find home row position</p>
+                        <div class="guide-tip">💡 F and J keys have bumps to find home row position</div>
                     </div>
                 </div>
                 
@@ -4045,6 +4225,7 @@
                         <p>👆 Use correct finger for each key</p>
                         <p>⚡ Press keys gently</p>
                         <p>☕ Take breaks every 30 minutes</p>
+                        <div class="guide-tip">💡 Consistency is key to building muscle memory</div>
                     </div>
                 </div>
                 
@@ -4057,14 +4238,14 @@
                         <p><strong>Warm Up:</strong> Start simple, end with challenge</p>
                         
                         <p><strong>Accuracy First:</strong> Aim for 95%+ before speed</p>
-                        
+
                         <h4>Learning Path</h4>
                         <p>Week 1-2: Home row (ASDF JKL;)</p>
                         <p>Week 3-4: Top row (QWERTYUIOP)</p>
                         <p>Week 5-6: Bottom row (ZXCVBNM)</p>
                         <p>Week 7-12: Words, sentences, paragraphs</p>
-                        
-                        <p style="color: #667eea; font-size: 13px;">💡 Track progress and celebrate milestones</p>
+
+                        <div class="guide-tip">💡 Track progress and celebrate milestones</div>
                     </div>
                 </div>
                 
@@ -4081,8 +4262,8 @@
                         <p>Good: 60-70 WPM</p>
                         <p>Professional: 75-90 WPM</p>
                         <p>Expert: 100+ WPM</p>
-                        
-                        <p style="color: #667eea; font-size: 13px;">💡 Focus on accuracy first, speed follows</p>
+
+                        <div class="guide-tip">💡 Focus on accuracy first, speed follows</div>
                     </div>
                 </div>
                 
@@ -4095,18 +4276,18 @@
                         <p>Monitor at eye level</p>
                         <p>Elbows at 90-100°</p>
                         <p>Wrists straight</p>
-                        
+
                         <h4>💚 Health</h4>
                         <p>Break every 20-30 minutes</p>
                         <p>Stretch hands and wrists</p>
                         <p>Stay hydrated</p>
                         <p>Stop if you feel pain</p>
-                        
+
                         <h4>🚀 Advanced</h4>
                         <p>Practice numbers and symbols</p>
                         <p>Try different text types</p>
-                        
-                        <p style="color: #667eea; font-size: 13px;">💡 Your health matters more than speed</p>
+
+                        <div class="guide-tip">💡 Your health matters more than speed</div>
                     </div>
                 </div>
                 
@@ -4117,9 +4298,9 @@
                     </div>
                     <button class="guide-nav-btn" id="nextBtn" onclick="nextGuidePage()">Next</button>
                 </div>
-            </div>
-            
-            <div class="guide-content-hindi">
+                </div>
+
+                <div class="guide-content-hindi">
                 <div class="guide-page" id="guidePageHindi0">
                     <div class="guide-section">
                         <h3><i class="fas fa-hand-paper"></i> होम रो उंगली स्थिति</h3>
@@ -4174,7 +4355,7 @@
                         <p><strong>बाया:</strong> A(छोटी) S(अनामिका) D(मध्यमा) F(तर्जनी) G(तर्जनी)</p>
                         <p><strong>दाया:</strong> H(तर्जनी) J(तर्जनी) K(मध्यमा) L(अनामिका) ;(छोटी)</p>
                         <p><strong>स्पेस:</strong> दोनों अंगूठे</p>
-                        <p style="color: #667eea; font-size: 13px;">💡 F और J पर उभार होते हैं</p>
+                        <div class="guide-tip">💡 F और J पर उभार होते हैं</div>
                     </div>
                 </div>
                 
@@ -4216,6 +4397,7 @@
                         <p>👆 हर की के लिए सही उंगली का उपयोग करें</p>
                         <p>⚡ कीज को हल्के से दबाएं</p>
                         <p>☕ हर 30 मिनट में ब्रेक लें</p>
+                        <div class="guide-tip">💡 निरंतरता मांसपेशी स्मृति बनाने की कुंजी है</div>
                     </div>
                 </div>
                 
@@ -4233,8 +4415,8 @@
                         <p>सप्ताह 3-4: टॉप रो (QWERTYUIOP)</p>
                         <p>सप्ताह 5-6: बॉटम रो (ZXCVBNM)</p>
                         <p>सप्ताह 7-12: शब्द, वाक्य, पैराग्राफ</p>
-                        
-                        <p style="color: #667eea; font-size: 13px;">💡 प्रगति ट्रैक करें और मील के पत्थर मनाएं</p>
+
+                        <div class="guide-tip">💡 प्रगति ट्रैक करें और मील के पत्थर मनाएं</div>
                     </div>
                 </div>
                 
@@ -4251,8 +4433,8 @@
                         <p>अच्छा: 60-70 WPM</p>
                         <p>पेशेवर: 75-90 WPM</p>
                         <p>विशेषज्ञ: 100+ WPM</p>
-                        
-                        <p style="color: #667eea; font-size: 13px;">💡 सटीकता पहले, गति बाद में</p>
+
+                        <div class="guide-tip">💡 सटीकता पहले, गति बाद में</div>
                     </div>
                 </div>
                 
@@ -4265,18 +4447,18 @@
                         <p>मॉनिटर आंख के स्तर पर</p>
                         <p>कोहनी 90-100° पर</p>
                         <p>कलाई सीधी रखें</p>
-                        
+
                         <h4>💚 स्वास्थ्य</h4>
                         <p>हर 20-30 मिनट में ब्रेक</p>
                         <p>हाथ और कलाई खींचें</p>
                         <p>हाइड्रेटेड रहें</p>
                         <p>दर्द हो तो रुकें</p>
-                        
+
                         <h4>🚀 उन्नत</h4>
                         <p>नंबर और प्रतीकों का अभ्यास</p>
                         <p>विभिन्न टेक्स्ट प्रकार आज़माएं</p>
-                        
-                        <p style="color: #667eea; font-size: 13px;">💡 आपका स्वास्थ्य गति से ज़रूरी है</p>
+
+                        <div class="guide-tip">💡 आपका स्वास्थ्य गति से ज़रूरी है</div>
                     </div>
                 </div>
                 
@@ -4286,6 +4468,7 @@
                         <span id="currentPageHindi">1</span> / <span id="totalPagesHindi">5</span>
                     </div>
                     <button class="guide-nav-btn" id="nextBtnHindi" onclick="nextGuidePage()">Next</button>
+                </div>
                 </div>
             </div>
         </div>
