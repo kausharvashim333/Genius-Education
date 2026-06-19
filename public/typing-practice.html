@@ -1087,7 +1087,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             justify-content: center;
             align-items: center;
             z-index: 2000;
@@ -1097,16 +1099,18 @@
         }
 
         .guide-content {
-            background: #fef9e7;
-            border: 3px solid #8b4513;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
             max-width: 850px;
             width: 100%;
             max-height: 95vh;
             display: flex;
             flex-direction: column;
             padding: 0;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(139, 69, 19, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 32px rgba(255, 255, 255, 0.1);
             position: relative;
             transform-style: preserve-3d;
         }
@@ -1117,53 +1121,55 @@
             left: 0;
             top: 0;
             bottom: 0;
-            width: 30px;
-            background: linear-gradient(to right, #d4a574 0%, #c49a6c 50%, #b8956a 100%);
-            border-right: 2px solid #8b4513;
-            border-radius: 8px 0 0 8px;
+            width: 25px;
+            background: linear-gradient(to right, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.2));
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px 0 0 20px;
         }
 
         .guide-content::after {
             content: '';
             position: absolute;
-            left: 30px;
+            left: 25px;
             top: 0;
             bottom: 0;
-            width: 2px;
-            background: #8b4513;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .guide-header {
-            background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
-            padding: 15px 30px 15px 70px;
-            border-radius: 5px 5px 0 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 15px 30px 15px 60px;
+            border-radius: 20px 20px 0 0;
             position: relative;
             flex-shrink: 0;
-            border-bottom: 3px solid #654321;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .guide-header h2 {
-            color: #fff8dc;
+            color: #ffffff;
             margin: 0;
             font-size: 20px;
             text-align: center;
             font-weight: 700;
             letter-spacing: 0.5px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .close-guide {
             position: absolute;
             top: 15px;
             right: 15px;
-            background: rgba(255, 255, 255, 0.3);
-            border: 2px solid #654321;
-            color: #fff8dc;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 16px;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
@@ -1171,26 +1177,28 @@
         }
 
         .close-guide:hover {
-            background: rgba(255, 255, 255, 0.5);
-            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
         }
 
         .language-tabs {
             display: flex;
             justify-content: center;
             gap: 10px;
-            padding: 10px 30px 10px 70px;
-            background: #f5deb3;
-            border-bottom: 2px solid #8b4513;
+            padding: 10px 30px 10px 60px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             flex-shrink: 0;
         }
 
         .language-tab {
             padding: 8px 20px;
-            background: #fff8dc;
-            border: 2px solid #8b4513;
-            border-radius: 8px;
-            color: #654321;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            color: #ffffff;
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
@@ -1198,87 +1206,89 @@
         }
 
         .language-tab:hover {
-            background: #f5deb3;
+            background: rgba(255, 255, 255, 0.25);
         }
 
         .language-tab.active {
-            background: #8b4513;
-            border-color: #8b4513;
-            color: #fff8dc;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%);
+            border-color: rgba(255, 255, 255, 0.4);
+            color: #ffffff;
         }
 
         .guide-body {
-            padding: 15px 30px 15px 70px;
+            padding: 15px 30px 15px 60px;
             overflow-y: auto;
             flex: 1;
-            background: #fef9e7;
-            background-image: repeating-linear-gradient(
-                transparent,
-                transparent 23px,
-                #d4a574 24px
-            );
-            background-size: 100% 24px;
-            line-height: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .guide-section {
-            margin-bottom: 15px;
-            padding: 12px 18px;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 8px;
-            border: 1px solid #d4a574;
+            margin-bottom: 12px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(139, 69, 19, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
 
         .guide-section:hover {
-            border-color: #8b4513;
-            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
 
         .guide-section h3 {
-            color: #8b4513;
+            color: #ffffff;
             margin-bottom: 8px;
             font-size: 16px;
             display: flex;
             align-items: center;
             gap: 6px;
             font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .guide-section h3 i {
-            color: #a0522d;
+            color: rgba(102, 126, 234, 0.8);
             font-size: 18px;
         }
 
         .guide-section h4 {
-            color: #654321;
-            margin: 10px 0 6px 0;
+            color: #ffffff;
+            margin: 8px 0 5px 0;
             font-size: 14px;
             font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .guide-section p {
-            color: #4a3728;
-            line-height: 1.5;
-            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.4;
+            margin-bottom: 6px;
             font-size: 13px;
         }
 
         .guide-section p strong {
-            color: #8b4513;
+            color: #ffffff;
             font-weight: 700;
         }
 
         .guide-diagram {
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 8px;
-            padding: 10px;
-            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 8px;
+            margin: 8px 0;
             display: flex;
             justify-content: center;
-            border: 1px solid #d4a574;
-            box-shadow: 0 2px 8px rgba(139, 69, 19, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
 
         .guide-diagram svg {
@@ -1288,12 +1298,14 @@
         }
 
         .guide-tip {
-            background: rgba(139, 69, 19, 0.1);
-            border-left: 4px solid #8b4513;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-top: 8px;
-            color: #654321;
+            background: rgba(102, 126, 234, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-left: 3px solid rgba(102, 126, 234, 0.6);
+            padding: 6px 10px;
+            border-radius: 8px;
+            margin-top: 6px;
+            color: rgba(255, 255, 255, 0.9);
             font-size: 12px;
             font-style: italic;
         }
@@ -1301,31 +1313,35 @@
         .guide-two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 8px;
+            gap: 6px;
+            margin-top: 4px;
         }
 
         .guide-column {
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-radius: 8px;
-            padding: 10px;
-            border: 1px solid #d4a574;
+            padding: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             transition: all 0.2s ease;
         }
 
         .guide-column:hover {
-            border-color: #8b4513;
-            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.15);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
 
         .guide-column h4 {
-            color: #8b4513;
-            font-size: 13px;
+            color: #ffffff;
+            font-size: 11px;
             font-weight: 700;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .guide-column ul {
@@ -1335,12 +1351,12 @@
         }
 
         .guide-column li {
-            color: #4a3728;
-            padding: 4px 0;
-            padding-left: 20px;
+            color: rgba(255, 255, 255, 0.85);
+            padding: 2px 0;
+            padding-left: 16px;
             position: relative;
-            font-size: 12px;
-            line-height: 1.3;
+            font-size: 10px;
+            line-height: 1.1;
         }
 
         .guide-column li::before {
@@ -1354,19 +1370,21 @@
         .guide-start-button-container {
             display: flex;
             justify-content: center;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #d4a574;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .guide-start-btn {
-            padding: 10px 25px;
-            background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
-            border: 2px solid #654321;
-            border-radius: 8px;
-            color: #fff8dc;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            color: #ffffff;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             transition: all 0.2s ease;
             display: flex;
@@ -1376,7 +1394,7 @@
 
         .guide-start-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
         }
 
         .guide-start-btn:active {
@@ -1387,32 +1405,36 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 30px 15px 70px;
-            background: #f5deb3;
-            border-top: 2px solid #8b4513;
-            border-radius: 0 0 5px 5px;
+            padding: 12px 30px 12px 60px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0 0 20px 20px;
             flex-shrink: 0;
         }
 
         .guide-nav-btn {
-            padding: 8px 20px;
-            background: #8b4513;
-            border: 2px solid #654321;
-            border-radius: 8px;
-            color: #fff8dc;
+            padding: 6px 18px;
+            background: rgba(102, 126, 234, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: #ffffff;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             transition: all 0.2s ease;
         }
 
         .guide-nav-btn:hover:not(:disabled) {
-            background: #a0522d;
+            background: rgba(118, 75, 162, 0.5);
             transform: translateY(-1px);
         }
 
         .guide-nav-btn:disabled {
-            opacity: 0.4;
+            opacity: 0.3;
             cursor: not-allowed;
         }
 
@@ -1420,13 +1442,13 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            color: #654321;
-            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
             font-weight: 600;
         }
 
         .guide-page-indicator span {
-            color: #8b4513;
+            color: #ffffff;
             font-weight: 700;
         }
 
@@ -4531,47 +4553,37 @@
                             <div class="guide-column">
                                 <h4>🪑 Posture</h4>
                                 <ul>
-                                    <li>Feet flat on floor</li>
-                                    <li>Knees at 90° angle</li>
+                                    <li>Feet flat, knees 90°</li>
                                     <li>Monitor at eye level</li>
-                                    <li>Elbows at 90-100°</li>
-                                    <li>Wrists straight and relaxed</li>
+                                    <li>Wrists straight</li>
                                 </ul>
                             </div>
 
                             <div class="guide-column">
                                 <h4>💚 Health</h4>
                                 <ul>
-                                    <li>Break every 20-30 minutes</li>
-                                    <li>Stretch hands and wrists</li>
-                                    <li>Stay hydrated</li>
-                                    <li>Stop if you feel pain</li>
-                                    <li>Exercise regularly</li>
+                                    <li>Break every 20-30 min</li>
+                                    <li>Stretch hands</li>
+                                    <li>Stop if in pain</li>
                                 </ul>
                             </div>
 
                             <div class="guide-column">
                                 <h4>🚀 Advanced</h4>
                                 <ul>
-                                    <li>Practice numbers and symbols</li>
-                                    <li>Try different text types</li>
-                                    <li>Increase speed gradually</li>
-                                    <li>Focus on accuracy first</li>
+                                    <li>Practice symbols</li>
+                                    <li>Focus on accuracy</li>
                                 </ul>
                             </div>
 
                             <div class="guide-column">
                                 <h4>⚡ Tips</h4>
                                 <ul>
-                                    <li>Practice daily for consistency</li>
-                                    <li>Use all fingers properly</li>
-                                    <li>Don't look at keyboard</li>
-                                    <li>Take short breaks often</li>
+                                    <li>Practice daily</li>
+                                    <li>Don't look at keys</li>
                                 </ul>
                             </div>
                         </div>
-
-                        <div class="guide-tip">💡 Your health matters more than speed</div>
 
                         <div class="guide-start-button-container">
                             <button class="guide-start-btn" onclick="closeGuide()">
@@ -4787,47 +4799,37 @@
                             <div class="guide-column">
                                 <h4>🪑 मुद्रा</h4>
                                 <ul>
-                                    <li>पैर ज़मीन पर सपाट</li>
-                                    <li>घुटने 90° कोण पर</li>
-                                    <li>मॉनिटर आंख के स्तर पर</li>
-                                    <li>कोहनी 90-100° पर</li>
-                                    <li>कलाई सीधी और आरामदायक</li>
+                                    <li>पैर सपाट, घुटने 90°</li>
+                                    <li>मॉनिटर आंख के स्तर</li>
+                                    <li>कलाई सीधी</li>
                                 </ul>
                             </div>
 
                             <div class="guide-column">
                                 <h4>💚 स्वास्थ्य</h4>
                                 <ul>
-                                    <li>हर 20-30 मिनट में ब्रेक</li>
-                                    <li>हाथ और कलाई खींचें</li>
-                                    <li>हाइड्रेटेड रहें</li>
+                                    <li>20-30 मिनट में ब्रेक</li>
+                                    <li>हाथ खींचें</li>
                                     <li>दर्द हो तो रुकें</li>
-                                    <li>नियमित व्यायाम करें</li>
                                 </ul>
                             </div>
 
                             <div class="guide-column">
                                 <h4>🚀 उन्नत</h4>
                                 <ul>
-                                    <li>नंबर और प्रतीकों का अभ्यास</li>
-                                    <li>विभिन्न टेक्स्ट प्रकार आज़माएं</li>
-                                    <li>गति धीरे-धीरे बढ़ाएं</li>
-                                    <li>सटीकता पर पहले ध्यान दें</li>
+                                    <li>प्रतीकों का अभ्यास</li>
+                                    <li>सटीकता पर ध्यान</li>
                                 </ul>
                             </div>
 
                             <div class="guide-column">
                                 <h4>⚡ टिप्स</h4>
                                 <ul>
-                                    <li>लगातार अभ्यास करें</li>
-                                    <li>सभी उंगलियों का सही उपयोग</li>
-                                    <li>कीबोर्ड को न देखें</li>
-                                    <li>छोटे ब्रेक लें</li>
+                                    <li>लगातार अभ्यास</li>
+                                    <li>कीबोर्ड न देखें</li>
                                 </ul>
                             </div>
                         </div>
-
-                        <div class="guide-tip">💡 आपका स्वास्थ्य गति से ज़रूरी है</div>
 
                         <div class="guide-start-button-container">
                             <button class="guide-start-btn" onclick="closeGuide()">
