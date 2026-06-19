@@ -6725,34 +6725,47 @@
 
         // Keyboard shortcuts and typing capture
         document.addEventListener('keydown', function(e) {
+            // Check if user is typing in an input field (login modal, etc.)
+            const activeElement = document.activeElement;
+            const isInputFocused = activeElement && (
+                activeElement.tagName === 'INPUT' ||
+                activeElement.tagName === 'TEXTAREA' ||
+                activeElement.isContentEditable
+            );
+
+            // Don't intercept if typing in input field
+            if (isInputFocused) {
+                return;
+            }
+
             // F1 - Open guide
             if (e.key === 'F1') {
                 e.preventDefault();
                 openGuide();
                 return;
             }
-            
+
             // Escape - Close modals
             if (e.key === 'Escape') {
                 closeGuide();
                 document.getElementById('resultModal').style.display = 'none';
                 return;
             }
-            
+
             // Ctrl/Cmd + N - New text
             if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
                 e.preventDefault();
                 loadNewText();
                 return;
             }
-            
+
             // Ctrl/Cmd + R - Reset
             if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
                 e.preventDefault();
                 resetTyping();
                 return;
             }
-            
+
             // Start typing on first keystroke when not typing
             if (!isTyping && !typingInput.disabled && !e.ctrlKey && !e.metaKey && !e.altKey) {
                 const key = e.key;
