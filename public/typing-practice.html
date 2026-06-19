@@ -1281,6 +1281,61 @@
             font-style: italic;
         }
 
+        .guide-two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .guide-column {
+            background: linear-gradient(145deg, rgba(40, 40, 70, 0.6) 0%, rgba(30, 30, 55, 0.6) 100%);
+            border-radius: 16px;
+            padding: 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .guide-column:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .guide-column h4 {
+            color: #667eea;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .guide-column ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .guide-column li {
+            color: #c0c0c0;
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .guide-column li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #22c55e;
+            font-weight: bold;
+        }
+
         .guide-start-button-container {
             display: flex;
             justify-content: center;
@@ -4402,22 +4457,50 @@
                 <div class="guide-page" id="guidePage4" style="display: none;">
                     <div class="guide-section">
                         <h3><i class="fas fa-heart"></i> Health & Tips</h3>
-                        
-                        <h4>🪑 Posture</h4>
-                        <p>Feet flat, knees at 90°</p>
-                        <p>Monitor at eye level</p>
-                        <p>Elbows at 90-100°</p>
-                        <p>Wrists straight</p>
 
-                        <h4>💚 Health</h4>
-                        <p>Break every 20-30 minutes</p>
-                        <p>Stretch hands and wrists</p>
-                        <p>Stay hydrated</p>
-                        <p>Stop if you feel pain</p>
+                        <div class="guide-two-columns">
+                            <div class="guide-column">
+                                <h4>🪑 Posture</h4>
+                                <ul>
+                                    <li>Feet flat on floor</li>
+                                    <li>Knees at 90° angle</li>
+                                    <li>Monitor at eye level</li>
+                                    <li>Elbows at 90-100°</li>
+                                    <li>Wrists straight and relaxed</li>
+                                </ul>
+                            </div>
 
-                        <h4>🚀 Advanced</h4>
-                        <p>Practice numbers and symbols</p>
-                        <p>Try different text types</p>
+                            <div class="guide-column">
+                                <h4>💚 Health</h4>
+                                <ul>
+                                    <li>Break every 20-30 minutes</li>
+                                    <li>Stretch hands and wrists</li>
+                                    <li>Stay hydrated</li>
+                                    <li>Stop if you feel pain</li>
+                                    <li>Exercise regularly</li>
+                                </ul>
+                            </div>
+
+                            <div class="guide-column">
+                                <h4>🚀 Advanced</h4>
+                                <ul>
+                                    <li>Practice numbers and symbols</li>
+                                    <li>Try different text types</li>
+                                    <li>Increase speed gradually</li>
+                                    <li>Focus on accuracy first</li>
+                                </ul>
+                            </div>
+
+                            <div class="guide-column">
+                                <h4>⚡ Tips</h4>
+                                <ul>
+                                    <li>Practice daily for consistency</li>
+                                    <li>Use all fingers properly</li>
+                                    <li>Don't look at keyboard</li>
+                                    <li>Take short breaks often</li>
+                                </ul>
+                            </div>
+                        </div>
 
                         <div class="guide-tip">💡 Your health matters more than speed</div>
 
@@ -4630,22 +4713,50 @@
                 <div class="guide-page" id="guidePageHindi4" style="display: none;">
                     <div class="guide-section">
                         <h3><i class="fas fa-heart"></i> स्वास्थ्य और टिप्स</h3>
-                        
-                        <h4>🪑 मुद्रा</h4>
-                        <p>पैर सपाट, घुटने 90° पर</p>
-                        <p>मॉनिटर आंख के स्तर पर</p>
-                        <p>कोहनी 90-100° पर</p>
-                        <p>कलाई सीधी रखें</p>
 
-                        <h4>💚 स्वास्थ्य</h4>
-                        <p>हर 20-30 मिनट में ब्रेक</p>
-                        <p>हाथ और कलाई खींचें</p>
-                        <p>हाइड्रेटेड रहें</p>
-                        <p>दर्द हो तो रुकें</p>
+                        <div class="guide-two-columns">
+                            <div class="guide-column">
+                                <h4>🪑 मुद्रा</h4>
+                                <ul>
+                                    <li>पैर ज़मीन पर सपाट</li>
+                                    <li>घुटने 90° कोण पर</li>
+                                    <li>मॉनिटर आंख के स्तर पर</li>
+                                    <li>कोहनी 90-100° पर</li>
+                                    <li>कलाई सीधी और आरामदायक</li>
+                                </ul>
+                            </div>
 
-                        <h4>🚀 उन्नत</h4>
-                        <p>नंबर और प्रतीकों का अभ्यास</p>
-                        <p>विभिन्न टेक्स्ट प्रकार आज़माएं</p>
+                            <div class="guide-column">
+                                <h4>💚 स्वास्थ्य</h4>
+                                <ul>
+                                    <li>हर 20-30 मिनट में ब्रेक</li>
+                                    <li>हाथ और कलाई खींचें</li>
+                                    <li>हाइड्रेटेड रहें</li>
+                                    <li>दर्द हो तो रुकें</li>
+                                    <li>नियमित व्यायाम करें</li>
+                                </ul>
+                            </div>
+
+                            <div class="guide-column">
+                                <h4>🚀 उन्नत</h4>
+                                <ul>
+                                    <li>नंबर और प्रतीकों का अभ्यास</li>
+                                    <li>विभिन्न टेक्स्ट प्रकार आज़माएं</li>
+                                    <li>गति धीरे-धीरे बढ़ाएं</li>
+                                    <li>सटीकता पर पहले ध्यान दें</li>
+                                </ul>
+                            </div>
+
+                            <div class="guide-column">
+                                <h4>⚡ टिप्स</h4>
+                                <ul>
+                                    <li>लगातार अभ्यास करें</li>
+                                    <li>सभी उंगलियों का सही उपयोग</li>
+                                    <li>कीबोर्ड को न देखें</li>
+                                    <li>छोटे ब्रेक लें</li>
+                                </ul>
+                            </div>
+                        </div>
 
                         <div class="guide-tip">💡 आपका स्वास्थ्य गति से ज़रूरी है</div>
 
