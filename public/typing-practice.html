@@ -1104,7 +1104,8 @@
             max-width: 900px;
             width: 100%;
             max-height: 90vh;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
             padding: 0;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
@@ -1114,6 +1115,7 @@
             padding: 30px 40px;
             border-radius: 24px 24px 0 0;
             position: relative;
+            flex-shrink: 0;
         }
 
         .guide-header h2 {
@@ -1155,6 +1157,7 @@
             padding: 20px 40px;
             background: rgba(40, 40, 60, 0.5);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
         }
 
         .language-tab {
@@ -1182,6 +1185,8 @@
 
         .guide-body {
             padding: 40px;
+            overflow-y: auto;
+            flex: 1;
         }
 
         .guide-section {
@@ -1264,6 +1269,7 @@
             background: rgba(40, 40, 60, 0.5);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 0 0 24px 24px;
+            flex-shrink: 0;
         }
 
         .guide-nav-btn {
