@@ -1087,9 +1087,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             justify-content: center;
             align-items: center;
             z-index: 2000;
@@ -1099,18 +1099,18 @@
         }
 
         .guide-content {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
+            background: rgba(20, 20, 40, 0.6);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
             max-width: 850px;
             width: 100%;
             max-height: 95vh;
             display: flex;
             flex-direction: column;
             padding: 0;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 32px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 32px rgba(255, 255, 255, 0.05);
             position: relative;
             transform-style: preserve-3d;
         }
@@ -1122,9 +1122,9 @@
             top: 0;
             bottom: 0;
             width: 25px;
-            background: linear-gradient(to right, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.2));
-            border-right: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px 0 0 20px;
+            background: linear-gradient(to right, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.3));
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px 0 0 24px;
         }
 
         .guide-content::after {
@@ -1134,18 +1134,18 @@
             top: 0;
             bottom: 0;
             width: 1px;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .guide-header {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.5) 0%, rgba(118, 75, 162, 0.5) 100%);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             padding: 15px 30px 15px 60px;
-            border-radius: 20px 20px 0 0;
+            border-radius: 24px 24px 0 0;
             position: relative;
             flex-shrink: 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .guide-header h2 {
@@ -1186,17 +1186,17 @@
             justify-content: center;
             gap: 10px;
             padding: 10px 30px 10px 60px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(20, 20, 40, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             flex-shrink: 0;
         }
 
         .language-tab {
             padding: 8px 20px;
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 12px;
             color: #ffffff;
             cursor: pointer;
@@ -1206,12 +1206,12 @@
         }
 
         .language-tab:hover {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .language-tab.active {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%);
-            border-color: rgba(255, 255, 255, 0.4);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.7) 0%, rgba(118, 75, 162, 0.7) 100%);
+            border-color: rgba(255, 255, 255, 0.3);
             color: #ffffff;
         }
 
@@ -1219,27 +1219,27 @@
             padding: 15px 30px 15px 60px;
             overflow-y: auto;
             flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(20, 20, 40, 0.3);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
         }
 
         .guide-section {
             margin-bottom: 12px;
             padding: 10px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(30, 30, 50, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.2s ease;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .guide-section:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            background: rgba(30, 30, 50, 0.5);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
 
         .guide-section h3 {
@@ -1279,16 +1279,16 @@
         }
 
         .guide-diagram {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(30, 30, 50, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 12px;
             padding: 8px;
             margin: 8px 0;
             display: flex;
             justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .guide-diagram svg {
@@ -1298,10 +1298,10 @@
         }
 
         .guide-tip {
-            background: rgba(102, 126, 234, 0.15);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-left: 3px solid rgba(102, 126, 234, 0.6);
+            background: rgba(102, 126, 234, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-left: 3px solid rgba(102, 126, 234, 0.7);
             padding: 6px 10px;
             border-radius: 8px;
             margin-top: 6px;
@@ -1318,19 +1318,19 @@
         }
 
         .guide-column {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(30, 30, 50, 0.3);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 8px;
             padding: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.2s ease;
         }
 
         .guide-column:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            background: rgba(30, 30, 50, 0.4);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .guide-column h4 {
@@ -1377,10 +1377,10 @@
 
         .guide-start-btn {
             padding: 8px 20px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.7) 0%, rgba(118, 75, 162, 0.7) 100%);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 12px;
             color: #ffffff;
             cursor: pointer;
@@ -1406,20 +1406,20 @@
             justify-content: space-between;
             align-items: center;
             padding: 12px 30px 12px 60px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 0 0 20px 20px;
+            background: rgba(20, 20, 40, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0 0 24px 24px;
             flex-shrink: 0;
         }
 
         .guide-nav-btn {
             padding: 6px 18px;
-            background: rgba(102, 126, 234, 0.4);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(102, 126, 234, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 10px;
             color: #ffffff;
             cursor: pointer;
@@ -4457,11 +4457,6 @@
                                 <text x="300" y="295" fill="#ffd700" font-size="11" font-weight="bold" text-anchor="middle">⭐ F & J keys have bumps for easy positioning</text>
                             </svg>
                         </div>
-
-                        <p><strong>Left Hand:</strong> A(Pinky) S(Ring) D(Middle) F(Index) G(Index)</p>
-                        <p><strong>Right Hand:</strong> H(Index) J(Index) K(Middle) L(Ring) ;(Pinky)</p>
-                        <p><strong>Space Bar:</strong> Both thumbs</p>
-                        <div class="guide-tip">💡 F and J keys have bumps to find home row position</div>
                     </div>
                 </div>
                 
@@ -4704,11 +4699,6 @@
                                 <text x="300" y="295" fill="#ffd700" font-size="11" font-weight="bold" text-anchor="middle">⭐ F और J पर उभार होते हैं</text>
                             </svg>
                         </div>
-
-                        <p><strong>बायां हाथ:</strong> A(छोटी) S(अनामिका) D(मध्यमा) F(तर्जनी) G(तर्जनी)</p>
-                        <p><strong>दायां हाथ:</strong> H(तर्जनी) J(तर्जनी) K(मध्यमा) L(अनामिका) ;(छोटी)</p>
-                        <p><strong>स्पेस बार:</strong> दोनों अंगूठे</p>
-                        <div class="guide-tip">💡 F और J पर उभार होते हैं</div>
                     </div>
                 </div>
                 
