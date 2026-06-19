@@ -1099,10 +1099,10 @@
         }
 
         .guide-content {
-            background: rgba(20, 20, 40, 0.6);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 15, 35, 0.7);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 24px;
             max-width: 850px;
             width: 100%;
@@ -1110,7 +1110,7 @@
             display: flex;
             flex-direction: column;
             padding: 0;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 32px rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 0 32px rgba(255, 255, 255, 0.03);
             position: relative;
             transform-style: preserve-3d;
         }
@@ -1122,8 +1122,8 @@
             top: 0;
             bottom: 0;
             width: 25px;
-            background: linear-gradient(to right, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.3));
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(to right, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.2));
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 24px 0 0 24px;
         }
 
@@ -1134,18 +1134,18 @@
             top: 0;
             bottom: 0;
             width: 1px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .guide-header {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.5) 0%, rgba(118, 75, 162, 0.5) 100%);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             padding: 15px 30px 15px 60px;
             border-radius: 24px 24px 0 0;
             position: relative;
             flex-shrink: 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .guide-header h2 {
@@ -1162,8 +1162,10 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: #ffffff;
             width: 32px;
             height: 32px;
@@ -1177,7 +1179,7 @@
         }
 
         .close-guide:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15);
             transform: scale(1.1);
         }
 
@@ -1186,17 +1188,17 @@
             justify-content: center;
             gap: 10px;
             padding: 10px 30px 10px 60px;
-            background: rgba(20, 20, 40, 0.4);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 15, 35, 0.3);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             flex-shrink: 0;
         }
 
         .language-tab {
             padding: 8px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             color: #ffffff;
             cursor: pointer;
@@ -1206,12 +1208,12 @@
         }
 
         .language-tab:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .language-tab.active {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.7) 0%, rgba(118, 75, 162, 0.7) 100%);
-            border-color: rgba(255, 255, 255, 0.3);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.5) 0%, rgba(118, 75, 162, 0.5) 100%);
+            border-color: rgba(255, 255, 255, 0.2);
             color: #ffffff;
         }
 
@@ -1219,27 +1221,27 @@
             padding: 15px 30px 15px 60px;
             overflow-y: auto;
             flex: 1;
-            background: rgba(20, 20, 40, 0.3);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            background: rgba(15, 15, 35, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
         .guide-section {
             margin-bottom: 12px;
             padding: 10px 15px;
-            background: rgba(30, 30, 50, 0.4);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            background: rgba(25, 25, 45, 0.3);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.2s ease;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
         }
 
         .guide-section:hover {
-            background: rgba(30, 30, 50, 0.5);
-            border-color: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            background: rgba(25, 25, 45, 0.4);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
 
         .guide-section h3 {
@@ -1279,16 +1281,16 @@
         }
 
         .guide-diagram {
-            background: rgba(30, 30, 50, 0.4);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            background: rgba(25, 25, 45, 0.3);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 12px;
             padding: 8px;
             margin: 8px 0;
             display: flex;
             justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
         }
 
         .guide-diagram svg {
@@ -1298,10 +1300,10 @@
         }
 
         .guide-tip {
-            background: rgba(102, 126, 234, 0.2);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-left: 3px solid rgba(102, 126, 234, 0.7);
+            background: rgba(102, 126, 234, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 3px solid rgba(102, 126, 234, 0.6);
             padding: 6px 10px;
             border-radius: 8px;
             margin-top: 6px;
@@ -1318,19 +1320,19 @@
         }
 
         .guide-column {
-            background: rgba(30, 30, 50, 0.3);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            background: rgba(25, 25, 45, 0.25);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 8px;
             padding: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.2s ease;
         }
 
         .guide-column:hover {
-            background: rgba(30, 30, 50, 0.4);
-            border-color: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            background: rgba(25, 25, 45, 0.35);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
         }
 
         .guide-column h4 {
@@ -1372,15 +1374,15 @@
             justify-content: center;
             margin-top: 8px;
             padding-top: 8px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .guide-start-btn {
             padding: 8px 20px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.7) 0%, rgba(118, 75, 162, 0.7) 100%);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.5) 0%, rgba(118, 75, 162, 0.5) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 12px;
             color: #ffffff;
             cursor: pointer;
@@ -1406,20 +1408,20 @@
             justify-content: space-between;
             align-items: center;
             padding: 12px 30px 12px 60px;
-            background: rgba(20, 20, 40, 0.4);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 15, 35, 0.3);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 0 0 24px 24px;
             flex-shrink: 0;
         }
 
         .guide-nav-btn {
             padding: 6px 18px;
-            background: rgba(102, 126, 234, 0.5);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 10px;
             color: #ffffff;
             cursor: pointer;
