@@ -1179,6 +1179,14 @@ function generateApplicationId() {
     return `${prefix}${String(count).padStart(4, '0')}`;
 }
 
+// Student ID: Sequential number based on highest existing ID
+function generateStudentId() {
+    const students = readData('students.json') || [];
+    if (students.length === 0) return 1;
+    const maxId = Math.max(...students.map(s => s.id || 0));
+    return maxId + 1;
+}
+
 // Receipt No: RCP-YYYY-NNNNNN (sequential across all payments per year)
 function generateReceiptNo() {
     const students = readData('students.json') || [];
@@ -3968,7 +3976,7 @@ app.post('/api/students', uploadStudent.fields([{name:'photo',maxCount:1},{name:
     const applicationId = generateApplicationId();
     const plainPassword = generatePassword();
     const student = {
-        id: Date.now(),
+        id: generateStudentId(),
         applicationId,
         rollNo: generateRollNo(),
         name: d.name, dob: d.dob, gender: d.gender, category: d.category,
@@ -4241,7 +4249,20 @@ app.put('/api/students/:id', verifyAdminSessionMiddleware, (req, res) => {
     if (d.motherName !== undefined) students[idx].motherName = d.motherName;
     if (d.familyIncome !== undefined) students[idx].familyIncome = d.familyIncome;
     if (d.course !== undefined) students[idx].course = d.course;
-    if (d.batch !== undefined) students[idx].batch = d.batch;
+    if (d.batch !== undefined) {
+        students[idx].batch = d.batch;
+        // Update batchId when batch is changed
+        if (d.batchId !== undefined) {
+            students[idx].batchId = d.batchId;
+        } else {
+            // If batchId not provided, try to find it from batches.json
+            const batches = readData('batches.json') || [];
+            const batch = batches.find(b => b.name === d.batch);
+            if (batch) {
+                students[idx].batchId = batch.id;
+            }
+        }
+    }
     if (d.status !== undefined) students[idx].status = d.status;
 
     if (d.qualification !== undefined) {
@@ -12852,121 +12873,6 @@ app.use((err, req, res, next) => {
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
-});
-
-// ===== Typing Progress Tracking API =====
-
-// Get typing progress for a student
-app.get('/api/typing-progress/:studentId', (req, res) => {
-    const typingProgress = readData('typing-progress.json') || [];
-    const studentProgress = typingProgress.find(p => p.studentId == req.params.studentId);
-    res.json({ success: true, progress: studentProgress || null });
-});
-
-// Save typing session data
-app.post('/api/typing-progress/:studentId/sessions', (req, res) => {
-    const typingProgress = readData('typing-progress.json') || [];
-    let studentProgress = typingProgress.find(p => p.studentId == req.params.studentId);
-
-    if (!studentProgress) {
-        studentProgress = {
-            studentId: parseInt(req.params.studentId),
-            totalSessions: 0,
-            totalXP: 0,
-            bestWpm: 0,
-            bestAccuracy: 0,
-            currentStreak: 0,
-            longestStreak: 0,
-            lastPracticeDate: null,
-            sessions: [],
-            achievements: [],
-            mistakeAnalysis: {},
-            fingerUsage: {},
-            heatmap: {},
-            speedConsistency: [],
-            pauseAnalysis: [],
-            keyPressTimings: []
-        };
-        typingProgress.push(studentProgress);
-    }
-
-    const sessionData = req.body;
-    sessionData.id = Date.now();
-    sessionData.date = new Date().toISOString();
-
-    studentProgress.sessions.push(sessionData);
-    studentProgress.totalSessions++;
-
-    // Update stats
-    studentProgress.totalXP += sessionData.xp || 0;
-    if (sessionData.wpm > studentProgress.bestWpm) studentProgress.bestWpm = sessionData.wpm;
-    if (sessionData.accuracy > studentProgress.bestAccuracy) studentProgress.bestAccuracy = sessionData.accuracy;
-
-    // Update streak
-    const today = new Date().toDateString();
-    const lastPractice = studentProgress.lastPracticeDate ? new Date(studentProgress.lastPracticeDate).toDateString() : null;
-
-    if (lastPractice === today) {
-        // Same day, no change
-    } else if (lastPractice === new Date(Date.now() - 86400000).toDateString()) {
-        // Yesterday, increment streak
-        studentProgress.currentStreak++;
-        if (studentProgress.currentStreak > studentProgress.longestStreak) {
-            studentProgress.longestStreak = studentProgress.currentStreak;
-        }
-    } else {
-        // Streak broken
-        studentProgress.currentStreak = 1;
-    }
-
-    studentProgress.lastPracticeDate = new Date().toISOString();
-
-    // Update additional data if provided
-    if (sessionData.mistakeAnalysis) studentProgress.mistakeAnalysis = sessionData.mistakeAnalysis;
-    if (sessionData.fingerUsage) studentProgress.fingerUsage = sessionData.fingerUsage;
-    if (sessionData.heatmap) studentProgress.heatmap = sessionData.heatmap;
-    if (sessionData.speedConsistency) studentProgress.speedConsistency.push(sessionData.speedConsistency);
-    if (sessionData.pauseAnalysis) studentProgress.pauseAnalysis.push(sessionData.pauseAnalysis);
-    if (sessionData.keyPressTimings) studentProgress.keyPressTimings.push(sessionData.keyPressTimings);
-
-    writeData('typing-progress.json', typingProgress);
-    res.json({ success: true, progress: studentProgress });
-});
-
-// Get typing leaderboard
-app.get('/api/typing-leaderboard', (req, res) => {
-    const typingProgress = readData('typing-progress.json') || [];
-    const students = readData('students.json') || [];
-
-    const leaderboard = typingProgress.map(p => {
-        const student = students.find(s => s.id == p.studentId);
-        return {
-            studentId: p.studentId,
-            name: student ? student.name : 'Unknown',
-            rollNo: student ? student.rollNo : 'N/A',
-            bestWpm: p.bestWpm,
-            bestAccuracy: p.bestAccuracy,
-            totalXP: p.totalXP,
-            totalSessions: p.totalSessions,
-            currentStreak: p.currentStreak
-        };
-    }).sort((a, b) => b.bestWpm - a.bestWpm);
-
-    res.json({ success: true, leaderboard });
-});
-
-// Update student achievements
-app.put('/api/typing-progress/:studentId/achievements', (req, res) => {
-    const typingProgress = readData('typing-progress.json') || [];
-    const studentProgress = typingProgress.find(p => p.studentId == req.params.studentId);
-
-    if (!studentProgress) {
-        return res.status(404).json({ success: false, message: 'Student progress not found' });
-    }
-
-    studentProgress.achievements = req.body.achievements || [];
-    writeData('typing-progress.json', typingProgress);
-    res.json({ success: true, achievements: studentProgress.achievements });
 });
 
 app.listen(PORT, '0.0.0.0', () => {

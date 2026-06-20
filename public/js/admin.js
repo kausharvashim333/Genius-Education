@@ -9266,8 +9266,43 @@ let allStudents = [];
 async function loadStudentsTable() {
     try {
         allStudents = await fetch('/api/students').then(r => r.json());
+        await loadBatchesForStudentFilter();
         renderStudentsTable(allStudents);
     } catch (err) { showNotification('Students load error!', 'error'); }
+}
+
+async function loadBatchesForStudentFilter() {
+    try {
+        const batches = await fetch('/api/batches').then(r => r.json());
+        const select = document.getElementById('studentBatchFilter');
+        select.innerHTML = '<option value="">All Batches</option>' + batches.map(b => '<option value="' + b.name + '">' + b.name + '</option>').join('');
+    } catch (err) {
+        console.error('Error loading batches for filter:', err);
+    }
+}
+
+function filterStudentsByBatch() {
+    const selectedBatch = document.getElementById('studentBatchFilter').value;
+    const searchQuery = document.getElementById('studentSearch').value.toLowerCase();
+    
+    let filtered = allStudents;
+    
+    // Filter by batch
+    if (selectedBatch) {
+        filtered = filtered.filter(s => s.batch === selectedBatch);
+    }
+    
+    // Filter by search query
+    if (searchQuery) {
+        filtered = filtered.filter(s =>
+            s.name.toLowerCase().includes(searchQuery) ||
+            s.rollNo.toLowerCase().includes(searchQuery) ||
+            (s.phone && s.phone.includes(searchQuery)) ||
+            (s.course && s.course.toLowerCase().includes(searchQuery))
+        );
+    }
+    
+    renderStudentsTable(filtered);
 }
 
 function renderStudentsTable(students) {
@@ -9312,14 +9347,7 @@ function renderStudentsTable(students) {
 }
 
 function filterStudents() {
-    const q = document.getElementById('studentSearch').value.toLowerCase();
-    const filtered = allStudents.filter(s =>
-        s.name.toLowerCase().includes(q) ||
-        s.rollNo.toLowerCase().includes(q) ||
-        (s.phone && s.phone.includes(q)) ||
-        (s.course && s.course.toLowerCase().includes(q))
-    );
-    renderStudentsTable(filtered);
+    filterStudentsByBatch();
 }
 
 function toggleAllStudentCheckboxes() {
