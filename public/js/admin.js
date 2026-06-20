@@ -13913,6 +13913,9 @@ async function exportExamResultsToExcel() {
         if (!table || table.dataset.searchAttached === '1') return;
         if (!table.id) return; // require id
 
+        // Skip studentsTable since it has custom search with batch filter
+        if (table.id === 'studentsTable') return;
+
         // Find the page-content wrapper (the section with the header buttons)
         const pageContent = table.closest('.page-content');
         if (!pageContent) return;
