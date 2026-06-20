@@ -9275,7 +9275,7 @@ async function loadBatchesForStudentFilter() {
     try {
         const batches = await fetch('/api/batches').then(r => r.json());
         const select = document.getElementById('studentBatchFilter');
-        select.innerHTML = '<option value="">All Batches</option>' + batches.map(b => '<option value="' + b.name + '">' + b.name + '</option>').join('');
+        select.innerHTML = '<option value="">All Batches</option>' + batches.map(b => '<option value="' + b.id + '" data-name="' + b.name + '">' + b.name + '</option>').join('');
     } catch (err) {
         console.error('Error loading batches for filter:', err);
     }
@@ -9287,9 +9287,9 @@ function filterStudentsByBatch() {
     
     let filtered = allStudents;
     
-    // Filter by batch
+    // Filter by batch (using batchId for consistency with batch page)
     if (selectedBatch) {
-        filtered = filtered.filter(s => s.batch === selectedBatch);
+        filtered = filtered.filter(s => s.batchId == selectedBatch);
     }
     
     // Filter by search query
