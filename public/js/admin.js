@@ -10274,6 +10274,7 @@ async function updateStudent() {
         if (result.success) {
             closeModal('updateStudentModal');
             loadStudentsTable();
+            loadBatchesTable();
             showNotification('Student profile updated!', 'success');
         } else {
             showNotification('Error updating student!', 'error');
