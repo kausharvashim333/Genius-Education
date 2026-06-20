@@ -4200,6 +4200,20 @@ app.post('/api/students/:id/update-profile', uploadStudent.single('photo'), requ
     if (d.fatherPhone) students[idx].fatherPhone = d.fatherPhone;
     if (d.motherName) students[idx].motherName = d.motherName;
     
+    // Update batch and batchId
+    if (d.batch !== undefined) {
+        students[idx].batch = d.batch;
+        if (d.batchId !== undefined) {
+            students[idx].batchId = d.batchId;
+        } else {
+            const batches = readData('batches.json') || [];
+            const batch = batches.find(b => b.name === d.batch);
+            if (batch) {
+                students[idx].batchId = batch.id;
+            }
+        }
+    }
+    
     // Update qualification
     if (d.qualification) {
         try {

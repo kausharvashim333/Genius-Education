@@ -999,10 +999,10 @@
                     <button class="btn btn-primary" onclick="showAdmissionForm()"><i class="fas fa-user-graduate"></i> New Admission</button>
                     <button class="btn btn-danger" onclick="deleteSelectedStudents()"><i class="fas fa-trash"></i> Delete Selected</button>
                     <button class="btn btn-success" onclick="exportStudentsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
-                    <select id="studentBatchFilter" onchange="filterStudentsByBatch()" style="padding:9px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;width:200px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;">
+                    <select id="studentBatchFilter" onchange="filterStudentsByBatch()" style="padding:9px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;width:180px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;">
                         <option value="">All Batches</option>
                     </select>
-                    <input type="text" id="studentSearch" placeholder="Search name, student id, phone..." oninput="filterStudents()" style="padding:9px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;width:280px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;">
+                    <input type="text" id="studentSearch" placeholder="Search name, student id, phone..." oninput="filterStudents()" style="padding:9px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;width:250px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;">
                 </div>
                 <div class="students-stats" id="studentsStats"></div>
                 <div class="data-table">
