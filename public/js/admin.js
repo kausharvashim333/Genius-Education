@@ -2387,6 +2387,7 @@ async function loadBatchesTable() {
             html += '<td>' + b.enrolled + '</td>';
             html += '<td><span class="seats-badge ' + (b.available > 5 ? 'seats-ok' : b.available > 0 ? 'seats-low' : 'seats-full') + '">' + (b.available > 0 ? b.available + ' seats' : 'FULL') + '</span></td>';
             html += '<td>';
+            html += '<button class="action-btn edit-btn" onclick="viewBatchStudents(' + b.id + ', \'' + b.name + '\')" title="View Students"><i class="fas fa-users"></i></button>';
             html += '<button class="action-btn edit-btn" onclick="editBatch(' + b.id + ')" title="Edit"><i class="fas fa-pen"></i></button>';
             html += '<button class="action-btn delete-btn" onclick="deleteBatch(' + b.id + ')" title="Delete"><i class="fas fa-trash"></i></button>';
             html += '</td>';
@@ -2435,6 +2436,26 @@ async function deleteBatch(id) {
     if (!confirm('Is batch ko delete karein?')) return;
     await fetch('/api/batches/' + id, { method: 'DELETE' });
     loadBatchesTable(); showNotification('Batch deleted!', 'success');
+}
+
+async function viewBatchStudents(batchId, batchName) {
+    // Navigate to students page
+    document.querySelectorAll('.sidebar-menu a').forEach(l => l.classList.remove('active'));
+    document.querySelector('[data-page="students"]').classList.add('active');
+    document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+    document.getElementById('page-students').classList.remove('hidden');
+    
+    // Load students table
+    await loadStudentsTable();
+    
+    // Set batch filter to the selected batch
+    const batchFilter = document.getElementById('studentBatchFilter');
+    if (batchFilter) {
+        batchFilter.value = batchId;
+        filterStudentsByBatch();
+    }
+    
+    showNotification('Showing students for ' + batchName, 'success');
 }
 
 // ===== Announcements =====
