@@ -857,14 +857,6 @@
             }
         }
 
-        /* Anchor key = the home-row key the finger comes FROM (reach hint) */
-        .key.anchor {
-            box-shadow:
-                0 0 0 2px rgba(102, 126, 234, 0.9),
-                0 0 16px rgba(102, 126, 234, 0.5);
-            border-color: rgba(102, 126, 234, 0.8) !important;
-        }
-
         /* ===== F & J tactile bump markers ===== */
         .key[data-key="f"]::after,
         .key[data-key="j"]::after {
@@ -884,80 +876,6 @@
         .key.home-row {
             background: linear-gradient(180deg, rgba(102, 126, 234, 0.16), rgba(102, 126, 234, 0.06));
             border-color: rgba(102, 126, 234, 0.28);
-        }
-
-        /* ===== Hand diagram (compact to fit viewport) ===== */
-        .hands-guide {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 8px;
-            flex-wrap: nowrap;
-        }
-        .tg-hand {
-            width: 104px;
-            height: 92px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .tg-palm {
-            width: 78px;
-            height: 38px;
-            background: linear-gradient(180deg, rgba(241, 245, 249, 0.18), rgba(203, 213, 225, 0.12));
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 38px 38px 10px 10px;
-            margin-top: auto;
-        }
-        .tg-fingers {
-            display: flex;
-            gap: 3px;
-            align-items: flex-end;
-        }
-        .tg-finger {
-            width: 17px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-bottom: none;
-            border-radius: 9px 9px 0 0;
-            transition: all 0.2s ease;
-            position: relative;
-            opacity: 0.55;
-        }
-        .tg-finger::after {
-            content: attr(data-name);
-            position: absolute;
-            bottom: -13px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 7px;
-            color: rgba(203, 213, 225, 0.55);
-            white-space: nowrap;
-        }
-        .tg-hand .tg-finger:nth-child(1) { height: 26px; background: rgba(239, 68, 68, 0.35); }    /* pinky */
-        .tg-hand .tg-finger:nth-child(2) { height: 34px; background: rgba(245, 158, 11, 0.35); }   /* ring */
-        .tg-hand .tg-finger:nth-child(3) { height: 40px; background: rgba(34, 197, 94, 0.35); }    /* middle */
-        .tg-hand .tg-finger:nth-child(4) { height: 36px; background: rgba(59, 130, 246, 0.35); }   /* index */
-        .tg-finger.glow {
-            opacity: 1;
-            transform: translateY(-3px) scale(1.12);
-            box-shadow: 0 0 14px currentColor, 0 0 26px currentColor;
-            filter: brightness(1.4);
-        }
-        .tg-thumb-bar {
-            width: 78px;
-            height: 10px;
-            margin-top: 3px;
-            background: rgba(139, 92, 246, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            transition: all 0.2s ease;
-            opacity: 0.55;
-        }
-        .tg-thumb-bar.glow {
-            opacity: 1;
-            box-shadow: 0 0 14px rgba(139, 92, 246, 0.8);
-            filter: brightness(1.4);
         }
 
         .key.space {
@@ -4363,30 +4281,6 @@
                             <i class="fas fa-hand-point-up"></i> <span id="fingerGuideText">Start typing to see finger guide</span>
                         </div>
 
-                        <!-- Hand diagram (beginner guide) -->
-                        <div class="hands-guide" id="handsGuide">
-                            <div class="tg-hand" id="leftHand">
-                                <div class="tg-fingers">
-                                    <div class="tg-finger" data-finger="pinky-left" data-name="Pinky"></div>
-                                    <div class="tg-finger" data-finger="ring-left" data-name="Ring"></div>
-                                    <div class="tg-finger" data-finger="middle-left" data-name="Middle"></div>
-                                    <div class="tg-finger" data-finger="index-left" data-name="Index"></div>
-                                </div>
-                                <div class="tg-palm"></div>
-                                <div class="tg-thumb-bar" data-finger="thumb"></div>
-                            </div>
-                            <div class="tg-hand" id="rightHand">
-                                <div class="tg-fingers">
-                                    <div class="tg-finger" data-finger="index-right" data-name="Index"></div>
-                                    <div class="tg-finger" data-finger="middle-right" data-name="Middle"></div>
-                                    <div class="tg-finger" data-finger="ring-right" data-name="Ring"></div>
-                                    <div class="tg-finger" data-finger="pinky-right" data-name="Pinky"></div>
-                                </div>
-                                <div class="tg-palm"></div>
-                                <div class="tg-thumb-bar" data-finger="thumb"></div>
-                            </div>
-                        </div>
-
                         <div class="keyboard">
                             <div class="keyboard-row">
                                 <div class="key pinky-left" data-key="`">`</div>
@@ -5813,66 +5707,6 @@
         const accuracyCircle = document.getElementById('accuracyCircle');
         const fingerGuideText = document.getElementById('fingerGuideText');
 
-        // ===== Beginner finger guide: maps each key -> which finger + its home-row anchor =====
-        // finger: which finger class on the hand diagram glows
-        // home:   the home-row key that finger rests on (for the "reach from" anchor)
-        const keyToFinger = {
-            // number row
-            '`': { finger: 'pinky-left',  home: 'a' }, '1': { finger: 'pinky-left',  home: 'a' },
-            '2': { finger: 'ring-left',   home: 's' }, '3': { finger: 'middle-left', home: 'd' },
-            '4': { finger: 'index-left',  home: 'f' }, '5': { finger: 'index-left',  home: 'f' },
-            '6': { finger: 'index-right', home: 'j' }, '7': { finger: 'index-right', home: 'j' },
-            '8': { finger: 'middle-right',home: 'k' }, '9': { finger: 'ring-right',  home: 'l' },
-            '0': { finger: 'pinky-right', home: ';' }, '-': { finger: 'pinky-right', home: ';' },
-            '=': { finger: 'pinky-right', home: ';' },
-            // top row
-            'q': { finger: 'pinky-left',  home: 'a' }, 'w': { finger: 'ring-left',   home: 's' },
-            'e': { finger: 'middle-left', home: 'd' }, 'r': { finger: 'index-left',  home: 'f' },
-            't': { finger: 'index-left',  home: 'f' }, 'y': { finger: 'index-right', home: 'j' },
-            'u': { finger: 'index-right', home: 'j' }, 'i': { finger: 'middle-right',home: 'k' },
-            'o': { finger: 'ring-right',  home: 'l' }, 'p': { finger: 'pinky-right', home: ';' },
-            '[': { finger: 'pinky-right', home: ';' }, ']': { finger: 'pinky-right', home: ';' },
-            '\\':{ finger: 'pinky-right', home: ';' },
-            // home row
-            'a': { finger: 'pinky-left',  home: 'a' }, 's': { finger: 'ring-left',   home: 's' },
-            'd': { finger: 'middle-left', home: 'd' }, 'f': { finger: 'index-left',  home: 'f' },
-            'g': { finger: 'index-left',  home: 'f' }, 'h': { finger: 'index-right', home: 'j' },
-            'j': { finger: 'index-right', home: 'j' }, 'k': { finger: 'middle-right',home: 'k' },
-            'l': { finger: 'ring-right',  home: 'l' }, ';': { finger: 'pinky-right', home: ';' },
-            '\'':{ finger: 'pinky-right', home: ';' },
-            // bottom row
-            'z': { finger: 'pinky-left',  home: 'a' }, 'x': { finger: 'ring-left',   home: 's' },
-            'c': { finger: 'middle-left', home: 'd' }, 'v': { finger: 'index-left',  home: 'f' },
-            'b': { finger: 'index-left',  home: 'f' }, 'n': { finger: 'index-right', home: 'j' },
-            'm': { finger: 'index-right', home: 'j' }, ',': { finger: 'middle-right',home: 'k' },
-            '.': { finger: 'ring-right',  home: 'l' }, '/': { finger: 'pinky-right', home: ';' },
-            // space
-            ' ': { finger: 'thumb',       home: ' ' }
-        };
-
-        // Finger -> glow color (used by box-shadow currentColor trick)
-        const fingerColor = {
-            'pinky-left': '#ef4444', 'pinky-right': '#ef4444',
-            'ring-left': '#f59e0b',  'ring-right': '#f59e0b',
-            'middle-left': '#22c55e','middle-right': '#22c55e',
-            'index-left': '#3b82f6', 'index-right': '#3b82f6',
-            'thumb': '#8b5cf6'
-        };
-
-        function clearHandGlow() {
-            document.querySelectorAll('#handsGuide .tg-finger, #handsGuide .tg-thumb-bar').forEach(el => {
-                el.classList.remove('glow');
-                el.style.color = '';
-            });
-        }
-
-        function glowFinger(finger) {
-            const el = document.querySelector(`#handsGuide [data-finger="${finger}"]`);
-            if (el) {
-                el.style.color = fingerColor[finger] || '#fff';
-                el.classList.add('glow');
-            }
-        }
         const levelSelect = document.getElementById('levelSelect');
         const levelInfo = document.getElementById('levelInfo');
         const showKeyboardCheckbox = document.getElementById('showKeyboard');
@@ -6000,9 +5834,8 @@
             incorrectChars.clear();
             lastCompletedLine = -1;
             previousLineIndex = -1;
-            // Clear any keyboard highlight, anchor and hand-diagram glow from previous run
-            document.querySelectorAll('.key').forEach(k => { k.classList.remove('highlighted'); k.classList.remove('anchor'); });
-            if (typeof clearHandGlow === 'function') clearHandGlow();
+            // Clear any keyboard highlight from previous run
+            document.querySelectorAll('.key').forEach(k => k.classList.remove('highlighted'));
             typingInput.value = '';
             typingInput.disabled = false;
             wpmDisplay.textContent = '0';
@@ -8568,28 +8401,15 @@
                 const nextChar = currentText[currentIndex];
                 const keyElement = document.querySelector(`[data-key="${nextChar}"]`);
 
-                // Remove highlight + anchor from all keys
+                // Remove highlight from all keys
                 document.querySelectorAll('.key').forEach(key => {
                     key.classList.remove('highlighted');
-                    key.classList.remove('anchor');
                 });
 
                 // Add highlight to next key
                 if (keyElement) {
                     keyElement.classList.add('highlighted');
-
-                    // Anchor = the home-row key the same finger starts from
-                    const anchor = keyToFinger[nextChar];
-                    if (anchor && anchor.home !== nextChar.toLowerCase()) {
-                        const anchorEl = document.querySelector(`[data-key="${anchor.home}"]`);
-                        if (anchorEl && anchorEl !== keyElement) anchorEl.classList.add('anchor');
-                    }
                 }
-
-                // Glow the matching finger on the hand diagram
-                clearHandGlow();
-                const fInfo = keyToFinger[nextChar];
-                if (fInfo) glowFinger(fInfo.finger);
             }
 
             // Show finger guide (separate from highlight)
