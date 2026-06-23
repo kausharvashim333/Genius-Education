@@ -461,22 +461,23 @@
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
-            padding: 40px;
+            padding: 20px 30px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             overflow-x: hidden;
             overflow-y: auto;
             min-height: 0;
+            gap: 8px;
         }
 
         .text-display {
             font-size: 18px;
             line-height: 1.6;
             color: #e0e0e0;
-            margin-bottom: 15px;
-            margin-top: 15px;
+            margin-bottom: 8px;
+            margin-top: 0;
             user-select: none;
             text-align: left;
             max-width: 100%;
@@ -490,6 +491,8 @@
             gap: 10px;
             overflow-wrap: break-word;
             word-wrap: break-word;
+            flex-shrink: 1;
+            overflow-y: auto;
         }
 
         .text-line {
@@ -616,11 +619,12 @@
 
         /* Keyboard Section */
         .keyboard-section {
-            margin-top: 15px;
-            padding-top: 15px;
+            margin-top: 8px;
+            padding-top: 10px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             width: 100%;
             max-width: 100%;
+            flex-shrink: 0;
         }
 
         /* Horizontal Stats Cards */
@@ -713,16 +717,17 @@
             background: rgba(102, 126, 234, 0.2);
             border: 1px solid rgba(102, 126, 234, 0.4);
             border-radius: 8px;
-            padding: 12px 20px;
-            margin-bottom: 20px;
+            padding: 8px 16px;
+            margin-bottom: 8px;
             text-align: center;
             color: #667eea;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            flex-shrink: 0;
         }
 
         .finger-guide-display i {
@@ -732,10 +737,10 @@
         .keyboard {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
             background: linear-gradient(135deg, rgba(40, 40, 55, 0.9), rgba(25, 25, 35, 0.95));
-            padding: 24px 28px;
+            padding: 16px 22px;
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.12);
             box-shadow: 
@@ -881,40 +886,40 @@
             border-color: rgba(102, 126, 234, 0.28);
         }
 
-        /* ===== Hand diagram ===== */
+        /* ===== Hand diagram (compact to fit viewport) ===== */
         .hands-guide {
             display: flex;
             justify-content: center;
-            gap: 40px;
-            margin-bottom: 14px;
-            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 8px;
+            flex-wrap: nowrap;
         }
         .tg-hand {
-            width: 130px;
-            height: 150px;
+            width: 104px;
+            height: 92px;
             position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         .tg-palm {
-            width: 96px;
-            height: 60px;
+            width: 78px;
+            height: 38px;
             background: linear-gradient(180deg, rgba(241, 245, 249, 0.18), rgba(203, 213, 225, 0.12));
             border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 48px 48px 14px 14px;
+            border-radius: 38px 38px 10px 10px;
             margin-top: auto;
         }
         .tg-fingers {
             display: flex;
-            gap: 4px;
+            gap: 3px;
             align-items: flex-end;
         }
         .tg-finger {
-            width: 22px;
+            width: 17px;
             border: 1px solid rgba(255, 255, 255, 0.25);
             border-bottom: none;
-            border-radius: 11px 11px 0 0;
+            border-radius: 9px 9px 0 0;
             transition: all 0.2s ease;
             position: relative;
             opacity: 0.55;
@@ -922,36 +927,36 @@
         .tg-finger::after {
             content: attr(data-name);
             position: absolute;
-            bottom: -16px;
+            bottom: -13px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 8px;
+            font-size: 7px;
             color: rgba(203, 213, 225, 0.55);
             white-space: nowrap;
         }
-        .tg-hand .tg-finger:nth-child(1) { height: 40px; background: rgba(239, 68, 68, 0.35); }   /* pinky */
-        .tg-hand .tg-finger:nth-child(2) { height: 52px; background: rgba(245, 158, 11, 0.35); }   /* ring */
-        .tg-hand .tg-finger:nth-child(3) { height: 60px; background: rgba(34, 197, 94, 0.35); }    /* middle */
-        .tg-hand .tg-finger:nth-child(4) { height: 56px; background: rgba(59, 130, 246, 0.35); }   /* index */
+        .tg-hand .tg-finger:nth-child(1) { height: 26px; background: rgba(239, 68, 68, 0.35); }    /* pinky */
+        .tg-hand .tg-finger:nth-child(2) { height: 34px; background: rgba(245, 158, 11, 0.35); }   /* ring */
+        .tg-hand .tg-finger:nth-child(3) { height: 40px; background: rgba(34, 197, 94, 0.35); }    /* middle */
+        .tg-hand .tg-finger:nth-child(4) { height: 36px; background: rgba(59, 130, 246, 0.35); }   /* index */
         .tg-finger.glow {
             opacity: 1;
-            transform: translateY(-4px) scale(1.12);
-            box-shadow: 0 0 16px currentColor, 0 0 30px currentColor;
+            transform: translateY(-3px) scale(1.12);
+            box-shadow: 0 0 14px currentColor, 0 0 26px currentColor;
             filter: brightness(1.4);
         }
         .tg-thumb-bar {
-            width: 96px;
-            height: 14px;
-            margin-top: 4px;
+            width: 78px;
+            height: 10px;
+            margin-top: 3px;
             background: rgba(139, 92, 246, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 7px;
+            border-radius: 5px;
             transition: all 0.2s ease;
             opacity: 0.55;
         }
         .tg-thumb-bar.glow {
             opacity: 1;
-            box-shadow: 0 0 16px rgba(139, 92, 246, 0.8);
+            box-shadow: 0 0 14px rgba(139, 92, 246, 0.8);
             filter: brightness(1.4);
         }
 
@@ -998,25 +1003,26 @@
         .finger-legend {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 20px;
+            gap: 12px;
+            margin-top: 10px;
             justify-content: center;
-            padding: 15px;
+            padding: 10px 12px;
             background: rgba(40, 40, 60, 0.5);
             border-radius: 12px;
+            flex-shrink: 0;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             color: #b0b0b0;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .legend-color {
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             border-radius: 4px;
         }
 
