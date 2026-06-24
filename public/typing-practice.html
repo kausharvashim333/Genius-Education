@@ -756,27 +756,15 @@
             display: flex;
             gap: 5px;
             justify-content: center;
+            width: 100%;
         }
 
-        /* Row staggering via margin-left instead of padding-left (padding pushed keys off-screen) */
-        .keyboard-row:nth-child(1) {
-            margin-left: 20px;
-        }
-
-        .keyboard-row:nth-child(2) {
-            margin-left: 30px;
-        }
-
-        .keyboard-row:nth-child(3) {
-            margin-left: 38px;
-        }
-
-        .keyboard-row:nth-child(4) {
-            margin-left: 48px;
-        }
+        /* Natural row staggering from special-key widths; no manual offset to avoid overflow */
 
         .key {
-            min-width: 46px;
+            flex: 1 1 0;
+            min-width: 34px;
+            max-width: 60px;
             height: 48px;
             background: linear-gradient(180deg, rgba(60, 60, 75, 0.8), rgba(40, 40, 55, 0.9));
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -790,7 +778,7 @@
             cursor: pointer;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            box-shadow: 
+            box-shadow:
                 0 4px 12px rgba(0, 0, 0, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
@@ -882,42 +870,50 @@
         }
 
         .key.space {
-            flex: 1;
-            min-width: 550px;
+            flex: 8 1 auto;
+            min-width: 180px;
             max-width: 700px;
         }
 
         .key.shift {
-            min-width: 100px;
-        }
-
-        .key.caps {
-            min-width: 85px;
-        }
-
-        .key.tab {
+            flex: 2.25 1 auto;
             min-width: 70px;
         }
 
+        .key.caps {
+            flex: 1.9 1 auto;
+            min-width: 62px;
+        }
+
+        .key.tab {
+            flex: 1.6 1 auto;
+            min-width: 52px;
+        }
+
         .key.enter {
-            min-width: 110px;
+            flex: 2.5 1 auto;
+            min-width: 76px;
         }
 
         .key.backspace {
-            min-width: 100px;
+            flex: 2.25 1 auto;
+            min-width: 70px;
         }
 
         .key.win-key {
-            min-width: 55px;
+            flex: 1.25 1 auto;
+            min-width: 42px;
             font-size: 13px;
         }
 
         .key.alt-key {
-            min-width: 55px;
+            flex: 1.25 1 auto;
+            min-width: 42px;
         }
 
         .key.ctrl-key {
-            min-width: 55px;
+            flex: 1.25 1 auto;
+            min-width: 42px;
         }
 
         /* Finger guide legend */
@@ -4074,15 +4070,12 @@
             }
 
             /* Shrink special keys on tablet so rows don't overflow */
-            .key.tab { min-width: 50px; }
-            .key.caps { min-width: 60px; }
-            .key.shift { min-width: 70px; }
-            .key.enter { min-width: 78px; }
-            .key.backspace { min-width: 70px; }
-            .key.win-key, .key.alt-key, .key.ctrl-key { min-width: 42px; font-size: 10px; }
-
-            /* Less row staggering on narrow screens */
-            .keyboard-row:nth-child(n) { margin-left: 8px; }
+            .key.tab { min-width: 44px; }
+            .key.caps { min-width: 50px; }
+            .key.shift { min-width: 56px; }
+            .key.enter { min-width: 60px; }
+            .key.backspace { min-width: 56px; }
+            .key.win-key, .key.alt-key, .key.ctrl-key { min-width: 36px; font-size: 10px; }
 
             .app-header {
                 padding: 10px 15px;
@@ -4130,15 +4123,12 @@
             }
 
             /* Shrink special keys on mobile so rows fit */
-            .key.tab { min-width: 38px; font-size: 9px; }
-            .key.caps { min-width: 44px; font-size: 9px; }
-            .key.shift { min-width: 52px; font-size: 9px; }
-            .key.enter { min-width: 58px; font-size: 9px; }
-            .key.backspace { min-width: 52px; font-size: 11px; }
-            .key.win-key, .key.alt-key, .key.ctrl-key { min-width: 34px; font-size: 8px; }
-
-            /* Minimal row staggering on mobile */
-            .keyboard-row:nth-child(n) { margin-left: 4px; }
+            .key.tab { min-width: 34px; font-size: 9px; }
+            .key.caps { min-width: 38px; font-size: 9px; }
+            .key.shift { min-width: 44px; font-size: 9px; }
+            .key.enter { min-width: 48px; font-size: 9px; }
+            .key.backspace { min-width: 44px; font-size: 11px; }
+            .key.win-key, .key.alt-key, .key.ctrl-key { min-width: 30px; font-size: 8px; }
 
             .stat-value {
                 font-size: 24px;
