@@ -6381,6 +6381,14 @@
                         <i class="fas fa-keyboard"></i>
                         <span>Shortcut Practice</span>
                     </button>
+                    <button class="more-option-btn" onclick="openStoryChaptersModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-book-open"></i>
+                        <span>Story Chapters</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openTimerTestModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-stopwatch"></i>
+                        <span>Timed Test</span>
+                    </button>
                     <button class="more-option-btn" onclick="toggleHighContrastMode(); closeMoreOptionsModal();">
                         <i class="fas fa-adjust"></i>
                         <span>High Contrast</span>
@@ -6396,6 +6404,34 @@
                         </select>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lessons-modal" id="storyChaptersModal" style="display: none;">
+        <div class="lessons-content">
+            <div class="lessons-header">
+                <h2><i class="fas fa-book-open"></i> Story Chapters</h2>
+                <button class="close-btn" onclick="closeStoryChaptersModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="lessons-body">
+                <div class="lessons-list" id="storyChaptersList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="warmup-modal" id="timerTestModal" style="display: none;">
+        <div class="warmup-content">
+            <div class="warmup-header">
+                <h2><i class="fas fa-stopwatch"></i> Timed Test</h2>
+                <button class="close-btn" onclick="closeTimerTestModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="warmup-body">
+                <div class="warmup-exercises" id="timerTestOptions"></div>
             </div>
         </div>
     </div>
@@ -6649,6 +6685,8 @@
         let startTime = null;
         let timerInterval = null;
         let wpmHistory = [];
+        let customModeDuration = 0;
+        let isCustomMode = false;
         let streak = 0;
         let maxStreak = 0;
         let combo = 1;
@@ -6958,8 +6996,12 @@
             startTime = new Date();
             updateFingerGuide();
 
-            const levelData = gameLevels[currentLevel - 1];
-            timeRemaining = levelData.duration;
+            if (isCustomMode && customModeDuration > 0) {
+                timeRemaining = customModeDuration;
+            } else {
+                const levelData = gameLevels[currentLevel - 1];
+                timeRemaining = levelData.duration;
+            }
             console.log('Starting timer with duration:', timeRemaining, 'seconds');
             timerDisplay.classList.add('visible');
             timerDisplay.style.display = 'flex';
@@ -7049,6 +7091,9 @@
 
             // Check challenge completion
             checkChallengeCompletion(wpm, accuracy, mistakes, maxStreak);
+            isChallengeMode = false;
+            isCustomMode = false;
+            customModeDuration = 0;
 
             // Check speed badges
             checkSpeedBadges(wpm);
@@ -7326,9 +7371,30 @@
             currentText = practiceText;
             currentLessonId = lesson.id;
 
+            currentIndex = 0;
+            mistakes = 0;
+            streak = 0;
+            combo = 1;
+            maxStreak = 0;
+            maxCombo = 1;
+            wpmHistory = [];
+            incorrectChars.clear();
+            lastCompletedLine = -1;
+            previousLineIndex = -1;
+            typingInput.value = '';
+            typingInput.disabled = false;
+            wpmDisplay.textContent = '0';
+            accuracyDisplay.textContent = '100%';
+            progressFillSidebar.style.width = '0%';
+            progressPercentage.textContent = '0%';
+            accuracyCircle.style.strokeDashoffset = '226.195';
+            cpmDisplay.textContent = '0';
+
+            isCustomMode = false;
+            isChallengeMode = false;
+
             closeLessonsModal();
-            resetTyping();
-            textDisplay.innerHTML = '<div class="text-line">Click "Start" to begin typing...</div>';
+            updateDisplay();
         }
 
         function updateLessonProgress(lessonId, accuracy) {
@@ -7396,16 +7462,13 @@
         function startDailyChallenge() {
             if (challengeProgress >= 100) return;
 
-            // Set challenge mode
-            isChallengeMode = true;
-            challengeDuration = currentChallenge.duration;
-
-            // Load new text
             loadNewText();
-
             closeDailyChallengeModal();
-            resetTyping();
-            textDisplay.innerHTML = '<div class="text-line">Click "Start" to begin the challenge...</div>';
+
+            isChallengeMode = true;
+            isCustomMode = true;
+            customModeDuration = currentChallenge.duration;
+            updateDisplay();
         }
 
         function checkChallengeCompletion(wpm, accuracy, errors, maxStreak) {
@@ -7876,7 +7939,18 @@
                     timerInterval = null;
                 }
             }
-            
+
+            if (timerCountdownInterval) {
+                clearInterval(timerCountdownInterval);
+                timerCountdownInterval = null;
+            }
+            timerDisplay.classList.remove('visible');
+            timerDisplay.style.display = 'none';
+
+            isCustomMode = false;
+            isChallengeMode = false;
+            customModeDuration = 0;
+
             currentIndex = 0;
             mistakes = 0;
             streak = 0;
@@ -8309,9 +8383,7 @@
         });
 
         function loadNextText() {
-            const difficulty = difficultySelect.value;
-            const samples = textSamples[difficulty];
-            currentText = samples[Math.floor(Math.random() * samples.length)];
+            currentText = generateTextForLevel(currentLevel);
             currentIndex = 0;
             updateDisplay();
         }
@@ -8831,10 +8903,157 @@
                     'pinky-right': 0
                 };
                 typingInput.value = '';
+                typingInput.disabled = false;
+                wpmDisplay.textContent = '0';
+                accuracyDisplay.textContent = '100%';
+                progressFillSidebar.style.width = '0%';
+                progressPercentage.textContent = '0%';
+                accuracyCircle.style.strokeDashoffset = '226.195';
+                cpmDisplay.textContent = '0';
+
+                const mins = parseInt(exercise.duration);
+                isCustomMode = true;
+                customModeDuration = mins * 60;
+
                 updateDisplay();
                 closeWarmupModal();
                 startTyping();
             }
+        }
+
+        // ===== Story Chapters =====
+        const storyChapters = [
+            { id: 1, title: 'The Amazon Rainforest', category: 'Nature', text: hardStories[0] },
+            { id: 2, title: 'Quantum Entanglement', category: 'Science', text: hardStories[1] },
+            { id: 3, title: 'The Ancient Silk Road', category: 'History', text: hardStories[2] },
+            { id: 4, title: 'Coral Reefs', category: 'Nature', text: hardStories[3] },
+            { id: 5, title: 'The Mariana Trench', category: 'Nature', text: hardStories[4] },
+            { id: 6, title: 'The Printing Press', category: 'History', text: hardStories[5] },
+            { id: 7, title: 'Antarctica', category: 'Nature', text: hardStories[6] },
+            { id: 8, title: 'The Human Immune System', category: 'Science', text: hardStories[7] },
+            { id: 9, title: 'Bengal Tigers', category: 'Nature', text: hardStories[8] },
+            { id: 10, title: 'The Renaissance', category: 'History', text: hardStories[9] },
+            { id: 11, title: 'Renewable Energy', category: 'Science', text: hardStories[10] },
+            { id: 12, title: 'The Olympic Games', category: 'History', text: hardStories[11] },
+            { id: 13, title: 'Diwali Festival', category: 'Culture', text: hardStories[12] },
+            { id: 14, title: 'AI in Healthcare', category: 'Science', text: hardStories[13] },
+            { id: 15, title: 'Mount Everest', category: 'Adventure', text: hardStories[14] },
+            { id: 16, title: 'Library of Alexandria', category: 'History', text: hardStories[15] },
+            { id: 17, title: 'Monarch Butterflies', category: 'Nature', text: hardStories[16] },
+            { id: 18, title: 'The Industrial Revolution', category: 'History', text: hardStories[17] },
+            { id: 19, title: 'Nikola Tesla', category: 'Biography', text: hardStories[19] },
+            { id: 20, title: 'Japanese Tea Ceremony', category: 'Culture', text: hardStories[20] },
+            { id: 21, title: 'Apollo 11 Mission', category: 'History', text: hardStories[21] },
+            { id: 22, title: 'The Vikings', category: 'History', text: hardStories[22] },
+            { id: 23, title: 'Gut Microbiome', category: 'Science', text: hardStories[23] },
+            { id: 24, title: 'Deep Neural Networks', category: 'Science', text: expertStories[0] },
+            { id: 25, title: 'Bioluminescence', category: 'Nature', text: expertStories[1] },
+            { id: 26, title: 'The Mongol Empire', category: 'History', text: expertStories[2] },
+            { id: 27, title: 'CRISPR Gene Editing', category: 'Science', text: expertStories[3] },
+            { id: 28, title: 'Black Holes', category: 'Science', text: expertStories[4] },
+            { id: 29, title: 'Hagia Sophia', category: 'History', text: expertStories[5] },
+            { id: 30, title: 'The Octopus', category: 'Nature', text: expertStories[6] }
+        ];
+
+        function openStoryChaptersModal() {
+            document.getElementById('storyChaptersModal').style.display = 'flex';
+            renderStoryChapters();
+        }
+
+        function closeStoryChaptersModal() {
+            document.getElementById('storyChaptersModal').style.display = 'none';
+        }
+
+        function renderStoryChapters() {
+            const list = document.getElementById('storyChaptersList');
+            list.innerHTML = storyChapters.map(story => `
+                <div class="lesson-card" onclick="startStoryChapter(${story.id})">
+                    <div class="lesson-card-header">
+                        <span class="lesson-card-title">${story.title}</span>
+                        <span class="lesson-card-level">${story.category}</span>
+                    </div>
+                    <div class="lesson-card-description">${story.text.substring(0, 100)}...</div>
+                    <div class="lesson-card-keys">${story.text.length} characters</div>
+                </div>
+            `).join('');
+        }
+
+        function startStoryChapter(storyId) {
+            const story = storyChapters.find(s => s.id === storyId);
+            if (!story) return;
+
+            currentText = story.text;
+            currentLessonId = null;
+
+            currentIndex = 0;
+            mistakes = 0;
+            streak = 0;
+            combo = 1;
+            maxStreak = 0;
+            maxCombo = 1;
+            wpmHistory = [];
+            incorrectChars.clear();
+            lastCompletedLine = -1;
+            previousLineIndex = -1;
+            typingInput.value = '';
+            typingInput.disabled = false;
+            wpmDisplay.textContent = '0';
+            accuracyDisplay.textContent = '100%';
+            progressFillSidebar.style.width = '0%';
+            progressPercentage.textContent = '0%';
+            accuracyCircle.style.strokeDashoffset = '226.195';
+            cpmDisplay.textContent = '0';
+
+            isCustomMode = false;
+            isChallengeMode = false;
+
+            document.getElementById('lessonTitle').textContent = story.title;
+            closeStoryChaptersModal();
+            updateDisplay();
+        }
+
+        // ===== Timed Test =====
+        const timerTestOptions = [
+            { id: '1min', label: '1 Minute', duration: 60, icon: '⏱️' },
+            { id: '2min', label: '2 Minutes', duration: 120, icon: '⏱️' },
+            { id: '5min', label: '5 Minutes', duration: 300, icon: '⏱️' },
+            { id: '10min', label: '10 Minutes', duration: 600, icon: '⏱️' },
+            { id: '15min', label: '15 Minutes', duration: 900, icon: '⏱️' },
+            { id: '30min', label: '30 Minutes', duration: 1800, icon: '⏱️' }
+        ];
+
+        function openTimerTestModal() {
+            document.getElementById('timerTestModal').style.display = 'flex';
+            renderTimerTestOptions();
+        }
+
+        function closeTimerTestModal() {
+            document.getElementById('timerTestModal').style.display = 'none';
+        }
+
+        function renderTimerTestOptions() {
+            const container = document.getElementById('timerTestOptions');
+            container.innerHTML = timerTestOptions.map(opt => `
+                <div class="warmup-card" onclick="startTimerTest('${opt.id}')">
+                    <div class="warmup-card-icon">${opt.icon}</div>
+                    <div class="warmup-card-title">${opt.label}</div>
+                    <div class="warmup-card-description">Type as much as you can in ${opt.label.toLowerCase()}</div>
+                </div>
+            `).join('');
+        }
+
+        function startTimerTest(optionId) {
+            const opt = timerTestOptions.find(o => o.id === optionId);
+            if (!opt) return;
+
+            loadNewText();
+
+            isCustomMode = true;
+            customModeDuration = opt.duration;
+
+            closeTimerTestModal();
+            updateDisplay();
+            startTyping();
         }
 
         function toggleHighContrastMode() {
