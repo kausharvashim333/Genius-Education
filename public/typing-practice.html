@@ -2093,6 +2093,177 @@
             color: #333;
         }
 
+        /* Bilingual Motivational Quote Modal (Welcome / Goodbye) */
+        .quote-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .quote-modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .quote-content {
+            background: linear-gradient(135deg, rgba(30, 30, 50, 0.98), rgba(40, 40, 60, 0.98));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 40px 36px;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 560px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
+            transform: translateY(20px) scale(0.96);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .quote-modal.show .quote-content {
+            transform: translateY(0) scale(1);
+        }
+
+        .quote-icon {
+            width: 74px;
+            height: 74px;
+            margin: 0 auto 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.45);
+            animation: bounce 0.6s ease;
+        }
+
+        .quote-title {
+            color: #f0f0f5;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 22px;
+            letter-spacing: 0.3px;
+        }
+
+        .quote-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.6), transparent);
+            margin: 0 auto 22px;
+            width: 80%;
+        }
+
+        .quote-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            text-align: left;
+            margin-bottom: 18px;
+            padding: 16px 18px;
+            background: rgba(102, 126, 234, 0.08);
+            border-radius: 14px;
+            border: 1px solid rgba(102, 126, 234, 0.15);
+        }
+
+        .quote-flag {
+            font-size: 24px;
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+
+        .quote-text-en {
+            color: #e6e6ee;
+            font-size: 17px;
+            line-height: 1.55;
+            font-weight: 500;
+        }
+
+        .quote-text-hi {
+            color: #d8d8e6;
+            font-size: 17px;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        .quote-footer-note {
+            color: #9a9ab0;
+            font-size: 14px;
+            margin: 6px 0 22px;
+            font-style: italic;
+        }
+
+        .quote-close-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border: none;
+            padding: 13px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 6px 18px rgba(102, 126, 234, 0.4);
+        }
+
+        .quote-close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Light theme adjustments for quote modal */
+        body.light-theme .quote-content {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(245, 247, 250, 0.98));
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-theme .quote-title {
+            color: #2d2d44;
+        }
+
+        body.light-theme .quote-line {
+            background: rgba(102, 126, 234, 0.06);
+            border: 1px solid rgba(102, 126, 234, 0.18);
+        }
+
+        body.light-theme .quote-text-en {
+            color: #2d2d44;
+        }
+
+        body.light-theme .quote-text-hi {
+            color: #3a3a55;
+        }
+
+        body.light-theme .quote-footer-note {
+            color: #6b6b80;
+        }
+
+        @media (max-width: 480px) {
+            .quote-content {
+                padding: 30px 22px;
+            }
+            .quote-title {
+                font-size: 22px;
+            }
+            .quote-text-en,
+            .quote-text-hi {
+                font-size: 15px;
+            }
+        }
+
         /* Result Modal */
         .result-modal {
             display: none;
@@ -5594,11 +5765,31 @@
         </div>
     </div>
 
+    <!-- Bilingual Motivational Quote Modal (Welcome / Goodbye) -->
+    <div class="quote-modal" id="quoteModal">
+        <div class="quote-content">
+            <div class="quote-icon" id="quoteIcon">✨</div>
+            <div class="quote-title" id="quoteTitle">Welcome Back!</div>
+            <div class="quote-divider"></div>
+            <div class="quote-line">
+                <span class="quote-flag">🇬🇧</span>
+                <span class="quote-text-en" id="quoteTextEn"></span>
+            </div>
+            <div class="quote-line">
+                <span class="quote-flag">🇮🇳</span>
+                <span class="quote-text-hi" id="quoteTextHi"></span>
+            </div>
+            <div class="quote-footer-note" id="quoteFooterNote" style="display: none;"></div>
+            <button class="quote-close-btn" id="quoteCloseBtn" onclick="closeQuoteModal()">Let's Type!</button>
+        </div>
+    </div>
+
+    <script src="typing-quotes.js"></script>
     <script>
-        // 50-Level Game System
+        // 100-Level Game System
         const gameLevels = [];
         
-        // Generate 50 levels with progressive difficulty
+        // Generate levels 1-50 with progressive difficulty (UNCHANGED)
         for (let i = 1; i <= 50; i++) {
             const levelNum = i;
             let duration, difficulty, contentLength;
@@ -5625,6 +5816,33 @@
             
             // Content length: increases with level (500-6000 characters)
             contentLength = 500 + (levelNum - 1) * 110;
+            
+            gameLevels.push({
+                level: levelNum,
+                duration: Math.round(duration * 60), // Convert to seconds
+                durationDisplay: duration >= 60 ? `${Math.round(duration/60)} min` : `${Math.round(duration)} min`,
+                difficulty: difficulty,
+                contentLength: contentLength
+            });
+        }
+        
+        // Generate levels 51-100 (NEW: Hard 51-75, Expert 76-100, duration capped at 30 min)
+        for (let i = 51; i <= 100; i++) {
+            const levelNum = i;
+            let duration, difficulty, contentLength;
+            
+            // Duration capped at 30 minutes (same as Level 50)
+            duration = 30;
+            
+            // Difficulty categories for new levels
+            if (levelNum <= 75) {
+                difficulty = 'Hard';
+            } else {
+                difficulty = 'Expert';
+            }
+            
+            // Content length continues progressive increase (6000-11490 characters)
+            contentLength = 6000 + (levelNum - 50) * 110;
             
             gameLevels.push({
                 level: levelNum,
@@ -5682,6 +5900,64 @@
             "The rapid advancement of artificial intelligence has transformed numerous industries, from healthcare to finance, manufacturing to entertainment. Machine learning models can now process vast amounts of data to identify patterns, make predictions, and automate complex tasks that were previously thought to require human intelligence. Natural language processing has enabled machines to understand and generate human language with remarkable accuracy, while computer vision systems can recognize and interpret visual information with human-like precision. Robotics has evolved from simple automation to sophisticated systems capable of performing delicate surgeries, exploring hazardous environments, and assisting in daily household tasks. The integration of AI with the Internet of Things has created smart homes, smart cities, and smart industries where devices communicate and collaborate autonomously. However, these technological advancements also raise important ethical questions about privacy, security, job displacement, and the potential for misuse. As we continue to push the boundaries of what is possible, it is crucial to ensure that technological progress benefits all of humanity and does not exacerbate existing inequalities or create new forms of discrimination.",
             "Climate change represents one of the greatest challenges facing humanity in the twenty-first century. Rising global temperatures, melting ice caps, rising sea levels, and extreme weather events are already impacting communities around the world. The scientific consensus is clear: human activities, particularly the burning of fossil fuels and deforestation, are the primary drivers of this crisis. Addressing climate change requires a comprehensive approach that includes transitioning to renewable energy sources, improving energy efficiency, protecting and restoring forests, developing sustainable agriculture practices, and adapting to the changes that are already inevitable. International cooperation is essential, as climate change is a global problem that transcends national borders. The Paris Agreement represents a significant step forward, but much more ambitious action is needed to limit global warming to well below two degrees Celsius. Individuals also have a role to play through lifestyle choices, consumption patterns, and political engagement. The transition to a low-carbon economy presents both challenges and opportunities, creating new industries and jobs while potentially disrupting existing ones. The time for action is now, as the window for preventing the most catastrophic impacts is rapidly closing.",
             "The human brain is the most complex organ in the human body, containing approximately 86 billion neurons connected by trillions of synapses. This remarkable organ is responsible for consciousness, thought, memory, emotion, and all the cognitive functions that define our humanity. Neuroscience has made tremendous progress in understanding how the brain works, yet much remains to be discovered. Advances in neuroimaging techniques have allowed researchers to observe brain activity in real-time, while molecular biology has revealed the intricate chemical processes that underlie neural communication. The study of the brain has important implications for medicine, as understanding neurological disorders such as Alzheimer's, Parkinson's, and depression could lead to better treatments and potentially cures. Artificial intelligence researchers are also drawing inspiration from the brain's architecture to develop more sophisticated neural networks. The brain's ability to learn, adapt, and reorganize itself in response to experience, known as neuroplasticity, offers hope for recovery from brain injuries and the development of new skills throughout life. As our understanding of the brain deepens, we may unlock new possibilities for enhancing human cognition and treating mental health disorders."
+        ];
+
+        // === NEW CONTENT: Hard stories for Levels 51-75 (25 unique topics) ===
+        const hardStories = [
+            "The Amazon rainforest, often called the lungs of our planet, spans across nine nations and harbors nearly ten percent of all known species. Its dense canopy shelters jaguars, macaws, poison dart frogs, and countless insects that have yet to be catalogued by scientists. The river itself, stretching over four thousand miles, carries more water than the next seven largest rivers combined. Indigenous tribes have inhabited these lands for millennia, developing profound knowledge of medicinal plants and ecological balance. Deforestation, however, threatens this fragile ecosystem at an alarming rate; cattle ranching, illegal logging, and soy cultivation have already claimed vast portions of the forest. Conservation efforts require international cooperation, sustainable economic alternatives, and respect for indigenous sovereignty. The rainforest's disappearance would release billions of tons of stored carbon, accelerating climate catastrophe irreversibly.",
+            "Quantum entanglement, a phenomenon Einstein famously dismissed as 'spooky action at a distance,' describes the inexplicable correlation between two particles regardless of the distance separating them. When researchers measure the spin of one entangled particle, its partner instantly assumes the opposite state—even if they are light-years apart. This defiance of classical locality has been confirmed through rigorous experiments, including those conducted by Alain Aspect, John Clauser, and Anton Zeilinger, who jointly received the Nobel Prize in Physics in 2022. Quantum computing exploits this peculiar behavior to perform parallel calculations that would take classical computers millennia. Tech giants like IBM, Google, and Rigetti are racing to build fault-tolerant quantum processors using superconducting qubits, trapped ions, and topological architectures. Yet challenges remain: decoherence, error correction, and cryogenic cooling requirements make practical quantum computers extraordinarily difficult to engineer.",
+            "The ancient Silk Road was not merely a trade route but a conduit of civilization itself, stretching from Chang'an in China to the shores of the Mediterranean Sea. Merchants transported silk, spices, jade, and porcelain across treacherous deserts and over towering mountain passes. Caravanserais dotted the route every thirty miles, offering weary travelers shelter, water, and protection from bandits. The exchange went far beyond goods: Buddhism traveled from India to China, while paper-making technology flowed westward to the Islamic world and eventually to Europe. Genghis Khan's Mongol Empire pacified the route in the thirteenth century, creating a Pax Mongolica that allowed unprecedented cultural exchange. Marco Polo's seventeen-year journey along this network became one of history's greatest travelogues. Today, China's Belt and Road Initiative echoes this ancient vision, investing trillions in infrastructure across Eurasia and Africa.",
+            "Coral reefs occupy less than one percent of the ocean floor, yet they support approximately twenty-five percent of all marine biodiversity. The Great Barrier Reef, visible from outer space, consists of over two thousand nine hundred individual reefs and nine hundred islands stretching for fourteen hundred miles along Australia's northeastern coast. Coral polyps, tiny animals related to jellyfish, secrete calcium carbonate skeletons that accumulate over centuries into massive structures. Zooxanthellae, symbiotic algae living within coral tissues, provide nutrients through photosynthesis and give corals their vibrant colors. When ocean temperatures rise even slightly, corals expel these algae in a phenomenon called bleaching, leaving them vulnerable and starved. Scientists are developing heat-resistant coral strains through selective breeding and assisted gene flow, while marine protected areas offer critical sanctuaries for recovery.",
+            "The Mariana Trench, plunging nearly eleven kilometers beneath the Pacific Ocean's surface, represents the deepest known point on Earth. At its lowest point, the Challenger Deep, the pressure exceeds one thousand times that of the atmosphere—enough to crush conventional submarines like aluminum cans. Yet life persists here in extraordinary forms: amphipods the size of humans' hands, translucent snailfish, and single-celled organisms called xenophyophores that resemble giant amoebas. The trench was first reached in 1960 by Jacques Piccard and Don Walsh aboard the bathyscaphe Trieste. filmmaker James Cameron made a solo descent in 2012, and Victor Vescovo followed in 2019, discovering what may be the deepest shipwreck ever found. Microbes in these extreme environments offer clues about life's potential on Europa, Jupiter's ice-covered moon, where a subsurface ocean may harbor analogous conditions.",
+            "The invention of the printing press by Johannes Gutenberg around 1440 revolutionized human civilization more profoundly than perhaps any other single innovation. Before movable type, books were copied by hand—typically by monks in scriptoria—a process so laborious that a single volume could take months to complete. Gutenberg's combination of metal movable type, oil-based inks, and a modified wine press enabled mass production of texts at a fraction of the previous cost. The Gutenberg Bible, printed in Mainz, demonstrated the technology's capability with stunning typographic beauty. Within fifty years, printing presses had spread to over two hundred European cities, fueling the Renaissance, the Protestant Reformation, and the Scientific Revolution. Literacy rates soared as books became affordable; ideas could travel faster than armies. Martin Luther's Ninety-five Theses, printed and distributed in thousands of copies, ignited religious upheaval that reshaped the political map of Europe.",
+            "Antarctica, Earth's southernmost continent, is the coldest, driest, and windiest place on the planet. Temperatures at Vostok Station have plummeted to minus eighty-nine degrees Celsius, and katabatic winds can exceed two hundred kilometers per hour. Despite these brutal conditions, Antarctica holds seventy percent of the world's fresh water locked in its ice sheet, which averages nearly two kilometers in thickness. The continent is governed by the Antarctic Treaty System, signed in 1959 by twelve nations and now including fifty-four parties, which reserves the region exclusively for peaceful scientific research. Research stations operated by countries worldwide study glaciology, astrophysics, and paleoclimatology. Ice cores drilled from the sheet provide climate records spanning eight hundred thousand years, revealing atmospheric composition through trapped air bubbles. The ozone hole, discovered above Antarctica in 1985, led to the Montreal Protocol—one of the most successful environmental agreements in history.",
+            "The human immune system is an extraordinary network of cells, tissues, and organs that defends against an endless barrage of pathogens. White blood cells, or leukocytes, patrol the bloodstream in search of invaders; macrophages engulf bacteria, while T lymphocytes destroy virus-infected cells. B lymphocytes produce antibodies—Y-shaped proteins that neutralize toxins and mark pathogens for destruction. The discovery of penicillin by Alexander Fleming in 1928 transformed medicine, but overuse of antibiotics has accelerated the evolution of resistant superbugs like MRSA and CRE. Vaccines, arguably humanity's greatest public health achievement, train the immune system to recognize pathogens before infection occurs. Edward Jenner's smallpox vaccine in 1796 eradicated a disease that had killed hundreds of millions. Modern mRNA vaccine technology, pioneered during the COVID-19 pandemic, offers rapid, adaptable platforms for combating emerging infectious diseases and even certain cancers.",
+            "Bengal tigers, the largest members of the cat family, once roamed across the Indian subcontinent in vast numbers. Today, fewer than three thousand remain in the wild, confined to fragmented habitats in India, Bangladesh, Nepal, and Bhutan. Project Tiger, launched in India in 1973, established dedicated tiger reserves and implemented strict anti-poaching measures. The population has since shown encouraging recovery in several reserves, including Bandipur, Ranthambore, and Corbett. Tigers are apex predators, requiring large territories with abundant prey; a single male may patrol over twenty square miles. Habitat loss due to agriculture, infrastructure, and mining poses the greatest threat, followed by retaliatory killings and illegal wildlife trade targeting bones and pelts. Genetic diversity within small, isolated populations remains a concern; wildlife corridors connecting reserves are essential for long-term viability.",
+            "The Renaissance, spanning roughly from the fourteenth to seventeenth centuries, marked a profound rebirth of art, science, and intellectual inquiry in Europe. Originating in the Italian city-states of Florence, Venice, and Genoa, it was fueled by growing wealth from maritime trade, the rediscovery of classical texts, and a shifting worldview that placed human experience at the center. Leonardo da Vinci epitomized the Renaissance Man—a painter, anatomist, engineer, and inventor whose notebooks reveal a mind centuries ahead of its time. Michelangelo's Sistine Chapel ceiling and David sculpture demonstrate unparalleled mastery of human anatomy and emotional expression. Brunelleschi's dome for Florence Cathedral solved an engineering puzzle that had stymied architects for over a century. The era also saw the development of linear perspective in painting, double-entry bookkeeping in commerce, and the emergence of vernacular literature through Dante, Petrarch, and Boccaccio.",
+            "Renewable energy has undergone a remarkable transformation over the past two decades, evolving from an expensive niche to the cheapest source of electricity in many regions. Solar photovoltaic panel costs have plummeted by over ninety percent since 2010, while wind turbine efficiency has improved dramatically through larger rotors and taller towers. China dominates manufacturing of solar panels, producing more than eighty percent of global supply, and is also the world's largest installer of renewable capacity. The transition, however, faces significant challenges: intermittency requires energy storage solutions, grid infrastructure must be expanded and modernized, and critical minerals like lithium, cobalt, and rare earth elements raise geopolitical and environmental concerns. Green hydrogen, produced through electrolysis using renewable electricity, offers a promising pathway for decarbonizing heavy industry, shipping, and aviation—sectors that are difficult to electrify directly.",
+            "The Olympic Games, revived in Athens in 1896 through the vision of Pierre de Coubertin, have grown into the world's foremost sporting spectacle. The ancient Olympics, held at Olympia from 776 BCE to 393 CE, were part of a religious festival honoring Zeus and featured events like the stadion race, wrestling, and chariot racing. The modern Games have expanded to include over three hundred events across thirty-three sports, with the Paralympic Games providing a platform for athletes with disabilities since 1960. Hosting the Olympics demands enormous infrastructure investment; cities like Barcelona and Los Angeles used the Games to catalyze urban transformation, while others like Athens and Rio faced significant post-Games financial burdens. The International Olympic Committee, based in Lausanne, Switzerland, oversees the movement and has grappled with doping scandals, corruption allegations, and the challenge of maintaining relevance in a rapidly changing media landscape.",
+            "Diwali, the festival of lights, stands as one of the most significant celebrations in Hindu culture, symbolizing the triumph of light over darkness and good over evil. Families illuminate their homes with clay lamps called diyas, string colorful electric lights along balconies and rooftops, and create intricate rangoli designs at their doorsteps using colored powders, flower petals, and rice flour. The five-day festival begins with Dhanteras, dedicated to prosperity, and culminates with Bhai Dooj, celebrating sibling bonds. Firecrackers, though increasingly discouraged due to environmental concerns, remain a cherished tradition in many communities. The mythology behind Diwali varies across regions: in North India, it marks Lord Rama's return to Ayodhya after fourteen years of exile; in South India, it commemorates Lord Krishna's victory over the demon Narakasura. Sikhs celebrate Bandi Chhor Divas, while Jains observe the festival as the day of Lord Mahavira's nirvana.",
+            "Artificial intelligence in healthcare has moved from speculative fiction to clinical reality at an astonishing pace. Machine learning algorithms now assist radiologists in detecting tumors on X-rays and MRIs with sensitivity that sometimes exceeds human experts. Google's DeepMind developed AlphaFold, predicting protein structures with unprecedented accuracy—a breakthrough that could accelerate drug discovery by years. Robotic surgical systems like the da Vinci allow surgeons to perform minimally invasive procedures with enhanced precision and tremor-free control. Wearable devices continuously monitor heart rhythms, blood oxygen levels, and glucose concentrations, alerting patients and physicians to abnormalities before symptoms appear. Natural language processing tools transcribe medical notes, summarize patient histories, and flag potential drug interactions. Yet concerns about data privacy, algorithmic bias, and the erosion of physician-patient relationships demand careful regulatory frameworks and ethical guidelines.",
+            "Mount Everest, towering at eight thousand eight hundred forty-nine meters above sea level, has captivated mountaineers since the British expeditions of the 1920s. Sir Edmund Hillary and Tenzing Norgay became the first confirmed climbers to reach its summit on May 29, 1953, via the Southeast Ridge route. The mountain, known as Sagarmatha in Nepal and Chomolungma in Tibet, presents extreme challenges: the death zone above eight thousand meters offers less than a third of sea-level oxygen, temperatures can plunge to minus forty degrees Celsius, and sudden storms can last for days. Reinhold Messner and Peter Habeler achieved the first ascent without supplemental oxygen in 1978, and Messner later completed a solo climb in 1980. Commercialization has brought both opportunity and controversy; overcrowding at the Hillary Step, environmental degradation from discarded oxygen cylinders and human waste, and the ethical implications of Sherpa labor have sparked intense debate within the climbing community.",
+            "The Library of Alexandria, founded in the third century BCE during the reign of Ptolemy I Soter, represented humanity's most ambitious attempt to collect all knowledge in a single institution. Scholars like Euclid, Eratosthenes, and Aristarchus worked within its halls, producing groundbreaking contributions to geometry, astronomy, and mathematics. Eratosthenes calculated the Earth's circumference with remarkable accuracy using only shadows and geometry. The library's destruction remains one of history's great mysteries; blame has been attributed to Julius Caesar's fire in 48 BCE, early Christian mobs in the fourth century, and the Arab conquest in the seventh century. Whatever the cause, the loss of an estimated four hundred thousand scrolls set human scholarship back by centuries. Modern efforts like the Bibliotheca Alexandrina, opened in 2002, aim to recapture that spirit of universal inquiry, with digital archives that can preserve knowledge indefinitely—though even digital repositories face threats from obsolescence and cyberattacks.",
+            "Migratory monarch butterflies undertake one of the most extraordinary journeys in the animal kingdom, traveling up to three thousand miles from Canada and the United States to overwintering forests in central Mexico. No single butterfly completes the round trip; instead, the journey spans four generations, with each generation inheriting the route without ever having traveled it. The monarchs navigate using a time-compensated sun compass, integrating information from their antennae and brain to maintain a southwest bearing. Upon reaching the oyamel fir forests of Michoacán, millions cluster together so densely that branches bend under their weight. The population has declined by over eighty percent in recent decades due to habitat loss, pesticide use, and climate change. Milkweed, the sole host plant for monarch caterpillars, has been largely eradicated from Midwestern agricultural landscapes. Conservation initiatives encourage planting milkweed in gardens, parks, and highway corridors to sustain this iconic species.",
+            "The Industrial Revolution, beginning in late eighteenth-century Britain, fundamentally reshaped human existence. James Watt's improved steam engine, patented in 1769, provided the mechanical power that transformed textile manufacturing, mining, and transportation. Factories congregated workers in unprecedented numbers, giving rise to industrial cities like Manchester and Birmingham—but also to grim living conditions, child labor, and cholera epidemics. The railway network, pioneered by George Stephenson's Rocket in 1829, shrank travel times from days to hours and connected raw materials to markets with revolutionary efficiency. Social critics like Friedrich Engels documented the human cost, while Karl Marx drew on these conditions to formulate his critique of capitalism. The revolution's environmental legacy—coal smoke, polluted rivers, and urban sprawl—persists today. Yet it also democratized goods, raised life expectancy, and laid the technological foundations for the modern world, including the very computers we now use to study its history.",
+            "The Great Barrier Reef's ecological significance extends beyond biodiversity into economics and culture. Tourism generates over six billion Australian dollars annually, supporting sixty-four thousand jobs in Queensland alone. Indigenous Aboriginal and Torres Strait Islander peoples have maintained spiritual and practical connections to these waters for over sixty thousand years, naming reef features in their Dreamtime stories. Crown-of-thorns starfish outbreaks, fueled by agricultural runoff, have devastated large sections; each starfish can consume up to ten square meters of coral per year. The Reef 2050 Long-Term Sustainability Plan, a joint effort of the Australian and Queensland governments, aims to improve water quality, control crown-of-thorns populations, and enhance reef resilience. Citizen science programs engage divers and snorkelers in monitoring coral health, while satellite imagery tracks surface temperatures and bleaching events in near real-time across the reef's vast expanse.",
+            "Nikola Tesla, born in 1856 in the Austrian Empire's Croatian military frontier, possessed a mind that visualized inventions fully formed before committing them to paper. His development of alternating current technology, championed by George Westinghouse, prevailed over Thomas Edison's direct current system in the War of Currents—a rivalry that defined the electrification of America. Tesla's patents covered polyphase power systems, the induction motor, radio transmission, and remote control. His Wardenclyffe Tower project, intended to transmit wireless electricity across the Atlantic, was abandoned due to funding shortfalls and skepticism from investors. Tesla died in 1943 in a New York hotel room, destitute and largely forgotten by the public he had profoundly served. Decades later, his contributions were rediscovered and celebrated; the SI unit of magnetic flux density bears his name, and electric vehicle manufacturer Tesla, Inc. honors his visionary legacy.",
+            "The Japanese tea ceremony, known as chanoyu or sadō, elevates the simple act of preparing and drinking matcha into a meditative art form refined over centuries. Sen no Rikyū, the sixteenth-century tea master who formalized its principles, emphasized four values: wa (harmony), kei (respect), sei (purity), and jaku (tranquility). The ceremony unfolds in a chashitsu, a deliberately small tatami-matted room entered through a low doorway that forces guests to bow—a gesture of equality regardless of social rank. Every element is carefully chosen: the hanging scroll, the flower arrangement, the ceramic bowls, and the seasonal sweets that balance matcha's bitterness. The host purifies utensils with precise, choreographed movements; guests receive the bowl with both hands, rotate it, and drink in silence. This practice of mindful attention, rooted in Zen Buddhism, offers a counterpoint to modern life's relentless velocity—a moment of stillness in a handcrafted vessel.",
+            "The Apollo 11 mission, launched on July 16, 1969, from Kennedy Space Center, stands as humanity's most audacious technological achievement. Neil Armstrong, Buzz Aldrin, and Michael Collins traveled nearly a quarter million miles aboard a Saturn V rocket designed by Wernher von Braun's team. The lunar module Eagle, guided by a computer with less processing power than a modern calculator, touched down at Tranquility Base with barely thirty seconds of fuel remaining. Armstrong's words—'That's one small step for man, one giant leap for mankind'—echoed across a planet united in awe. The astronauts collected forty-seven pounds of lunar samples, deployed scientific instruments, and returned safely to splash down in the Pacific on July 24. Subsequent Apollo missions deployed seismometers, recovered ancient rocks, and demonstrated that the Moon once had a magnetic field. The program's legacy continues through Artemis, NASA's initiative to return humans to the lunar surface.",
+            "The Vikings, seafaring Norse people from Scandinavia, ranged far beyond their fjords during the eighth to eleventh centuries—a period now called the Viking Age. Their longships, shallow-drafted and reversible, could navigate both open oceans and inland rivers, enabling raids, trade, and settlement from Newfoundland to Constantinople. Leif Erikson reached North America around 1000 CE, nearly five centuries before Columbus. Viking society was more complex than the savage caricature of popular culture; they practiced advanced agriculture, established legal assemblies called things, and worshipped gods like Odin, Thor, and Freya before Christianization around 1000 CE. Their runic alphabet, though limited, preserved sagas and legal codes. The Norse established Dublin, Normandy, and the Danelaw in England. Archaeological discoveries continue to reshape understanding: the Gjellestad ship burial in Norway, excavated in 2019, revealed a remarkably preserved vessel and artifacts that illuminate Viking funerary practices and social hierarchy.",
+            "The human gut microbiome comprises trillions of microorganisms—bacteria, archaea, fungi, and viruses—that inhabit the digestive tract and influence health in ways science is only beginning to understand. Each person's microbial community is unique, shaped by diet, environment, medications, and early-life exposures. Gut bacteria synthesize vitamins, break down dietary fiber into short-chain fatty acids, and train the immune system to distinguish friend from foe. Dysbiosis, an imbalance in microbial populations, has been linked to inflammatory bowel disease, obesity, diabetes, depression, and even neurodegenerative conditions through the gut-brain axis. Fecal microbiota transplantation, though ancient in origin, has gained modern acceptance for treating recurrent Clostridioides difficile infections with cure rates exceeding ninety percent. Personalized nutrition based on microbiome profiling represents a frontier in preventive medicine, though the field's complexity demands rigorous research before clinical recommendations can be made with confidence.",
+            "Blockchain technology, introduced by the pseudonymous Satoshi Nakamoto in a 2008 whitepaper, enables trustless decentralized consensus through a distributed ledger secured by cryptographic hashes. Each block contains a hash of the previous block, a timestamp, and transaction data—creating an immutable chain that resists retroactive alteration. Bitcoin, the first blockchain application, employs proof-of-work mining where specialized hardware solves computationally intensive hash puzzles, consuming electricity comparable to entire nations. Ethereum, conceived by Vitalik Buterin in 2013, expanded blockchain's scope beyond currency to programmable smart contracts—self-executing agreements that automate complex financial instruments, supply chain tracking, and digital identity verification. The transition to proof-of-stake in 2022 reduced Ethereum's energy consumption by 99.95%. Non-fungible tokens (NFTs) demonstrated blockchain's potential for digital ownership verification, though the market experienced extreme volatility. Central bank digital currencies, piloted by over 100 nations including China's e-CNY, represent state adoption of distributed ledger principles. Scalability remains the fundamental challenge; layer-2 solutions like rollups and state channels attempt to increase throughput without compromising security."
+        ];
+
+        // === NEW CONTENT: Expert stories for Levels 76-100 (25 unique topics) ===
+        const expertStories = [
+            "Deep neural networks, inspired by the layered architecture of biological brains, have revolutionized machine learning through their ability to approximate extraordinarily complex functions from raw data. A typical convolutional network processes images through successive layers: convolutional filters detect edges and textures, pooling operations reduce spatial dimensions, and fully connected layers classify features into semantic categories. The backpropagation algorithm, though described in 1986 by Rumelhart, Hinton, and Williams, only became practical when GPU acceleration and massive datasets like ImageNet became available. AlexNet's triumph in the 2012 ImageNet competition—achieving a top-five error rate of 15.3% versus the next-best 26.2%—ignited the deep learning era. Transformer architectures, introduced by Vaswani et al. in 2017, replaced recurrence with self-attention, enabling parallel training and unprecedented sequence modeling capabilities. GPT-4, with an estimated 1.7 trillion parameters, demonstrates emergent abilities in reasoning, code generation, and multilingual translation that were unforeseen by its creators.",
+            "Bioluminescence, the production and emission of light by living organisms, evolved independently at least forty times across the tree of life—a phenomenon biologists call convergent evolution. In the deep ocean, where sunlight never penetrates, over ninety percent of organisms produce light through chemical reactions involving luciferin, a substrate, and luciferase, an enzyme. The anglerfish dangles a bioluminescent lure above its cavernous mouth; the vampire squid ejects a cloud of luminous mucus instead of ink; dinoflagellates create sparkling waves when disturbed by boat wakes or swimming motions. On land, fireflies use species-specific flash patterns to attract mates, while foxfire—the glow emitted by Armillaria and Panellus fungi—results from oxidative metabolism in decaying wood. Scientists have harnessed these mechanisms: green fluorescent protein (GFP), isolated from the jellyfish Aequorea victoria by Osamu Shimomura, revolutionized cell biology by allowing researchers to visualize protein expression in living organisms. GFP's discovery earned the 2008 Nobel Prize in Chemistry.",
+            "The Mongol Empire, forged by Temüjin—who proclaimed himself Genghis Khan in 1206—became the largest contiguous land empire in history, stretching from Korea to Hungary and from Siberia to the Persian Gulf. The Mongols' military genius lay in their composite bow, fired from horseback with devastating accuracy, and their revolutionary tactics: feigned retreats, encirclement maneuvers, and psychological warfare that shattered enemy morale. Genghis Khan's meritocratic promotion system, religious tolerance, and adoption of useful technologies from conquered peoples enabled unprecedented administrative efficiency. The Yam, a continent-spanning postal system, relayed messages across six thousand miles in under two weeks. The Pax Mongolica that followed facilitated Silk Road trade, the transfer of gunpowder from China to Europe, and the journeys of Marco Polo, Ibn Battuta, and Rabban Bar Sauma. The empire eventually fractured into four khanates—Yuan, Ilkhanate, Chagatai, and Golden Horde—whose descendants ruled parts of Asia for centuries.",
+            "CRISPR-Cas9, discovered as a bacterial immune defense against viral infections, has become the most precise and accessible gene-editing tool ever developed. The system uses a guide RNA molecule to direct the Cas9 nuclease to a specific DNA sequence, where it creates a double-strand break that cells repair through either error-prone non-homologous end joining or precise homology-directed repair. Jennifer Doudna and Emmanuelle Charpentier, awarded the 2020 Nobel Prize in Chemistry, demonstrated that this system could be reprogrammed to target any genomic sequence. Clinical applications are advancing rapidly: sickle cell disease and beta-thalassemia have been treated successfully by editing hematopoietic stem cells; CAR-T cell therapies use CRISPR to enhance cancer immunotherapy. Agricultural applications include drought-resistant rice, disease-resistant wheat, and banana varieties immune to Tropical Race 4 Panama disease. The 2018 announcement of CRISPR-edited babies in China by He Jiankui provoked international condemnation and underscored the urgent need for ethical frameworks governing heritable human genome editing.",
+            "Black holes, predicted by Einstein's general theory of relativity, are regions of spacetime where gravitational forces are so intense that nothing—not even light—can escape. The event horizon, a boundary defined by the Schwarzschild radius, marks the point of no return; beyond it, the known laws of physics break down at the singularity. Supermassive black holes, containing millions to billions of solar masses, reside at the centers of most galaxies, including Sagittarius A* at the heart of the Milky Way. The Event Horizon Telescope, a network of radio observatories spanning from Hawaii to Antarctica, captured the first image of a black hole's shadow in 2019—the supermassive object at the center of galaxy M87, fifty-five million light-years away. Stephen Hawking's theoretical prediction that black holes emit thermal radiation through quantum effects near the event horizon remains one of physics' deepest unsolved paradoxes, bridging general relativity and quantum mechanics in ways that no current theory can fully reconcile.",
+            "The Hagia Sophia, consecrated in 537 CE by Emperor Justinian I, stood for nearly a thousand years as the largest cathedral in Christendom and remains one of architecture's most audacious achievements. Its central dome, spanning thirty-one meters in diameter, appears to float on a ring of windows that floods the interior with ethereal light—a effect Isidore of Miletus and Anthemius of Tralles achieved through pendentives that transition from a square plan to a circular dome. Earthquakes twice collapsed the dome; each reconstruction raised it higher and broadened its ribs. When Mehmed II conquered Constantinople in 1453, he converted the building into a mosque, adding minarets, a mihrab, and a minbar while preserving its mosaics beneath whitewash. Atatürk secularized it as a museum in 1934, revealing Byzantine mosaics of Christ Pantocrator and the Empress Zoe. In 2020, it was reconverted into a mosque, reigniting debates about cultural heritage, religious identity, and the preservation of humanity's shared architectural patrimony.",
+            "The octopus, a cephalopod mollusk with eight arms, three hearts, blue copper-based blood, and a distributed nervous system, exhibits intelligence so alien to vertebrates that researchers continually reconsider what cognition itself means. Two-thirds of an octopus's neurons reside in its arms, which can solve problems independently—opening screw-top jars, navigating mazes, and mimicking other species through chromatophore-controlled color changes. The mimic octopus (Thaumoctopus mimicus) impersonates flatfish, lionfish, and sea snakes to deter predators. Octopuses use tools: the veined octopus collects coconut shells as portable shelters. Their camouflaging ability, achieved through thousands of chromatophores, iridophores, and leucophores controlled directly by the nervous system, surpasses any artificial technology. Octopuses are also notorious escape artists; at the Santa Monica Pier Aquarium, an octopus named Octavia flooded exhibits by disassembling a water valve. Their short lifespan—rarely exceeding two years—remains an evolutionary puzzle, given their demonstrated cognitive sophistication.",
+            "The stock market, a barometer of economic sentiment and a mechanism for capital allocation, has evolved from informal gatherings under a buttonwood tree on Wall Street in 1792 to globally interconnected electronic exchanges processing billions of shares daily. The New York Stock Exchange, the world's largest by market capitalization, lists over two thousand eight hundred companies whose combined value exceeds twenty-five trillion dollars. The 1929 crash, which erased eighty-nine percent of the Dow Jones Industrial Average's value by 1932, triggered the Great Depression and led to the Securities Act of 1933 and the creation of the Securities and Exchange Commission. Algorithmic trading, now responsible for over seventy percent of U.S. equity volume, employs strategies from statistical arbitrage to market making, executing orders in microseconds through co-located servers. The 2010 Flash Crash, in which the Dow plunged nearly one thousand points in minutes before partially recovering, exposed systemic fragilities and prompted circuit breakers. Index funds, pioneered by John Bogle's Vanguard Group, have democratized investing while raising concerns about corporate governance concentration.",
+            "The Sahara Desert, Earth's largest hot desert, spans over nine million square kilometers across eleven North African countries—a landscape of ergs (sand seas), regs (gravel plains), and hamadas (rock plateaus) where daytime temperatures exceed fifty degrees Celsius and nighttime lows plunge near freezing. Contrary to popular perception, the Sahara was once verdant: between eleven thousand and five thousand years ago, during the African Humid Period, monsoon rains supported lakes, rivers, and savanna ecosystems with hippos, crocodiles, and early human settlements. Rock art at Tassili n'Ajjer in Algeria depicts giraffes and cattle in landscapes now barren. The desert's expansion and contraction follow orbital cycles described by Milutin Milanković, which alter solar radiation distribution. The Sahel transition zone, where desert meets savanna, faces accelerating desertification from climate change, overgrazing, and population pressure. The Great Green Wall initiative, spanning from Senegal to Djibouti, aims to restore one hundred million hectares of degraded land by 2030, though progress has been uneven across participating nations.",
+            "The Maya civilization, flourishing across Mesoamerica's Yucatán Peninsula and highlands from approximately 2000 BCE to 1500 CE, achieved extraordinary sophistication in mathematics, astronomy, architecture, and writing. Maya mathematicians independently developed the concept of zero centuries before its adoption in Europe, and their vigesimal (base-twenty) number system enabled calculations of planetary cycles with remarkable precision. The Dresden Codex, one of only four surviving Maya hieroglyphic books, contains Venus ephemerides accurate to within one day over five hundred years. Cities like Tikal, Calakmul, and Palenque featured temple-pyramids rivaling those of Egypt; El Castillo at Chichen Itza serves as a solar calendar, casting a serpent-shadow on the equinoxes. The Maya developed the most sophisticated writing system in the pre-Columbian Americas, with over eight hundred glyphs combining logographic and syllabic elements. The Classic Maya collapse around 900 CE—characterized by abandonment of southern lowland cities—remains debated, with drought, warfare, overpopulation, and soil depletion all implicated. The northern cities of Chichen Itza and Mayapan persisted until the Spanish conquest.",
+            "Fiber optic technology, which transmits information as pulses of light through strands of glass thinner than human hair, forms the backbone of the global internet. Each fiber, guided by total internal reflection, can carry terabits of data per second across transoceanic distances with attenuation as low as 0.16 decibels per kilometer. The Marea cable, spanning 6,600 kilometers between Virginia Beach and Bilbao, was laid by Microsoft and Facebook in 2017 at a cost of 160 million dollars; it carries 160 terabits per second—sixteen million times faster than a typical home connection. Submarine cable systems, totaling over 1.3 million kilometers, connect every inhabited continent and handle ninety-nine percent of intercontinental data traffic. The technology's foundation rests on lasers operating at specific wavelengths; wavelength-division multiplexing allows hundreds of channels to share a single fiber simultaneously. Corning's development of low-loss optical fiber in 1970, reducing attenuation from 1,000 to 17 decibels per kilometer, made practical communication possible and earned Charles Kao the 2009 Nobel Prize in Physics.",
+            "Marie Skłodowska Curie, the first person to win Nobel Prizes in two different sciences, conducted research of such rigor and personal sacrifice that her notebooks remain radioactive to this day—stored in lead-lined boxes at the Bibliothèque Nationale in Paris. Born in Warsaw during Russian occupation, she defied educational restrictions on women by attending the clandestine Flying University before moving to Paris in 1891. Her doctoral research, conducted in a converted shed with inadequate ventilation, led to the discovery of polonium (named for her homeland) and radium, and the coinage of the term 'radioactivity.' The 1903 Nobel Prize in Physics, shared with Pierre Curie and Henri Becquerel, was originally to exclude her until Pierre insisted on her inclusion. Her 1911 Nobel Prize in Chemistry followed, recognizing her isolation of pure radium metal. During World War I, she developed mobile radiography units—nicknamed 'Little Curies'—that treated over a million wounded soldiers. She died in 1934 from aplastic anemia, a consequence of decades of radiation exposure.",
+            "Origami, the Japanese art of paper folding, has transcended its cultural origins to become a source of inspiration for engineers, mathematicians, and medical researchers. The Miura-ori fold, developed by astrophysicist Kōryō Miura, allows a solar panel array to unfold from a compactly stowed configuration with a single pull—deployed on Japan's Space Flyer Unit in 1995. Robert Lang, a former NASA physicist, developed TreeMaker software that computes crease patterns for arbitrarily complex origami designs, bridging art and computational geometry. Stent grafts inspired by origami fold compactly for catheter delivery and expand within blood vessels. The DNA origami technique, pioneered by Paul Rothemund in 2006, folds a seven-kilobase single-stranded DNA scaffold into arbitrary two-dimensional shapes using hundreds of short 'staple' strands, enabling nanoscale drug delivery vehicles and molecular machines. Airbag folding patterns, derived from origami mathematics, ensure optimal deployment in milliseconds. The ancient art's fusion with modern science exemplifies how traditional crafts can illuminate solutions to engineering challenges that conventional approaches overlook.",
+            "Pompeii, a thriving Roman city near modern Naples, was entombed by the eruption of Mount Vesuvius on August 24, 79 CE, preserving a snapshot of everyday life with extraordinary fidelity. Pliny the Younger, watching from across the Bay of Naples, described the catastrophe in letters to Tacitus: a column of ash shaped like a Mediterranean pine, darkness at midday, and a tsunami that stranded ships. The city, buried under thirteen to twenty feet of volcanic ash and pumice, lay forgotten until 1748 when Spanish engineer Rocque Joaquin de Alcubierre began excavations. Casts of victims, created by Giuseppe Fiorelli in 1863 by pouring plaster into cavities left by decomposed bodies, capture final moments with haunting detail: a dog chained at its post, a couple embracing, a pregnant woman. Frescoes, mosaics, carbonized bread, and graffiti—some scatological, some electoral—reveal a society both familiar and alien. The Lupanar, Pompeii's largest brothel, features explicit frescoes that served as a menu. Ongoing conservation battles against weathering, tourism, and looting threaten this UNESCO World Heritage Site.",
+            "Tardigrades, microscopic invertebrates rarely exceeding one millimeter in length, are arguably the most resilient organisms on Earth. These 'water bears' survive temperatures from minus 272 degrees Celsius (near absolute zero) to 150 degrees, pressures six times greater than the deepest ocean trenches, and radiation doses a thousand times lethal to humans. In 2007, the European Space Agency's FOTON-M3 mission exposed tardigrades to the vacuum of space for ten days; they returned alive, the first animals known to survive open space. Their secret lies in anhydrobiosis—a desiccated state where metabolism drops to 0.01% of normal, and trehalose and intrinsically disordered proteins form glass-like matrices protecting cellular structures. Tardigrades have survived all five mass extinctions in Earth's history, persisting for over five hundred million years. Genome sequencing reveals significant horizontal gene transfer, with up to 17.5% of their DNA acquired from foreign organisms—an extraordinary proportion that may contribute to their adaptability. Research on their damage suppressor protein (Dsup) has enhanced human cell resistance to radiation, suggesting therapeutic applications.",
+            "Bletchley Park, a Victorian estate in Buckinghamshire, became the epicenter of Allied codebreaking during World War II, employing nearly ten thousand people—three-quarters of them women—at its peak in 1944. Alan Turing, recruited in 1939, designed the Bombe, an electromechanical machine that accelerated the decryption of Enigma-encrypted German communications by exploiting predictable cribs like Wetter (weather) reports. The intelligence derived, codenamed Ultra, is estimated to have shortened the war by two to four years and saved millions of lives. Turing's colleagues included Gordon Welchman, whose diagonal board innovation multiplied the Bombe's efficiency, and Tommy Flowers, who engineered the Colossus computer—the world's first programmable electronic digital computer—to break the Lorenz cipher used by Hitler's high command. The work at Bletchley remained classified until the 1970s, denying its participants public recognition. Turing's prosecution for homosexuality in 1952 and death by cyanide in 1954 represent one of history's great injustices; his 2013 royal pardon and his portrait on the fifty-pound note are belated acknowledgments of his transformative contributions.",
+            "The aurora borealis, or northern lights, results from charged particles ejected by the Sun colliding with gases in Earth's upper atmosphere at altitudes between one hundred and three hundred kilometers. Solar wind, a stream of plasma traveling at four hundred kilometers per second, is deflected by Earth's magnetosphere—but some particles spiral along magnetic field lines toward the polar regions, where they excite oxygen and nitrogen molecules. Oxygen emits green light at 557.7 nanometers and red at 630 nanometers; nitrogen produces blue and purple hues. The resulting curtains, arcs, and coronas shift and ripple in real-time, driven by geomagnetic storms classified on the Kp index from 0 to 9. The Carrington Event of 1859, the most powerful geomagnetic storm recorded, produced auroras visible in Cuba and Hawaii and disrupted telegraph systems worldwide. A comparable event today could damage satellites, disable GPS, and collapse power grids across continents, with economic costs exceeding a trillion dollars. The Sun's eleven-year activity cycle, approaching its maximum in 2024-2025, increases auroral frequency and intensity.",
+            "Petra, the rose-red city carved into sandstone cliffs by the Nabataeans over two thousand years ago, served as the capital of a trading empire that controlled incense, silk, and spice routes between Arabia, Egypt, and the Levant. The city's most iconic structure, Al-Khazneh (the Treasury), rises forty meters high with a Hellenistic facade featuring Corinthian columns, pediments, and statues—cut directly into the rock face, not constructed from blocks. The Siq, a narrow gorge 1.2 kilometers long with walls towering up to 180 meters, provides the only entrance, creating a dramatic reveal as visitors emerge before the Treasury. The Nabataeans engineered an advanced water system of channels, cisterns, and ceramic pipes that sustained a population of twenty thousand in an arid canyon. Petra's decline followed Roman annexation in 106 CE, a devastating earthquake in 363 CE, and shifting trade routes. Rediscovered by Swiss explorer Johann Burckhardt in 1812, Petra now receives over a million visitors annually, facing conservation challenges from salt crystallization, flash floods, and unregulated tourism.",
+            "Epigenetics, the study of heritable changes in gene expression that occur without alterations to the DNA sequence itself, has reshaped our understanding of development, disease, and even inheritance. DNA methylation, the addition of methyl groups to cytosine bases, typically silences gene expression; histone modifications—acetylation, methylation, phosphorylation—alter chromatin structure and accessibility. These marks respond to environmental factors: diet, stress, toxins, and even maternal care can modify the epigenome, influencing health decades later. The Dutch Hunger Winter of 1944-45 demonstrated that prenatal famine exposure increased obesity, diabetes, and schizophrenia risk in offspring, with persistent methylation changes detected sixty years later. Imprinting disorders like Prader-Willi and Angelman syndromes result from parent-of-origin-specific gene silencing. Cancer cells exhibit global hypomethylation with localized hypermethylation at tumor suppressor promoters. Unlike DNA sequence mutations, epigenetic changes are potentially reversible; drugs like azacitidine and decitabine, which inhibit DNA methyltransferases, have transformed treatment of myelodysplastic syndromes, validating epigenetic therapy as a clinical reality.",
+            "The DESERTEC concept, proposed by the Club of Rome in 2003 and developed by the Trans-Mediterranean Renewable Energy Cooperation network, envisions harnessing the Sahara's solar potential to power Europe, the Middle East, and North Africa. Covering just 0.3% of the Sahara with concentrated solar power plants could generate electricity exceeding current global demand. The Noor complex in Ouarzazate, Morocco—one of the world's largest CSP facilities—uses parabolic troughs and a central tower with molten salt storage to produce 580 megawatts, supplying power to 2.3 million people and operating three hours after sunset. High-voltage direct current transmission lines can carry electricity over 3,000 kilometers with losses below five percent, making intercontinental renewable energy trade technically feasible. Political instability, financing challenges, and European energy security concerns have limited implementation. The Morocco-UK Xlinks project, announced in 2022, proposes a 3,800-kilometer subsea cable connecting Moroccan solar and wind to British grids by 2030, potentially supplying eight percent of UK electricity demand.",
+            "The Fibonacci sequence, in which each number equals the sum of its two predecessors (1, 1, 2, 3, 5, 8, 13, 21, 34...), appears throughout nature with a frequency that has fascinated mathematicians for eight centuries. Leonardo of Pisa, known as Fibonacci, introduced the sequence in his 1202 book Liber Abaci while modeling rabbit population growth. The ratio between consecutive Fibonacci numbers converges to the golden ratio (φ ≈ 1.618), a proportion considered aesthetically ideal since antiquity. In botany, phyllotaxis—the arrangement of leaves, seeds, and petals—frequently follows Fibonacci numbers: sunflower spirals typically contain 34 and 55, or 55 and 89, clockwise and counterclockwise rows. Pinecones, pineapple scales, and nautilus shells exhibit similar patterns, optimizing packing efficiency and light exposure. The arrangement minimizes shadow overlap, maximizing photosynthetic capture. Computer simulations confirm that auxin distribution in plant meristems naturally produces Fibonacci angles of approximately 137.5 degrees between successive primordia, linking molecular biology to number theory in ways that continue to inspire wonder.",
+            "Venice, built atop 118 small islands in a shallow lagoon at the northern tip of the Adriatic Sea, defied conventional urban construction by rising from marshland to become a maritime superpower. Its founders, fleeing barbarian invasions in the fifth century, drove millions of wooden piles into the lagoon floor; petrified by anoxic, mineral-rich water, these pilings became stone-like foundations supporting palaces of Istrian stone and marble. The Republic of Venice, known as La Serenissima, lasted over a millennium (697-1797), dominating Mediterranean trade through a sophisticated mercantile network, a state arsenal (the Arsenale) that could launch a warship per day, and an elected doge constrained by complex constitutional checks. The Fourth Crusade's diversion to Constantinople in 1204, engineered by Doge Enrico Dandolo, crippled the Byzantine Empire and enriched Venice with looted treasures including the four bronze horses of San Marco. Today, Venice faces existential threats: rising sea levels have increased acqua alta (high water) flooding from four to over sixty times per year, prompting the MOSE barrier system—78 mobile gates scheduled for completion in 2025 at a cost of 5.5 billion euros.",
+            "Plate tectonics, the unifying theory of geology, was not widely accepted until the late 1960s despite Alfred Wegener's 1912 proposal of continental drift. Wegener noted the jigsaw fit of South America and Africa, identical fossil assemblages across oceans, and glacial deposits in tropical regions—but lacked a mechanism. The discovery of seafloor spreading by Harry Hess in 1960 provided that mechanism: magma rises at mid-ocean ridges, creating new crust that spreads outward and subducts at ocean trenches. Paleomagnetic stripes on the ocean floor, symmetric around ridge axes, confirmed the pattern. Earth's lithosphere comprises seven major and eight minor plates moving at 2-15 centimeters per year. The Pacific Plate's subduction beneath the North American Plate generates the Cascadia megathrust, capable of magnitude 9.0+ earthquakes recurring every 200-530 years—the last in 1700. The Indian Plate's collision with Eurasia, beginning 50 million years ago, continues to uplift the Himalayas at 5 millimeters per year. GPS measurements now track plate motions with millimeter precision, validating predictions made decades before satellite technology existed.",
+            "Alzheimer's disease, first described by Alois Alzheimer in 1906 after examining the brain of his patient Auguste Deter, is the most common cause of dementia, affecting over fifty-five million people worldwide—a number projected to triple by 2050. The disease is characterized by amyloid-beta plaques and neurofibrillary tangles of hyperphosphorylated tau protein, accompanied by synaptic loss and neuroinflammation. The amyloid hypothesis, which posits amyloid accumulation as the initiating event, dominated research for three decades but has yielded disappointing clinical results; aducanumab (Aduhelm), approved controversially by the FDA in 2021, modestly reduces amyloid but its clinical benefit remains disputed. Recent attention has shifted toward tau propagation, neuroinflammation, and metabolic dysfunction. The APOE4 allele increases risk threefold in heterozygotes and fifteenfold in homozygotes. Lifestyle factors—education, cardiovascular health, sleep quality, and social engagement—modify risk significantly, supporting cognitive reserve theory. Early detection through blood-based biomarkers like p-tau217, achieving over 90% accuracy, may transform diagnosis and enable intervention before irreversible neuronal loss occurs.",
+            "Deep-sea hydrothermal vents, discovered in 1977 along the Galápagos Rift by geologist Jack Corliss and his team aboard the submersible Alvin, revolutionized biology by revealing entire ecosystems sustained by chemosynthesis rather than photosynthesis. These vents, where superheated mineral-rich water emerges from the ocean crust at temperatures exceeding 400°C, support communities of tube worms (Riftia pachyptila), giant clams (Calyptogena magnifica), and blind shrimp (Rimicaris exoculata) that derive energy from hydrogen sulfide through bacterial endosymbionts. The tube worm's trophosome organ houses billions of chemosynthetic bacteria that convert sulfides into organic compounds, sustaining an animal with no mouth or digestive tract. Over 500 novel species have been identified at vent sites worldwide, including the yeti crab (Kiwa hirsuta) with furry claws farming bacteria on the Southern Pacific floor. These ecosystems demonstrate that life can thrive in conditions previously considered sterile—in total darkness, under crushing pressure, and in highly acidic, metal-laden environments. The discovery has profoundly influenced astrobiology, suggesting that similar vent systems on Europa, Enceladus, or Mars could harbor extraterrestrial life. Mining interests now threaten vent ecosystems; the International Seabed Authority has issued exploration contracts for polymetallic sulfide deposits, raising urgent conservation concerns."
         ];
 
         // Store text arrays in localStorage for admin panel access
@@ -5862,7 +6138,7 @@
 
         // Initialize level selector
         function initializeLevelSelector() {
-            for (let i = 1; i <= 50; i++) {
+            for (let i = 1; i <= 100; i++) {
                 const option = document.createElement('option');
                 option.value = i;
                 option.textContent = `Level ${i}`;
@@ -5899,8 +6175,12 @@
                         textArray = typingTexts.bottomRowTexts || bottomRowTexts;
                     } else if (level <= 25) {
                         textArray = typingTexts.shortSentences || shortSentences;
-                    } else {
+                    } else if (level <= 50) {
                         textArray = typingTexts.detailedParagraphs || detailedParagraphs;
+                    } else if (level <= 75) {
+                        textArray = hardStories;
+                    } else {
+                        textArray = expertStories;
                     }
                 } catch (e) {
                     // Fallback to hardcoded arrays if localStorage is corrupted
@@ -5914,8 +6194,12 @@
                         textArray = bottomRowTexts;
                     } else if (level <= 25) {
                         textArray = shortSentences;
-                    } else {
+                    } else if (level <= 50) {
                         textArray = detailedParagraphs;
+                    } else if (level <= 75) {
+                        textArray = hardStories;
+                    } else {
+                        textArray = expertStories;
                     }
                 }
             } else {
@@ -5930,8 +6214,12 @@
                     textArray = bottomRowTexts;
                 } else if (level <= 25) {
                     textArray = shortSentences;
-                } else {
+                } else if (level <= 50) {
                     textArray = detailedParagraphs;
+                } else if (level <= 75) {
+                    textArray = hardStories;
+                } else {
+                    textArray = expertStories;
                 }
             }
             
@@ -6161,7 +6449,7 @@
                 window.finalAccuracy = null;
             }
             document.getElementById('studentName').value = '';
-            if (currentLevel < 50) {
+            if (currentLevel < 100) {
                 currentLevel++;
                 levelSelect.value = currentLevel;
                 updateLevelInfo();
@@ -6732,7 +7020,7 @@
         function initializeLeaderboardLevelSelector() {
             const select = document.getElementById('leaderboardLevel');
             select.innerHTML = '<option value="all">All Levels</option>';
-            for (let i = 1; i <= 50; i++) {
+            for (let i = 1; i <= 100; i++) {
                 const option = document.createElement('option');
                 option.value = i;
                 option.textContent = `Level ${i}`;
@@ -7979,6 +8267,9 @@
 
             // Open guide for new users
             openGuide();
+
+            // Show a motivational bilingual welcome quote
+            showQuoteModal('welcome');
         }
 
         function populateUserList() {
@@ -8031,6 +8322,9 @@
 
             // Open guide after login
             openGuide();
+
+            // Show a motivational bilingual welcome quote
+            showQuoteModal('welcome');
         }
 
         function initializeUserData(username) {
@@ -8120,6 +8414,103 @@
             document.getElementById('logoutBtn').addEventListener('click', logout);
         }
 
+        // ============ Bilingual Motivational Quote System ============
+        const QUOTE_HISTORY_KEY = 'typingQuoteHistory';
+        const QUOTE_AVOID_COUNT = 5;
+        let quoteModalOnClose = null;
+
+        function getQuoteHistory() {
+            try {
+                return JSON.parse(localStorage.getItem(QUOTE_HISTORY_KEY)) || { welcome: [], goodbye: [] };
+            } catch (e) {
+                return { welcome: [], goodbye: [] };
+            }
+        }
+
+        function saveQuoteHistory(history) {
+            try {
+                localStorage.setItem(QUOTE_HISTORY_KEY, JSON.stringify(history));
+            } catch (e) { /* storage unavailable, ignore */ }
+        }
+
+        function pickRandomQuoteIndex(type) {
+            const list = (typeof TypingQuotes !== 'undefined' && TypingQuotes[type]) ? TypingQuotes[type] : [];
+            if (!list.length) return -1;
+
+            const history = getQuoteHistory();
+            const recent = history[type] || [];
+
+            // Rule: avoid last 5 quote pairs; always avoid at least the immediate previous one
+            const avoid = recent.slice(-QUOTE_AVOID_COUNT);
+            let candidates = list.map((_, i) => i).filter(i => !avoid.includes(i));
+
+            if (candidates.length === 0) {
+                const last = recent.length ? recent[recent.length - 1] : -1;
+                candidates = list.map((_, i) => i).filter(i => i !== last);
+                if (candidates.length === 0) candidates = list.map((_, i) => i);
+            }
+
+            const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+
+            // Persist history (keep a reasonable rolling window)
+            recent.push(chosen);
+            history[type] = recent.slice(-20);
+            saveQuoteHistory(history);
+
+            return chosen;
+        }
+
+        function showQuoteModal(type, onClose) {
+            const list = (typeof TypingQuotes !== 'undefined' && TypingQuotes[type]) ? TypingQuotes[type] : [];
+            const idx = pickRandomQuoteIndex(type);
+            const modal = document.getElementById('quoteModal');
+
+            if (idx < 0 || !list[idx] || !modal) {
+                if (typeof onClose === 'function') onClose();
+                return;
+            }
+
+            const quote = list[idx];
+            const icon = document.getElementById('quoteIcon');
+            const title = document.getElementById('quoteTitle');
+            const enEl = document.getElementById('quoteTextEn');
+            const hiEl = document.getElementById('quoteTextHi');
+            const footer = document.getElementById('quoteFooterNote');
+            const closeBtn = document.getElementById('quoteCloseBtn');
+
+            if (type === 'welcome') {
+                icon.textContent = '✨';
+                title.textContent = 'Welcome Back!';
+                footer.style.display = 'none';
+                footer.textContent = '';
+                closeBtn.textContent = "Let's Type!";
+            } else {
+                icon.textContent = '🎉';
+                title.textContent = 'Great Work Today!';
+                footer.textContent = 'See you in your next practice session!';
+                footer.style.display = 'block';
+                closeBtn.textContent = 'See You Soon';
+            }
+
+            // English and Hindi always displayed together
+            enEl.textContent = quote.en;
+            hiEl.textContent = quote.hi;
+
+            quoteModalOnClose = (typeof onClose === 'function') ? onClose : null;
+            modal.classList.add('show');
+        }
+
+        function closeQuoteModal() {
+            const modal = document.getElementById('quoteModal');
+            if (modal) modal.classList.remove('show');
+            const cb = quoteModalOnClose;
+            quoteModalOnClose = null;
+            if (typeof cb === 'function') {
+                setTimeout(cb, 220);
+            }
+        }
+        // ============ End Quote System ============
+
         function logout() {
             // Save current user data
             saveUserData();
@@ -8134,8 +8525,8 @@
                 userDisplay.remove();
             }
 
-            // Show login modal
-            openUserLoginModal();
+            // Show a motivational bilingual goodbye quote, then open the login modal
+            showQuoteModal('goodbye', openUserLoginModal);
         }
 
         function openUserLoginModal() {
@@ -8741,6 +9132,9 @@
                     currentUser = storedUser;
                     loadUserData();
                     updateUserDisplay();
+
+                    // Show a motivational bilingual welcome quote for returning users
+                    showQuoteModal('welcome');
                 }
             }, 2500);
 

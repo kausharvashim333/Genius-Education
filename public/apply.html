@@ -1341,9 +1341,20 @@ function showStep(step) {
     }
 
     currentStep = step;
-    
-    // Scroll to top of form
-    document.getElementById('applyFormWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Scroll to top of form.
+    // NOTE: A smooth scrollIntoView here raced with the large layout change when
+    // leaving the tall Qualification/Graduation step, which could leave the page
+    // in a stuck momentum-scroll state (Parent step appeared "unresponsive",
+    // especially in Safari). An instant scroll that accounts for the fixed header
+    // avoids that race and lands the new step correctly below the header.
+    const wrap = document.getElementById('applyFormWrap');
+    if (wrap) {
+        const header = document.querySelector('.apply-header');
+        const headerH = header ? header.offsetHeight : 0;
+        const targetY = wrap.getBoundingClientRect().top + window.pageYOffset - headerH - 12;
+        window.scrollTo({ top: Math.max(0, targetY), behavior: 'auto' });
+    }
 }
 
 function validateStep(step) {
