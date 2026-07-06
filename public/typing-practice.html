@@ -10187,6 +10187,13 @@
         let currentGoal = JSON.parse(localStorage.getItem('typingGoal') || 'null');
         let reminderEnabled = localStorage.getItem('typingReminder') === 'true';
         let instituteLogoBase64 = null;
+        let instituteSettings = {};
+
+        function loadInstituteSettings() {
+            fetch('/api/settings').then(r => r.json()).then(data => {
+                instituteSettings = data || {};
+            }).catch(() => { instituteSettings = {}; });
+        }
 
         function loadInstituteLogo() {
             const img = new Image();
@@ -10209,6 +10216,7 @@
             img.src = '/uploads/logo/logo.png';
         }
         loadInstituteLogo();
+        loadInstituteSettings();
 
         function openGoalsModal() {
             document.getElementById('goalsModal').style.display = 'flex';
@@ -10434,13 +10442,23 @@
             doc.setTextColor(30, 30, 60);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(17);
-            doc.text('Genius Computer Education', logoBoxX + logoBoxSize + 6, logoBoxY + 8);
+            const instName = instituteSettings.name || 'Genius Computer Education';
+            const instEmail = instituteSettings.email || '';
+            const instPhone = instituteSettings.phone || '';
+            const instAddress = instituteSettings.address || '';
+            const instWebsite = instituteSettings.websiteUrl || '';
+            doc.text(instName, logoBoxX + logoBoxSize + 6, logoBoxY + 8);
 
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8);
             doc.setTextColor(100, 100, 130);
-            doc.text('Computer Training Institute | Typing & Software Courses', logoBoxX + logoBoxSize + 6, logoBoxY + 14);
-            doc.text('Email: info@geniuseducation.in  |  Phone: +91-XXXXXXXXXX', logoBoxX + logoBoxSize + 6, logoBoxY + 19);
+            if (instAddress) {
+                doc.text(instAddress, logoBoxX + logoBoxSize + 6, logoBoxY + 14);
+            }
+            const contactParts = [];
+            if (instPhone) contactParts.push('Phone: ' + instPhone);
+            if (instEmail) contactParts.push('Email: ' + instEmail);
+            doc.text(contactParts.join('  |  '), logoBoxX + logoBoxSize + 6, logoBoxY + 19);
 
             // Right side - report badge
             const badgeX = pageW - margin - 35, badgeY = logoBoxY, badgeW = 35, badgeH = 22;
@@ -10714,10 +10732,10 @@
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(8);
-            doc.text('Genius Computer Education', margin + 2, pageH - 8);
+            doc.text(instName, margin + 2, pageH - 8);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(6);
-            doc.text('Computer Training Institute', margin + 2, pageH - 4);
+            doc.text(instAddress || 'Computer Training Institute', margin + 2, pageH - 4);
 
             doc.setFontSize(7);
             doc.text('Generated on ' + dateStr, pageW / 2, pageH - 8, { align: 'center' });
@@ -10727,7 +10745,7 @@
             doc.setFontSize(7);
             doc.text('Page 1 of 1', pageW - margin - 2, pageH - 8, { align: 'right' });
             doc.setFontSize(6);
-            doc.text('www.geniuseducation.in', pageW - margin - 2, pageH - 4, { align: 'right' });
+            doc.text(instWebsite || 'www.geniuseducation.in', pageW - margin - 2, pageH - 4, { align: 'right' });
 
             // Save
             const fileName = 'Typing-Report-' + userName.replace(/\s+/g, '_') + '-' + dateStr.replace(/[^a-zA-Z0-9]/g, '') + '.pdf';
@@ -10774,12 +10792,22 @@
             doc.setTextColor(30, 30, 60);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(17);
-            doc.text('Genius Computer Education', logoBoxX + logoBoxSize + 6, logoBoxY + 8);
+            const instName = instituteSettings.name || 'Genius Computer Education';
+            const instEmail = instituteSettings.email || '';
+            const instPhone = instituteSettings.phone || '';
+            const instAddress = instituteSettings.address || '';
+            const instWebsite = instituteSettings.websiteUrl || '';
+            doc.text(instName, logoBoxX + logoBoxSize + 6, logoBoxY + 8);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8);
             doc.setTextColor(100, 100, 130);
-            doc.text('Computer Training Institute | Typing & Software Courses', logoBoxX + logoBoxSize + 6, logoBoxY + 14);
-            doc.text('Email: info@geniuseducation.in  |  Phone: +91-XXXXXXXXXX', logoBoxX + logoBoxSize + 6, logoBoxY + 19);
+            if (instAddress) {
+                doc.text(instAddress, logoBoxX + logoBoxSize + 6, logoBoxY + 14);
+            }
+            const contactParts = [];
+            if (instPhone) contactParts.push('Phone: ' + instPhone);
+            if (instEmail) contactParts.push('Email: ' + instEmail);
+            doc.text(contactParts.join('  |  '), logoBoxX + logoBoxSize + 6, logoBoxY + 19);
 
             const badgeX = pageW - margin - 35, badgeY = logoBoxY, badgeW = 35, badgeH = 22;
             doc.setFillColor(102, 126, 234);
@@ -11023,10 +11051,10 @@
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(8);
-            doc.text('Genius Computer Education', margin + 2, pageH - 8);
+            doc.text(instName, margin + 2, pageH - 8);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(6);
-            doc.text('Computer Training Institute', margin + 2, pageH - 4);
+            doc.text(instAddress || 'Computer Training Institute', margin + 2, pageH - 4);
             doc.setFontSize(7);
             doc.text('Generated on ' + dateStr, pageW / 2, pageH - 8, { align: 'center' });
             doc.setFontSize(6);
@@ -11034,7 +11062,7 @@
             doc.setFontSize(7);
             doc.text('Page 1 of 1', pageW - margin - 2, pageH - 8, { align: 'right' });
             doc.setFontSize(6);
-            doc.text('www.geniuseducation.in', pageW - margin - 2, pageH - 4, { align: 'right' });
+            doc.text(instWebsite || 'www.geniuseducation.in', pageW - margin - 2, pageH - 4, { align: 'right' });
 
             doc.autoPrint();
             window.open(doc.output('bloburl'), '_blank');
