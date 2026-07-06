@@ -2264,6 +2264,516 @@
             }
         }
 
+        /* ===== New Feature Modals ===== */
+
+        /* Replay & Analysis Modal */
+        .replay-modal, .games-modal, .goals-modal, .report-modal, .shortcuts-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .replay-content, .games-content, .goals-content, .report-content, .shortcuts-content {
+            background: linear-gradient(135deg, rgba(30, 30, 50, 0.98), rgba(40, 40, 60, 0.98));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 700px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .replay-header, .games-header, .goals-header, .report-header, .shortcuts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .replay-header h2, .games-header h2, .goals-header h2, .report-header h2, .shortcuts-header h2 {
+            color: #e0e0e0;
+            font-size: 22px;
+            margin: 0;
+        }
+
+        .replay-canvas-wrap {
+            background: rgba(20, 20, 35, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .replay-canvas-wrap canvas {
+            width: 100%;
+            height: 200px;
+        }
+
+        .replay-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .replay-stat {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .replay-stat .val {
+            font-size: 22px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .replay-stat .lbl {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .replay-mistakes {
+            background: rgba(20, 20, 35, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .replay-mistakes h4 {
+            color: #e0e0e0;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .mistake-item {
+            display: inline-block;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 6px 12px;
+            margin: 4px;
+            font-size: 14px;
+            color: #f87171;
+        }
+
+        .mistake-item .arrow {
+            color: #667eea;
+            margin: 0 4px;
+        }
+
+        /* Games Modal */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .game-card {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .game-card:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            transform: translateY(-3px);
+        }
+
+        .game-card .game-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .game-card .game-title {
+            color: #e0e0e0;
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        .game-card .game-desc {
+            color: #888;
+            font-size: 12px;
+        }
+
+        /* Word Rain Game */
+        .word-rain-area {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: rgba(15, 15, 25, 0.8);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .rain-word {
+            position: absolute;
+            color: #667eea;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 4px 12px;
+            background: rgba(102, 126, 234, 0.15);
+            border-radius: 6px;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+
+        .rain-word.destroyed {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.2);
+            animation: destroyWord 0.4s ease forwards;
+        }
+
+        .rain-word.missed {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        @keyframes destroyWord {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .game-input-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .game-input-bar input {
+            flex: 1;
+            background: rgba(20, 20, 35, 0.8);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 10px;
+            padding: 10px 16px;
+            color: #e0e0e0;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .game-input-bar input:focus {
+            border-color: #667eea;
+        }
+
+        .game-score-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .game-score-bar .score, .game-score-bar .lives, .game-score-bar .timer {
+            color: #e0e0e0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .game-score-bar .score span { color: #10b981; }
+        .game-score-bar .lives span { color: #ef4444; }
+        .game-score-bar .timer span { color: #f59e0b; }
+
+        /* Goals Modal */
+        .goals-body {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .goal-setting-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .goal-setting-row label {
+            color: #e0e0e0;
+            font-size: 14px;
+            min-width: 140px;
+        }
+
+        .goal-setting-row select, .goal-setting-row input {
+            background: rgba(20, 20, 35, 0.8);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #e0e0e0;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .goal-progress-section {
+            background: rgba(20, 20, 35, 0.6);
+            border-radius: 12px;
+            padding: 18px;
+        }
+
+        .goal-progress-section h4 {
+            color: #e0e0e0;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .goal-progress-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .goal-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .goal-progress-text {
+            color: #888;
+            font-size: 13px;
+        }
+
+        .goal-progress-text strong {
+            color: #667eea;
+        }
+
+        .goal-reminder-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        /* Report Card Modal */
+        .report-body {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .report-period-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .report-period-btn {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            padding: 8px 20px;
+            color: #e0e0e0;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .report-period-btn.active {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .report-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .report-stat-card {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .report-stat-card .val {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .report-stat-card .lbl {
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .report-chart-wrap {
+            background: rgba(20, 20, 35, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .report-chart-wrap canvas {
+            width: 100%;
+            height: 180px;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* Shortcuts Modal */
+        .shortcuts-body {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .shortcut-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(102, 126, 234, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.15);
+            border-radius: 10px;
+            padding: 12px 16px;
+        }
+
+        .shortcut-item .desc {
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .shortcut-keys {
+            display: flex;
+            gap: 4px;
+        }
+
+        .shortcut-key {
+            background: rgba(30, 30, 50, 0.9);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 6px;
+            padding: 4px 10px;
+            color: #667eea;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        .shortcut-practice-area {
+            background: rgba(20, 20, 35, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .shortcut-prompt {
+            color: #e0e0e0;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .shortcut-prompt .keys {
+            display: inline-flex;
+            gap: 6px;
+            margin: 0 6px;
+        }
+
+        .shortcut-status {
+            color: #10b981;
+            font-size: 14px;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+
+        /* Light theme for new modals */
+        body.light-theme .replay-content,
+        body.light-theme .games-content,
+        body.light-theme .goals-content,
+        body.light-theme .report-content,
+        body.light-theme .shortcuts-content {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(245, 247, 250, 0.98));
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-theme .replay-header h2,
+        body.light-theme .games-header h2,
+        body.light-theme .goals-header h2,
+        body.light-theme .report-header h2,
+        body.light-theme .shortcuts-header h2 {
+            color: #2d2d44;
+        }
+
+        body.light-theme .replay-stat,
+        body.light-theme .report-stat-card,
+        body.light-theme .game-card,
+        body.light-theme .goal-progress-section,
+        body.light-theme .shortcut-item,
+        body.light-theme .shortcut-practice-area,
+        body.light-theme .replay-canvas-wrap,
+        body.light-theme .report-chart-wrap,
+        body.light-theme .replay-mistakes {
+            background: rgba(102, 126, 234, 0.06);
+            border-color: rgba(102, 126, 234, 0.18);
+        }
+
+        body.light-theme .replay-stat .val,
+        body.light-theme .report-stat-card .val {
+            color: #667eea;
+        }
+
+        body.light-theme .replay-stat .lbl,
+        body.light-theme .report-stat-card .lbl,
+        body.light-theme .goal-progress-text,
+        body.light-theme .game-card .game-desc {
+            color: #6b6b80;
+        }
+
+        body.light-theme .replay-mistakes h4,
+        body.light-theme .goals-body label,
+        body.light-theme .goal-progress-section h4,
+        body.light-theme .shortcut-item .desc,
+        body.light-theme .shortcut-prompt,
+        body.light-theme .game-card .game-title,
+        body.light-theme .goal-setting-row label,
+        body.light-theme .goal-reminder-row {
+            color: #2d2d44;
+        }
+
+        body.light-theme .game-input-bar input,
+        body.light-theme .goal-setting-row select,
+        body.light-theme .goal-setting-row input {
+            background: rgba(245, 247, 250, 0.9);
+            border-color: rgba(102, 126, 234, 0.2);
+            color: #2d2d44;
+        }
+
         /* Result Modal */
         .result-modal {
             display: none;
@@ -5352,13 +5862,7 @@
             </div>
 
             <div class="name-input-section">
-                <label for="studentName">Save your score:</label>
-                <div class="input-group">
-                    <input type="text" id="studentName" placeholder="Enter your name" maxlength="30" class="name-input">
-                    <button class="btn btn-success" onclick="saveAndContinue()">
-                        <i class="fas fa-save"></i> Save
-                    </button>
-                </div>
+                <p style="color: #e0e0e0; font-size: 14px; margin: 0;">Score will be saved automatically as <strong id="currentUserNameDisplay"></strong></p>
             </div>
 
             <div class="result-actions">
@@ -5407,6 +5911,149 @@
                 </div>
                 <div id="leaderboardBody">
                     <div class="no-data">No scores yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Replay & Analysis Modal -->
+    <div class="replay-modal" id="replayModal">
+        <div class="replay-content">
+            <div class="replay-header">
+                <h2><i class="fas fa-chart-line"></i> Session Replay & Analysis</h2>
+                <button class="close-btn" onclick="closeReplayModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="replay-stats">
+                <div class="replay-stat"><div class="val" id="replayAvgWpm">0</div><div class="lbl">Avg WPM</div></div>
+                <div class="replay-stat"><div class="val" id="replayErrors">0</div><div class="lbl">Total Errors</div></div>
+                <div class="replay-stat"><div class="val" id="replayConsistency">0%</div><div class="lbl">Consistency</div></div>
+            </div>
+            <div class="replay-canvas-wrap">
+                <canvas id="replayChart" width="640" height="200"></canvas>
+            </div>
+            <div class="replay-mistakes">
+                <h4><i class="fas fa-exclamation-triangle"></i> Mistake Breakdown</h4>
+                <div id="replayMistakeList" style="display:flex;flex-wrap:wrap;">
+                    <span style="color:#888;">No mistakes recorded for this session.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Typing Games Modal -->
+    <div class="games-modal" id="gamesModal">
+        <div class="games-content">
+            <div class="games-header">
+                <h2><i class="fas fa-gamepad"></i> Typing Games</h2>
+                <button class="close-btn" onclick="closeGamesModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="gamesMenu">
+                <div class="games-grid">
+                    <div class="game-card" onclick="startWordRain()">
+                        <div class="game-icon">🌧️</div>
+                        <div class="game-title">Word Rain</div>
+                        <div class="game-desc">Type falling words before they hit the ground</div>
+                    </div>
+                    <div class="game-card" onclick="startFallingLetters()">
+                        <div class="game-icon">🔤</div>
+                        <div class="game-title">Falling Letters</div>
+                        <div class="game-desc">Quick-fire single letter typing challenge</div>
+                    </div>
+                    <div class="game-card" onclick="startQuoteRace()">
+                        <div class="game-icon">💨</div>
+                        <div class="game-title">Quote Race</div>
+                        <div class="game-desc">Type motivational quotes against the clock</div>
+                    </div>
+                </div>
+            </div>
+            <div id="gameArena" style="display:none;">
+                <div class="game-score-bar">
+                    <div class="score">Score: <span id="gameScore">0</span></div>
+                    <div class="lives">Lives: <span id="gameLives">3</span></div>
+                    <div class="timer">Time: <span id="gameTimer">60</span>s</div>
+                </div>
+                <div class="word-rain-area" id="wordRainArea"></div>
+                <div class="game-input-bar">
+                    <input type="text" id="gameInput" placeholder="Type here..." autocomplete="off" autocorrect="off" autocapitalize="off">
+                    <button class="btn btn-danger" onclick="endCurrentGame()">End Game</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goal Setting Modal -->
+    <div class="goals-modal" id="goalsModal">
+        <div class="goals-content">
+            <div class="goals-header">
+                <h2><i class="fas fa-bullseye"></i> Goals & Reminders</h2>
+                <button class="close-btn" onclick="closeGoalsModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="goals-body">
+                <div class="goal-setting-row">
+                    <label>Daily Practice Goal</label>
+                    <select id="goalTypeSelect">
+                        <option value="time">Time (minutes)</option>
+                        <option value="wpm">WPM Target</option>
+                        <option value="sessions">Sessions Count</option>
+                    </select>
+                    <input type="number" id="goalValueInput" min="1" max="500" value="30" style="width:80px;">
+                    <button class="btn btn-success" onclick="saveGoal()"><i class="fas fa-save"></i> Save</button>
+                </div>
+                <div class="goal-progress-section">
+                    <h4>Today's Progress</h4>
+                    <div class="goal-progress-bar"><div class="goal-progress-fill" id="goalProgressFill" style="width:0%;"></div></div>
+                    <div class="goal-progress-text" id="goalProgressText">No goal set yet. Choose a goal above!</div>
+                </div>
+                <div class="goal-reminder-row">
+                    <input type="checkbox" id="reminderCheckbox" onchange="toggleReminder(this.checked);">
+                    <label for="reminderCheckbox">Enable daily practice reminder notifications</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Card Modal -->
+    <div class="report-modal" id="reportModal">
+        <div class="report-content">
+            <div class="report-header">
+                <h2><i class="fas fa-file-alt"></i> Progress Report Card</h2>
+                <button class="close-btn" onclick="closeReportModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="report-body">
+                <div class="report-period-selector">
+                    <button class="report-period-btn active" onclick="setReportPeriod('weekly', this)">Weekly</button>
+                    <button class="report-period-btn" onclick="setReportPeriod('monthly', this)">Monthly</button>
+                </div>
+                <div class="report-summary" id="reportSummary">
+                    <div class="report-stat-card"><div class="val" id="reportSessions">0</div><div class="lbl">Sessions</div></div>
+                    <div class="report-stat-card"><div class="val" id="reportAvgWpm">0</div><div class="lbl">Avg WPM</div></div>
+                    <div class="report-stat-card"><div class="val" id="reportBestWpm">0</div><div class="lbl">Best WPM</div></div>
+                    <div class="report-stat-card"><div class="val" id="reportAvgAcc">0%</div><div class="lbl">Avg Accuracy</div></div>
+                </div>
+                <div class="report-chart-wrap">
+                    <canvas id="reportChart" width="640" height="180"></canvas>
+                </div>
+                <div class="report-actions">
+                    <button class="btn btn-primary" onclick="downloadReportPDF()"><i class="fas fa-download"></i> Download PDF</button>
+                    <button class="btn btn-info" onclick="printReport()"><i class="fas fa-print"></i> Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcut Practice Modal -->
+    <div class="shortcuts-modal" id="shortcutsModal">
+        <div class="shortcuts-content">
+            <div class="shortcuts-header">
+                <h2><i class="fas fa-keyboard"></i> Shortcut Practice</h2>
+                <button class="close-btn" onclick="closeShortcutsModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="shortcuts-body">
+                <div class="shortcut-list" id="shortcutList"></div>
+                <div class="shortcut-practice-area">
+                    <div class="shortcut-prompt" id="shortcutPrompt">Click "Start Practice" to begin</div>
+                    <button class="btn btn-primary" onclick="startShortcutPractice()" id="shortcutStartBtn">Start Practice</button>
+                    <div class="shortcut-status" id="shortcutStatus"></div>
                 </div>
             </div>
         </div>
@@ -5711,6 +6358,26 @@
                     <button class="more-option-btn" onclick="openWarmupModal(); closeMoreOptionsModal();">
                         <i class="fas fa-fire-alt"></i>
                         <span>Warm-up</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openReplayModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Replay & Analysis</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openGamesModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Typing Games</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openGoalsModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-bullseye"></i>
+                        <span>Goals & Reminders</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openReportModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Report Card</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openShortcutsModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-keyboard"></i>
+                        <span>Shortcut Practice</span>
                     </button>
                     <button class="more-option-btn" onclick="toggleHighContrastMode(); closeMoreOptionsModal();">
                         <i class="fas fa-adjust"></i>
@@ -6390,6 +7057,9 @@
             // Save session to history
             saveSessionToHistory(wpm, accuracy, currentIndex, mistakes, xpEarned);
 
+            // Auto-save score to leaderboard
+            saveScore(wpm, accuracy);
+
             // Save mistake analysis
             saveMistakeAnalysis();
 
@@ -6408,7 +7078,16 @@
             const pauseData = analyzePauses();
             savePauseAnalysis(pauseData);
 
+            // Save replay data for session replay feature
+            const consistencyPct = consistencyData ? consistencyData.coefficientOfVariation : 0;
+            saveReplayData(wpm, accuracy, mistakes, 100 - consistencyPct);
+
+            // Update goal progress
+            if (currentGoal) updateGoalProgress();
+
             document.getElementById('resultModal').style.display = 'flex';
+            const nameDisplay = document.getElementById('currentUserNameDisplay');
+            if (nameDisplay) nameDisplay.textContent = currentUser || 'Anonymous';
             updateStatusBar();
         }
 
@@ -6430,25 +7109,11 @@
         }
 
         function closeResultModal() {
-            // Save score before closing
-            if (window.finalWpm && window.finalAccuracy) {
-                saveScore(window.finalWpm, window.finalAccuracy);
-                window.finalWpm = null;
-                window.finalAccuracy = null;
-            }
-            document.getElementById('studentName').value = '';
             document.getElementById('resultModal').style.display = 'none';
             loadNewText();
         }
         
         function goToNextLevel() {
-            // Save score before going to next level
-            if (window.finalWpm && window.finalAccuracy) {
-                saveScore(window.finalWpm, window.finalAccuracy);
-                window.finalWpm = null;
-                window.finalAccuracy = null;
-            }
-            document.getElementById('studentName').value = '';
             if (currentLevel < 100) {
                 currentLevel++;
                 levelSelect.value = currentLevel;
@@ -7035,8 +7700,7 @@
         }
 
         function saveScore(wpm, accuracy) {
-            const nameInput = document.getElementById('studentName');
-            const name = nameInput.value.trim() || 'Anonymous';
+            const name = currentUser || 'Anonymous';
             const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
             const newScore = {
                 name: name,
@@ -9148,6 +9812,722 @@
             // Save current user data before closing
             if (currentUser) {
                 saveUserData();
+            }
+        });
+
+        // ===== FEATURE 2: Mistake Replay & Analysis =====
+        let lastSessionReplayData = null;
+
+        function saveReplayData(wpm, accuracy, errors, consistency) {
+            lastSessionReplayData = {
+                wpmSnapshots: [...wpmSnapshots],
+                mistakeLog: [...mistakeLog],
+                keyPressTimings: [...keyPressTimings],
+                avgWpm: wpm,
+                accuracy: accuracy,
+                errors: errors,
+                consistency: consistency || 0,
+                timestamp: Date.now()
+            };
+        }
+
+        function openReplayModal() {
+            document.getElementById('replayModal').style.display = 'flex';
+            renderReplayData();
+        }
+
+        function closeReplayModal() {
+            document.getElementById('replayModal').style.display = 'none';
+        }
+
+        function renderReplayData() {
+            if (!lastSessionReplayData) {
+                document.getElementById('replayAvgWpm').textContent = '0';
+                document.getElementById('replayErrors').textContent = '0';
+                document.getElementById('replayConsistency').textContent = '0%';
+                document.getElementById('replayMistakeList').innerHTML = '<span style="color:#888;">Complete a typing session first to see replay data.</span>';
+                const canvas = document.getElementById('replayChart');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#888';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('No session data available', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            const data = lastSessionReplayData;
+            document.getElementById('replayAvgWpm').textContent = data.avgWpm;
+            document.getElementById('replayErrors').textContent = data.errors;
+            document.getElementById('replayConsistency').textContent = data.consistency + '%';
+
+            // Draw timeline chart
+            const canvas = document.getElementById('replayChart');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const snapshots = data.wpmSnapshots;
+            if (snapshots.length < 2) {
+                ctx.fillStyle = '#888';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Not enough data points for timeline', canvas.width / 2, canvas.height / 2);
+            } else {
+                const padding = 40;
+                const chartW = canvas.width - padding * 2;
+                const chartH = canvas.height - padding * 2;
+                const maxWpm = Math.max(...snapshots, 1);
+
+                // Grid lines
+                ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i <= 4; i++) {
+                    const y = padding + (chartH / 4) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(canvas.width - padding, y);
+                    ctx.stroke();
+                }
+
+                // WPM line
+                ctx.strokeStyle = '#667eea';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                snapshots.forEach((wpm, i) => {
+                    const x = padding + (chartW / (snapshots.length - 1)) * i;
+                    const y = padding + chartH - (wpm / maxWpm) * chartH;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+
+                // Fill area
+                ctx.lineTo(canvas.width - padding, padding + chartH);
+                ctx.lineTo(padding, padding + chartH);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(102, 126, 234, 0.15)';
+                ctx.fill();
+
+                // Labels
+                ctx.fillStyle = '#888';
+                ctx.font = '11px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('WPM over time', padding, padding - 10);
+                ctx.textAlign = 'right';
+                ctx.fillText('Max: ' + maxWpm, canvas.width - padding, padding - 10);
+            }
+
+            // Mistake breakdown
+            const mistakeList = document.getElementById('replayMistakeList');
+            if (data.mistakeLog.length === 0) {
+                mistakeList.innerHTML = '<span style="color:#10b981;">No mistakes! Perfect session.</span>';
+            } else {
+                const counts = {};
+                data.mistakeLog.forEach(m => {
+                    const key = `${m.expected}→${m.typed}`;
+                    counts[key] = (counts[key] || 0) + 1;
+                });
+                mistakeList.innerHTML = Object.entries(counts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([key, count]) => {
+                        const [expected, typed] = key.split('→');
+                        return `<span class="mistake-item"><strong>${expected}</strong><span class="arrow">→</span><strong>${typed}</strong> ×${count}</span>`;
+                    }).join('');
+            }
+        }
+
+        // ===== FEATURE 5: Typing Games =====
+        let gameActive = false;
+        let gameType = null;
+        let gameScore = 0;
+        let gameLives = 3;
+        let gameTime = 60;
+        let gameTimerInterval = null;
+        let gameSpawnInterval = null;
+        let gameAnimationId = null;
+        let gameWords = [];
+        let gameWordId = 0;
+        const gameWordPool = ['the','quick','brown','fox','jumps','over','lazy','dog','hello','world','type','fast','keyboard','practice','speed','accuracy','learn','code','data','cloud','smart','focus','great','power','skill','brain','finger','letter','word','text','game','play','win','level','score','time','test','quiz','challenge','master','expert','pro','begin','start','finish','first','next','best','top'];
+        const gameLetterPool = 'abcdefghijklmnopqrstuvwxyz';
+
+        function openGamesModal() {
+            document.getElementById('gamesModal').style.display = 'flex';
+            document.getElementById('gamesMenu').style.display = 'block';
+            document.getElementById('gameArena').style.display = 'none';
+        }
+
+        function closeGamesModal() {
+            endCurrentGame();
+            document.getElementById('gamesModal').style.display = 'none';
+        }
+
+        function startWordRain() {
+            gameType = 'wordRain';
+            initGame();
+            document.getElementById('gamesMenu').style.display = 'none';
+            document.getElementById('gameArena').style.display = 'block';
+            document.getElementById('gameInput').placeholder = 'Type the falling word and press Enter...';
+            document.getElementById('gameInput').value = '';
+            document.getElementById('gameInput').focus();
+            startSpawning(2500);
+            startGameLoop();
+        }
+
+        function startFallingLetters() {
+            gameType = 'fallingLetters';
+            initGame();
+            document.getElementById('gamesMenu').style.display = 'none';
+            document.getElementById('gameArena').style.display = 'block';
+            document.getElementById('gameInput').placeholder = 'Type the falling letter...';
+            document.getElementById('gameInput').value = '';
+            document.getElementById('gameInput').focus();
+            startSpawning(1800);
+            startGameLoop();
+        }
+
+        function startQuoteRace() {
+            gameType = 'quoteRace';
+            initGame();
+            document.getElementById('gamesMenu').style.display = 'none';
+            document.getElementById('gameArena').style.display = 'block';
+            document.getElementById('gameInput').placeholder = 'Type the full quote...';
+            document.getElementById('gameInput').value = '';
+            document.getElementById('gameInput').focus();
+            startQuoteRaceGame();
+        }
+
+        function initGame() {
+            gameActive = true;
+            gameScore = 0;
+            gameLives = 3;
+            gameTime = 60;
+            gameWords = [];
+            updateGameUI();
+            const area = document.getElementById('wordRainArea');
+            area.innerHTML = '';
+
+            gameTimerInterval = setInterval(() => {
+                gameTime--;
+                document.getElementById('gameTimer').textContent = gameTime;
+                if (gameTime <= 0) endCurrentGame(true);
+            }, 1000);
+        }
+
+        function startSpawning(interval) {
+            gameSpawnInterval = setInterval(() => {
+                if (!gameActive) return;
+                spawnItem();
+            }, interval);
+            spawnItem();
+        }
+
+        function spawnItem() {
+            const area = document.getElementById('wordRainArea');
+            if (!area) return;
+            const areaW = area.offsetWidth;
+            const text = gameType === 'fallingLetters'
+                ? gameLetterPool[Math.floor(Math.random() * gameLetterPool.length)]
+                : gameWordPool[Math.floor(Math.random() * gameWordPool.length)];
+
+            const el = document.createElement('div');
+            el.className = 'rain-word';
+            el.textContent = text;
+            el.style.left = Math.max(10, Math.random() * (areaW - 120)) + 'px';
+            el.style.top = '0px';
+            area.appendChild(el);
+
+            const item = {
+                id: gameWordId++,
+                el: el,
+                text: text,
+                y: 0,
+                speed: 0.5 + Math.random() * 0.8
+            };
+            gameWords.push(item);
+        }
+
+        function startGameLoop() {
+            function loop() {
+                if (!gameActive) return;
+                const area = document.getElementById('wordRainArea');
+                if (!area) return;
+                const areaH = area.offsetHeight;
+
+                gameWords.forEach((item, idx) => {
+                    if (item.destroyed) return;
+                    item.y += item.speed;
+                    item.el.style.top = item.y + 'px';
+
+                    if (item.y > areaH - 40) {
+                        if (!item.missed) {
+                            item.missed = true;
+                            item.el.classList.add('missed');
+                            gameLives--;
+                            updateGameUI();
+                            setTimeout(() => { if (item.el.parentNode) item.el.remove(); }, 500);
+                            if (gameLives <= 0) endCurrentGame(true);
+                        }
+                    }
+                });
+
+                gameWords = gameWords.filter(item => !item.destroyed && !item.missed);
+                gameAnimationId = requestAnimationFrame(loop);
+            }
+            gameAnimationId = requestAnimationFrame(loop);
+        }
+
+        function startQuoteRaceGame() {
+            const area = document.getElementById('wordRainArea');
+            area.innerHTML = '';
+            const quotes = [
+                'Practice makes perfect',
+                'Speed comes with consistency',
+                'Every keystroke builds mastery',
+                'Focus and type with purpose',
+                'Accuracy first speed follows'
+            ];
+            const quote = quotes[Math.floor(Math.random() * quotes.length)];
+            const el = document.createElement('div');
+            el.className = 'rain-word';
+            el.style.fontSize = '24px';
+            el.style.left = '50%';
+            el.style.transform = 'translateX(-50%)';
+            el.style.top = '40%';
+            el.textContent = quote;
+            area.appendChild(el);
+
+            const input = document.getElementById('gameInput');
+            input.oninput = function() {
+                const typed = input.value.trim();
+                if (typed === quote) {
+                    gameScore += 100;
+                    updateGameUI();
+                    input.value = '';
+                    startQuoteRaceGame();
+                } else if (quote.startsWith(typed)) {
+                    el.style.color = '#10b981';
+                } else {
+                    el.style.color = '#ef4444';
+                }
+            };
+        }
+
+        function handleGameInput() {
+            const input = document.getElementById('gameInput');
+            const typed = input.value.trim().toLowerCase();
+
+            if (gameType === 'fallingLetters') {
+                const letter = typed.charAt(0);
+                for (let item of gameWords) {
+                    if (!item.destroyed && item.text === letter) {
+                        item.destroyed = true;
+                        item.el.classList.add('destroyed');
+                        gameScore += 10;
+                        updateGameUI();
+                        setTimeout(() => { if (item.el.parentNode) item.el.remove(); }, 400);
+                        break;
+                    }
+                }
+                input.value = '';
+            } else if (gameType === 'wordRain') {
+                for (let item of gameWords) {
+                    if (!item.destroyed && item.text === typed) {
+                        item.destroyed = true;
+                        item.el.classList.add('destroyed');
+                        gameScore += 20;
+                        updateGameUI();
+                        setTimeout(() => { if (item.el.parentNode) item.el.remove(); }, 400);
+                        break;
+                    }
+                }
+                input.value = '';
+            }
+        }
+
+        document.getElementById('gameInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && gameActive) {
+                handleGameInput();
+            }
+        });
+
+        document.getElementById('gameInput').addEventListener('input', function() {
+            if (gameActive && gameType === 'fallingLetters') {
+                handleGameInput();
+            }
+        });
+
+        function updateGameUI() {
+            document.getElementById('gameScore').textContent = gameScore;
+            document.getElementById('gameLives').textContent = gameLives;
+            document.getElementById('gameTimer').textContent = gameTime;
+        }
+
+        function endCurrentGame(showResult) {
+            gameActive = false;
+            if (gameTimerInterval) { clearInterval(gameTimerInterval); gameTimerInterval = null; }
+            if (gameSpawnInterval) { clearInterval(gameSpawnInterval); gameSpawnInterval = null; }
+            if (gameAnimationId) { cancelAnimationFrame(gameAnimationId); gameAnimationId = null; }
+
+            if (showResult && gameScore > 0) {
+                const area = document.getElementById('wordRainArea');
+                if (area) {
+                    area.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#e0e0e0;">
+                        <h2 style="font-size:28px;margin-bottom:10px;">Game Over!</h2>
+                        <p style="font-size:20px;">Final Score: <strong style="color:#10b981;">${gameScore}</strong></p>
+                        <button class="btn btn-primary" style="margin-top:15px;" onclick="openGamesModal()">Play Again</button>
+                    </div>`;
+                }
+            }
+        }
+
+        // ===== FEATURE 6: Goal Setting & Reminders =====
+        let currentGoal = JSON.parse(localStorage.getItem('typingGoal') || 'null');
+        let reminderEnabled = localStorage.getItem('typingReminder') === 'true';
+
+        function openGoalsModal() {
+            document.getElementById('goalsModal').style.display = 'flex';
+            if (currentGoal) {
+                document.getElementById('goalTypeSelect').value = currentGoal.type;
+                document.getElementById('goalValueInput').value = currentGoal.value;
+            }
+            document.getElementById('reminderCheckbox').checked = reminderEnabled;
+            updateGoalProgress();
+        }
+
+        function closeGoalsModal() {
+            document.getElementById('goalsModal').style.display = 'none';
+        }
+
+        function saveGoal() {
+            const type = document.getElementById('goalTypeSelect').value;
+            const value = parseInt(document.getElementById('goalValueInput').value) || 0;
+            if (value <= 0) return;
+            currentGoal = { type: type, value: value, date: new Date().toDateString() };
+            localStorage.setItem('typingGoal', JSON.stringify(currentGoal));
+            updateGoalProgress();
+        }
+
+        function updateGoalProgress() {
+            if (!currentGoal) {
+                document.getElementById('goalProgressFill').style.width = '0%';
+                document.getElementById('goalProgressText').innerHTML = 'No goal set yet. Choose a goal above!';
+                return;
+            }
+
+            let current = 0;
+            let label = '';
+
+            if (currentGoal.type === 'time') {
+                const todayStr = new Date().toDateString();
+                const todaySessions = sessionHistory.filter(s => new Date(s.date).toDateString() === todayStr);
+                const totalMinutes = todaySessions.reduce((sum, s) => {
+                    return sum + Math.round((s.characters || 0) / 5 / (s.wpm || 1));
+                }, 0);
+                current = totalMinutes;
+                label = `${current} / ${currentGoal.value} minutes`;
+            } else if (currentGoal.type === 'wpm') {
+                const todayStr = new Date().toDateString();
+                const todaySessions = sessionHistory.filter(s => new Date(s.date).toDateString() === todayStr);
+                current = todaySessions.length > 0 ? Math.max(...todaySessions.map(s => s.wpm)) : 0;
+                label = `${current} / ${currentGoal.value} WPM (best today)`;
+            } else if (currentGoal.type === 'sessions') {
+                const todayStr = new Date().toDateString();
+                current = sessionHistory.filter(s => new Date(s.date).toDateString() === todayStr).length;
+                label = `${current} / ${currentGoal.value} sessions`;
+            }
+
+            const pct = Math.min(100, (current / currentGoal.value) * 100);
+            document.getElementById('goalProgressFill').style.width = pct + '%';
+            document.getElementById('goalProgressText').innerHTML = `<strong>${label}</strong> — ${Math.round(pct)}% complete`;
+        }
+
+        function toggleReminder(enabled) {
+            reminderEnabled = enabled;
+            localStorage.setItem('typingReminder', enabled);
+            if (enabled && 'Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        showGoalReminder();
+                    }
+                });
+            }
+        }
+
+        function showGoalReminder() {
+            if (!reminderEnabled || !('Notification' in window)) return;
+            if (Notification.permission !== 'granted') return;
+            if (!currentGoal) return;
+
+            const todayStr = new Date().toDateString();
+            const todaySessions = sessionHistory.filter(s => new Date(s.date).toDateString() === todayStr);
+            const sessionCount = todaySessions.length;
+
+            if (sessionCount === 0) {
+                new Notification('Typing Practice Reminder', {
+                    body: "You haven't practiced today! Open Typing Practice to achieve your daily goal.",
+                    icon: '/public/favicon.ico'
+                });
+            }
+        }
+
+        // Check reminder on page load
+        window.addEventListener('load', function() {
+            if (reminderEnabled) {
+                setTimeout(showGoalReminder, 5000);
+            }
+        });
+
+        // ===== FEATURE 7: PDF Report Card =====
+        let reportPeriod = 'weekly';
+
+        function openReportModal() {
+            document.getElementById('reportModal').style.display = 'flex';
+            reportPeriod = 'weekly';
+            document.querySelectorAll('.report-period-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.report-period-btn').classList.add('active');
+            renderReport();
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').style.display = 'none';
+        }
+
+        function setReportPeriod(period, btn) {
+            reportPeriod = period;
+            document.querySelectorAll('.report-period-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderReport();
+        }
+
+        function getReportSessions() {
+            const now = new Date();
+            const days = reportPeriod === 'weekly' ? 7 : 30;
+            const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+            return sessionHistory.filter(s => new Date(s.date) >= cutoff);
+        }
+
+        function renderReport() {
+            const sessions = getReportSessions();
+            const sessionCount = sessions.length;
+            const avgWpm = sessionCount > 0 ? Math.round(sessions.reduce((sum, s) => sum + s.wpm, 0) / sessionCount) : 0;
+            const bestWpm = sessionCount > 0 ? Math.max(...sessions.map(s => s.wpm)) : 0;
+            const avgAcc = sessionCount > 0 ? Math.round(sessions.reduce((sum, s) => sum + s.accuracy, 0) / sessionCount) : 0;
+
+            document.getElementById('reportSessions').textContent = sessionCount;
+            document.getElementById('reportAvgWpm').textContent = avgWpm;
+            document.getElementById('reportBestWpm').textContent = bestWpm;
+            document.getElementById('reportAvgAcc').textContent = avgAcc + '%';
+
+            // Draw chart
+            const canvas = document.getElementById('reportChart');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (sessions.length < 2) {
+                ctx.fillStyle = '#888';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Not enough sessions for chart', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            const recent = sessions.slice(0, 20).reverse();
+            const padding = 40;
+            const chartW = canvas.width - padding * 2;
+            const chartH = canvas.height - padding * 2;
+            const maxWpm = Math.max(...recent.map(s => s.wpm), 1);
+
+            // Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = padding + (chartH / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(canvas.width - padding, y);
+                ctx.stroke();
+            }
+
+            // Bars
+            const barW = chartW / recent.length - 4;
+            recent.forEach((s, i) => {
+                const x = padding + (chartW / recent.length) * i + 2;
+                const h = (s.wpm / maxWpm) * chartH;
+                const y = padding + chartH - h;
+                ctx.fillStyle = '#667eea';
+                ctx.fillRect(x, y, Math.max(barW, 3), h);
+            });
+
+            ctx.fillStyle = '#888';
+            ctx.font = '11px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('WPM per session (recent ' + recent.length + ')', padding, padding - 10);
+        }
+
+        function downloadReportPDF() {
+            const sessions = getReportSessions();
+            const sessionCount = sessions.length;
+            const avgWpm = sessionCount > 0 ? Math.round(sessions.reduce((sum, s) => sum + s.wpm, 0) / sessionCount) : 0;
+            const bestWpm = sessionCount > 0 ? Math.max(...sessions.map(s => s.wpm)) : 0;
+            const avgAcc = sessionCount > 0 ? Math.round(sessions.reduce((sum, s) => sum + s.accuracy, 0) / sessionCount) : 0;
+            const periodLabel = reportPeriod === 'weekly' ? 'Weekly' : 'Monthly';
+            const userName = currentUser || 'Student';
+            const dateStr = new Date().toLocaleDateString();
+
+            const html = `<!DOCTYPE html><html><head><title>Typing Report Card</title>
+            <style>
+                body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; background: #f5f7fa; }
+                .report-card { max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+                h1 { color: #667eea; text-align: center; margin-bottom: 5px; }
+                .sub { text-align: center; color: #888; margin-bottom: 30px; }
+                .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+                .stat { background: rgba(102,126,234,0.08); border-radius: 12px; padding: 20px; text-align: center; }
+                .stat .val { font-size: 28px; font-weight: 700; color: #667eea; }
+                .stat .lbl { font-size: 12px; color: #888; margin-top: 5px; }
+                .info { color: #555; line-height: 1.8; }
+                .footer { text-align: center; color: #aaa; font-size: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px; }
+            </style></head><body>
+            <div class="report-card">
+                <h1>Typing Progress Report</h1>
+                <div class="sub">${periodLabel} Report — ${dateStr}</div>
+                <div class="info">
+                    <p><strong>Student:</strong> ${userName}</p>
+                    <p><strong>Period:</strong> ${periodLabel} (last ${reportPeriod === 'weekly' ? 7 : 30} days)</p>
+                </div>
+                <div class="stats">
+                    <div class="stat"><div class="val">${sessionCount}</div><div class="lbl">Sessions</div></div>
+                    <div class="stat"><div class="val">${avgWpm}</div><div class="lbl">Avg WPM</div></div>
+                    <div class="stat"><div class="val">${bestWpm}</div><div class="lbl">Best WPM</div></div>
+                    <div class="stat"><div class="val">${avgAcc}%</div><div class="lbl">Avg Accuracy</div></div>
+                </div>
+                <div class="footer">Generated by Genius Computer Education — Typing Practice</div>
+            </div>
+            </body></html>`;
+
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `typing-report-${userName}-${dateStr.replace(/\//g, '-')}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            const sessions = getReportSessions();
+            const sessionCount = sessions.length;
+            const avgWpm = sessionCount > 0 ? Math.round(sessions.reduce((sum, s) => sum + s.wpm, 0) / sessionCount) : 0;
+            const bestWpm = sessionCount > 0 ? Math.max(...sessions.map(s => s.wpm)) : 0;
+            const avgAcc = sessionCount > 0 ? Math.round(sessions.reduce((sum, s) => sum + s.accuracy, 0) / sessionCount) : 0;
+            const periodLabel = reportPeriod === 'weekly' ? 'Weekly' : 'Monthly';
+            const userName = currentUser || 'Student';
+            const dateStr = new Date().toLocaleDateString();
+
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`<html><head><title>Typing Report Card</title>
+            <style>body{font-family:Arial,sans-serif;padding:40px;}h1{color:#667eea;}.stat{display:inline-block;margin:10px;padding:15px;border:1px solid #ddd;border-radius:8px;text-align:center;}.val{font-size:24px;font-weight:700;color:#667eea;}.lbl{font-size:12px;color:#888;}</style>
+            </head><body>
+            <h1>Typing Progress Report</h1>
+            <p><strong>Student:</strong> ${userName} | <strong>Period:</strong> ${periodLabel} | <strong>Date:</strong> ${dateStr}</p>
+            <div class="stat"><div class="val">${sessionCount}</div><div class="lbl">Sessions</div></div>
+            <div class="stat"><div class="val">${avgWpm}</div><div class="lbl">Avg WPM</div></div>
+            <div class="stat"><div class="val">${bestWpm}</div><div class="lbl">Best WPM</div></div>
+            <div class="stat"><div class="val">${avgAcc}%</div><div class="lbl">Avg Accuracy</div></div>
+            <p style="margin-top:20px;color:#aaa;font-size:12px;">Generated by Genius Computer Education — Typing Practice</p>
+            </body></html>`);
+            printWin.document.close();
+            printWin.print();
+        }
+
+        // ===== FEATURE 10: Keyboard Shortcut Practice =====
+        const shortcutsList = [
+            { keys: ['Ctrl', 'C'], desc: 'Copy selected text', ctrl: true, key: 'c' },
+            { keys: ['Ctrl', 'V'], desc: 'Paste copied text', ctrl: true, key: 'v' },
+            { keys: ['Ctrl', 'X'], desc: 'Cut selected text', ctrl: true, key: 'x' },
+            { keys: ['Ctrl', 'Z'], desc: 'Undo last action', ctrl: true, key: 'z' },
+            { keys: ['Ctrl', 'A'], desc: 'Select all text', ctrl: true, key: 'a' },
+            { keys: ['Ctrl', 'S'], desc: 'Save document', ctrl: true, key: 's' },
+            { keys: ['Ctrl', 'F'], desc: 'Find in page', ctrl: true, key: 'f' },
+            { keys: ['Alt', 'Tab'], desc: 'Switch between windows', alt: true, key: 'tab' },
+            { keys: ['Ctrl', 'Shift', 'Esc'], desc: 'Open Task Manager', ctrl: true, shift: true, key: 'escape' },
+            { keys: ['Ctrl', 'Alt', 'Del'], desc: 'Security / Lock screen', ctrl: true, alt: true, key: 'delete' },
+            { keys: ['Win', 'D'], desc: 'Show desktop', win: true, key: 'd' },
+            { keys: ['Ctrl', 'P'], desc: 'Print document', ctrl: true, key: 'p' }
+        ];
+
+        let shortcutPracticeActive = false;
+        let currentShortcutIdx = 0;
+        let shortcutScore = 0;
+        let shortcutTotal = 0;
+
+        function openShortcutsModal() {
+            document.getElementById('shortcutsModal').style.display = 'flex';
+            renderShortcutList();
+        }
+
+        function closeShortcutsModal() {
+            shortcutPracticeActive = false;
+            document.getElementById('shortcutsModal').style.display = 'none';
+        }
+
+        function renderShortcutList() {
+            const list = document.getElementById('shortcutList');
+            list.innerHTML = shortcutsList.map(s => {
+                const keys = s.keys.map(k => `<span class="shortcut-key">${k}</span>`).join('');
+                return `<div class="shortcut-item"><span class="desc">${s.desc}</span><div class="shortcut-keys">${keys}</div></div>`;
+            }).join('');
+        }
+
+        function startShortcutPractice() {
+            shortcutPracticeActive = true;
+            shortcutScore = 0;
+            shortcutTotal = 0;
+            currentShortcutIdx = 0;
+            document.getElementById('shortcutStartBtn').textContent = 'Stop Practice';
+            document.getElementById('shortcutStartBtn').onclick = stopShortcutPractice;
+            nextShortcut();
+        }
+
+        function stopShortcutPractice() {
+            shortcutPracticeActive = false;
+            document.getElementById('shortcutStartBtn').textContent = 'Start Practice';
+            document.getElementById('shortcutStartBtn').onclick = startShortcutPractice;
+            document.getElementById('shortcutPrompt').innerHTML = `Practice stopped! Score: <strong style="color:#10b981;">${shortcutScore} / ${shortcutTotal}</strong>`;
+            document.getElementById('shortcutStatus').textContent = '';
+        }
+
+        function nextShortcut() {
+            if (!shortcutPracticeActive) return;
+            currentShortcutIdx = Math.floor(Math.random() * shortcutsList.length);
+            const s = shortcutsList[currentShortcutIdx];
+            const keys = s.keys.map(k => `<span class="shortcut-key">${k}</span>`).join(' + ');
+            document.getElementById('shortcutPrompt').innerHTML = `Press: <span class="keys">${keys}</span>`;
+            document.getElementById('shortcutStatus').textContent = '';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (!shortcutPracticeActive) return;
+            const s = shortcutsList[currentShortcutIdx];
+            let matched = true;
+
+            if (s.ctrl && !e.ctrlKey) matched = false;
+            if (s.alt && !e.altKey) matched = false;
+            if (s.shift && !e.shiftKey) matched = false;
+            if (s.win && !e.metaKey) matched = false;
+            if (e.key.toLowerCase() !== s.key) matched = false;
+
+            if (matched) {
+                e.preventDefault();
+                shortcutScore++;
+                shortcutTotal++;
+                document.getElementById('shortcutStatus').textContent = 'Correct! +1';
+                document.getElementById('shortcutStatus').style.color = '#10b981';
+                setTimeout(nextShortcut, 600);
+            } else if (e.ctrlKey || e.altKey || e.metaKey) {
+                e.preventDefault();
+                shortcutTotal++;
+                document.getElementById('shortcutStatus').textContent = 'Wrong keys! Try again.';
+                document.getElementById('shortcutStatus').style.color = '#ef4444';
             }
         });
     </script>
