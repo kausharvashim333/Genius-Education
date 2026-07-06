@@ -7462,12 +7462,40 @@
         function startDailyChallenge() {
             if (challengeProgress >= 100) return;
 
-            loadNewText();
+            currentText = getRandomStoryText();
+            currentIndex = 0;
+            mistakes = 0;
+            streak = 0;
+            combo = 1;
+            maxStreak = 0;
+            maxCombo = 1;
+            wpmHistory = [];
+            incorrectChars.clear();
+            lastCompletedLine = -1;
+            previousLineIndex = -1;
+            typingInput.value = '';
+            typingInput.disabled = false;
+            wpmDisplay.textContent = '0';
+            accuracyDisplay.textContent = '100%';
+            progressFillSidebar.style.width = '0%';
+            progressPercentage.textContent = '0%';
+            accuracyCircle.style.strokeDashoffset = '226.195';
+            cpmDisplay.textContent = '0';
+
+            // Clear timer from any previous session
+            timerDisplay.classList.remove('visible');
+            timerDisplay.style.display = 'none';
+            if (timerCountdownInterval) {
+                clearInterval(timerCountdownInterval);
+                timerCountdownInterval = null;
+            }
+
             closeDailyChallengeModal();
 
             isChallengeMode = true;
             isCustomMode = true;
             customModeDuration = currentChallenge.duration;
+            document.getElementById('lessonTitle').textContent = 'Daily Challenge: ' + currentChallenge.title;
             updateDisplay();
         }
 
@@ -8383,9 +8411,23 @@
         });
 
         function loadNextText() {
-            currentText = generateTextForLevel(currentLevel);
+            if (isChallengeMode) {
+                currentText = getRandomStoryText();
+            } else {
+                currentText = generateTextForLevel(currentLevel);
+            }
             currentIndex = 0;
             updateDisplay();
+        }
+
+        function getRandomStoryText() {
+            const allStories = [
+                ...shortSentences,
+                ...detailedParagraphs,
+                ...hardStories,
+                ...expertStories
+            ];
+            return allStories[Math.floor(Math.random() * allStories.length)];
         }
 
         // Sound effects
