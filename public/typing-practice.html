@@ -7893,7 +7893,8 @@
             textDisplay.textContent = 'Click "Start" to begin typing...';
             wpmDisplay.textContent = '0';
             accuracyDisplay.textContent = '100%';
-            progressFill.style.width = '0%';
+            progressFillSidebar.style.width = '0%';
+            progressPercentage.textContent = '0%';
             accuracyCircle.style.strokeDashoffset = '226.195';
             cpmDisplay.textContent = '0';
             updateStatusBar();
@@ -10653,7 +10654,8 @@
                 doc.setFont('helvetica', 'bold');
                 doc.text(String(s.wpm), colX[2], y + 5);
                 doc.setFont('helvetica', 'normal');
-                doc.setTextColor(s.accuracy >= 90 ? [16, 185, 129] : [245, 158, 11]);
+                var accColor = s.accuracy >= 90 ? [16, 185, 129] : [245, 158, 11];
+                doc.setTextColor(accColor[0], accColor[1], accColor[2]);
                 doc.text(s.accuracy + '%', colX[3], y + 5);
                 doc.setTextColor(80, 80, 100);
                 doc.text('Level ' + (s.level || 1), colX[4], y + 5);
@@ -10887,7 +10889,8 @@
                 doc.setFont('helvetica', 'bold');
                 doc.text(String(s.wpm), colX[2], y + 5);
                 doc.setFont('helvetica', 'normal');
-                doc.setTextColor(s.accuracy >= 90 ? [16, 185, 129] : [245, 158, 11]);
+                var accColor = s.accuracy >= 90 ? [16, 185, 129] : [245, 158, 11];
+                doc.setTextColor(accColor[0], accColor[1], accColor[2]);
                 doc.text(s.accuracy + '%', colX[3], y + 5);
                 doc.setTextColor(80, 80, 100);
                 doc.text('Level ' + (s.level || 1), colX[4], y + 5);
