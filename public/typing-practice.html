@@ -10185,6 +10185,29 @@
         // ===== FEATURE 6: Goal Setting & Reminders =====
         let currentGoal = JSON.parse(localStorage.getItem('typingGoal') || 'null');
         let reminderEnabled = localStorage.getItem('typingReminder') === 'true';
+        let instituteLogoBase64 = null;
+
+        function loadInstituteLogo() {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                try {
+                    instituteLogoBase64 = canvas.toDataURL('image/png');
+                } catch(e) {
+                    instituteLogoBase64 = null;
+                }
+            };
+            img.onerror = function() {
+                instituteLogoBase64 = null;
+            };
+            img.src = '/uploads/logo/logo.png';
+        }
+        loadInstituteLogo();
 
         function openGoalsModal() {
             document.getElementById('goalsModal').style.display = 'flex';
@@ -10393,22 +10416,26 @@
             doc.setFillColor(118, 75, 162);
             doc.rect(0, 38, pageW, 2, 'F');
 
-            // Logo circle
-            doc.setFillColor(255, 255, 255);
-            doc.circle(margin + 8, 20, 7, 'F');
-            doc.setTextColor(102, 126, 234);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.text('G', margin + 8, 22, { align: 'center' });
+            // Logo
+            if (instituteLogoBase64) {
+                doc.addImage(instituteLogoBase64, 'PNG', margin + 2, 6, 14, 14);
+            } else {
+                doc.setFillColor(255, 255, 255);
+                doc.circle(margin + 9, 13, 7, 'F');
+                doc.setTextColor(102, 126, 234);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(12);
+                doc.text('G', margin + 9, 15, { align: 'center' });
+            }
 
             // Title
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(18);
-            doc.text('Genius Computer Education', margin + 20, 18);
+            doc.text('Genius Computer Education', margin + 22, 18);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(11);
-            doc.text('Typing Progress Report Card', margin + 20, 26);
+            doc.text('Typing Progress Report Card', margin + 22, 26);
 
             // Right side date
             doc.setFontSize(9);
@@ -10676,18 +10703,22 @@
             doc.rect(0, 0, pageW, 40, 'F');
             doc.setFillColor(118, 75, 162);
             doc.rect(0, 38, pageW, 2, 'F');
-            doc.setFillColor(255, 255, 255);
-            doc.circle(margin + 8, 20, 7, 'F');
-            doc.setTextColor(102, 126, 234);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.text('G', margin + 8, 22, { align: 'center' });
+            if (instituteLogoBase64) {
+                doc.addImage(instituteLogoBase64, 'PNG', margin + 2, 6, 14, 14);
+            } else {
+                doc.setFillColor(255, 255, 255);
+                doc.circle(margin + 9, 13, 7, 'F');
+                doc.setTextColor(102, 126, 234);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(12);
+                doc.text('G', margin + 9, 15, { align: 'center' });
+            }
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(18);
-            doc.text('Genius Computer Education', margin + 20, 18);
+            doc.text('Genius Computer Education', margin + 22, 18);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(11);
-            doc.text('Typing Progress Report Card', margin + 20, 26);
+            doc.text('Typing Progress Report Card', margin + 22, 26);
             doc.setFontSize(9);
             doc.text(dateStr, pageW - margin, 18, { align: 'right' });
             doc.text(periodLabel + ' Report', pageW - margin, 26, { align: 'right' });
