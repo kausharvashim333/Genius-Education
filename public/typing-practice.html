@@ -6694,6 +6694,7 @@
         let timeRemaining = 0;
         let timerCountdownInterval = null;
         let currentLevel = 1;
+        let completedLevels = [];
         let incorrectChars = new Set(); // Track positions of incorrectly typed characters
         let lastCompletedLine = -1; // Track last completed line for scrolling
         let previousLineIndex = -1; // Track previous line index for animation
@@ -7132,6 +7133,12 @@
             // Update goal progress
             if (currentGoal) updateGoalProgress();
 
+            // Track level completion (accuracy >= 80% and not in challenge mode)
+            if (!isChallengeMode && accuracy >= 80 && !completedLevels.includes(currentLevel)) {
+                completedLevels.push(currentLevel);
+                saveUserData();
+            }
+
             document.getElementById('resultModal').style.display = 'flex';
             const nameDisplay = document.getElementById('currentUserNameDisplay');
             if (nameDisplay) nameDisplay.textContent = currentUser || 'Anonymous';
@@ -7165,6 +7172,7 @@
                 currentLevel++;
                 levelSelect.value = currentLevel;
                 updateLevelInfo();
+                saveUserData();
                 document.getElementById('resultModal').style.display = 'none';
                 loadNewText();
             }
@@ -7419,12 +7427,88 @@
             document.getElementById('dailyChallengeModal').style.display = 'none';
         }
 
+        function generateCustomDailyChallenge() {
+            const numCompleted = completedLevels.length;
+            const userBestWpm = bestWpm || 0;
+            
+            // Determine difficulty tier based on completed levels
+            let tier, title, description, targetWPM, targetAccuracy, reward;
+            
+            if (numCompleted === 0) {
+                // Beginner: no levels completed yet
+                tier = 'Beginner';
+                title = 'First Steps Challenge';
+                description = 'Type for 5 minutes and aim for 15+ WPM with 85% accuracy';
+                targetWPM = 15;
+                targetAccuracy = 85;
+                reward = 100;
+            } else if (numCompleted <= 10) {
+                // Level 1-10 completed: Easy
+                tier = 'Easy';
+                title = 'Warm-Up Challenge';
+                description = 'Type for 5 minutes and aim for 25+ WPM with 90% accuracy';
+                targetWPM = 25;
+                targetAccuracy = 90;
+                reward = 150;
+            } else if (numCompleted <= 25) {
+                // Level 11-25 completed: Medium
+                tier = 'Medium';
+                title = 'Steady Typer Challenge';
+                description = 'Type for 5 minutes and aim for 35+ WPM with 92% accuracy';
+                targetWPM = 35;
+                targetAccuracy = 92;
+                reward = 200;
+            } else if (numCompleted <= 50) {
+                // Level 26-50 completed: Hard
+                tier = 'Hard';
+                title = 'Speed Builder Challenge';
+                description = 'Type for 5 minutes and aim for 45+ WPM with 95% accuracy';
+                targetWPM = 45;
+                targetAccuracy = 95;
+                reward = 300;
+            } else if (numCompleted <= 75) {
+                // Level 51-75 completed: Expert
+                tier = 'Expert';
+                title = 'Pro Typist Challenge';
+                description = 'Type for 5 minutes and aim for 55+ WPM with 96% accuracy';
+                targetWPM = 55;
+                targetAccuracy = 96;
+                reward = 400;
+            } else {
+                // Level 76+ completed: Master
+                tier = 'Master';
+                title = 'Grandmaster Challenge';
+                description = 'Type for 5 minutes and aim for 65+ WPM with 98% accuracy';
+                targetWPM = 65;
+                targetAccuracy = 98;
+                reward = 500;
+            }
+
+            // If user's best WPM is significantly higher than tier target, bump up the target
+            if (userBestWpm > targetWPM + 15) {
+                targetWPM = Math.round(userBestWpm * 0.9);
+                description = `Type for 5 minutes and aim for ${targetWPM}+ WPM with ${targetAccuracy}% accuracy`;
+            }
+
+            return {
+                id: Date.now(),
+                title: title,
+                description: description,
+                tier: tier,
+                targetWPM: targetWPM,
+                targetAccuracy: targetAccuracy,
+                duration: 300, // Always 5 minutes
+                reward: reward
+            };
+        }
+
         function loadDailyChallenge() {
             // Get today's challenge based on date
             const today = new Date().toDateString();
             const savedChallenge = JSON.parse(localStorage.getItem('dailyChallenge')) || {};
-            const challengeIndex = (new Date().getDate() + new Date().getMonth()) % dailyChallenges.length;
-            currentChallenge = dailyChallenges[challengeIndex];
+            
+            // Generate customized 5-minute challenge based on user's progress
+            currentChallenge = generateCustomDailyChallenge();
 
             // Load progress
             if (savedChallenge.date === today) {
@@ -7504,17 +7588,23 @@
 
             let completed = false;
 
-            if (currentChallenge.targetWPM && wpm >= currentChallenge.targetWPM) {
-                completed = true;
-            }
-            if (currentChallenge.targetAccuracy && accuracy >= currentChallenge.targetAccuracy) {
-                completed = true;
-            }
-            if (currentChallenge.targetErrors !== undefined && errors <= currentChallenge.targetErrors) {
-                completed = true;
-            }
-            if (currentChallenge.targetStreak && maxStreak >= currentChallenge.targetStreak) {
-                completed = true;
+            // Custom daily challenge: require both WPM and accuracy targets
+            if (currentChallenge.targetWPM && currentChallenge.targetAccuracy) {
+                completed = (wpm >= currentChallenge.targetWPM && accuracy >= currentChallenge.targetAccuracy);
+            } else {
+                // Legacy challenges: any single target met
+                if (currentChallenge.targetWPM && wpm >= currentChallenge.targetWPM) {
+                    completed = true;
+                }
+                if (currentChallenge.targetAccuracy && accuracy >= currentChallenge.targetAccuracy) {
+                    completed = true;
+                }
+                if (currentChallenge.targetErrors !== undefined && errors <= currentChallenge.targetErrors) {
+                    completed = true;
+                }
+                if (currentChallenge.targetStreak && maxStreak >= currentChallenge.targetStreak) {
+                    completed = true;
+                }
             }
 
             if (completed) {
@@ -7862,6 +7952,7 @@
         levelSelect.addEventListener('change', function() {
             currentLevel = parseInt(this.value);
             updateLevelInfo();
+            saveUserData();
             loadNewText();
         });
         
@@ -9196,8 +9287,12 @@
             // Open guide for new users
             openGuide();
 
-            // Show a motivational bilingual welcome quote
-            showQuoteModal('welcome');
+            // Show daily challenge after guide is closed
+            showQuoteModal('welcome', function() {
+                setTimeout(function() {
+                    openDailyChallengeModal();
+                }, 300);
+            });
         }
 
         function populateUserList() {
@@ -9251,8 +9346,12 @@
             // Open guide after login
             openGuide();
 
-            // Show a motivational bilingual welcome quote
-            showQuoteModal('welcome');
+            // Show daily challenge after welcome quote is closed
+            showQuoteModal('welcome', function() {
+                setTimeout(function() {
+                    openDailyChallengeModal();
+                }, 300);
+            });
         }
 
         function initializeUserData(username) {
@@ -9280,6 +9379,12 @@
             if (!localStorage.getItem(userPrefix + 'lastPracticeDate')) {
                 localStorage.setItem(userPrefix + 'lastPracticeDate', '');
             }
+            if (!localStorage.getItem(userPrefix + 'completedLevels')) {
+                localStorage.setItem(userPrefix + 'completedLevels', JSON.stringify([]));
+            }
+            if (!localStorage.getItem(userPrefix + 'currentLevel')) {
+                localStorage.setItem(userPrefix + 'currentLevel', '1');
+            }
         }
 
         function loadUserData() {
@@ -9296,6 +9401,11 @@
             Object.assign(achievements, savedAchievements);
             currentStreak = parseInt(localStorage.getItem(userPrefix + 'dailyStreak')) || 0;
             lastPracticeDate = localStorage.getItem(userPrefix + 'lastPracticeDate') || '';
+            completedLevels = JSON.parse(localStorage.getItem(userPrefix + 'completedLevels')) || [];
+            const savedLevel = parseInt(localStorage.getItem(userPrefix + 'currentLevel')) || 1;
+            currentLevel = savedLevel;
+            levelSelect.value = currentLevel;
+            updateLevelInfo();
 
             // Update displays
             updateXPDisplay();
@@ -9315,6 +9425,8 @@
             localStorage.setItem(userPrefix + 'achievements', JSON.stringify(achievements));
             localStorage.setItem(userPrefix + 'dailyStreak', currentStreak);
             localStorage.setItem(userPrefix + 'lastPracticeDate', lastPracticeDate);
+            localStorage.setItem(userPrefix + 'completedLevels', JSON.stringify(completedLevels));
+            localStorage.setItem(userPrefix + 'currentLevel', currentLevel);
         }
 
         function updateUserDisplay() {
@@ -10061,8 +10173,12 @@
                     loadUserData();
                     updateUserDisplay();
 
-                    // Show a motivational bilingual welcome quote for returning users
-                    showQuoteModal('welcome');
+                    // Show daily challenge after welcome quote for returning users
+                    showQuoteModal('welcome', function() {
+                        setTimeout(function() {
+                            openDailyChallengeModal();
+                        }, 300);
+                    });
                 }
             }, 2500);
 
