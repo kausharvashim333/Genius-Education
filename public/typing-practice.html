@@ -493,7 +493,7 @@
             gap: 10px;
             overflow-wrap: break-word;
             word-wrap: break-word;
-            flex-shrink: 1;
+            flex: 1 1 80px;
             overflow-y: auto;
         }
 
@@ -505,6 +505,7 @@
             background: rgba(30, 30, 50, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
         }
 
         .text-line.active {
@@ -6703,6 +6704,8 @@
         let totalXP = 0;
         let userLevel = 1; // Level up every 1000 XP
         let sessionXP = 0;
+        let userBestWpm = 0;
+        let lastGraphPushTime = null;
 
         // Daily Streak System
         let currentStreak = 0;
@@ -7092,9 +7095,6 @@
 
             // Check challenge completion
             checkChallengeCompletion(wpm, accuracy, mistakes, maxStreak);
-            isChallengeMode = false;
-            isCustomMode = false;
-            customModeDuration = 0;
 
             // Check speed badges
             checkSpeedBadges(wpm);
@@ -7138,6 +7138,11 @@
                 completedLevels.push(currentLevel);
                 saveUserData();
             }
+
+            // Reset mode flags after checks
+            isChallengeMode = false;
+            isCustomMode = false;
+            customModeDuration = 0;
 
             document.getElementById('resultModal').style.display = 'flex';
             const nameDisplay = document.getElementById('currentUserNameDisplay');
@@ -8470,18 +8475,52 @@
                     } else if (key.length === 1) {
                         const expectedChar = currentText[currentIndex];
 
+                        // Track key press timing
+                        const currentTime = Date.now();
+                        if (lastKeyPressTime !== null) {
+                            const timeBetweenKeys = currentTime - lastKeyPressTime;
+                            keyPressTimings.push(timeBetweenKeys);
+                        }
+                        lastKeyPressTime = currentTime;
+
+                        // Track pauses
+                        if (lastInputTime !== null) {
+                            const timeSinceLastInput = currentTime - lastInputTime;
+                            if (timeSinceLastInput >= PAUSE_THRESHOLD) {
+                                pauses.push({
+                                    duration: timeSinceLastInput,
+                                    timestamp: currentTime - startTime
+                                });
+                            }
+                        }
+                        lastInputTime = currentTime;
+
                         if (key === expectedChar) {
                             streak++;
                             combo = Math.min(combo + 0.1, 5);
                             maxStreak = Math.max(maxStreak, streak);
                             maxCombo = Math.max(maxCombo, combo);
                             playSound('correct');
+
+                            // Track finger usage
+                            const finger = getFingerForChar(expectedChar);
+                            if (finger !== 'unknown') {
+                                fingerUsage[finger]++;
+                            }
                         } else {
                             mistakes++;
                             streak = 0;
                             combo = 1;
                             incorrectChars.add(currentIndex);
                             playSound('error');
+
+                            // Log mistake for analysis
+                            mistakeLog.push({
+                                expected: expectedChar,
+                                typed: key,
+                                position: currentIndex,
+                                timestamp: Date.now()
+                            });
                         }
 
                         currentIndex++;
@@ -8610,10 +8649,16 @@
             if (progFill) progFill.style.width = progress + '%';
             if (progPct) progPct.textContent = progress + '%';
 
-            // Update live graph
-            wpmHistory.push(wpm);
-            if (wpmHistory.length > 60) wpmHistory.shift();
-            drawGraph();
+            // Update live graph every 2 seconds (avoiding initial 2 seconds to prevent massive speed spikes)
+            const currentTime = Date.now();
+            if (lastGraphPushTime === null || currentTime - lastGraphPushTime >= 2000) {
+                if (timeElapsed * 60 >= 2) {
+                    wpmHistory.push(wpm);
+                    if (wpmHistory.length > 60) wpmHistory.shift();
+                    drawGraph();
+                    lastGraphPushTime = currentTime;
+                }
+            }
         }
 
         // Save best WPM
@@ -8623,7 +8668,7 @@
             const currentBest = parseInt(localStorage.getItem(userPrefix + 'bestWpm')) || 0;
             if (wpm > currentBest) {
                 localStorage.setItem(userPrefix + 'bestWpm', wpm);
-                bestWpm = wpm;
+                userBestWpm = wpm;
             }
         }
 
@@ -9395,7 +9440,7 @@
             // Load user-specific data
             totalXP = parseInt(localStorage.getItem(userPrefix + 'totalXP')) || 0;
             userLevel = Math.floor(totalXP / 1000) + 1;
-            bestWpm = parseInt(localStorage.getItem(userPrefix + 'bestWpm')) || 0;
+            userBestWpm = parseInt(localStorage.getItem(userPrefix + 'bestWpm')) || 0;
             sessionHistory = JSON.parse(localStorage.getItem(userPrefix + 'sessionHistory')) || [];
             const savedAchievements = JSON.parse(localStorage.getItem(userPrefix + 'achievements')) || {};
             Object.assign(achievements, savedAchievements);
@@ -9419,7 +9464,7 @@
 
             // Save user-specific data
             localStorage.setItem(userPrefix + 'totalXP', totalXP);
-            localStorage.setItem(userPrefix + 'bestWpm', bestWpm);
+            localStorage.setItem(userPrefix + 'bestWpm', userBestWpm);
             localStorage.setItem(userPrefix + 'bestAccuracy', localStorage.getItem(userPrefix + 'bestAccuracy') || '0');
             localStorage.setItem(userPrefix + 'sessionHistory', JSON.stringify(sessionHistory));
             localStorage.setItem(userPrefix + 'achievements', JSON.stringify(achievements));
@@ -9760,6 +9805,15 @@
             mistakeLog = [];
         }
 
+        function getBaseKey(char) {
+            if (!char) return '';
+            const shiftMap = {
+                '~': '`', '!': '1', '@': '2', '#': '3', '$': '4', '%': '5', '^': '6', '&': '7', '*': '8', '(': '9', ')': '0',
+                '_': '-', '+': '=', '{': '[', '}': ']', '|': '\\', ':': ';', '"': "'", '<': ',', '>': '.', '?': '/'
+            };
+            return shiftMap[char] || char.toLowerCase();
+        }
+
         function getFingerForChar(char) {
             const charLower = char.toLowerCase();
 
@@ -9889,32 +9943,32 @@
                 lines.push(currentLine.trim());
             }
             
+            // Append trailing space to all lines except the last one to represent the space between lines
+            for (let i = 0; i < lines.length - 1; i++) {
+                lines[i] += ' ';
+            }
+
             // Calculate which line we're on based on wrapped text
             let charCount = 0;
             let currentLineIndex = 0;
             let lineCharCounts = [];
             
-            // Reconstruct the wrapped text to match character positions
-            let wrappedText = '';
             for (let i = 0; i < lines.length; i++) {
                 lineCharCounts.push(charCount);
-                wrappedText += lines[i];
-                if (i < lines.length - 1) {
-                    wrappedText += ' ';
-                    charCount += lines[i].length + 1; // +1 for space
-                } else {
-                    charCount += lines[i].length;
-                }
+                charCount += lines[i].length;
             }
             
             // Find current line based on wrapped text
             for (let i = 0; i < lines.length; i++) {
                 const lineStart = lineCharCounts[i];
                 const lineEnd = lineStart + lines[i].length;
-                if (currentIndex >= lineStart && currentIndex <= lineEnd) {
+                if (currentIndex >= lineStart && currentIndex < lineEnd) {
                     currentLineIndex = i;
                     break;
                 }
+            }
+            if (currentIndex >= currentText.length && lines.length > 0) {
+                currentLineIndex = lines.length - 1;
             }
             
             // Card-based display: show only current line
@@ -9965,11 +10019,11 @@
             progressPercentage.textContent = Math.round(progress) + '%';
 
             // Highlight next key on virtual keyboard
-            // (finger-guide helper mapping + functions defined once near bottom of script)
             const highlightEnabled = localStorage.getItem('highlightNext') !== 'false';
             if (highlightEnabled && currentIndex < currentText.length) {
                 const nextChar = currentText[currentIndex];
-                const keyElement = document.querySelector(`[data-key="${nextChar}"]`);
+                const lookupChar = getBaseKey(nextChar);
+                const keyElement = document.querySelector(`[data-key="${lookupChar}"]`);
 
                 // Remove highlight from all keys
                 document.querySelectorAll('.key').forEach(key => {
@@ -9980,13 +10034,22 @@
                 if (keyElement) {
                     keyElement.classList.add('highlighted');
                 }
+
+                // If Shift is required, highlight the Shift keys
+                const isShiftRequired = (nextChar !== ' ' && nextChar !== lookupChar);
+                if (isShiftRequired) {
+                    document.querySelectorAll('[data-key="Shift"]').forEach(shiftKey => {
+                        shiftKey.classList.add('highlighted');
+                    });
+                }
             }
 
             // Show finger guide (separate from highlight)
             const fingerGuideEnabled = localStorage.getItem('fingerGuide') !== 'false';
             if (fingerGuideEnabled && currentIndex < currentText.length) {
                 const nextChar = currentText[currentIndex];
-                const keyElement = document.querySelector(`[data-key="${nextChar}"]`);
+                const lookupChar = getBaseKey(nextChar);
+                const keyElement = document.querySelector(`[data-key="${lookupChar}"]`);
 
                 if (keyElement) {
                     // Determine finger to use
@@ -10017,25 +10080,7 @@
             if (currentLineIndex > lastCompletedLine) {
                 lastCompletedLine = currentLineIndex;
             }
-            
-            if (isTyping && startTime) {
-                const timeElapsed = (new Date() - startTime) / 1000 / 60;
-                const wordsTyped = typed.split(' ').filter(w => w.length > 0).length;
-                const wpm = Math.round((currentIndex / 5) / timeElapsed) || 0;
-                const cpm = Math.round(currentIndex / timeElapsed) || 0;
-                const accuracy = currentIndex > 0 ? Math.round(((currentIndex - mistakes) / currentIndex) * 100) : 100;
-                
-                wpmDisplay.textContent = wpm;
-                accuracyDisplay.textContent = accuracy + '%';
-                
-                const accuracyOffset = 226.195 - (226.195 * accuracy / 100);
-                accuracyCircle.style.strokeDashoffset = accuracyOffset;
-                cpmDisplay.textContent = cpm;
-                
-                wpmHistory.push(wpm);
-                if (wpmHistory.length > 60) wpmHistory.shift();
-                drawGraph();
-            }
+
         }
 
         function drawGraph() {
@@ -10069,76 +10114,12 @@
             ctx.fill();
         }
 
-        typingInput.addEventListener('input', function(e) {
-            if (!isTyping) return;
-
-            const inputValue = e.target.value;
-            const inputChar = inputValue.slice(-1);
-            const expectedChar = currentText[currentIndex];
-
-            // Track key press timing
-            const currentTime = Date.now();
-            if (lastKeyPressTime !== null) {
-                const timeBetweenKeys = currentTime - lastKeyPressTime;
-                keyPressTimings.push(timeBetweenKeys);
-            }
-            lastKeyPressTime = currentTime;
-
-            // Track pauses
-            if (lastInputTime !== null) {
-                const timeSinceLastInput = currentTime - lastInputTime;
-                if (timeSinceLastInput >= PAUSE_THRESHOLD) {
-                    pauses.push({
-                        duration: timeSinceLastInput,
-                        timestamp: currentTime - startTime
-                    });
-                }
-            }
-            lastInputTime = currentTime;
-
-            if (inputChar === expectedChar) {
-                currentIndex++;
-                streak++;
-                combo = Math.min(combo + 0.1, 5);
-                maxStreak = Math.max(maxStreak, streak);
-                maxCombo = Math.max(maxCombo, combo);
-                playSound('correct');
-
-                // Track finger usage
-                const finger = getFingerForChar(expectedChar);
-                if (finger !== 'unknown') {
-                    fingerUsage[finger]++;
-                }
-            } else {
-                mistakes++;
-                incorrectChars.add(currentIndex); // Mark this position as incorrect
-                streak = 0;
-                combo = 1;
-                playSound('error');
-
-                // Log mistake for analysis
-                mistakeLog.push({
-                    expected: expectedChar,
-                    typed: inputChar,
-                    position: currentIndex,
-                    timestamp: Date.now()
-                });
-            }
-            
-            e.target.value = '';
-            updateDisplay();
-            updateStatusBar();
-            updateSidebarStats();
-
-            if (currentIndex >= currentText.length) {
-                endTyping();
-            }
-        });
 
         // Keyboard visualization with ripple effect
         document.addEventListener('keydown', function(e) {
             const key = e.key;
-            const keyElement = document.querySelector(`[data-key="${key}"]`);
+            const lookupChar = getBaseKey(key);
+            const keyElement = document.querySelector(`[data-key="${lookupChar}"]`) || document.querySelector(`[data-key="${key}"]`);
             
             if (keyElement) {
                 keyElement.classList.add('active');
