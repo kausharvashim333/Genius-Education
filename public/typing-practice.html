@@ -775,17 +775,17 @@
 
         .keyboard-row {
             display: flex;
-            gap: 6px;
+            gap: 5px;
             justify-content: center;
             width: 100%;
         }
 
-        /* Natural row staggering from special-key widths; no manual offset to avoid overflow */
+        /* All rows total 15 flex units so they align perfectly */
 
         .key {
             flex: 1 1 0;
-            min-width: 28px;
-            max-width: 60px;
+            min-width: 0;
+            max-width: none;
             height: 52px;
             background: linear-gradient(180deg, rgba(65, 65, 82, 0.9), rgba(38, 38, 52, 0.95));
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -922,50 +922,50 @@
         }
 
         .key.space {
-            flex: 8 1 auto;
-            min-width: 120px;
-            max-width: 700px;
+            flex: 6.5 1 0;
+            min-width: 0;
+            max-width: none;
         }
 
         .key.shift {
-            flex: 2.25 1 auto;
-            min-width: 50px;
+            flex: 2.5 1 0;
+            min-width: 0;
         }
 
         .key.caps {
-            flex: 1.9 1 auto;
-            min-width: 44px;
+            flex: 1.75 1 0;
+            min-width: 0;
         }
 
         .key.tab {
-            flex: 1.6 1 auto;
-            min-width: 38px;
+            flex: 2 1 0;
+            min-width: 0;
         }
 
         .key.enter {
-            flex: 2.5 1 auto;
-            min-width: 54px;
+            flex: 2.25 1 0;
+            min-width: 0;
         }
 
         .key.backspace {
-            flex: 2.25 1 auto;
-            min-width: 50px;
+            flex: 2 1 0;
+            min-width: 0;
         }
 
         .key.win-key {
-            flex: 1.25 1 auto;
-            min-width: 30px;
+            flex: 1.25 1 0;
+            min-width: 0;
             font-size: 13px;
         }
 
         .key.alt-key {
-            flex: 1.25 1 auto;
-            min-width: 30px;
+            flex: 1.25 1 0;
+            min-width: 0;
         }
 
         .key.ctrl-key {
-            flex: 1.25 1 auto;
-            min-width: 30px;
+            flex: 1.25 1 0;
+            min-width: 0;
         }
 
         /* Finger guide legend */
@@ -4816,23 +4816,12 @@
             }
 
             .key {
-                min-width: 24px;
                 height: 42px;
                 font-size: 12px;
                 border-radius: 8px;
             }
 
-            .key.space {
-                min-width: 100px;
-            }
-
-            /* Shrink special keys on tablet so rows don't overflow */
-            .key.tab { min-width: 30px; }
-            .key.caps { min-width: 34px; }
-            .key.shift { min-width: 38px; }
-            .key.enter { min-width: 42px; }
-            .key.backspace { min-width: 38px; }
-            .key.win-key, .key.alt-key, .key.ctrl-key { min-width: 24px; font-size: 10px; }
+            .key.win-key, .key.alt-key, .key.ctrl-key { font-size: 10px; }
 
             .app-header {
                 padding: 10px 15px;
@@ -4894,7 +4883,6 @@
             }
 
             .key {
-                min-width: 20px;
                 height: 34px;
                 font-size: 10px;
                 border-radius: 6px;
@@ -4907,17 +4895,10 @@
                 border-radius: 6px 6px 0 0;
             }
 
-            .key.space {
-                min-width: 80px;
-            }
-
-            /* Shrink special keys on mobile so rows fit */
-            .key.tab { min-width: 22px; font-size: 8px; }
-            .key.caps { min-width: 24px; font-size: 8px; }
-            .key.shift { min-width: 28px; font-size: 8px; }
-            .key.enter { min-width: 30px; font-size: 8px; }
-            .key.backspace { min-width: 28px; font-size: 10px; }
-            .key.win-key, .key.alt-key, .key.ctrl-key { min-width: 20px; font-size: 7px; }
+            .key.tab, .key.caps { font-size: 8px; }
+            .key.shift, .key.backspace { font-size: 8px; }
+            .key.enter { font-size: 8px; }
+            .key.win-key, .key.alt-key, .key.ctrl-key { font-size: 7px; }
 
             .key[data-key="f"]::after,
             .key[data-key="j"]::after {
