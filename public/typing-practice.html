@@ -8669,7 +8669,11 @@
                         }
                         lastInputTime = currentTime;
 
-                        if (key === expectedChar) {
+                        // Normalize both for comparison (em dash → hyphen, smart quotes → straight quotes)
+                        const normalizedKey = normalizeChar(key);
+                        const normalizedExpected = normalizeChar(expectedChar);
+
+                        if (normalizedKey === normalizedExpected) {
                             streak++;
                             combo = Math.min(combo + 0.1, 5);
                             maxStreak = Math.max(maxStreak, streak);
@@ -8677,7 +8681,7 @@
                             playSound('correct');
 
                             // Track finger usage
-                            const finger = getFingerForChar(expectedChar);
+                            const finger = getFingerForChar(normalizedExpected);
                             if (finger !== 'unknown') {
                                 fingerUsage[finger]++;
                             }
@@ -9979,8 +9983,26 @@
             mistakeLog = [];
         }
 
+        // Map Unicode typographic characters to their ASCII keyboard equivalents
+        const unicodeToAscii = {
+            '\u2014': '-',   // — (em dash) → - (hyphen)
+            '\u2013': '-',   // – (en dash) → - (hyphen)
+            '\u2018': "'",   // ' (left single quote) → ' (apostrophe)
+            '\u2019': "'",   // ' (right single quote) → ' (apostrophe)
+            '\u201C': '"',   // " (left double quote) → "
+            '\u201D': '"',   // " (right double quote) → "
+            '\u2026': '...', // … (ellipsis) → ...
+            '\u00A0': ' '    // (non-breaking space) → (space)
+        };
+
+        function normalizeChar(char) {
+            return unicodeToAscii[char] !== undefined ? unicodeToAscii[char] : char;
+        }
+
         function getBaseKey(char) {
             if (!char) return '';
+            // First normalize Unicode to ASCII
+            char = normalizeChar(char);
             const shiftMap = {
                 '~': '`', '!': '1', '@': '2', '#': '3', '$': '4', '%': '5', '^': '6', '&': '7', '*': '8', '(': '9', ')': '0',
                 '_': '-', '+': '=', '{': '[', '}': ']', '|': '\\', ':': ';', '"': "'", '<': ',', '>': '.', '?': '/'
@@ -10242,7 +10264,11 @@
                         finger = 'Use appropriate finger';
                     }
 
-                    fingerGuideText.textContent = `Press '${nextChar}' with ${finger}`;
+                    // Show the actual key to press (normalized) and Shift if needed
+                    const normalizedNext = normalizeChar(nextChar);
+                    const isShiftRequired = (normalizedNext !== ' ' && normalizedNext !== lookupChar);
+                    const shiftNote = isShiftRequired ? ' (Hold Shift!)' : '';
+                    fingerGuideText.textContent = `Press '${normalizedNext}' with ${finger}${shiftNote}`;
                 } else {
                     fingerGuideText.textContent = 'Start typing to see finger guide';
                 }
