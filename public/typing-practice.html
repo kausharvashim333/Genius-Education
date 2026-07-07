@@ -740,10 +740,10 @@
         .keyboard {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
             background: linear-gradient(135deg, rgba(35, 35, 50, 0.95), rgba(20, 20, 30, 0.98));
-            padding: 20px 26px;
+            padding: 18px 20px;
             border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow:
@@ -753,9 +753,12 @@
                 inset 0 -2px 8px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            overflow-x: auto;
+            overflow: visible;
             flex-shrink: 0;
             position: relative;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         .keyboard::after {
@@ -772,7 +775,7 @@
 
         .keyboard-row {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             justify-content: center;
             width: 100%;
         }
@@ -781,8 +784,8 @@
 
         .key {
             flex: 1 1 0;
-            min-width: 38px;
-            max-width: 64px;
+            min-width: 28px;
+            max-width: 60px;
             height: 52px;
             background: linear-gradient(180deg, rgba(65, 65, 82, 0.9), rgba(38, 38, 52, 0.95));
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -920,49 +923,49 @@
 
         .key.space {
             flex: 8 1 auto;
-            min-width: 180px;
+            min-width: 120px;
             max-width: 700px;
         }
 
         .key.shift {
             flex: 2.25 1 auto;
-            min-width: 70px;
+            min-width: 50px;
         }
 
         .key.caps {
             flex: 1.9 1 auto;
-            min-width: 62px;
+            min-width: 44px;
         }
 
         .key.tab {
             flex: 1.6 1 auto;
-            min-width: 52px;
+            min-width: 38px;
         }
 
         .key.enter {
             flex: 2.5 1 auto;
-            min-width: 76px;
+            min-width: 54px;
         }
 
         .key.backspace {
             flex: 2.25 1 auto;
-            min-width: 70px;
+            min-width: 50px;
         }
 
         .key.win-key {
             flex: 1.25 1 auto;
-            min-width: 42px;
+            min-width: 30px;
             font-size: 13px;
         }
 
         .key.alt-key {
             flex: 1.25 1 auto;
-            min-width: 42px;
+            min-width: 30px;
         }
 
         .key.ctrl-key {
             flex: 1.25 1 auto;
-            min-width: 42px;
+            min-width: 30px;
         }
 
         /* Finger guide legend */
@@ -4813,23 +4816,23 @@
             }
 
             .key {
-                min-width: 34px;
+                min-width: 24px;
                 height: 42px;
                 font-size: 12px;
                 border-radius: 8px;
             }
 
             .key.space {
-                min-width: 180px;
+                min-width: 100px;
             }
 
             /* Shrink special keys on tablet so rows don't overflow */
-            .key.tab { min-width: 44px; }
-            .key.caps { min-width: 50px; }
-            .key.shift { min-width: 56px; }
-            .key.enter { min-width: 60px; }
-            .key.backspace { min-width: 56px; }
-            .key.win-key, .key.alt-key, .key.ctrl-key { min-width: 36px; font-size: 10px; }
+            .key.tab { min-width: 30px; }
+            .key.caps { min-width: 34px; }
+            .key.shift { min-width: 38px; }
+            .key.enter { min-width: 42px; }
+            .key.backspace { min-width: 38px; }
+            .key.win-key, .key.alt-key, .key.ctrl-key { min-width: 24px; font-size: 10px; }
 
             .app-header {
                 padding: 10px 15px;
@@ -4891,7 +4894,7 @@
             }
 
             .key {
-                min-width: 26px;
+                min-width: 20px;
                 height: 34px;
                 font-size: 10px;
                 border-radius: 6px;
@@ -4905,16 +4908,16 @@
             }
 
             .key.space {
-                min-width: 120px;
+                min-width: 80px;
             }
 
             /* Shrink special keys on mobile so rows fit */
-            .key.tab { min-width: 30px; font-size: 8px; }
-            .key.caps { min-width: 34px; font-size: 8px; }
-            .key.shift { min-width: 40px; font-size: 8px; }
-            .key.enter { min-width: 44px; font-size: 8px; }
-            .key.backspace { min-width: 40px; font-size: 10px; }
-            .key.win-key, .key.alt-key, .key.ctrl-key { min-width: 26px; font-size: 7px; }
+            .key.tab { min-width: 22px; font-size: 8px; }
+            .key.caps { min-width: 24px; font-size: 8px; }
+            .key.shift { min-width: 28px; font-size: 8px; }
+            .key.enter { min-width: 30px; font-size: 8px; }
+            .key.backspace { min-width: 28px; font-size: 10px; }
+            .key.win-key, .key.alt-key, .key.ctrl-key { min-width: 20px; font-size: 7px; }
 
             .key[data-key="f"]::after,
             .key[data-key="j"]::after {
