@@ -8271,10 +8271,11 @@
             const currentLayoutData = layouts[currentLayout];
             const currentFingerClasses = fingerClasses[currentLayout];
 
-            // Update keyboard rows
+            // Update keyboard rows (skip special keys that shouldn't be remapped)
+            const specialKeySelectors = '.tab, .caps, .shift, .enter, .backspace, .ctrl-key, .win-key, .alt-key, .space';
             const rows = keyboard.querySelectorAll('.keyboard-row');
             rows.forEach((row, rowIndex) => {
-                const keys = row.querySelectorAll('.key:not(.key-space)');
+                const keys = row.querySelectorAll('.key:not(' + specialKeySelectors + ')');
                 keys.forEach((key, keyIndex) => {
                     if (currentLayoutData[rowIndex] && currentLayoutData[rowIndex][keyIndex]) {
                         key.textContent = currentLayoutData[rowIndex][keyIndex];
