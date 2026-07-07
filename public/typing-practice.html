@@ -8259,8 +8259,9 @@
                 const keys = row.querySelectorAll('.key:not(' + specialKeySelectors + ')');
                 keys.forEach((key, keyIndex) => {
                     if (currentLayoutData[rowIndex] && currentLayoutData[rowIndex][keyIndex]) {
-                        key.textContent = currentLayoutData[rowIndex][keyIndex];
-                        key.dataset.key = currentLayoutData[rowIndex][keyIndex];
+                        const keyValue = currentLayoutData[rowIndex][keyIndex];
+                        key.textContent = keyValue.length === 1 ? keyValue.toUpperCase() : keyValue;
+                        key.dataset.key = keyValue;
                         // Remove old finger classes
                         key.className = 'key';
                         // Add new finger class
