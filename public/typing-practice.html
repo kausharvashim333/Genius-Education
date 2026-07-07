@@ -2270,6 +2270,58 @@
             }
         }
 
+        /* New Character Introduction Items */
+        .new-char-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(102, 126, 234, 0.15);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .new-char-key {
+            flex-shrink: 0;
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(180deg, rgba(65, 65, 82, 0.9), rgba(38, 38, 52, 0.95));
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .new-char-info {
+            flex: 1;
+        }
+        .new-char-name {
+            color: #e0e0e0;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        .new-char-tip {
+            color: #999;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .new-char-finger {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.25);
+            color: #8ea0f0;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-left: 6px;
+        }
+
         /* ===== New Feature Modals ===== */
 
         /* Replay & Analysis Modal */
@@ -6474,6 +6526,16 @@
         </div>
     </div>
 
+    <!-- New Character Introduction Modal -->
+    <div class="quote-modal" id="newCharModal" style="display: none;">
+        <div class="quote-content" style="max-width: 520px;">
+            <div class="quote-icon" style="font-size: 40px;">⌨️</div>
+            <div class="quote-title" id="newCharTitle">New Keys in This Lesson!</div>
+            <div id="newCharBody" style="margin: 20px 0;"></div>
+            <button class="quote-close-btn" onclick="closeNewCharModal()">Got it! Start Typing</button>
+        </div>
+    </div>
+
     <script src="typing-quotes.js"></script>
     <script>
         // 100-Level Game System
@@ -6931,7 +6993,132 @@
             // Trim to exact length
             return generatedText.substring(0, levelData.contentLength).trim();
         }
-        
+
+        // New character introductions per level group
+        const levelCharIntros = {
+            1: {
+                title: 'Welcome! Home Row Keys',
+                chars: [
+                    { key: 'a', name: 'A', finger: 'Left Pinky', tip: 'Press A with your left pinky finger' },
+                    { key: 's', name: 'S', finger: 'Left Ring', tip: 'Press S with your left ring finger' },
+                    { key: 'd', name: 'D', finger: 'Left Middle', tip: 'Press D with your left middle finger' },
+                    { key: 'f', name: 'F', finger: 'Left Index', tip: 'Press F with your left index finger (feel the bump!)' },
+                    { key: 'j', name: 'J', finger: 'Right Index', tip: 'Press J with your right index finger (feel the bump!)' },
+                    { key: 'k', name: 'K', finger: 'Right Middle', tip: 'Press K with your right middle finger' },
+                    { key: 'l', name: 'L', finger: 'Right Ring', tip: 'Press L with your right ring finger' },
+                    { key: ';', name: '; (Semicolon)', finger: 'Right Pinky', tip: 'Press ; with your right pinky finger, next to L' }
+                ]
+            },
+            6: {
+                title: 'New Keys: Top Row',
+                chars: [
+                    { key: 'q', name: 'Q', finger: 'Left Pinky', tip: 'Press Q with your left pinky finger' },
+                    { key: 'w', name: 'W', finger: 'Left Ring', tip: 'Press W with your left ring finger' },
+                    { key: 'e', name: 'E', finger: 'Left Middle', tip: 'Press E with your left middle finger' },
+                    { key: 'r', name: 'R', finger: 'Left Index', tip: 'Press R with your left index finger' },
+                    { key: 't', name: 'T', finger: 'Left Index', tip: 'Press T with your left index finger' },
+                    { key: 'y', name: 'Y', finger: 'Right Index', tip: 'Press Y with your right index finger' },
+                    { key: 'u', name: 'U', finger: 'Right Index', tip: 'Press U with your right index finger' },
+                    { key: 'i', name: 'I', finger: 'Right Middle', tip: 'Press I with your right middle finger' },
+                    { key: 'o', name: 'O', finger: 'Right Ring', tip: 'Press O with your right ring finger' },
+                    { key: 'p', name: 'P', finger: 'Right Pinky', tip: 'Press P with your right pinky finger' }
+                ]
+            },
+            16: {
+                title: 'New Keys: Bottom Row',
+                chars: [
+                    { key: 'z', name: 'Z', finger: 'Left Pinky', tip: 'Press Z with your left pinky finger' },
+                    { key: 'x', name: 'X', finger: 'Left Ring', tip: 'Press X with your left ring finger' },
+                    { key: 'c', name: 'C', finger: 'Left Middle', tip: 'Press C with your left middle finger' },
+                    { key: 'v', name: 'V', finger: 'Left Index', tip: 'Press V with your left index finger' },
+                    { key: 'b', name: 'B', finger: 'Left Index', tip: 'Press B with your left index finger' },
+                    { key: 'n', name: 'N', finger: 'Right Index', tip: 'Press N with your right index finger' },
+                    { key: 'm', name: 'M', finger: 'Right Index', tip: 'Press M with your right index finger' },
+                    { key: ',', name: ', (Comma)', finger: 'Right Middle', tip: 'Press , with your right middle finger, next to M' },
+                    { key: '.', name: '. (Period/Dot)', finger: 'Right Ring', tip: 'Press . with your right ring finger, next to ,' },
+                    { key: '/', name: '/ (Slash)', finger: 'Right Pinky', tip: 'Press / with your right pinky finger, next to .' }
+                ]
+            },
+            21: {
+                title: 'New: Sentences with Punctuation',
+                chars: [
+                    { key: "'", name: "' (Apostrophe)", finger: 'Right Pinky', tip: "Press ' with your right pinky finger, next to ;" },
+                    { key: '.', name: '. (End of sentence)', finger: 'Right Ring', tip: 'Press . to end a sentence. Same key as before.' }
+                ]
+            },
+            26: {
+                title: 'New: Advanced Punctuation',
+                chars: [
+                    { key: '-', name: '- (Hyphen/Dash)', finger: 'Right Pinky', tip: 'Press - with your right pinky finger, next to 0' },
+                    { key: '(', name: '( (Open Bracket)', finger: 'Shift + 9', tip: 'Hold Shift and press 9 with your right ring finger' },
+                    { key: ')', name: ') (Close Bracket)', finger: 'Shift + 0', tip: 'Hold Shift and press 0 with your right pinky finger' },
+                    { key: '"', name: '" (Double Quote)', finger: "Shift + '", tip: "Hold Shift and press ' with your right pinky finger" }
+                ]
+            },
+            51: {
+                title: 'New: Advanced Writing Symbols',
+                chars: [
+                    { key: ':', name: ': (Colon)', finger: 'Shift + ;', tip: 'Hold Shift and press ; with your right pinky finger' },
+                    { key: '-', name: '— (Em Dash)', finger: 'Type -', tip: 'Long dash in sentences. Type - (hyphen) and it will match.' },
+                    { key: "'", name: "' (Smart Quote)", finger: "Type '", tip: 'Curved apostrophe. Type regular \' (apostrophe) to match.' }
+                ]
+            },
+            76: {
+                title: 'Expert Level: Complex Text',
+                chars: [
+                    { key: ':', name: ': (Colon)', finger: 'Shift + ;', tip: 'Hold Shift and press ; with your right pinky finger' },
+                    { key: '-', name: '— (Em Dash)', finger: 'Type -', tip: 'Long dash. Type - (hyphen) to match.' },
+                    { key: '"', name: '" (Smart Quotes)', finger: 'Type "', tip: 'Curved quotation marks. Type regular " (Shift + \') to match.' }
+                ]
+            }
+        };
+
+        function getLevelGroup(level) {
+            if (level <= 5) return 1;
+            if (level <= 10) return 6;
+            if (level <= 15) return 11;
+            if (level <= 20) return 16;
+            if (level <= 25) return 21;
+            if (level <= 50) return 26;
+            if (level <= 75) return 51;
+            return 76;
+        }
+
+        function showNewCharIntro(level) {
+            const group = getLevelGroup(level);
+            const intro = levelCharIntros[group];
+            if (!intro) return;
+
+            const userPrefix = currentUser ? `user_${currentUser}_` : '';
+            const seenKey = userPrefix + 'charIntroShown_' + group;
+            if (localStorage.getItem(seenKey)) return;
+
+            const modal = document.getElementById('newCharModal');
+            const title = document.getElementById('newCharTitle');
+            const body = document.getElementById('newCharBody');
+
+            title.textContent = intro.title;
+            body.innerHTML = intro.chars.map(c => `
+                <div class="new-char-item">
+                    <div class="new-char-key">${c.key === ' ' ? '␣' : c.key}</div>
+                    <div class="new-char-info">
+                        <div class="new-char-name">${c.name}<span class="new-char-finger">${c.finger}</span></div>
+                        <div class="new-char-tip">${c.tip}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+            localStorage.setItem(seenKey, 'true');
+        }
+
+        function closeNewCharModal() {
+            const modal = document.getElementById('newCharModal');
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+        }
+
         function loadNewText() {
             const storedLesson = localStorage.getItem('typingLesson');
             
@@ -6944,6 +7131,7 @@
                 currentLevel = parseInt(levelSelect.value);
                 currentText = generateTextForLevel(currentLevel);
                 document.getElementById('lessonTitle').textContent = `Level ${currentLevel} - ${gameLevels[currentLevel - 1].difficulty}`;
+                showNewCharIntro(currentLevel);
             }
             
             currentIndex = 0;
