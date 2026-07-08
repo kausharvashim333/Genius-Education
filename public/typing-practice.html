@@ -741,6 +741,9 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
+            width: 100%;
+            max-width: 920px;
+            margin: 0 auto;
             align-items: center;
             background: linear-gradient(135deg, rgba(35, 35, 50, 0.95), rgba(20, 20, 30, 0.98));
             padding: 18px 20px;
@@ -785,11 +788,10 @@
         /* --key-size controls regular key dimensions (square); special keys stretch to same height */
 
         .key {
-            flex: 0 0 var(--key-size);
-            width: var(--key-size);
-            height: var(--key-size);
+            flex: 1 1 0;
             min-width: 0;
             max-width: none;
+            height: var(--key-size);
             background: linear-gradient(180deg, rgba(65, 65, 82, 0.9), rgba(38, 38, 52, 0.95));
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 10px;
@@ -924,57 +926,16 @@
                 inset 0 -2px 4px rgba(0, 0, 0, 0.15);
         }
 
-        /* Special keys: flex-based width, fixed height matching regular keys */
-        .key.space,
-        .key.shift,
-        .key.caps,
-        .key.tab,
-        .key.enter,
-        .key.backspace,
-        .key.win-key,
-        .key.alt-key,
-        .key.ctrl-key {
-            flex: 1 1 0;
-            width: auto;
-            height: var(--key-size);
-        }
-
-        .key.space {
-            flex-grow: 6.5;
-        }
-
-        .key.shift {
-            flex-grow: 2.5;
-        }
-
-        .key.caps {
-            flex-grow: 1.75;
-        }
-
-        .key.tab {
-            flex-grow: 2;
-        }
-
-        .key.enter {
-            flex-grow: 2.25;
-        }
-
-        .key.backspace {
-            flex-grow: 2;
-        }
-
-        .key.win-key {
-            flex-grow: 1.25;
-            font-size: 13px;
-        }
-
-        .key.alt-key {
-            flex-grow: 1.25;
-        }
-
-        .key.ctrl-key {
-            flex-grow: 1.25;
-        }
+        /* Special keys: wider flex-grow, same height as regular keys */
+        .key.space    { flex-grow: 6.5; }
+        .key.shift    { flex-grow: 2.5; }
+        .key.caps     { flex-grow: 1.75; }
+        .key.tab      { flex-grow: 2; }
+        .key.enter    { flex-grow: 2.25; }
+        .key.backspace{ flex-grow: 2; }
+        .key.win-key  { flex-grow: 1.25; font-size: 13px; }
+        .key.alt-key  { flex-grow: 1.25; }
+        .key.ctrl-key { flex-grow: 1.25; }
 
         /* Finger guide legend */
         .finger-legend {
@@ -4836,7 +4797,6 @@
             }
 
             .keyboard {
-                --key-size: 44px;
                 padding: 18px 22px;
             }
 
@@ -4864,7 +4824,6 @@
             }
 
             .keyboard {
-                --key-size: 36px;
                 padding: 14px 16px;
                 gap: 6px;
                 border-radius: 16px;
@@ -4931,7 +4890,6 @@
             }
 
             .keyboard {
-                --key-size: 28px;
                 padding: 10px 10px;
                 gap: 4px;
                 border-radius: 14px;
@@ -8256,6 +8214,14 @@
             applyHighContrastMode();
             applyTextSizePreset();
 
+            // Make regular keys square: set --key-size to actual rendered width
+            updateKeySize();
+            const keyboardEl = document.querySelector('.keyboard');
+            if (keyboardEl) {
+                new ResizeObserver(updateKeySize).observe(keyboardEl);
+            }
+            window.addEventListener('resize', updateKeySize);
+
             // Set text size select value
             const textSizeSelect = document.getElementById('textSizeSelect');
             if (textSizeSelect) {
@@ -8399,6 +8365,29 @@
             keyboardSection.style.display = showKeyboard ? 'block' : 'none';
             // Update finger guide visibility when keyboard toggles
             updateFingerGuide();
+            // Recalculate key size after keyboard visibility change
+            setTimeout(updateKeySize, 0);
+        }
+
+        function updateKeySize() {
+            const keyboard = document.querySelector('.keyboard');
+            if (!keyboard) return;
+
+            // Temporarily reset --key-size to auto so we can measure natural width
+            keyboard.style.setProperty('--key-size', 'auto');
+
+            // Find a regular (non-special) key in the first row to measure its width
+            const firstRow = keyboard.querySelector('.keyboard-row');
+            if (!firstRow) return;
+
+            const regularKey = firstRow.querySelector('.key:not(.space):not(.shift):not(.caps):not(.tab):not(.enter):not(.backspace):not(.win-key):not(.alt-key):not(.ctrl-key)');
+            if (!regularKey) return;
+
+            // Measure the rendered width
+            const keyWidth = regularKey.getBoundingClientRect().width;
+            if (keyWidth > 0) {
+                keyboard.style.setProperty('--key-size', keyWidth + 'px');
+            }
         }
 
         function toggleHighlight() {
@@ -8488,6 +8477,7 @@
             currentLayout = layout;
             localStorage.setItem('keyboardLayout', layout);
             updateKeyboardLayout();
+            setTimeout(updateKeySize, 0);
         }
 
         function updateKeyboardLayout() {
