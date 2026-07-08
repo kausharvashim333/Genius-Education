@@ -737,6 +737,7 @@
         }
 
         .keyboard {
+            --key-size: 52px;
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -777,17 +778,18 @@
             gap: 5px;
             justify-content: center;
             width: 100%;
-            align-items: flex-start;
+            align-items: stretch;
         }
 
         /* All rows total 15 flex units so they align perfectly */
+        /* --key-size controls regular key dimensions (square); special keys stretch to same height */
 
         .key {
-            flex: 1 1 0;
+            flex: 0 0 var(--key-size);
+            width: var(--key-size);
+            height: var(--key-size);
             min-width: 0;
             max-width: none;
-            aspect-ratio: 1;
-            height: auto;
             background: linear-gradient(180deg, rgba(65, 65, 82, 0.9), rgba(38, 38, 52, 0.95));
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 10px;
@@ -922,7 +924,7 @@
                 inset 0 -2px 4px rgba(0, 0, 0, 0.15);
         }
 
-        /* Special keys: not square, stretch to match regular key height */
+        /* Special keys: flex-based width, fixed height matching regular keys */
         .key.space,
         .key.shift,
         .key.caps,
@@ -932,55 +934,46 @@
         .key.win-key,
         .key.alt-key,
         .key.ctrl-key {
-            aspect-ratio: auto;
-            align-self: stretch;
+            flex: 1 1 0;
+            width: auto;
+            height: var(--key-size);
         }
 
         .key.space {
-            flex: 6.5 1 0;
-            min-width: 0;
-            max-width: none;
+            flex-grow: 6.5;
         }
 
         .key.shift {
-            flex: 2.5 1 0;
-            min-width: 0;
+            flex-grow: 2.5;
         }
 
         .key.caps {
-            flex: 1.75 1 0;
-            min-width: 0;
+            flex-grow: 1.75;
         }
 
         .key.tab {
-            flex: 2 1 0;
-            min-width: 0;
+            flex-grow: 2;
         }
 
         .key.enter {
-            flex: 2.25 1 0;
-            min-width: 0;
+            flex-grow: 2.25;
         }
 
         .key.backspace {
-            flex: 2 1 0;
-            min-width: 0;
+            flex-grow: 2;
         }
 
         .key.win-key {
-            flex: 1.25 1 0;
-            min-width: 0;
+            flex-grow: 1.25;
             font-size: 13px;
         }
 
         .key.alt-key {
-            flex: 1.25 1 0;
-            min-width: 0;
+            flex-grow: 1.25;
         }
 
         .key.ctrl-key {
-            flex: 1.25 1 0;
-            min-width: 0;
+            flex-grow: 1.25;
         }
 
         /* Finger guide legend */
@@ -4842,16 +4835,13 @@
                 padding: 30px;
             }
 
-            .key:not(.space):not(.shift):not(.caps):not(.tab):not(.enter):not(.backspace):not(.win-key):not(.alt-key):not(.ctrl-key) {
-                max-width: 56px;
+            .keyboard {
+                --key-size: 44px;
+                padding: 18px 22px;
             }
 
             .key {
                 font-size: 14px;
-            }
-
-            .keyboard {
-                padding: 18px 22px;
             }
         }
 
@@ -4874,6 +4864,7 @@
             }
 
             .keyboard {
+                --key-size: 36px;
                 padding: 14px 16px;
                 gap: 6px;
                 border-radius: 16px;
@@ -4940,6 +4931,7 @@
             }
 
             .keyboard {
+                --key-size: 28px;
                 padding: 10px 10px;
                 gap: 4px;
                 border-radius: 14px;
