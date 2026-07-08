@@ -773,10 +773,15 @@
     <!-- Dashboard Section -->
     <div id="dashboardSection" class="admin-dashboard hidden">
         <aside class="sidebar">
+            <button id="sidebarCollapseBtn" class="sidebar-collapse-btn" onclick="toggleSidebar()"><i class="fas fa-chevron-left"></i></button>
             <div class="admin-logo">
                 <img src="" alt="Logo" id="adminLogo" style="display: none;border-radius:12px;">
                 <i class="fas fa-graduation-cap" id="adminDefaultIcon"></i>
                 <span id="adminSiteName">Genius Computer Education</span>
+            </div>
+            <div class="sidebar-search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="sidebarSearchInput" placeholder="Search menu..." oninput="filterSidebarMenu()">
             </div>
             <ul class="sidebar-menu">
                 <li><a href="#" class="active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
@@ -885,7 +890,13 @@
 
         <main class="main-content">
             <div class="admin-header">
-                <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                <div class="header-welcome">
+                    <h2 id="welcomeGreeting">Welcome, Admin</h2>
+                    <p id="headerDateTime"></p>
+                </div>
+                <div class="header-actions">
+                    <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </div>
             </div>
 
             <!-- Dashboard Page -->
@@ -894,57 +905,117 @@
                 <div class="dash-stats-grid">
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #667eea, #764ba2);" onclick="document.querySelector('[data-page=students]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-user-graduate"></i></div>
-                        <div class="dash-stat-info"><div class="dash-stat-number" id="totalStudents">0</div><div class="dash-stat-label">Enrolled Students</div></div>
+                        <div class="dash-stat-info">
+                            <div class="dash-stat-number" id="totalStudents">0</div>
+                            <div class="dash-stat-label">Enrolled Students</div>
+                        </div>
+                        <span class="stat-trend trend-up"><i class="fas fa-arrow-trend-up"></i> +12%</span>
                     </div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #f093fb, #f5576c);" onclick="document.querySelector('[data-page=courses]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-book"></i></div>
-                        <div class="dash-stat-info"><div class="dash-stat-number" id="totalCourses">0</div><div class="dash-stat-label">Total Courses</div></div>
+                        <div class="dash-stat-info">
+                            <div class="dash-stat-number" id="totalCourses">0</div>
+                            <div class="dash-stat-label">Total Courses</div>
+                        </div>
+                        <span class="stat-trend trend-up"><i class="fas fa-arrow-trend-up"></i> +4%</span>
                     </div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #4facfe, #00f2fe);" onclick="document.querySelector('[data-page=faculty]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
-                        <div class="dash-stat-info"><div class="dash-stat-number" id="totalFaculty">0</div><div class="dash-stat-label">Faculty Members</div></div>
+                        <div class="dash-stat-info">
+                            <div class="dash-stat-number" id="totalFaculty">0</div>
+                            <div class="dash-stat-label">Faculty Members</div>
+                        </div>
+                        <span class="stat-trend trend-up"><i class="fas fa-arrow-trend-up"></i> +2%</span>
                     </div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #43e97b, #38f9d7);" onclick="document.querySelector('[data-page=enquiries]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-clipboard-list"></i></div>
-                        <div class="dash-stat-info"><div class="dash-stat-number" id="totalEnquiries">0</div><div class="dash-stat-label">Total Enquiries</div></div>
+                        <div class="dash-stat-info">
+                            <div class="dash-stat-number" id="totalEnquiries">0</div>
+                            <div class="dash-stat-label">Total Enquiries</div>
+                        </div>
+                        <span class="stat-trend trend-up"><i class="fas fa-arrow-trend-up"></i> +18%</span>
                     </div>
                 </div>
                 <!-- Stats Cards Row 2 -->
                 <div class="dash-stats-grid">
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #fa709a, #fee140);" onclick="document.querySelector('[data-page=enquiries]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-bell"></i></div>
-                        <div class="dash-stat-info"><div class="dash-stat-number" id="totalPendingEnquiries">0</div><div class="dash-stat-label">Pending Enquiries</div></div>
+                        <div class="dash-stat-info">
+                            <div class="dash-stat-number" id="totalPendingEnquiries">0</div>
+                            <div class="dash-stat-label">Pending Enquiries</div>
+                        </div>
+                        <span class="stat-trend trend-down"><i class="fas fa-arrow-trend-down"></i> -8%</span>
                     </div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #a18cd1, #fbc2eb);" onclick="document.querySelector('[data-page=fees]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-rupee-sign"></i></div>
-                        <div class="dash-stat-info"><div class="dash-stat-number" id="totalRevenue">₹0</div><div class="dash-stat-label">Total Revenue</div></div>
+                        <div class="dash-stat-info">
+                            <div class="dash-stat-number" id="totalRevenue">₹0</div>
+                            <div class="dash-stat-label">Total Revenue</div>
+                        </div>
+                        <span class="stat-trend trend-up"><i class="fas fa-arrow-trend-up"></i> +8.4%</span>
                     </div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #ffecd2, #fcb69f);" onclick="document.querySelector('[data-page=fees]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                        <div class="dash-stat-info"><div class="dash-stat-number" id="totalDues">₹0</div><div class="dash-stat-label">Pending Dues</div></div>
+                        <div class="dash-stat-info">
+                            <div class="dash-stat-number" id="totalDues">₹0</div>
+                            <div class="dash-stat-label">Pending Dues</div>
+                        </div>
+                        <span class="stat-trend trend-down" style="color: #4ade80; background: rgba(74, 222, 128, 0.15); border-color: rgba(74, 222, 128, 0.2);"><i class="fas fa-arrow-trend-down"></i> -5.2%</span>
                     </div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #89f7fe, #66a6ff);" onclick="document.querySelector('[data-page=batches]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-layer-group"></i></div>
-                        <div class="dash-stat-info"><div class="dash-stat-number" id="totalBatches">0</div><div class="dash-stat-label">Active Batches</div></div>
+                        <div class="dash-stat-info">
+                            <div class="dash-stat-number" id="totalBatches">0</div>
+                            <div class="dash-stat-label">Active Batches</div>
+                        </div>
+                        <span class="stat-trend trend-up"><i class="fas fa-arrow-trend-up"></i> +3%</span>
                     </div>
                 </div>
                 <!-- Stats Cards Row 3 -->
                 <div class="dash-stats-grid">
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #a1c4fd, #c2e9fb);" onclick="document.querySelector('[data-page=online-exam]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-laptop"></i></div>
-                        <div class="dash-stat-info"><div class="dash-stat-number" id="totalOnlineExams">0</div><div class="dash-stat-label">Online Exams</div></div>
+                        <div class="dash-stat-info">
+                            <div class="dash-stat-number" id="totalOnlineExams">0</div>
+                            <div class="dash-stat-label">Online Exams</div>
+                        </div>
                     </div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #fddb92, #d1fdff);" onclick="document.querySelector('[data-page=certificates]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-certificate"></i></div>
-                        <div class="dash-stat-info"><div class="dash-stat-number" id="totalCertificates">0</div><div class="dash-stat-label">Certificates Issued</div></div>
+                        <div class="dash-stat-info">
+                            <div class="dash-stat-number" id="totalCertificates">0</div>
+                            <div class="dash-stat-label">Certificates Issued</div>
+                        </div>
                     </div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #d4fc79, #96e6a1);" onclick="document.querySelector('[data-page=study-materials]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-file-alt"></i></div>
-                        <div class="dash-stat-info"><div class="dash-stat-number" id="totalMaterials">0</div><div class="dash-stat-label">Study Materials</div></div>
+                        <div class="dash-stat-info">
+                            <div class="dash-stat-number" id="totalMaterials">0</div>
+                            <div class="dash-stat-label">Study Materials</div>
+                        </div>
                     </div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #e0c3fc, #8ec5fc);" onclick="document.querySelector('[data-page=gallery]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-images"></i></div>
-                        <div class="dash-stat-info"><div class="dash-stat-number" id="totalGallery">0</div><div class="dash-stat-label">Gallery Items</div></div>
+                        <div class="dash-stat-info">
+                            <div class="dash-stat-number" id="totalGallery">0</div>
+                            <div class="dash-stat-label">Gallery Items</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Charts -->
+                <div class="dash-charts-grid">
+                    <div class="dash-chart-card">
+                        <div class="dash-section-title"><i class="fas fa-chart-line"></i> Admissions & Revenue Trends</div>
+                        <div class="chart-container">
+                            <canvas id="revenueAdmissionChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="dash-chart-card">
+                        <div class="dash-section-title"><i class="fas fa-chart-pie"></i> Student Course Distribution</div>
+                        <div class="chart-container">
+                            <canvas id="courseDistributionChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
@@ -962,21 +1033,19 @@
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #d4fc79, #96e6a1);" onclick="document.querySelector('[data-page=backup]').click()"><div class="dash-stat-icon"><i class="fas fa-database"></i></div><div class="dash-stat-info"><div class="dash-stat-label">Take Backup</div></div></div>
                 </div>
 
-                <!-- Recent Activity -->
+                <!-- Recent Activity Timeline -->
                 <div class="dash-recent-grid">
                     <div class="dash-recent-card">
                         <div class="dash-section-title"><i class="fas fa-user-graduate"></i> Recent Admissions</div>
-                        <table class="dash-recent-table" id="recentAdmissionsTable">
-                            <thead><tr><th>Name</th><th>Course</th><th>Date</th></tr></thead>
-                            <tbody><tr><td colspan="3" style="text-align:center;color:#94a3b8;">Loading...</td></tr></tbody>
-                        </table>
+                        <div class="timeline-activity" id="recentAdmissionsTimeline">
+                            <div style="text-align:center;color:#94a3b8;padding:20px;">Loading...</div>
+                        </div>
                     </div>
                     <div class="dash-recent-card">
                         <div class="dash-section-title"><i class="fas fa-rupee-sign"></i> Recent Payments</div>
-                        <table class="dash-recent-table" id="recentPaymentsTable">
-                            <thead><tr><th>Student</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
-                            <tbody><tr><td colspan="4" style="text-align:center;color:#94a3b8;">Loading...</td></tr></tbody>
-                        </table>
+                        <div class="timeline-activity" id="recentPaymentsTimeline">
+                            <div style="text-align:center;color:#94a3b8;padding:20px;">Loading...</div>
+                        </div>
                     </div>
                 </div>
 
@@ -5419,6 +5488,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://www.google.com/recaptcha/api.js?render=6LfDe_gsAAAAALle5tiQY_6WnVgp-wrRrhwlqk9t"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/entrance-admin.js"></script>
     <script>

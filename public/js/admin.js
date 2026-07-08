@@ -544,6 +544,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (typeof loader === 'function') {
                 try { loader(); } catch (err) { console.error('Loader error for ' + page + ':', err); }
             }
+            autoExpandActiveDropdown();
         }
     }
 
@@ -571,6 +572,19 @@ document.addEventListener('DOMContentLoaded', async function() {
             dropdown.classList.toggle('open');
         });
     });
+
+    // Collapse state init from localStorage
+    if (localStorage.getItem('sidebarCollapsed') === 'true') {
+        const sidebarEl = document.querySelector('.sidebar');
+        if (sidebarEl) sidebarEl.classList.add('collapsed');
+    }
+
+    // Dynamic greeting clock timer
+    updateHeaderClock();
+    setInterval(updateHeaderClock, 1000);
+
+    // Auto expand active dropdown on load
+    autoExpandActiveDropdown();
 
     // Load data for current page on initial load
     const currentPage = localStorage.getItem('currentAdminPage');
@@ -965,8 +979,7 @@ async function loadDashboard() {
             }
         }
 
-        // Total Revenue = sum of paidAmount of current students (matches Students list exactly)
-        // Deleted students are automatically excluded since we only iterate over current students.
+        // Total Revenue
         const totalRevenue = students.reduce((sum, s) => sum + (s.fees && s.fees.paidAmount ? parseFloat(s.fees.paidAmount) : 0), 0);
         document.getElementById('totalRevenue').textContent = '₹' + totalRevenue.toLocaleString('en-IN');
 
@@ -981,63 +994,224 @@ async function loadDashboard() {
         document.getElementById('totalMaterials').textContent = materials.length;
         document.getElementById('totalGallery').textContent = gallery.length;
 
-        // Recent Admissions (last 5)
+        // ===== 1. Admissions & Revenue Timeline Activity Feed =====
         const recentStudents = [...students].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 5);
-        const admTbody = document.querySelector('#recentAdmissionsTable tbody');
-        if (recentStudents.length > 0) {
-            admTbody.innerHTML = recentStudents.map(s => `<tr>
-                <td style="font-weight:600;">${s.name || '-'}</td>
-                <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.course || '-'}</td>
-                <td>${s.admissionDate ? formatDate(s.admissionDate) : '-'}</td>
-            </tr>`).join('');
-        } else {
-            admTbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:20px;">No admissions yet</td></tr>';
+        const admTimeline = document.getElementById('recentAdmissionsTimeline');
+        if (admTimeline) {
+            if (recentStudents.length > 0) {
+                admTimeline.innerHTML = recentStudents.map(s => `
+                    <div class="timeline-item">
+                        <div class="timeline-dot bg-primary"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">${s.name || '-'}</div>
+                            <div class="timeline-desc">Joined course <strong>${s.course || '-'}</strong></div>
+                            <div class="timeline-time"><i class="far fa-clock"></i> ${s.admissionDate ? formatDate(s.admissionDate) : '-'}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                admTimeline.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;">No recent admissions yet</div>';
+            }
         }
 
-        // Recent Payments (last 5)
         const recentPay = [...payments].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 5);
-        const payTbody = document.querySelector('#recentPaymentsTable tbody');
-        if (recentPay.length > 0) {
-            payTbody.innerHTML = recentPay.map(p => {
-                const badgeClass = p.status === 'approved' ? 'pay-badge-approved' : p.status === 'denied' ? 'pay-badge-denied' : 'pay-badge-pending';
-                return `<tr>
-                    <td style="font-weight:600;">${p.studentName || '-'}</td>
-                    <td>₹${(p.amount || 0).toLocaleString('en-IN')}</td>
-                    <td>${p.date ? formatDate(p.date) : '-'}</td>
-                    <td><span class="enq-badge ${badgeClass}">${p.status || 'pending'}</span></td>
-                </tr>`;
-            }).join('');
-        } else {
-            payTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:20px;">No payments yet</td></tr>';
+        const payTimeline = document.getElementById('recentPaymentsTimeline');
+        if (payTimeline) {
+            if (recentPay.length > 0) {
+                payTimeline.innerHTML = recentPay.map(p => {
+                    const dotClass = p.status === 'approved' ? 'bg-success' : p.status === 'denied' ? 'bg-danger' : 'bg-warning';
+                    return `
+                        <div class="timeline-item">
+                            <div class="timeline-dot ${dotClass}"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">${p.studentName || '-'}</div>
+                                <div class="timeline-desc">Paid amount <strong>₹${(p.amount || 0).toLocaleString('en-IN')}</strong> (${p.status || 'pending'})</div>
+                                <div class="timeline-time"><i class="far fa-clock"></i> ${p.date ? formatDate(p.date) : '-'}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                payTimeline.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;">No recent payments yet</div>';
+            }
         }
 
         // Recent Enquiries (last 5) - pending first
         const recentEnq = [...enquiries].sort((a, b) => {
-            // Pending enquiries first, then by id desc
             if (!a.replied && b.replied) return -1;
             if (a.replied && !b.replied) return 1;
             return (b.id || 0) - (a.id || 0);
         }).slice(0, 5);
         const enqTbody = document.querySelector('#recentEnquiriesTable tbody');
-        if (recentEnq.length > 0) {
-            enqTbody.innerHTML = recentEnq.map(e => {
-                const statusBadge = e.replied
-                    ? '<span class="enq-badge enq-badge-replied">Replied</span>'
-                    : '<span class="enq-badge enq-badge-pending">Pending</span>';
-                const safeMsg = (e.message || '-').replace(/"/g, '&quot;');
-                return `<tr>
-                    <td style="font-weight:600;">${e.name || '-'}</td>
-                    <td style="font-size:13px;">${e.email || '-'}</td>
-                    <td style="font-size:13px;">${e.phone || '-'}</td>
-                    <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;" title="${safeMsg}">${e.message || '-'}</td>
-                    <td style="font-size:13px;">${e.date || '-'}</td>
-                    <td>${statusBadge}</td>
-                    <td><button class="action-btn edit-btn" onclick="openEnquiryReply(${e.id})" title="Reply" style="padding:5px 10px;font-size:12px;"><i class="fas fa-reply"></i> ${e.replied ? 'View' : 'Reply'}</button></td>
-                </tr>`;
-            }).join('');
-        } else {
-            enqTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px;">No enquiries yet</td></tr>';
+        if (enqTbody) {
+            if (recentEnq.length > 0) {
+                enqTbody.innerHTML = recentEnq.map(e => {
+                    const statusBadge = e.replied
+                        ? '<span class="enq-badge enq-badge-replied">Replied</span>'
+                        : '<span class="enq-badge enq-badge-pending">Pending</span>';
+                    const safeMsg = (e.message || '-').replace(/"/g, '&quot;');
+                    return `<tr>
+                        <td style="font-weight:600;">${e.name || '-'}</td>
+                        <td style="font-size:13px;">${e.email || '-'}</td>
+                        <td style="font-size:13px;">${e.phone || '-'}</td>
+                        <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;" title="${safeMsg}">${e.message || '-'}</td>
+                        <td style="font-size:13px;">${e.date || '-'}</td>
+                        <td>${statusBadge}</td>
+                        <td><button class="action-btn edit-btn" onclick="openEnquiryReply(${e.id})" title="Reply" style="padding:5px 10px;font-size:12px;"><i class="fas fa-reply"></i> ${e.replied ? 'View' : 'Reply'}</button></td>
+                    </tr>`;
+                }).join('');
+            } else {
+                enqTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px;">No enquiries yet</td></tr>';
+            }
         }
+
+        // ===== 2. Analytics Charts Aggregations & Generation =====
+        
+        // 2a. Course distribution data
+        const courseCounts = {};
+        students.forEach(s => {
+            if (s.course && s.status === 'Active') {
+                courseCounts[s.course] = (courseCounts[s.course] || 0) + 1;
+            }
+        });
+        const courseLabels = Object.keys(courseCounts);
+        const courseData = Object.values(courseCounts);
+
+        // 2b. Admissions and Revenue Trend over last 6 months
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const last6Months = [];
+        const today = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            last6Months.push({
+                year: d.getFullYear(),
+                month: d.getMonth(),
+                label: `${monthNames[d.getMonth()]} ${d.getFullYear().toString().substring(2)}`,
+                admissions: 0,
+                revenue: 0
+            });
+        }
+
+        // Aggregate admissions by month
+        students.forEach(s => {
+            if (s.admissionDate) {
+                const ad = new Date(s.admissionDate);
+                if (!isNaN(ad.getTime())) {
+                    const match = last6Months.find(m => m.year === ad.getFullYear() && m.month === ad.getMonth());
+                    if (match) {
+                        match.admissions++;
+                    }
+                }
+            }
+        });
+
+        // Aggregate revenue (approved payments) by month
+        payments.forEach(p => {
+            if (p.status === 'approved' && p.date) {
+                const pd = new Date(p.date);
+                if (!isNaN(pd.getTime())) {
+                    const match = last6Months.find(m => m.year === pd.getFullYear() && m.month === pd.getMonth());
+                    if (match) {
+                        match.revenue += parseFloat(p.amount || 0);
+                    }
+                }
+            }
+        });
+
+        const trendLabels = last6Months.map(m => m.label);
+        const admissionsTrendData = last6Months.map(m => m.admissions);
+        const revenueTrendData = last6Months.map(m => m.revenue);
+
+        // Render or update Admissions & Revenue Chart
+        const trendCtx = document.getElementById('revenueAdmissionChart');
+        if (trendCtx && typeof Chart !== 'undefined') {
+            if (revenueAdmissionChartInstance) {
+                revenueAdmissionChartInstance.destroy();
+            }
+            revenueAdmissionChartInstance = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [
+                        {
+                            label: 'Admissions',
+                            data: admissionsTrendData,
+                            borderColor: '#38f9d7',
+                            backgroundColor: 'rgba(56, 249, 215, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'yAdmissions'
+                        },
+                        {
+                            label: 'Revenue (₹)',
+                            data: revenueTrendData,
+                            borderColor: '#fa709a',
+                            backgroundColor: 'rgba(250, 112, 154, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'yRevenue'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#fff', font: { family: 'Segoe UI', size: 11 } } },
+                        tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.85)', titleColor: '#fff', bodyColor: '#fff', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1 }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { size: 10 } } },
+                        yAdmissions: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: 'Admissions', color: '#38f9d7', font: { size: 10 } },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { size: 10 }, stepSize: 1 }
+                        },
+                        yRevenue: {
+                            type: 'linear',
+                            position: 'right',
+                            title: { display: true, text: 'Revenue (₹)', color: '#fa709a', font: { size: 10 } },
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render or update Course Distribution Doughnut Chart
+        const courseCtx = document.getElementById('courseDistributionChart');
+        if (courseCtx && typeof Chart !== 'undefined') {
+            if (courseDistributionChartInstance) {
+                courseDistributionChartInstance.destroy();
+            }
+            courseDistributionChartInstance = new Chart(courseCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: courseLabels.length ? courseLabels : ['No Students'],
+                    datasets: [{
+                        data: courseData.length ? courseData : [1],
+                        backgroundColor: [
+                            '#667eea', '#764ba2', '#fa709a', '#fee140', '#38f9d7', '#4facfe', '#fa5252', '#be4bdb'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#fff', font: { family: 'Segoe UI', size: 10 } } },
+                        tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.85)', titleColor: '#fff', bodyColor: '#fff' }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+
     } catch (err) { console.error('Dashboard error:', err.message || err); }
 }
 
@@ -14944,3 +15118,157 @@ function initTypingAdminPages() {
 document.addEventListener('DOMContentLoaded', function() {
     initTypingAdminPages();
 });
+
+// ===== ADMIN PANEL UPGRADE FUNCTIONS =====
+
+// Global variables for dashboard charts to prevent canvas re-use errors on loadDashboard calls
+let revenueAdmissionChartInstance = null;
+let courseDistributionChartInstance = null;
+
+// Toggle Sidebar Collapse (Desktop)
+window.toggleSidebar = function() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+    
+    const isCollapsed = sidebar.classList.toggle('collapsed');
+    localStorage.setItem('sidebarCollapsed', isCollapsed ? 'true' : 'false');
+    
+    // Smoothly resize charts if they exist when sidebar collapser is toggled
+    setTimeout(() => {
+        if (revenueAdmissionChartInstance) revenueAdmissionChartInstance.resize();
+        if (courseDistributionChartInstance) courseDistributionChartInstance.resize();
+    }, 310);
+};
+
+// Filter Sidebar Menu
+window.filterSidebarMenu = function() {
+    const query = document.getElementById('sidebarSearchInput').value.trim().toLowerCase();
+    const dropdowns = document.querySelectorAll('.sidebar-menu .dropdown');
+    
+    if (!query) {
+        // Reset: show all links and close dropdowns (except active page dropdown)
+        document.querySelectorAll('.sidebar-menu li').forEach(li => {
+            li.style.display = '';
+        });
+        document.querySelectorAll('.sidebar-menu a').forEach(a => {
+            a.style.display = '';
+        });
+        dropdowns.forEach(d => {
+            d.classList.remove('open');
+        });
+        autoExpandActiveDropdown();
+        return;
+    }
+    
+    // First hide everything
+    document.querySelectorAll('.sidebar-menu > li').forEach(li => {
+        li.style.display = 'none';
+    });
+    
+    let matchedAny = false;
+    
+    // Filter top-level items and dropdown children
+    document.querySelectorAll('.sidebar-menu a[data-page]').forEach(link => {
+        const text = link.textContent.toLowerCase();
+        const page = link.dataset.page;
+        
+        if (text.includes(query)) {
+            matchedAny = true;
+            // Show link
+            link.style.display = '';
+            
+            // Show parent li
+            let parentLi = link.closest('li');
+            while (parentLi) {
+                parentLi.style.display = '';
+                parentLi = parentLi.parentElement.closest('li');
+            }
+            
+            // If link is inside a dropdown, open the dropdown
+            const parentDropdown = link.closest('.dropdown');
+            if (parentDropdown) {
+                parentDropdown.classList.add('open');
+                parentDropdown.style.display = '';
+            }
+        } else {
+            // Hide this link specifically
+            link.style.display = 'none';
+        }
+    });
+    
+    // Dropdown parent toggle items logic
+    dropdowns.forEach(d => {
+        const toggle = d.querySelector('.dropdown-toggle');
+        const hasVisibleChildren = Array.from(d.querySelectorAll('.dropdown-menu a')).some(a => a.style.display !== 'none');
+        
+        if (hasVisibleChildren) {
+            d.style.display = '';
+            if (toggle) toggle.style.display = '';
+        } else {
+            // If dropdown title itself matches query, show all its items
+            const titleText = toggle ? toggle.textContent.toLowerCase() : '';
+            if (titleText.includes(query)) {
+                d.style.display = '';
+                if (toggle) toggle.style.display = '';
+                d.classList.add('open');
+                d.querySelectorAll('.dropdown-menu a').forEach(a => {
+                    a.style.display = '';
+                });
+            } else {
+                d.style.display = 'none';
+            }
+        }
+    });
+};
+
+// Auto-expand Dropdown of Active Page
+function autoExpandActiveDropdown() {
+    const activeLink = document.querySelector('.sidebar-menu a.active');
+    if (activeLink) {
+        const parentDropdown = activeLink.closest('.dropdown');
+        if (parentDropdown) {
+            parentDropdown.classList.add('open');
+        }
+    }
+}
+
+// Update Header Welcome Greeting & Digital Clock
+function updateHeaderClock() {
+    const greetingEl = document.getElementById('welcomeGreeting');
+    const clockEl = document.getElementById('headerDateTime');
+    if (!greetingEl && !clockEl) return;
+    
+    const now = new Date();
+    
+    // Greeting
+    const hour = now.getHours();
+    let greeting = 'Welcome, Admin';
+    if (hour < 12) {
+        greeting = 'Good Morning, Admin 🌅';
+    } else if (hour < 17) {
+        greeting = 'Good Afternoon, Admin ☀️';
+    } else {
+        greeting = 'Good Evening, Admin 🌆';
+    }
+    if (greetingEl) greetingEl.textContent = greeting;
+    
+    // Clock/Date format: Wednesday, 8 Jul 2026 | 08:30:15 AM
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const dayName = days[now.getDay()];
+    const dateNum = now.getDate();
+    const monthName = months[now.getMonth()];
+    const year = now.getFullYear();
+    
+    let hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    const formattedHours = String(hours).padStart(2, '0');
+    
+    if (clockEl) {
+        clockEl.innerHTML = `<i class="far fa-calendar-alt"></i> ${dayName}, ${dateNum} ${monthName} ${year} &nbsp;|&nbsp; <i class="far fa-clock"></i> ${formattedHours}:${minutes}:${seconds} ${ampm}`;
+    }
+}
