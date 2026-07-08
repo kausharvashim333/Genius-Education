@@ -2551,6 +2551,40 @@ body {
     display: flex;
     min-height: 100vh;
 }
+@media (min-width: 769px) {
+    .admin-dashboard {
+        height: 100vh;
+        overflow: hidden;
+    }
+    .sidebar {
+        height: 100vh;
+        overflow-y: auto !important;
+        flex-shrink: 0;
+    }
+    .main-content {
+        height: 100vh;
+        overflow-y: auto !important;
+    }
+    /* Custom scrollbars for sidebar & main content */
+    .sidebar::-webkit-scrollbar,
+    .main-content::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    .sidebar::-webkit-scrollbar-track,
+    .main-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .sidebar::-webkit-scrollbar-thumb,
+    .main-content::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 4px;
+    }
+    .sidebar::-webkit-scrollbar-thumb:hover,
+    .main-content::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+}
 
 .sidebar {
     width: 250px;
