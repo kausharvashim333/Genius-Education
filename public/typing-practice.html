@@ -7259,6 +7259,11 @@
             timerDisplay.style.display = 'flex';
             updateTimerDisplay();
 
+            // Clear any existing interval to prevent overlapping timers
+            if (timerCountdownInterval) {
+                clearInterval(timerCountdownInterval);
+            }
+
             timerCountdownInterval = setInterval(() => {
                 timeRemaining--;
                 updateTimerDisplay();
@@ -9309,39 +9314,8 @@
         function startWarmupExercise(exerciseId) {
             const exercise = warmupExercises.find(e => e.id === exerciseId);
             if (exercise) {
+                resetTyping();
                 currentText = exercise.text;
-                currentIndex = 0;
-                mistakes = 0;
-                streak = 0;
-                combo = 1;
-                maxStreak = 0;
-                maxCombo = 0;
-                incorrectChars.clear();
-                mistakeLog = [];
-                keyPressTimings = [];
-                lastKeyPressTime = null;
-                wpmSnapshots = [];
-                lastSnapshotTime = null;
-                pauses = [];
-                lastInputTime = null;
-                fingerUsage = {
-                    'pinky-left': 0,
-                    'ring-left': 0,
-                    'middle-left': 0,
-                    'index-left': 0,
-                    'index-right': 0,
-                    'middle-right': 0,
-                    'ring-right': 0,
-                    'pinky-right': 0
-                };
-                typingInput.value = '';
-                typingInput.disabled = false;
-                wpmDisplay.textContent = '0';
-                accuracyDisplay.textContent = '100%';
-                progressFillSidebar.style.width = '0%';
-                progressPercentage.textContent = '0%';
-                accuracyCircle.style.strokeDashoffset = '226.195';
-                cpmDisplay.textContent = '0';
 
                 const mins = parseInt(exercise.duration);
                 isCustomMode = true;
@@ -9414,27 +9388,9 @@
             const story = storyChapters.find(s => s.id === storyId);
             if (!story) return;
 
+            resetTyping();
             currentText = story.text;
             currentLessonId = null;
-
-            currentIndex = 0;
-            mistakes = 0;
-            streak = 0;
-            combo = 1;
-            maxStreak = 0;
-            maxCombo = 1;
-            wpmHistory = [];
-            incorrectChars.clear();
-            lastCompletedLine = -1;
-            previousLineIndex = -1;
-            typingInput.value = '';
-            typingInput.disabled = false;
-            wpmDisplay.textContent = '0';
-            accuracyDisplay.textContent = '100%';
-            progressFillSidebar.style.width = '0%';
-            progressPercentage.textContent = '0%';
-            accuracyCircle.style.strokeDashoffset = '226.195';
-            cpmDisplay.textContent = '0';
 
             isCustomMode = false;
             isChallengeMode = false;
