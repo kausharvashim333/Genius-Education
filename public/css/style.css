@@ -6308,38 +6308,105 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     gap: 15px;
 }
 
-/* 4. Dashboard Stats Card Trends */
-.stat-trend {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    padding: 4px 8px;
-    border-radius: 8px;
-    font-size: 0.68rem;
-    font-weight: 700;
+/* 4. Dashboard Stats Card Trends & Masterclass Glassmorphism */
+.dash-stat-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: center;
-    gap: 4px;
-    border: 1px solid transparent;
+    gap: 18px;
+    padding: 22px 20px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease;
 }
+
+.dash-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--card-gradient);
+    opacity: 0.14;
+    z-index: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.dash-stat-card:hover::before {
+    opacity: 0.25;
+}
+
+.dash-stat-card:hover {
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.2),
+        inset 0 0 20px rgba(255, 255, 255, 0.05) !important;
+    transform: translateY(-4px) scale(1.01);
+}
+
+.dash-stat-icon {
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.95) !important;
+    min-width: 48px;
+    text-align: center;
+    z-index: 1;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.dash-stat-info {
+    z-index: 1;
+    flex: 1;
+}
+
+.dash-stat-number {
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: #fff !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    line-height: 1.2;
+}
+
+.dash-stat-label {
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 600;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+}
+
+.stat-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 7px;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+    vertical-align: middle;
+    margin-left: 2px;
+}
+
 .trend-up {
-    color: #4ade80;
+    color: #4ade80 !important;
     background: rgba(74, 222, 128, 0.15);
     border-color: rgba(74, 222, 128, 0.2);
 }
+
 .trend-down {
-    color: #f87171;
+    color: #f87171 !important;
     background: rgba(248, 113, 113, 0.15);
     border-color: rgba(248, 113, 113, 0.2);
 }
 
-/* Stat Cards Hover glow effect */
-.dash-stat-card:hover {
-    box-shadow: 
-        0 15px 35px rgba(0, 0, 0, 0.4),
-        0 0 0 1px rgba(255, 255, 255, 0.15),
-        inset 0 0 20px rgba(255, 255, 255, 0.05);
-    transform: translateY(-5px) scale(1.01);
+@media (max-width: 480px) {
+    .dash-stats-grid {
+        grid-template-columns: 1fr !important;
+    }
 }
 
 /* 5. Dashboard Charts Grid */
