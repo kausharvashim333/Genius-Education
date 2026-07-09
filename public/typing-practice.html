@@ -5028,6 +5028,214 @@
                 gap: 3px;
             }
         }
+        /* Kruti Dev 010 Font for Hindi Typing */
+        @font-face {
+            font-family: 'Kruti Dev 010';
+            src: url('https://db.onlinewebfonts.com/t/a69b5b3fc8384265aa52523629365ffb.eot');
+            src: url('https://db.onlinewebfonts.com/t/a69b5b3fc8384265aa52523629365ffb.eot?#iefix') format('embedded-opentype'),
+                 url('https://db.onlinewebfonts.com/t/a69b5b3fc8384265aa52523629365ffb.woff2') format('woff2'),
+                 url('https://db.onlinewebfonts.com/t/a69b5b3fc8384265aa52523629365ffb.woff') format('woff'),
+                 url('https://db.onlinewebfonts.com/t/a69b5b3fc8384265aa52523629365ffb.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        /* Noto Sans Devanagari for Unicode Hindi display in UI elements */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap');
+
+        /* Hindi mode: apply Kruti Dev 010 to text display */
+        body.hindi-mode .text-display {
+            font-family: 'Kruti Dev 010', monospace;
+            font-size: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Hindi mode: apply Kruti Dev 010 to the typing input so users see Hindi as they type */
+        body.hindi-mode .typing-input {
+            font-family: 'Kruti Dev 010', monospace;
+            font-size: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Language Selection Modal */
+        .lang-select-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 10001;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lang-select-content {
+            background: rgba(30, 30, 50, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .lang-select-header h2 {
+            color: #e0e0e0;
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .lang-select-header p {
+            color: #a0a0a0;
+            font-size: 15px;
+            margin-bottom: 30px;
+        }
+
+        .lang-select-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .lang-btn {
+            flex: 1;
+            padding: 28px 16px;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(40, 40, 60, 0.6);
+            color: #e0e0e0;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lang-btn:hover {
+            transform: translateY(-4px);
+            border-color: #667eea;
+            background: rgba(50, 50, 80, 0.8);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .lang-btn .lang-flag {
+            font-size: 40px;
+        }
+
+        .lang-btn .lang-name {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .lang-btn .lang-desc {
+            font-size: 12px;
+            color: #888;
+            font-weight: 400;
+        }
+
+        .lang-btn.hindi-btn .lang-name {
+            font-family: 'Noto Sans Devanagari', 'Mangal', sans-serif;
+            font-size: 22px;
+        }
+
+        /* Language switch button in header */
+        .lang-switch-btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            background: rgba(102, 126, 234, 0.15);
+            color: #e0e0e0;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .lang-switch-btn:hover {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .lang-switch-btn.hindi-active {
+            background: rgba(255, 153, 51, 0.2);
+            border-color: rgba(255, 153, 51, 0.5);
+        }
+
+        /* Hindi keyboard label styling - dual label (English + Hindi) */
+        .key.hindi-label {
+            font-family: 'Kruti Dev 010', monospace;
+            font-size: 16px;
+            position: relative;
+        }
+
+        .key .key-en {
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .key .key-hi {
+            font-family: 'Kruti Dev 010', monospace;
+            font-size: 16px;
+            line-height: 1;
+            margin-top: 4px;
+        }
+
+        body.light-theme .key .key-en {
+            color: rgba(0, 0, 0, 0.4);
+        }
+
+        body.light-theme .lang-select-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(102, 126, 234, 0.2);
+        }
+
+        body.light-theme .lang-select-header h2 {
+            color: #333;
+        }
+
+        body.light-theme .lang-select-header p {
+            color: #666;
+        }
+
+        body.light-theme .lang-btn {
+            background: rgba(245, 245, 250, 0.8);
+            border-color: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        body.light-theme .lang-btn:hover {
+            background: rgba(235, 235, 245, 1);
+        }
+
+        body.light-theme .lang-btn .lang-desc {
+            color: #999;
+        }
+
+        body.light-theme .lang-switch-btn {
+            color: #333;
+        }
+
     </style>
 </head>
 <body>
@@ -5164,6 +5372,9 @@
                     </button>
                     <button class="header-btn secondary" onclick="loadNewText()">
                         <i class="fas fa-redo"></i> New Text
+                    </button>
+                    <button class="lang-switch-btn" id="langSwitchBtn" onclick="toggleTypingLanguage()">
+                        <i class="fas fa-language"></i> <span id="langSwitchLabel">EN</span>
                     </button>
                     <button class="header-btn secondary" onclick="openGuide()">
                         <i class="fas fa-question-circle"></i> Guide
@@ -6514,6 +6725,28 @@
         </div>
     </div>
 
+    <!-- Language Selection Modal -->
+    <div class="lang-select-modal" id="langSelectModal">
+        <div class="lang-select-content">
+            <div class="lang-select-header">
+                <h2><i class="fas fa-language"></i> Select Language / भाषा चुनें</h2>
+                <p>Choose your typing practice language</p>
+            </div>
+            <div class="lang-select-buttons">
+                <button class="lang-btn english-btn" onclick="selectTypingLanguage('en')">
+                    <span class="lang-flag">⌨️</span>
+                    <span class="lang-name">English</span>
+                    <span class="lang-desc">QWERTY Keyboard</span>
+                </button>
+                <button class="lang-btn hindi-btn" onclick="selectTypingLanguage('hi')">
+                    <span class="lang-flag">🇮🇳</span>
+                    <span class="lang-name" style="font-family: 'Noto Sans Devanagari', 'Mangal', sans-serif;">हिन्दी</span>
+                    <span class="lang-desc" style="font-family: 'Noto Sans Devanagari', 'Mangal', sans-serif;">कृति देव 010</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="user-login-modal" id="userLoginModal">
         <div class="user-login-content">
             <button class="user-login-close-btn" onclick="closeUserLoginModal()">
@@ -6753,6 +6986,163 @@
             "Deep-sea hydrothermal vents, discovered in 1977 along the Galápagos Rift by geologist Jack Corliss and his team aboard the submersible Alvin, revolutionized biology by revealing entire ecosystems sustained by chemosynthesis rather than photosynthesis. These vents, where superheated mineral-rich water emerges from the ocean crust at temperatures exceeding 400°C, support communities of tube worms (Riftia pachyptila), giant clams (Calyptogena magnifica), and blind shrimp (Rimicaris exoculata) that derive energy from hydrogen sulfide through bacterial endosymbionts. The tube worm's trophosome organ houses billions of chemosynthetic bacteria that convert sulfides into organic compounds, sustaining an animal with no mouth or digestive tract. Over 500 novel species have been identified at vent sites worldwide, including the yeti crab (Kiwa hirsuta) with furry claws farming bacteria on the Southern Pacific floor. These ecosystems demonstrate that life can thrive in conditions previously considered sterile—in total darkness, under crushing pressure, and in highly acidic, metal-laden environments. The discovery has profoundly influenced astrobiology, suggesting that similar vent systems on Europa, Enceladus, or Mars could harbor extraterrestrial life. Mining interests now threaten vent ecosystems; the International Seabed Authority has issued exploration contracts for polymetallic sulfide deposits, raising urgent conservation concerns."
         ];
 
+        // ===================== HINDI TYPING TEXTS (Kruti Dev 010) =====================
+        // Kruti Dev 010 is ASCII-based: user types English keys, font renders Hindi.
+        // These texts are ASCII keystroke sequences that display as Hindi with Kruti Dev 010 font.
+        // Key mapping reference:
+        //   a=ं  s=े  d=क  f=ि  g=ु  h=र  j=।  k=ा  l=न  ;=प
+        //   q=औ  w=ऐ  e=आ  r=ई  t=ऊ  y=ऋ  u=ध  i=भ  o=ड  p=च
+        //   z=ट  x=ठ  c=ख  v=ळ  b=द  n=म  m=व  ,=श  .=ष  /=य
+        //   Shift: D=क  F=ि  G=ु  H=र  J=।  K=ा  L=न  S=े  A=ं
+        //   Shift+Z=ट  Shift+X=ठ  Shift+C=ख  Shift+V=ळ  Shift+B=द  Shift+N=म  Shift+M=व
+        //   Shift+Q=औ  Shift+W=ऐ  Shift+E=आ  Shift+R=ई  Shift+T=ऊ  Shift+Y=ऋ
+        //   Shift+U=ध  Shift+I=भ  Shift+O=ड  Shift+P=च
+        //   Special: D+halant=half क, Shift+V=श्र, etc.
+
+        const hindiHomeRowTexts = [
+            "asdf jkl; asdf jkl; asdf jkl; a s d f j k l ; a s d f j k l ; dad sad lad fad jak als jaf sld flk dks jls kaf las sad fad jak als jaf sld flk dks jls kaf las",
+            "dkj fls kak dls jaf ;al fak skd lja ;dk rks lsd fka jsl ;dk rks lsd fka jsl ;dk rks lsd fka jsl asdf jkl; asdf jkl; asdf jkl; dad sad lad fad jak als",
+            "jdk ;la fkd sla dka jfl ;sl rka dls fja ;sk ldk rja fsl ;dk jak als jaf sld flk dks jls kaf las dad sad lad fad asdf jkl; asdf jkl; asdf jkl;",
+            "a s d f j k l ; a s d f j k l ; d k j f l s k a k d l s j a f ; a l f a k s k d l j a ; d k r k s l s d f k a j s l ; d k r k s l s d f k a j s l",
+            "asdf jkl; asdf jkl; asdf jkl; dks jls kaf las dad sad lad fad jak als jaf sld flk dks jls kaf las sad fad jak als jaf sld flk asdf jkl; asdf jkl; asdf jkl;"
+        ];
+
+        const hindiTopRowTexts = [
+            "qwer uiop qwer uiop qwer uiop q w e r u i o p q w e r u i o p qwer uiop qwer uiop qwer uiop q w e r u i o p q w e r u i o p qwer uiop qwer uiop",
+            "rqpw euio rqpw euio rqpw euio r q p w e u i o r q p w e u i o rqpw euio rqpw euio rqpw euio r q p w e u i o r q p w e u i o rqpw euio rqpw euio",
+            "q w e r u i o p q w e r u i o p qwer uiop qwer uiop q w e r u i o p q w e r u i o p qwer uiop qwer uiop q w e r u i o p q w e r u i o p",
+            "pwqo erui pwqo erui pwqo erui p w q o e r u i p w q o e r u i pwqo erui pwqo erui pwqo erui p w q o e r u i p w q o e r u i pwqo erui",
+            "qwer uiop qwer uiop q w e r u i o p q w e r u i o p rqpw euio rqpw euio r q p w e u i o r q p w e u i o qwer uiop qwer uiop qwer uiop"
+        ];
+
+        const hindiHomeTopTexts = [
+            "asdf qwer jkl; uiop asdf qwer jkl; uiop a s d f q w e r j k l ; u i o p asdf qwer jkl; uiop asdf qwer jkl; uiop a s d f q w e r j k l ; u i o p",
+            "dkj fls qwer uiop kak dls jaf ;al fak skd lja ;dk rks lsd fka jsl qwer uiop qwer uiop dkj fls kak dls jaf ;al fak skd lja ;dk rks lsd fka jsl",
+            "a s d f j k l ; q w e r u i o p a s d f j k l ; q w e r u i o p asdf jkl; qwer uiop asdf jkl; qwer uiop a s d f j k l ; q w e r u i o p",
+            "jdk ;la fkd sla dka jfl ;sl rka dls fja ;sk ldk rja fsl ;dk qwer uiop qwer uiop jdk ;la fkd sla dka jfl ;sl rka dls fja ;sk ldk rja fsl ;dk",
+            "asdf qwer jkl; uiop asdf qwer jkl; uiop dkj fls kak dls jaf ;al fak skd lja ;dk rks lsd fka jsl asdf qwer jkl; uiop asdf qwer jkl; uiop"
+        ];
+
+        const hindiBottomRowTexts = [
+            "zxcv bnm, zxcv bnm, zxcv bnm, z x c v b n m , z x c v b n m , zxcv bnm, zxcv bnm, zxcv bnm, z x c v b n m , z x c v b n m , zxcv bnm, zxcv bnm",
+            "z x c v b n m , z x c v b n m , zxcv bnm, zxcv bnm, zxcv bnm, z x c v b n m , z x c v b n m , zxcv bnm, zxcv bnm, zxcv bnm, z x c v b n m ,",
+            "bncm vx,z bncm vx,z bncm vx,z b n c m v x , z b n c m v x , z bncm vx,z bncm vx,z bncm vx,z b n c m v x , z b n c m v x , z bncm vx,z",
+            "zxcv bnm, z x c v b n m , zxcv bnm, z x c v b n m , zxcv bnm, z x c v b n m , zxcv bnm, z x c v b n m , zxcv bnm, z x c v b n m , zxcv bnm,",
+            "z x c v b n m , zxcv bnm, z x c v b n m , zxcv bnm, z x c v b n m , zxcv bnm, z x c v b n m , zxcv bnm, z x c v b n m , zxcv bnm, z x c v b n m ,"
+        ];
+
+        const hindiShortSentences = [
+            "esjk uke jke gS vkSj ge lc Hkkjr ds oklh gSA",
+            "esjk Hkkjr egku gS vkSj ;gka lc yksx Hkys gSaA",
+            "rqe cgqr Hkys gks vkSj lc dke le; ij djrs gksA",
+            "dey dk Qwy cgqr lqanj gksrk gS vkSj ge lc dks Hkkrk gSA",
+            "gekjk ns'k egku gS vkSj ge lc bldk eku djrs gSaA",
+            "esjk ifjokj cgqr vPNk gSA eSa vius ekrk firk dk lg;ksx djrk gwaA",
+            "Hkkjr esa cgqr ls xkao gSa vkSj xkao esa yksx esgurh ls jgrs gSaA",
+            "Qwy lqanj gksrs gSa vkSj gekjs /keZ dks vPNk djrs gSaA",
+            "le; dk eku djuk cgqr vPNk O;ogkj gSA tks le; dk eku djrk gS og lQy gksrk gSA",
+            "ge lc dks vius ns'k dh lsok djuk pkfg,A ;gh lPpk dke gSA",
+            "xkao esa fdlku vius [ksr esa dke djrs gSa vkSj [kkuk cukrs gSaA",
+            "uxj esa yksx cgqr O;olk;h gSa vkSj dke esgur ls djrs gSaA",
+            "fpfM+;k vius u;k ?kj cukrh gS vkSj lc lq[k ls jgrh gSA",
+            "tky esa ikuh cgqr vPNk gksrk gS vkSj ge lc mls eu djrs gSaA",
+            "cktk esa yksx [kkuk [kkrs gSa vkSj lQyrk ls jgrs gSaA",
+            "esjk fe= cgqr vPNk gS vkSj og esjh enn djrk gSA",
+            "Hkkjr ds yksx cgqr esgurh gSa vkSj ,d nwljs dh enn djrs gSaA",
+            "lqcg mBdj dke djuk vPNk vkn gSA ;gh lQyrk dk jkt gSA",
+            "esjk fo|k cgqr vPNk gS vkSj eSa mldks eu djrk gwaA",
+            "ge lc dks Kku pkfg, vkSj vius ns'k dks Iyk cukuk pkfg,A",
+            "dey dk Qwy lqanj gSA og ikuh esa f[kyrk gS vkSj lcdks vPNk yxrk gSA",
+            "esjk Hkkjr egku gSA bldk jktk cgqr n;kyq FkkA og vius yksxksa dk /;ku j[krk FkkA",
+            "ge lc dks vius ifjokj dk eku djuk pkfg,A ifjokj cgqr vPNk gksrk gSA",
+            "dk;Z djuk cgqr vPNk gSA tks yksx dke djrs gSa os lQy gksrs gSaA",
+            "esjk ns'k Hkkjr egku gS vkSj ge lc bldk eku djrs gSaA ;gh lPpk O;ogkj gSA"
+        ];
+
+        const hindiDetailedParagraphs = [
+            "esjk uke jke gSA eSa jkst lqcg mBdj vius dke ij tkrk gwaA gekjk ns'k Hkkjr egku gS vkSj ge lc bl ij xoZ djrs gSaA lc yksx feydj vius ns'k dks vkSj Hkyk cukrs gSaA",
+            "esjk Hkkjr egku gSA ;gka ds yksx cgqr Hkys vkSj esgurh gSaA ge lc feydj dke djrs gSa vkSj vius ns'k dk eku c<+krs gSaA ;g gekjk drZO; gS fd ge vius ns'k dh lsok djsaA",
+            "dey dk Qwy cgqr lqanj gksrk gSA og ikuh esa f[kyrk gS vkSj lcdks vPNk yxrk gSA gekjs ns'k esa cgqr ls Qwy gksrs gSaA ge lc dks Hkyk dk;Z djuk pkfg,A",
+            "le; cgqr ewY;oku gksrk gSA tks yksx le; dk eku djrs gSa os thou esa lQy gksrs gSaA gesa jkst vius dke le; ij djus pkfg,A ;gh lQyrk dk jkt gSA",
+            "gekjk ifjokj cgqr Hkyk gSA ge lc feydj jgrs gSa vkSj ,d nwljs dh enn djrs gSaA gekjs ekrk firk gesa vPNh f'k{kk nsrs gSaA ge muds cgqr vkHkkjh gSaA",
+            "Hkkjr dk jktk cgqr n;kyq FkkA og vius yksxksa dk /;ku j[krk FkkA ,d fnu mlds ns'k esa lw[kk iM+kA yksxksa ds ikl [kkuk ugha FkkA jktk us vius HkaMkj [kksy fn,A mlus lc dks vukt ckaVkA yksx cgqr [kq'k gq,A",
+            "xkao esa ,d fdlku jgrk FkkA og cgqr esgurh FkkA og jkst lqcg mBdj vius [ksr esa dke djrk FkkA ,d fnu mldks ,d crZu feykA mlus og crZu xkao ds yksxksa esa ckaV fn;kA lc yksx mldk eku djus yxsA",
+            "taxy esa ,d 'ksj jgrk FkkA og cgqr rkdroj FkkA ,d fnu og lks jgk FkkA ,d NksVk pwgk mlds mij p<+ x;kA 'ksj us pwgs dks NksM+ fn;kA dqN fnu ckn 'ksj tky esa Qal x;kA pwgs us mldk cpr fd;kA",
+            "xkao esa nks fe= jgrs FksA os gj txg lkFk tkrs FksA ,d fnu os taxy ls xqtj jgs FksA rHkh ,d Hkkyw vk x;kA ,d fe= us iwNk fd Hkkyw us D;k dgkA nwljs us dgk fd lPpk fe= eqlhcr esa dke vkrk gSA",
+            "fpfM+;k vius ?kksalys esa jgrh FkhA og jkst nkuk pqxus tkrh FkhA ,d fnu cgqr rst gok pyhA mldk ?kksalyk fxj x;kA fpfM+;k us gkj ugha ekuhA mlus fQj ls u;k ?kksalyk cuk;kA esgur ls lc dqN eqefdu gSA",
+            "uxj esa ,d O;kikjh jgrk FkkA mlds ikl cgqr /ku FkkA ij og dHkh ?keaMh ugha FkkA og lnk xjhcksa dh enn djrk FkkA ,d fnu mlds uxj esa Hkkjh ck<+ vk;hA mlus lc dks vukt ckaVsA",
+            "izkphu le; esa ,d xq: ds ikl cgqr ls f'k\"; i<+rs FksA xq: lc dks leku f'k{kk nsrs FksA ,d fnu xq: us lc dks ,d ,d Qwy fn;kA ,d f'k\"; [kkyh gkFk ykSVkA mlus dgk fd Kku ogh gS tks lgh vkSj xyr dk Kku djk,A",
+            "cgqr le; igys ,d jktk FkkA mldk uke Hkkst FkkA og cgqr U;k;fç; vkSj n;kyq FkkA mlds jkT; esa lc yksx lq[k ls jgrs FksA ,d fnu ,d xjhc fdlku mlds njckj esa vk;kA",
+            "fo/kok vkSjr vius xkao esa jgrh FkhA mldk ,d gh csVk FkkA og taxy ls ydM+h ykdj cktkj esa csprk FkkA ,d fnu og taxy esa cgqr nwj fudy x;kA ogka mUgsa ,d lar feykA",
+            "taxy esa cgqr ls tkuoj jgrs FksA ,d fnu taxy esa vkx yx x;hA ,d NksVh fpfM+;k us fgEer fn[kk;hA og ikuh ykdj vkx ij Mkyus yxhA ckdh tkuoj Hkh enn djus yxsA",
+            "Hkkjr esa cgqr ls Qwy gksrs gSaA dey dk Qwy lcls lqanj gksrk gSA og ikuh esa f[kyrk gS vkSj lcdks vPNk yxrk gSA Qwy gekjs /keZ dks vPNk djrs gSaA",
+            "esjk ifjokj cgqr vPNk gSA ge lc feydj jgrs gSa vkSj ,d nwljs dh enn djrs gSaA gekjs ekrk firk gesa vPNh f'k{kk nsrs gSaA ge muds cgqr vkHkkjh gSaA ;gh ifjokj dk vPNk gSA",
+            "le; cgqr ewY;oku gksrk gSA tks yksx le; dk eku djrs gSa os thou esa lQy gksrs gSaA gesa jkst vius dke le; ij djus pkfg,A ;gh lQyrk dk jkt gSA le; dk eku djuk vPNk gSA",
+            "Hkkjr ds xkao esa fdlku vius [ksr esa dke djrs gSaA og [kkuk cukrs gSa vkSj xkao ds yksxksa dk lg;ksx djrs gSaA xkao esa yksx esgurh ls jgrs gSaA",
+            "uxj esa yksx cgqr O;olk;h gSaA os dke esgur ls djrs gSaA uxj esa ckdh cgqr vPNk gSA ogka ls Hkkjr dk vPNk gSA yksx cgqr /;ku j[krs gSaA",
+            "esjk fe= cgqr vPNk gS vkSj og esjh enn djrk gSA ge lc feydj dke djrs gSaA og esjk lg;ksx djrk gSA ;gh fe= dk vPNk gSA",
+            "Hkkjr dh lQyrk cgqr vPNk gSA ogka ds yksx cgqr esgurh gSaA ge lc dks vius ns'k dk eku djuk pkfg,A ;gh lPpk O;ogkj gSA Hkkjr egku gSA",
+            "esjk fo|k cgqr vPNk gS vkSj eSa mldks eu djrk gwaA og esjk lg;ksx djrk gSA eSa vius fo|k ls cgqr [kq'k gwaA fo|k cgqr vPNk gSA",
+            "ge lc dks Kku pkfg, vkSj vius ns'k dks Iyk cukuk pkfg,A Kku cgqr vPNk gSA tks Kku dk eku djrk gS og lQy gksrk gSA ;gh lPpk gSA",
+            "dk;Z djuk cgqr vPNk gSA tks yksx dke djrs gSa os lQy gksrs gSaA dke ls /ku feyrk gSA dke ls lQyrk feyrh gSA ;gh lPpk O;ogkj gSA"
+        ];
+
+        const hindiHardStories = [
+            ",d xkao esa ,d fdlku jgrk FkkA og cgqr esgurh FkkA og jkst lqcg mBdj vius [ksr esa dke djrk FkkA ,d fnu mldks ,d crZu feykA ml crZu esa cgqr lksuk FkkA fdlku us lkspk fd bl lksus ls og cM+k vkneh cu tk,xkA ij fQj mlus lkspk fd esgur gh lPpk /ku gSA mlus og lksuk xkao ds yksxksa esa ckaV fn;kA lc yksx mldk eku djus yxsA",
+            ",d taxy esa ,d 'ksj jgrk FkkA og cgqr rkdroj FkkA ,d fnu og lks jgk FkkA ,d NksVk pwgk mlds mij p<+ x;kA 'ksj tkx x;k vkSj pwgs dks idM+ fy;kA pwgs us dgk fd eq>s NksM+ nksA ,d fnu eSa rqEgkjs dke vkšaxkA 'ksj gal iM+k ij mlus pwgs dks NksM+ fn;kA dqN fnu ckn 'ksj tky esa Qal x;kA pwgs us tky dkVdj 'ksj dks cpk fy;kA",
+            ",d xkao esa nks fe= jgrs FksA os gj txg lkFk tkrs FksA ,d fnu os taxy ls xqtj jgs FksA rHkh ,d Hkkyw vk x;kA ,d fe= isM+ ij p<+ x;kA nwljk fe= tehu ij ysV x;kA Hkkyw us mls lwaxk vkSj pyk x;kA igys fe= us iwNk fd Hkkyw us D;k dgkA nwljs us dgk fd lPpk fe= eqlhcr esa dke vkrk gSA",
+            ",d fpfM+;k vius ?kksalys esa jgrh FkhA og jkst nkuk pqxus tkrh FkhA ,d fnu cgqr rst gok pyhA mldk ?kksalyk fxj x;kA fpfM+;k us gkj ugha ekuhA mlus fQj ls u;k ?kksalyk cuk;kA og jkst FkksM+k FkksM+k frudk ykrh FkhA dqN fnu esa u;k ?kj rS;kj gks x;kA esgur ls lc dqN eqefdu gSA",
+            ",d jktk FkkA og cgqr n;kyq FkkA og vius yksxksa dk cgqr /;ku j[krk FkkA ,d fnu mlds ns'k esa lw[kk iM+kA yksxksa ds ikl [kkuk ugha FkkA jktk us vius HkaMkj [kksy fn,A mlus lc dks vukt ckaVkA yksx cgqr [kq'k gq,A jktk us dgk fd tks nwljksa dh enn djrk gS ogh lPpk jktk gksrk gSA",
+            "cgqr le; igys ,d jktk FkkA mldk uke Hkkst FkkA og cgqr U;k;fç; vkSj n;kyq FkkA mlds jkT; esa lc yksx lq[k ls jgrs FksA ,d fnu ,d xjhc fdlku mlds njckj esa vk;kA mlus dgk fd egkjkt esjs [ksr esa dke djrs le; eq>s ,d [ktkuk feyk gSA ij og [ktkuk esjk ugha gSA og rks vkidk gSA jktk mldh bZekunkjh ns[kdj cgqr [kq'k gqvkA mlus dgk fd tks [ktkuk rqEgkjh tehu ls feyk gS ogh rqEgkjk gSA fdlku us euk dj fn;kA var esa jktk us og /ku xjhcksa esa ckaV fn;kA lPph bZekunkjh gh lcls cM+k /ku gksrh gSA",
+            ",d NksVs ls xkao esa ,d fo/kok vkSjr jgrh FkhA mldk ,d gh csVk FkkA og cgqr esgurh vkSj lPpk FkkA og jkst taxy ls ydM+h ykdj cktkj esa csprk FkkA blh ls mudk ?kj pyrk FkkA ,d fnu og taxy esa cgqr nwj fudy x;kA ogka mlus ,d cw<+s lar dks ns[kkA lar I;klk FkkA yM+ds us mUgsa ikuh fiyk;kA lar cgqr [kq'k gq,A mUgksaus yM+ds dks vk'khokZn fn;kA mlh fnu ls yM+ds ds thou esa lq[k vkus yxkA lPph lsok dHkh csdkj ugha tkrhA",
+            ",d ckj dh ckr gSA ,d taxy esa cgqr ls tkuoj jgrs FksA lc feytqydj jgrs FksA ,d fnu taxy esa vkx yx x;hA lc tkuoj Mjdj bèkj mèkj Hkkxus yxsA rHkh ,d NksVh fpfM+;k us fgEer fn[kk;hA og vius NksVs ls pksap esa ikuh ykdj vkx ij Mkyus yxhA ckdh tkuoj galus yxsA ij fpfM+;k us gkj ugha ekuhA mldh fgEer ns[kdj ckdh tkuoj Hkh enn djus yxsA lc us feydj vkx cq>k nhA ,drk esa gh cgqr cM+h 'kfDr gksrh gSA",
+            ",d uxj esa ,d cqf)eku O;kikjh jgrk FkkA mlds ikl cgqr /ku FkkA ij og dHkh ?keaMh ugha FkkA og lnk xjhcksa dh enn djrk FkkA ,d fnu mlds uxj esa Hkkjh ck<+ vk;hA cgqr ls yksxksa ds ?kj cg x,A O;kikjh us vius lkjs xksnke [kksy fn,A mlus lc dks vukt vkSj diM+s ckaVsA yksxksa us dgk fd vki bruk /ku D;ksa ckaV jgs gksA O;kikjh us dgk fd /ku rHkh dke vkrk gS tc og nwljksa ds dke vk,A ;gh lPpk lq[k gSA",
+            "izkphu le; esa ,d xq: ds ikl cgqr ls f'k\"; i<+rs FksA xq: lc dks leku f'k{kk nsrs FksA ,d fnu xq: us lc f'k\";ksa dks cqyk;kA mUgksaus lc dks ,d ,d Qwy fn;kA mUgksaus dgk fd bl Qwy dks ,slh txg rksM+ks tgka dksbZ u ns[ksA lc f'k\"; Qwy rksM+dj ys vk,A ij ,d f'k\"; [kkyh gkFk ykSVkA mlus dgk fd tgka Hkh eSa x;k Qwy eq>s ns[k jgk FkkA xq: cgqr [kq'k gq,A mUgksaus dgk fd lPpk Kku ogh gS tks gesa lgh vkSj xyr dk Kku djk,A",
+            "Hkkjr dk ,d egku jktk FkkA mldk uke vkyd FkkA og cgqr lQyrk FkkA mlds jkT; esa lc yksx lQyrk ls jgrs FksA og vius yksxksa dk /;ku j[krk FkkA ,d fnu mldks ,d Hkkjr dk LoxZ feykA mls Hkkjr dk vPNk yxrk FkkA og Hkkjr dh lsok djrk FkkA og vius jkT; esa Hkkjr dh ,df=r fd;kA",
+            "xkao esa ,d fdlku jgrk FkkA mlds ikl ,d vPNk [ksr FkkA og [ksr esa cgqr ls Qwy vkSj [kkuk FkkA ,d fnu mldks ,d crZu feykA ml crZu esa cgqr /ku FkkA ij fdlku us og /ku xkao ds yksxksa esa ckaV fn;kA ogkus dgk fd /ku rHkh vPNk gS tc og ,d nwljs ds dke vk,A ;gh lPpk /ku gSA",
+            "taxy ds ckYd esa ,d NksVk cPpk FkkA og cgqr lQyrk FkkA og taxy esa ikuh ls [kkuk [kkrs FksA ,d fnu mls ,d vPNh yM+ds feyhA mUgksaus feydj dke fd;kA og cPpk cgqr [kq'k FkkA og cPpk vius ifjokj dh enn djrk FkkA og cPpk lQyrk gks x;kA",
+            "Hkkjr ds ,d xkao esa ,d vPNk fdlku FkkA og vius [ksr esa [kkuk cukrk FkkA og [kkuk xkao ds yksxksa esa ckaVrk FkkA ,d fnu mlds [ksr esa ,d crZu feykA ml crZu esa cgqr [kkuk FkkA ij fdlku us og [kkuk xkao ds yksxksa esa ckaV fn;kA lc yksx mldk eku djus yxsA",
+            ",d uxj esa ,d vPNk O;kikjh FkkA og cgqr /ku FkkA ij og ?keaMh ugha FkkA og lnk xjhcksa dh enn djrk FkkA ,d fnu mlds uxj esa cgqr ls yksx [kkuk ds fy, vk,A mUgksaus lc dks [kkuk fn;kA ;gh lPpk O;ogkj gSA",
+            "xkao esa ,d vPNk fpfM+;k FkhA og vius u;k ?kj cukrh FkhA og cgqr lQyrk FkhA og vius ?kj esa cgqr ls cPps FksA og lc dks vPNh f'k{kk nsrh FkhA fpfM+;k cgqr vPNh FkhA",
+            "Hkkjr esa cgqr ls xkao gSaA xkao esa fdlku [ksr esa dke djrs gSaA og [kkuk cukrs gSaA xkao ds yksx cgqr esgurh gSaA og ,d nwljs dh enn djrs gSaA ;gh xkao dk vPNk gSA",
+            "esjk ifjokj cgqr vPNk gSA ge lc feydj jgrs gSaA gekjs ekrk firk gesa vPNh f'k{kk nsrs gSaA ge muds cgqr vkHkkjh gSaA ge lc dks vius ifjokj dk eku djuk pkfg,A ;gh ifjokj dk vPNk gSA",
+            "le; cgqr ewY;oku gSA tks yksx le; dk eku djrs gSa os lQy gksrs gSaA gesa jkst vius dke le; ij djus pkfg,A ;gh lQyrk dk jkt gSA le; dk eku djuk cgqr vPNk gSA",
+            "Hkkjr dk jktk cgqr n;kyq FkkA og vius yksxksa dk /;ku j[krk FkkA ,d fnu mlds ns'k esa lw[kk iM+kA yksxksa ds ikl [kkuk ugha FkkA jktk us vius HkaMkj [kksy fn,A mlus lc dks vukt ckaVkA yksx cgqr [kq'k gq,A",
+            "taxy esa ,d 'ksj FkkA og cgqr rkdroj FkkA ,d pwgk mlds mij p<+ x;kA 'ksj us pwgs dks NksM+ fn;kA dqN fnu ckn 'ksj tky esa Qal x;kA pwgs us mldk cpr fd;kA ;gh lPpk O;ogkj gSA",
+            "xkao esa nks fe= FksA os gj txg lkFk tkrs FksA ,d fnu os taxy ls xqtj jgs FksA ,d Hkkyw vk x;kA ,d fe= isM+ ij p<+ x;kA nwljs us tehu ij yhV x;kA Hkkyw us mls lwaxk vkSj pyy x;kA nwljs fe= us dgk fd lPpk fe= eqlhcr esa dke vkrk gSA",
+            "fpfM+;k vius ?kj esa jgrh FkhA og jkst nkuk pqxus tkrh FkhA ,d fnu gok pyhA mldk ?kj fxj x;kA ij us gkj ugha ekuhA mlus u;k ?kj cuk;kA esgur ls lc dqN eqefdu gSA",
+            "fo/kok vkSjr vius xkao esa jgrh FkhA mldk csVk taxy ls ydM+h ykdj cktkj esa csprk FkkA ,d fnu ogka mUgsa ,d lar feykA lar I;klk FkkA yM+ds us mUgsa ikuh fiyk;kA lar [kq'k gq,A lPph lsok dHkh csdkj ugha tkrhA",
+            "taxy esa cgqr ls tkuoj FksA ,d fnu vkx yx x;hA ,d NksVh fpfM+;k us fgEer fn[kk;hA og ikuh ykdj vkx ij Mkyus yxhA ckdh tkuoj Hkh enn djus yxsA lc us feydj vkx cq>k nhA ,drk esa cgqr cM+h 'kfDr gksrh gSA"
+        ];
+
+        const hindiExpertStories = [
+            "cgqr le; igys ,d jktk FkkA mldk uke Hkkst FkkA og cgqr U;k;fç; vkSj n;kyq FkkA mlds jkT; esa lc yksx lq[k ls jgrs FksA ,d fnu ,d xjhc fdlku mlds njckj esa vk;kA mlus dgk fd egkjkt esjs [ksr esa dke djrs le; eq>s ,d [ktkuk feyk gSA ij og [ktkuk esjk ugha gSA og rks vkidk gSA jktk mldh bZekunkjh ns[kdj cgqr [kq'k gqvkA mlus dgk fd tks [ktkuk rqEgkjh tehu ls feyk gS ogh rqEgkjk gSA fdlku us euk dj fn;kA var esa jktk us og /ku xjhcksa esa ckaV fn;kA lPph bZekunkjh gh lcls cM+k /ku gksrh gSA",
+            ",d NksVs ls xkao esa ,d fo/kok vkSjr jgrh FkhA mldk ,d gh csVk FkkA og cgqr esgurh vkSj lPpk FkkA og jkst taxy ls ydM+h ykdj cktkj esa csprk FkkA blh ls mudk ?kj pyrk FkkA ,d fnu og taxy esa cgqr nwj fudy x;kA ogka mlus ,d cw<+s lar dks ns[kkA lar I;klk FkkA yM+ds us mUgsa ikuh fiyk;kA lar cgqr [kq'k gq,A mUgksaus yM+ds dks vk'khokZn fn;kA mlh fnu ls yM+ds ds thou esa lq[k vkus yxkA lPph lsok dHkh csdkj ugha tkrhA",
+            ",d ckj dh ckr gSA ,d taxy esa cgqr ls tkuoj jgrs FksA lc feytqydj jgrs FksA ,d fnu taxy esa vkx yx x;hA lc tkuoj Mjdj bèkj mèkj Hkkxus yxsA rHkh ,d NksVh fpfM+;k us fgEer fn[kk;hA og vius NksVs ls pksap esa ikuh ykdj vkx ij Mkyus yxhA ckdh tkuoj galus yxsA ij fpfM+;k us gkj ugha ekuhA mldh fgEer ns[kdj ckdh tkuoj Hkh enn djus yxsA lc us feydj vkx cq>k nhA ,drk esa gh cgqr cM+h 'kfDr gksrh gSA",
+            ",d uxj esa ,d cqf)eku O;kikjh jgrk FkkA mlds ikl cgqr /ku FkkA ij og dHkh ?keaMh ugha FkkA og lnk xjhcksa dh enn djrk FkkA ,d fnu mlds uxj esa Hkkjh ck<+ vk;hA cgqr ls yksxksa ds ?kj cg x,A O;kikjh us vius lkjs xksnke [kksy fn,A mlus lc dks vukt vkSj diM+s ckaVsA yksxksa us dgk fd vki bruk /ku D;ksa ckaV jgs gksA O;kikjh us dgk fd /ku rHkh dke vkrk gS tc og nwljksa ds dke vk,A ;gh lPpk lq[k gSA",
+            "izkphu le; esa ,d xq: ds ikl cgqr ls f'k\"; i<+rs FksA xq: lc dks leku f'k{kk nsrs FksA ,d fnu xq: us lc f'k\";ksa dks cqyk;kA mUgksaus lc dks ,d ,d Qwy fn;kA mUgksaus dgk fd bl Qwy dks ,slh txg rksM+ks tgka dksbZ u ns[ksA lc f'k\"; Qwy rksM+dj ys vk,A ij ,d f'k\"; [kkyh gkFk ykSVkA mlus dgk fd tgka Hkh eSa x;k Qwy eq>s ns[k jgk FkkA xq: cgqr [kq'k gq,A mUgksaus dgk fd lPpk Kku ogh gS tks gesa lgh vkSj xyr dk Kku djk,A",
+            "Hkkjr dk ,d egku jktk FkkA mldk uke vkyd FkkA og cgqr lQyrk FkkA mlds jkT; esa lc yksx lQyrk ls jgrs FksA og vius yksxksa dk /;ku j[krk FkkA ,d fnu mldks ,d Hkkjr dk LoxZ feykA mls Hkkjr dk vPNk yxrk FkkA og Hkkjr dh lsok djrk FkkA og vius jkT; esa Hkkjr dh ,df=r fd;kA lc yksx mldk eku djus yxsA",
+            "xkao esa ,d fdlku jgrk FkkA mlds ikl ,d vPNk [ksr FkkA og [ksr esa cgqr ls Qwy vkSj [kkuk FkkA ,d fnu mldks ,d crZu feykA ml crZu esa cgqr /ku FkkA ij fdlku us og /ku xkao ds yksxksa esa ckaV fn;kA ogkus dgk fd /ku rHkh vPNk gS tc og ,d nwljs ds dke vk,A ;gh lPpk /ku gSA lc yksx mldk eku djus yxsA",
+            "taxy ds ckYd esa ,d NksVk cPpk FkkA og cgqr lQyrk FkkA og taxy esa ikuh ls [kkuk [kkrs FksA ,d fnu mls ,d vPNh yM+ds feyhA mUgksaus feydj dke fd;kA og cPpk cgqr [kq'k FkkA og cPpk vius ifjokj dh enn djrk FkkA og cPpk lQyrk gks x;kA lPph lsok dHkh csdkj ugha tkrhA",
+            "Hkkjr ds ,d xkao esa ,d vPNk fdlku FkkA og vius [ksr esa [kkuk cukrk FkkA og [kkuk xkao ds yksxksa esa ckaVrk FkkA ,d fnu mlds [ksr esa ,d crZu feykA ml crZu esa cgqr [kkuk FkkA ij fdlku us og [kkuk xkao ds yksxksa esa ckaV fn;kA lc yksx mldk eku djus yxsA ;gh lPpk O;ogkj gSA",
+            ",d uxj esa ,d vPNk O;kikjh FkkA og cgqr /ku FkkA ij og ?keaMh ugha FkkA og lnk xjhcksa dh enn djrk FkkA ,d fnu mlds uxj esa cgqr ls yksx [kkuk ds fy, vk,A mUgksaus lc dks [kkuk fn;kA ;gh lPpk O;ogkj gSA /ku rHkh dke vkrk gS tc og nwljksa ds dke vk,A",
+            "xkao esa ,d vPNk fpfM+;k FkhA og vius u;k ?kj cukrh FkhA og cgqr lQyrk FkhA og vius ?kj esa cgqr ls cPps FksA og lc dks vPNh f'k{kk nsrh FkhA fpfM+;k cgqr vPNh FkhA esgur ls lc dqN eqefdu gSA ;gh lPpk O;ogkj gSA",
+            "Hkkjr esa cgqr ls xkao gSaA xkao esa fdlku [ksr esa dke djrs gSaA og [kkuk cukrs gSaA xkao ds yksx cgqr esgurh gSaA og ,d nwljs dh enn djrs gSaA ;gh xkao dk vPNk gSA Hkkjr egku gSA",
+            "esjk ifjokj cgqr vPNk gSA ge lc feydj jgrs gSaA gekjs ekrk firk gesa vPNh f'k{kk nsrs gSaA ge muds cgqr vkHkkjh gSaA ge lc dks vius ifjokj dk eku djuk pkfg,A ;gh ifjokj dk vPNk gSA ifjokj cgqr vPNk gksrk gSA",
+            "le; cgqr ewY;oku gSA tks yksx le; dk eku djrs gSa os lQy gksrs gSaA gesa jkst vius dke le; ij djus pkfg,A ;gh lQyrk dk jkt gSA le; dk eku djuk cgqr vPNk gSA le; dk eku djuk vPNk O;ogkj gSA",
+            "Hkkjr dk jktk cgqr n;kyq FkkA og vius yksxksa dk /;ku j[krk FkkA ,d fnu mlds ns'k esa lw[kk iM+kA yksxksa ds ikl [kkuk ugha FkkA jktk us vius HkaMkj [kksy fn,A mlus lc dks vukt ckaVkA yksx cgqr [kq'k gq,A ;gh lPpk jktk gksrk gS tks nwljksa dh enn djrk gSA",
+            "taxy esa ,d 'ksj FkkA og cgqr rkdroj FkkA ,d pwgk mlds mij p<+ x;kA 'ksj us pwgs dks NksM+ fn;kA dqN fnu ckn 'ksj tky esa Qal x;kA pwgs us mldk cpr fd;kA ;gh lPpk O;ogkj gSA lPph lsok dHkh csdkj ugha tkrhA",
+            "xkao esa nks fe= FksA os gj txg lkFk tkrs FksA ,d fnu os taxy ls xqtj jgs FksA ,d Hkkyw vk x;kA ,d fe= isM+ ij p<+ x;kA nwljs us tehu ij yhV x;kA Hkkyw us mls lwaxk vkSj pyy x;kA nwljs fe= us dgk fd lPpk fe= eqlhcr esa dke vkrk gSA ;gh lPpk fe= dk vPNk gSA",
+            "fpfM+;k vius ?kj esa jgrh FkhA og jkst nkuk pqxus tkrh FkhA ,d fnu gok pyhA mldk ?kj fxj x;kA ij us gkj ugha ekuhA mlus u;k ?kj cuk;kA esgur ls lc dqN eqefdu gSA ;gh lPpk O;ogkj gSA esgur ls lc dqN eqefdu gks tkrk gSA",
+            "fo/kok vkSjr vius xkao esa jgrh FkhA mldk csVk taxy ls ydM+h ykdj cktkj esa csprk FkkA ,d fnu ogka mUgsa ,d lar feykA lar I;klk FkkA yM+ds us mUgsa ikuh fiyk;kA lar [kq'k gq,A lPph lsok dHkh csdkj ugha tkrhA ;gh lPpk O;ogkj gSA",
+            "taxy esa cgqr ls tkuoj FksA ,d fnu vkx yx x;hA ,d NksVh fpfM+;k us fgEer fn[kk;hA og ikuh ykdj vkx ij Mkyus yxhA ckdh tkuoj Hkh enn djus yxsA lc us feydj vkx cq>k nhA ,drk esa cgqr cM+h 'kfDr gksrh gSA ;gh lPpk O;ogkj gSA",
+            "O;kikjh cgqr /ku FkkA ij og ?keaMh ugha FkkA og lnk xjhcksa dh enn djrk FkkA ,d fnu uxj esa Hkkjh ck<+ vk;hA mlus lc dks vukt ckaVsA /ku rHkh dke vkrk gS tc og nwljksa ds dke vk,A ;gh lPpk lq[k gSA",
+            "Hkkjr egku gSA ogka ds yksx cgqr esgurh gSaA ge lc dks vius ns'k dk eku djuk pkfg,A ;gh lPpk O;ogkj gSA Hkkjr dh lQyrk cgqr vPNk gSA ogka ds yksx ,d nwljs dh enn djrs gSaA",
+            "esjk fo|k cgqr vPNk gS vkSj eSa mldks eu djrk gwaA og esjk lg;ksx djrk gSA eSa vius fo|k ls cgqr [kq'k gwaA fo|k cgqr vPNk gSA Kku cgqr vPNk gSA tks Kku dk eku djrk gS og lQy gksrk gSA",
+            "ge lc dks Kku pkfg, vkSj vius ns'k dks Iyk cukuk pkfg,A Kku cgqr vPNk gSA tks Kku dk eku djrk gS og lQy gksrk gSA ;gh lPpk gSA Kku ls lc dqN eqefdu gks tkrk gSA",
+            "dk;Z djuk cgqr vPNk gSA tks yksx dke djrs gSa os lQy gksrs gSaA dke ls /ku feyrk gSA dke ls lQyrk feyrh gSA ;gh lPpk O;ogkj gSA dke esgur ls gksrk gSA ;gh lQyrk dk jkt gSA"
+        ];
+
         // Store text arrays in localStorage for admin panel access
         function storeTypingTextsInStorage() {
             const typingTexts = {
@@ -6821,6 +7211,9 @@
 
         // Keyboard Layout
         let currentLayout = localStorage.getItem('keyboardLayout') || 'qwerty';
+
+        // Typing Language ('en' or 'hi')
+        let currentTypingLanguage = localStorage.getItem('typingLanguage') || null;
 
         // Key Practice Mode
         let selectedKeysForPractice = [];
@@ -6957,31 +7350,72 @@
             const levelData = gameLevels[level - 1];
             let baseText;
             let textArray;
-            
-            // Try to get text from localStorage first (for admin edits)
-            const storedTexts = localStorage.getItem('typingTexts');
-            if (storedTexts) {
-                try {
-                    const typingTexts = JSON.parse(storedTexts);
-                    if (level <= 5) {
-                        textArray = typingTexts.homeRowTexts || homeRowTexts;
-                    } else if (level <= 10) {
-                        textArray = typingTexts.topRowTexts || topRowTexts;
-                    } else if (level <= 15) {
-                        textArray = typingTexts.homeTopTexts || homeTopTexts;
-                    } else if (level <= 20) {
-                        textArray = typingTexts.bottomRowTexts || bottomRowTexts;
-                    } else if (level <= 25) {
-                        textArray = typingTexts.shortSentences || shortSentences;
-                    } else if (level <= 50) {
-                        textArray = typingTexts.detailedParagraphs || detailedParagraphs;
-                    } else if (level <= 75) {
-                        textArray = hardStories;
-                    } else {
-                        textArray = expertStories;
+
+            // If Hindi mode, use Hindi text arrays
+            if (currentTypingLanguage === 'hi') {
+                if (level <= 5) {
+                    textArray = hindiHomeRowTexts;
+                } else if (level <= 10) {
+                    textArray = hindiTopRowTexts;
+                } else if (level <= 15) {
+                    textArray = hindiHomeTopTexts;
+                } else if (level <= 20) {
+                    textArray = hindiBottomRowTexts;
+                } else if (level <= 25) {
+                    textArray = hindiShortSentences;
+                } else if (level <= 50) {
+                    textArray = hindiDetailedParagraphs;
+                } else if (level <= 75) {
+                    textArray = hindiHardStories;
+                } else {
+                    textArray = hindiExpertStories;
+                }
+            } else {
+                // English mode: existing logic
+                // Try to get text from localStorage first (for admin edits)
+                const storedTexts = localStorage.getItem('typingTexts');
+                if (storedTexts) {
+                    try {
+                        const typingTexts = JSON.parse(storedTexts);
+                        if (level <= 5) {
+                            textArray = typingTexts.homeRowTexts || homeRowTexts;
+                        } else if (level <= 10) {
+                            textArray = typingTexts.topRowTexts || topRowTexts;
+                        } else if (level <= 15) {
+                            textArray = typingTexts.homeTopTexts || homeTopTexts;
+                        } else if (level <= 20) {
+                            textArray = typingTexts.bottomRowTexts || bottomRowTexts;
+                        } else if (level <= 25) {
+                            textArray = typingTexts.shortSentences || shortSentences;
+                        } else if (level <= 50) {
+                            textArray = typingTexts.detailedParagraphs || detailedParagraphs;
+                        } else if (level <= 75) {
+                            textArray = hardStories;
+                        } else {
+                            textArray = expertStories;
+                        }
+                    } catch (e) {
+                        // Fallback to hardcoded arrays if localStorage is corrupted
+                        if (level <= 5) {
+                            textArray = homeRowTexts;
+                        } else if (level <= 10) {
+                            textArray = topRowTexts;
+                        } else if (level <= 15) {
+                            textArray = homeTopTexts;
+                        } else if (level <= 20) {
+                            textArray = bottomRowTexts;
+                        } else if (level <= 25) {
+                            textArray = shortSentences;
+                        } else if (level <= 50) {
+                            textArray = detailedParagraphs;
+                        } else if (level <= 75) {
+                            textArray = hardStories;
+                        } else {
+                            textArray = expertStories;
+                        }
                     }
-                } catch (e) {
-                    // Fallback to hardcoded arrays if localStorage is corrupted
+                } else {
+                    // Use hardcoded arrays if localStorage not available
                     if (level <= 5) {
                         textArray = homeRowTexts;
                     } else if (level <= 10) {
@@ -7000,35 +7434,17 @@
                         textArray = expertStories;
                     }
                 }
-            } else {
-                // Use hardcoded arrays if localStorage not available
-                if (level <= 5) {
-                    textArray = homeRowTexts;
-                } else if (level <= 10) {
-                    textArray = topRowTexts;
-                } else if (level <= 15) {
-                    textArray = homeTopTexts;
-                } else if (level <= 20) {
-                    textArray = bottomRowTexts;
-                } else if (level <= 25) {
-                    textArray = shortSentences;
-                } else if (level <= 50) {
-                    textArray = detailedParagraphs;
-                } else if (level <= 75) {
-                    textArray = hardStories;
-                } else {
-                    textArray = expertStories;
-                }
             }
             
             // Select text from array (cycle through if needed)
             const textIndex = (level - 1) % textArray.length;
-            baseText = textArray[textIndex];
             
-            // Extend text to match required content length
+            // Extend text to match required content length — cycle through DIFFERENT entries
             let generatedText = '';
+            let entryIdx = 0;
             while (generatedText.length < levelData.contentLength) {
-                generatedText += baseText + ' ';
+                generatedText += textArray[(textIndex + entryIdx) % textArray.length] + ' ';
+                entryIdx++;
             }
             
             // Trim to exact length
@@ -7171,7 +7587,8 @@
             } else {
                 currentLevel = parseInt(levelSelect.value);
                 currentText = generateTextForLevel(currentLevel);
-                document.getElementById('lessonTitle').textContent = `Level ${currentLevel} - ${gameLevels[currentLevel - 1].difficulty}`;
+                const langPrefix = currentTypingLanguage === 'hi' ? '[Hindi] ' : '';
+                document.getElementById('lessonTitle').textContent = `${langPrefix}Level ${currentLevel} - ${gameLevels[currentLevel - 1].difficulty}`;
                 showNewCharIntro(currentLevel);
             }
             
@@ -8205,6 +8622,10 @@
 
         window.addEventListener('DOMContentLoaded', function() {
             initializeLevelSelector();
+            // Apply saved language on initial load
+            if (currentTypingLanguage) {
+                applyTypingLanguage();
+            }
             loadNewText();
             updateXPDisplay();
             updateStreakDisplay();
@@ -8480,6 +8901,136 @@
             setTimeout(updateKeySize, 0);
         }
 
+        // ===================== HINDI LANGUAGE FUNCTIONS =====================
+
+        // Kruti Dev 010 keyboard mapping: English key -> Hindi character (as rendered by the font)
+        // Verified against SIL's official Kruti Dev font mapping (uke=नाम, esjk=मेरा, egku=महान).
+        const krutiDevKeyMap = {
+            // Row 1 (number row)
+            '`': 'ृ', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5',
+            '6': '6', '7': '7', '8': '8', '9': '(', '0': ')', '-': '-', '=': '=',
+            // Row 2 (top row) - mix of consonants and matras (real KD010)
+            'q': 'ु', 'w': 'ू', 'e': 'म', 'r': 'त', 't': 'ज', 'y': 'ल', 'u': 'न', 'i': 'प', 'o': 'व', 'p': 'च',
+            '[': 'ड़', ']': '़', '\\': 'ॉ',
+            // Row 3 (home row)
+            'a': 'ं', 's': 'े', 'd': 'क', 'f': 'ि', 'g': 'ह', 'h': 'ी', 'j': 'र', 'k': 'ा', 'l': 'स', ';': 'य',
+            "'": 'श',
+            // Row 4 (bottom row)
+            'z': '्र', 'x': 'ग', 'c': 'ब', 'v': 'अ', 'b': 'इ', 'n': 'द', 'm': 'उ', ',': 'ए', '.': '.', '/': 'य'
+        };
+
+        // Shifted characters for Kruti Dev 010 (aspirates, capitals, edge chars)
+        const krutiDevShiftMap = {
+            // Row 1 (shifted numbers)
+            '~': 'ऽ', '!': '!', '@': '@', '#': '#', '$': '$', '%': '%',
+            '^': '^', '&': '&', '*': '*', '(': '(', ')': ')', '_': '_', '+': '़',
+            // Row 2 (shifted top row) - mostly half-consonant forms
+            'Q': 'फ', 'W': 'ॅ', 'E': 'म्', 'R': 'त्', 'T': 'ज्', 'Y': 'ल्', 'U': 'न्', 'I': 'प्', 'O': 'व्', 'P': 'च्',
+            '{': 'क्ष', '}': 'त्र', '|': 'ज्ञ',
+            // Row 3 (shifted home row)
+            'A': '।', 'S': 'ै', 'D': 'क्', 'F': 'थ', 'G': 'ळ', 'H': 'भ', 'J': 'श्र', 'K': 'ा', 'L': 'स्', ':': ':',
+            '"': 'श्',
+            // Row 4 (shifted bottom row)
+            'Z': 'र्', 'X': 'ग्', 'C': 'ब्', 'V': 'ट', 'B': 'ठ', 'N': 'छ', 'M': 'ड',
+            '<': 'ढ', '>': 'झ', '?': '?'
+        };
+
+        // Map a base (unshifted) ASCII key to its shifted ASCII key (for non-letters)
+        const asciiShiftMap = {
+            '`': '~', '1': '!', '2': '@', '3': '#', '4': '$', '5': '%', '6': '^', '7': '&',
+            '8': '*', '9': '(', '0': ')', '-': '_', '=': '+', '[': '{', ']': '}', '\\': '|',
+            ';': ':', "'": '"', ',': '<', '.': '>', '/': '?'
+        };
+
+        // Toggle all virtual-keyboard key labels between normal and shift-layer Hindi characters.
+        // Only affects Hindi mode; called on physical Shift keydown/keyup.
+        function setKeyboardShiftLabels(showShift) {
+            if (currentTypingLanguage !== 'hi') return;
+            const keyboard = document.querySelector('.keyboard');
+            if (!keyboard) return;
+            const specialKeySelectors = '.tab, .caps, .shift, .enter, .backspace, .ctrl-key, .win-key, .alt-key, .space';
+            const keys = keyboard.querySelectorAll('.key:not(' + specialKeySelectors + ')');
+            keys.forEach(key => {
+                const baseKey = key.dataset.key;
+                if (!baseKey) return;
+                const enLabel = baseKey.length === 1 ? baseKey.toUpperCase() : baseKey;
+                if (showShift) {
+                    const shiftKey = asciiShiftMap[baseKey] || (baseKey.length === 1 ? baseKey.toUpperCase() : baseKey);
+                    const shiftChar = krutiDevShiftMap[shiftKey];
+                    if (shiftChar) {
+                        key.innerHTML = '<span class="key-en">' + enLabel + '</span><span class="key-hi">' + shiftChar + '</span>';
+                        key.classList.add('hindi-label');
+                    }
+                } else {
+                    const normalChar = krutiDevKeyMap[baseKey];
+                    if (normalChar) {
+                        key.innerHTML = '<span class="key-en">' + enLabel + '</span><span class="key-hi">' + normalChar + '</span>';
+                        key.classList.add('hindi-label');
+                    }
+                }
+            });
+        }
+
+        function selectTypingLanguage(lang) {
+            currentTypingLanguage = lang;
+            localStorage.setItem('typingLanguage', lang);
+            const modal = document.getElementById('langSelectModal');
+            if (modal) modal.style.display = 'none';
+            applyTypingLanguage();
+            // After language selection, proceed to login check
+            proceedAfterLanguageSelect();
+        }
+
+        function applyTypingLanguage() {
+            const langSwitchBtn = document.getElementById('langSwitchBtn');
+            const langSwitchLabel = document.getElementById('langSwitchLabel');
+
+            if (currentTypingLanguage === 'hi') {
+                document.body.classList.add('hindi-mode');
+                if (langSwitchBtn) langSwitchBtn.classList.add('hindi-active');
+                if (langSwitchLabel) langSwitchLabel.textContent = 'HI';
+            } else {
+                document.body.classList.remove('hindi-mode');
+                if (langSwitchBtn) langSwitchBtn.classList.remove('hindi-active');
+                if (langSwitchLabel) langSwitchLabel.textContent = 'EN';
+            }
+            updateKeyboardLayout();
+            updateKeySize();
+        }
+
+        function toggleTypingLanguage() {
+            if (currentTypingLanguage === 'hi') {
+                currentTypingLanguage = 'en';
+            } else {
+                currentTypingLanguage = 'hi';
+            }
+            localStorage.setItem('typingLanguage', currentTypingLanguage);
+            applyTypingLanguage();
+            loadNewText();
+        }
+
+        function openLanguageSelectModal() {
+            const modal = document.getElementById('langSelectModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function proceedAfterLanguageSelect() {
+            // Check if user is logged in, if not show login modal
+            const storedUser = localStorage.getItem('currentUser');
+            if (!storedUser) {
+                openUserLoginModal();
+            } else {
+                currentUser = storedUser;
+                loadUserData();
+                updateUserDisplay();
+                showQuoteModal('welcome', function() {
+                    setTimeout(function() {
+                        openDailyChallengeModal();
+                    }, 300);
+                });
+            }
+        }
+
         function updateKeyboardLayout() {
             const keyboard = document.querySelector('.keyboard');
             if (!keyboard) return;
@@ -8517,6 +9068,7 @@
 
             const currentLayoutData = layouts[currentLayout];
             const currentFingerClasses = fingerClasses[currentLayout];
+            const isHindi = currentTypingLanguage === 'hi';
 
             // Update keyboard rows (skip special keys that shouldn't be remapped)
             const specialKeySelectors = '.tab, .caps, .shift, .enter, .backspace, .ctrl-key, .win-key, .alt-key, .space';
@@ -8526,10 +9078,18 @@
                 keys.forEach((key, keyIndex) => {
                     if (currentLayoutData[rowIndex] && currentLayoutData[rowIndex][keyIndex]) {
                         const keyValue = currentLayoutData[rowIndex][keyIndex];
-                        key.textContent = keyValue.length === 1 ? keyValue.toUpperCase() : keyValue;
                         key.dataset.key = keyValue;
+                        // Set label: dual English+Hindi or English only
+                        if (isHindi && krutiDevKeyMap[keyValue]) {
+                            const enLabel = keyValue.length === 1 ? keyValue.toUpperCase() : keyValue;
+                            key.innerHTML = '<span class="key-en">' + enLabel + '</span><span class="key-hi">' + krutiDevKeyMap[keyValue] + '</span>';
+                            key.classList.add('hindi-label');
+                        } else {
+                            key.textContent = keyValue.length === 1 ? keyValue.toUpperCase() : keyValue;
+                            key.classList.remove('hindi-label');
+                        }
                         // Remove old finger classes
-                        key.className = 'key';
+                        key.className = 'key' + (isHindi && krutiDevKeyMap[keyValue] ? ' hindi-label' : '');
                         // Add new finger class
                         if (currentFingerClasses[rowIndex] && currentFingerClasses[rowIndex][keyIndex]) {
                             key.classList.add(currentFingerClasses[rowIndex][keyIndex]);
@@ -10347,10 +10907,20 @@
         // Keyboard visualization with ripple effect
         document.addEventListener('keydown', function(e) {
             const key = e.key;
+
+            // When Shift is held in Hindi mode, show every key's shift-layer character
+            if (key === 'Shift') {
+                setKeyboardShiftLabels(true);
+            }
+
             const lookupChar = getBaseKey(key);
-            const keyElement = document.querySelector(`[data-key="${lookupChar}"]`) || document.querySelector(`[data-key="${key}"]`);
-            
-            if (keyElement) {
+            // Highlight ALL matching keys (e.g. both Shift keys), not just the first one
+            let keyElements = document.querySelectorAll(`[data-key="${lookupChar}"]`);
+            if (keyElements.length === 0) {
+                keyElements = document.querySelectorAll(`[data-key="${key}"]`);
+            }
+
+            keyElements.forEach(keyElement => {
                 keyElement.classList.add('active');
                 setTimeout(() => keyElement.classList.remove('active'), 120);
 
@@ -10364,7 +10934,19 @@
                 ripple.style.top = (rect.height / 2 - size / 2) + 'px';
                 keyElement.appendChild(ripple);
                 setTimeout(() => ripple.remove(), 500);
+            });
+        });
+
+        // Revert Hindi keyboard labels to the normal layer when Shift is released
+        document.addEventListener('keyup', function(e) {
+            if (e.key === 'Shift') {
+                setKeyboardShiftLabels(false);
             }
+        });
+
+        // Safety: if the window loses focus while Shift is held, revert labels
+        window.addEventListener('blur', function() {
+            setKeyboardShiftLabels(false);
         });
 
         // Initialize
@@ -10373,22 +10955,17 @@
             setTimeout(() => {
                 document.getElementById('splashScreen').classList.add('hidden');
 
-                // Check if user is logged in, if not show login modal
-                const storedUser = localStorage.getItem('currentUser');
-                if (!storedUser) {
-                    openUserLoginModal();
-                } else {
-                    // Set current user and load data
-                    currentUser = storedUser;
-                    loadUserData();
-                    updateUserDisplay();
+                // Check if language selection should be forced (from homepage click)
+                const urlParams = new URLSearchParams(window.location.search);
+                const forceLangSelect = urlParams.get('selectLang') === 'true';
 
-                    // Show daily challenge after welcome quote for returning users
-                    showQuoteModal('welcome', function() {
-                        setTimeout(function() {
-                            openDailyChallengeModal();
-                        }, 300);
-                    });
+                if (!currentTypingLanguage || forceLangSelect) {
+                    // Show language selection modal first
+                    openLanguageSelectModal();
+                } else {
+                    // Language already selected, apply it and proceed to login
+                    applyTypingLanguage();
+                    proceedAfterLanguageSelect();
                 }
             }, 2500);
 
