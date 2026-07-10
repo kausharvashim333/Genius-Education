@@ -4891,7 +4891,7 @@
 
             .keyboard-wrapper {
                 --kb-width-offset: 380px;
-                --kb-max-size: 56px;
+                --kb-max-size: 64px;
                 padding: 18px 22px;
             }
 
@@ -4920,7 +4920,7 @@
 
             .keyboard-wrapper {
                 --kb-width-offset: 90px;
-                --kb-max-size: 42px;
+                --kb-max-size: 52px;
                 padding: 14px 16px;
                 border-radius: 16px;
             }
@@ -4987,7 +4987,7 @@
 
             .keyboard-wrapper {
                 --kb-width-offset: 60px;
-                --kb-max-size: 30px;
+                --kb-max-size: 38px;
                 padding: 10px 10px;
                 border-radius: 14px;
             }
@@ -5069,7 +5069,7 @@
             }
             .keyboard-wrapper {
                 --kb-height-offset: 320px;
-                --kb-max-size: 48px;
+                --kb-max-size: 60px;
                 padding: 12px 15px;
                 border-radius: 14px;
             }
@@ -5108,7 +5108,7 @@
             }
             .keyboard-wrapper {
                 --kb-height-offset: 280px;
-                --kb-max-size: 36px;
+                --kb-max-size: 48px;
                 padding: 8px 10px;
                 border-radius: 10px;
             }
@@ -9234,11 +9234,24 @@
             const numpad = document.querySelector('.numpad');
             const numpadVisible = isNumpadVisible && numpad && getComputedStyle(numpad).display !== 'none';
 
-            const totalKeys = numpadVisible ? 20 : 16;
-            const totalGaps = numpadVisible ? 20.5 : 14;
-            const extraBorder = numpadVisible ? 1 : 0;
+            // Calculate key size based on main keyboard only (16 keys + 14 gaps)
+            // so numpad doesn't shrink the main keyboard
+            const mainKeys = 16;
+            const mainGaps = 14;
             const gapRatio = 0.09;
-            let ksFromWidth = (availWidth - kwPaddingH - extraBorder) / (totalKeys + totalGaps * gapRatio);
+            let ksFromWidth = (availWidth - kwPaddingH) / (mainKeys + mainGaps * gapRatio);
+
+            // If numpad is visible, check if combined width fits; if not, scale down proportionally
+            if (numpadVisible) {
+                const numpadKeys = 4;
+                const numpadGaps = 6.5; // 3 gaps + wrapper gap + divider padding (3.5 * gap)
+                const extraBorder = 1;
+                const totalKeys = mainKeys + numpadKeys;
+                const totalGaps = mainGaps + numpadGaps;
+                let ksFromFullWidth = (availWidth - kwPaddingH - extraBorder) / (totalKeys + totalGaps * gapRatio);
+                // Use the smaller of main-only and full-width to ensure everything fits
+                ksFromWidth = Math.min(ksFromWidth, ksFromFullWidth);
+            }
 
             // Calculate key-size from available height
             const taStyle = getComputedStyle(typingArea);
