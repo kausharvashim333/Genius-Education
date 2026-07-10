@@ -9115,7 +9115,6 @@
             if (isTyping) {
                 isTyping = false;
                 typingInput.disabled = true;
-                startBtn.disabled = false;
                 
                 if (timerInterval) {
                     clearTimeout(timerInterval);
@@ -9850,6 +9849,15 @@
         }
 
         function getRandomStoryText() {
+            if (currentTypingLanguage === 'hi') {
+                const hindiStories = [
+                    ...hindiShortSentences,
+                    ...hindiDetailedParagraphs,
+                    ...hindiHardStories,
+                    ...hindiExpertStories
+                ];
+                return hindiStories[Math.floor(Math.random() * hindiStories.length)];
+            }
             const allStories = [
                 ...shortSentences,
                 ...detailedParagraphs,
@@ -10330,6 +10338,90 @@
             }
         ];
 
+        // Hindi Warm-up Exercises (Kruti Dev 010)
+        const hindiWarmupExercises = [
+            {
+                id: 'home-row',
+                icon: '⌨️',
+                title: 'Home Row — होम रो',
+                description: 'होम रो कुंजी का अभ्यास करें (ASDF JKL;)',
+                duration: '1 minute',
+                text: 'asdf jkl; asdf jkl; asdf jkl; asdf jkl; asdf jkl; asdf jkl; asdf jkl; asdf jkl;'
+            },
+            {
+                id: 'top-row',
+                icon: '🔝',
+                title: 'Top Row — टॉप रो',
+                description: 'टॉप रो कुंजी का अभ्यास करें (QWERTY UIOP)',
+                duration: '1 minute',
+                text: 'qwer tyui op qwer tyui op qwer tyui op qwer tyui op qwer tyui op qwer tyui op'
+            },
+            {
+                id: 'bottom-row',
+                icon: '⬇️',
+                title: 'Bottom Row — बॉटम रो',
+                description: 'बॉटम रो कुंजी का अभ्यास करें (ZXCVBNM)',
+                duration: '1 minute',
+                text: 'zxcv bnm zxcv bnm zxcv bnm zxcv bnm zxcv bnm zxcv bnm zxcv bnm zxcv bnm'
+            },
+            {
+                id: 'short-sentences',
+                icon: '📝',
+                title: 'Short Sentences — छोटे वाक्य',
+                description: 'रोजमर्रा के हिंदी वाक्यों का अभ्यास करें',
+                duration: '2 minutes',
+                text: hindiShortSentences[0] + ' ' + hindiShortSentences[1] + ' ' + hindiShortSentences[2] + ' ' + hindiShortSentences[3] + ' ' + hindiShortSentences[4]
+            },
+            {
+                id: 'story-1',
+                icon: '📖',
+                title: 'Story — ईमानदार राजा',
+                description: 'एक ईमानदार राजा की कहानी पर टाइपिंग अभ्यास',
+                duration: '3 minutes',
+                text: hindiHardStories[6]
+            },
+            {
+                id: 'story-2',
+                icon: '📖',
+                title: 'Story — धैर्यवान किसान',
+                description: 'एक किसान और उसकी मेहनत की कहानी',
+                duration: '3 minutes',
+                text: hindiHardStories[2]
+            },
+            {
+                id: 'story-3',
+                icon: '📖',
+                title: 'Story — चींटी और कबूतर',
+                description: 'चींटी और कबूतर की प्रेरणादायक कहानी',
+                duration: '3 minutes',
+                text: hindiHardStories[8]
+            },
+            {
+                id: 'story-4',
+                icon: '📖',
+                title: 'Story — एकता की शक्ति',
+                description: 'एकता में बल है — कहानी पर टाइपिंग',
+                duration: '3 minutes',
+                text: hindiHardStories[12]
+            },
+            {
+                id: 'paragraph-1',
+                icon: '📄',
+                title: 'Paragraph — ज्ञान और विवेक',
+                description: 'ज्ञान और विवेक पर एक अनुच्छेद',
+                duration: '2 minutes',
+                text: hindiDetailedParagraphs[1]
+            },
+            {
+                id: 'paragraph-2',
+                icon: '📄',
+                title: 'Paragraph — देश प्रेम',
+                description: 'देश के प्रति प्रेम पर एक अनुच्छेद',
+                duration: '2 minutes',
+                text: hindiDetailedParagraphs[2]
+            }
+        ];
+
         function openWarmupModal() {
             document.getElementById('warmupModal').style.display = 'flex';
             renderWarmupExercises();
@@ -10341,7 +10433,8 @@
 
         function renderWarmupExercises() {
             const container = document.getElementById('warmupExercises');
-            container.innerHTML = warmupExercises.map(exercise => `
+            const exercises = currentTypingLanguage === 'hi' ? hindiWarmupExercises : warmupExercises;
+            container.innerHTML = exercises.map(exercise => `
                 <div class="warmup-card" onclick="startWarmupExercise('${exercise.id}')">
                     <div class="warmup-card-icon">${exercise.icon}</div>
                     <div class="warmup-card-title">${exercise.title}</div>
@@ -10352,7 +10445,8 @@
         }
 
         function startWarmupExercise(exerciseId) {
-            const exercise = warmupExercises.find(e => e.id === exerciseId);
+            const exercises = currentTypingLanguage === 'hi' ? hindiWarmupExercises : warmupExercises;
+            const exercise = exercises.find(e => e.id === exerciseId);
             if (exercise) {
                 resetTyping();
                 currentText = exercise.text;
@@ -10361,6 +10455,7 @@
                 isCustomMode = true;
                 customModeDuration = mins * 60;
 
+                typingInput.disabled = false;
                 updateDisplay();
                 closeWarmupModal();
                 startTyping();
@@ -11269,7 +11364,9 @@
             '\u201C': '"',   // " (left double quote) → "
             '\u201D': '"',   // " (right double quote) → "
             '\u2026': '...', // … (ellipsis) → ...
-            '\u00A0': ' '    // (non-breaking space) → (space)
+            '\u00A0': ' ',   // (non-breaking space) → (space)
+            '\u00E8': 'e',   // è → e (Kruti Dev 010 compatibility)
+            '\u00E9': 'e'    // é → e (Kruti Dev 010 compatibility)
         };
 
         function normalizeChar(char) {
@@ -11397,44 +11494,43 @@
             const typed = currentText.substring(0, currentIndex);
             const remaining = currentText.substring(currentIndex);
             
-            // Wrap text into lines of reasonable length (80 characters)
-            const words = currentText.split(' ');
+            // Wrap text into lines of ~80 characters, breaking at spaces
+            // Preserve original character positions for accurate highlighting
+            const maxLineLength = 80;
             const lines = [];
-            let currentLine = '';
-            
-            for (const word of words) {
-                if ((currentLine + ' ' + word).trim().length > 80) {
-                    if (currentLine.trim()) {
-                        lines.push(currentLine.trim());
-                    }
-                    currentLine = word;
+            let lineStarts = [];
+            let pos = 0;
+
+            while (pos < currentText.length) {
+                let end = pos + maxLineLength;
+                if (end >= currentText.length) {
+                    lines.push(currentText.substring(pos));
+                    lineStarts.push(pos);
+                    break;
+                }
+                // Find the last space at or before end
+                let breakPos = currentText.lastIndexOf(' ', end);
+                if (breakPos <= pos) {
+                    // No space found after pos, break at maxLineLength
+                    breakPos = end;
+                    lines.push(currentText.substring(pos, breakPos));
+                    lineStarts.push(pos);
+                    pos = breakPos;
                 } else {
-                    currentLine += (currentLine ? ' ' : '') + word;
+                    // Include the space at breakPos in this line
+                    let lineEnd = breakPos + 1;
+                    lines.push(currentText.substring(pos, lineEnd));
+                    lineStarts.push(pos);
+                    pos = lineEnd;
                 }
             }
-            if (currentLine.trim()) {
-                lines.push(currentLine.trim());
-            }
-            
-            // Append trailing space to all lines except the last one to represent the space between lines
-            for (let i = 0; i < lines.length - 1; i++) {
-                lines[i] += ' ';
-            }
 
-            // Calculate which line we're on based on wrapped text
-            let charCount = 0;
+            // Calculate which line we're on based on original text positions
             let currentLineIndex = 0;
-            let lineCharCounts = [];
             
             for (let i = 0; i < lines.length; i++) {
-                lineCharCounts.push(charCount);
-                charCount += lines[i].length;
-            }
-            
-            // Find current line based on wrapped text
-            for (let i = 0; i < lines.length; i++) {
-                const lineStart = lineCharCounts[i];
-                const lineEnd = lineStart + lines[i].length;
+                const lineStart = lineStarts[i];
+                const lineEnd = (i < lines.length - 1) ? lineStarts[i + 1] : currentText.length;
                 if (currentIndex >= lineStart && currentIndex < lineEnd) {
                     currentLineIndex = i;
                     break;
@@ -11454,7 +11550,7 @@
                 }
                 
                 const line = lines[i];
-                const lineStart = lineCharCounts[i];
+                const lineStart = lineStarts[i];
                 
                 let lineClass = 'text-line';
                 if (i < currentLineIndex) {
