@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kruti Dev Keyboard Grid</title>
+    <style>
+        @font-face {
+            font-family: 'Kruti Dev 010';
+            src: url('https://db.onlinewebfonts.com/t/a69b5b3fc8384265aa52523629365ffb.eot');
+            src: url('https://db.onlinewebfonts.com/t/a69b5b3fc8384265aa52523629365ffb.eot?#iefix') format('embedded-opentype'),
+                 url('https://db.onlinewebfonts.com/t/a69b5b3fc8384265aa52523629365ffb.woff2') format('woff2'),
+                 url('https://db.onlinewebfonts.com/t/a69b5b3fc8384265aa52523629365ffb.woff') format('woff'),
+                 url('https://db.onlinewebfonts.com/t/a69b5b3fc8384265aa52523629365ffb.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body {
+            font-family: sans-serif;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 1100px;
+        }
+        h2 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #f5c2e7;
+        }
+        .keyboard-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            background: #313244;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .row {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+        .key-box {
+            width: 70px;
+            height: 70px;
+            background: #181825;
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        .en-label {
+            font-size: 11px;
+            color: #a6adc8;
+            font-weight: bold;
+        }
+        .hi-label {
+            font-family: 'Kruti Dev 010', monospace;
+            font-size: 28px;
+            align-self: center;
+            color: #f9e2af;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Normal (Unshifted) Keyboard Grid (renders with Kruti Dev 010)</h2>
+        <div class="keyboard-grid" id="normal-keyboard"></div>
+
+        <h2>Shifted Keyboard Grid (renders with Kruti Dev 010)</h2>
+        <div class="keyboard-grid" id="shift-keyboard"></div>
+    </div>
+
+    <script>
+        const normalRows = [
+            ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='],
+            ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
+            ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', "'"],
+            ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/']
+        ];
+
+        const shiftRows = [
+            ['~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+'],
+            ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '|'],
+            ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"'],
+            ['Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?']
+        ];
+
+        function buildKeyboard(rows, containerId) {
+            const container = document.getElementById(containerId);
+            rows.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'row';
+                row.forEach(key => {
+                    const keyBox = document.createElement('div');
+                    keyBox.className = 'key-box';
+                    
+                    const enSpan = document.createElement('span');
+                    enSpan.className = 'en-label';
+                    enSpan.textContent = key;
+                    
+                    const hiSpan = document.createElement('span');
+                    hiSpan.className = 'hi-label';
+                    hiSpan.textContent = key; // Font-family will render it as Hindi
+                    
+                    keyBox.appendChild(enSpan);
+                    keyBox.appendChild(hiSpan);
+                    rowDiv.appendChild(keyBox);
+                });
+                container.appendChild(rowDiv);
+            });
+        }
+
+        buildKeyboard(normalRows, 'normal-keyboard');
+        buildKeyboard(shiftRows, 'shift-keyboard');
+    </script>
+</body>
+</html>

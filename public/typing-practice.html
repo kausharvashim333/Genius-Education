@@ -463,7 +463,7 @@
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
-            padding: 20px 30px;
+            padding: 18px 25px;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
@@ -483,17 +483,18 @@
             text-align: left;
             max-width: 100%;
             width: 100%;
-            padding: 10px;
+            padding: 12px 14px;
             background: transparent;
             border-radius: 12px;
-            min-height: 80px;
+            min-height: 120px;
             display: flex;
             flex-direction: column;
             gap: 10px;
             overflow-wrap: break-word;
             word-wrap: break-word;
-            flex: 1 1 80px;
+            flex: 1 1 120px;
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .text-line {
@@ -621,8 +622,8 @@
 
         /* Keyboard Section */
         .keyboard-section {
-            margin-top: 45px;
-            padding-top: 8px;
+            margin-top: 20px;
+            padding-top: 6px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             width: 100%;
             max-width: 100%;
@@ -737,12 +738,16 @@
         }
 
         .keyboard {
-            --key-size: 52px;
+            --kb-width-offset: 420px;
+            --kb-height-offset: 380px;
+            --kb-max-size: 78px;
+            --key-size: min(var(--kb-max-size), calc((100vw - var(--kb-width-offset)) / 16), calc((100vh - var(--kb-height-offset)) / 5));
+            --key-gap: clamp(3px, calc(var(--key-size) * 0.09), 8px);
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: var(--key-gap);
             width: 100%;
-            max-width: 920px;
+            max-width: calc(15 * var(--key-size) + 14 * var(--key-gap) + 42px);
             margin: 0 auto;
             align-items: center;
             background: linear-gradient(135deg, rgba(35, 35, 50, 0.95), rgba(20, 20, 30, 0.98));
@@ -759,8 +764,6 @@
             overflow: visible;
             flex-shrink: 0;
             position: relative;
-            width: 100%;
-            max-width: 100%;
             box-sizing: border-box;
         }
 
@@ -778,7 +781,7 @@
 
         .keyboard-row {
             display: flex;
-            gap: 5px;
+            gap: var(--key-gap);
             justify-content: center;
             width: 100%;
             align-items: stretch;
@@ -788,9 +791,8 @@
         /* --key-size controls regular key dimensions (square); special keys stretch to same height */
 
         .key {
-            flex: 1 1 0;
-            min-width: 0;
-            max-width: none;
+            flex: 0 0 var(--key-size);
+            width: var(--key-size);
             height: var(--key-size);
             background: linear-gradient(180deg, rgba(65, 65, 82, 0.9), rgba(38, 38, 52, 0.95));
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -810,6 +812,7 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.18),
                 inset 0 -2px 4px rgba(0, 0, 0, 0.15);
             overflow: hidden;
+            box-sizing: border-box;
         }
 
         .key::before {
@@ -927,15 +930,15 @@
         }
 
         /* Special keys: wider flex-grow, same height as regular keys */
-        .key.space    { flex-grow: 6.5; }
-        .key.shift    { flex-grow: 2.5; }
-        .key.caps     { flex-grow: 1.75; }
-        .key.tab      { flex-grow: 2; }
-        .key.enter    { flex-grow: 2.25; }
-        .key.backspace{ flex-grow: 2; }
-        .key.win-key  { flex-grow: 1.25; font-size: 13px; }
-        .key.alt-key  { flex-grow: 1.25; }
-        .key.ctrl-key { flex-grow: 1.25; }
+        .key.space    { flex: 0 0 calc(6.25 * var(--key-size) + 5.25 * var(--key-gap)); width: calc(6.25 * var(--key-size) + 5.25 * var(--key-gap)); }
+        .key.shift    { flex: 0 0 calc(2.5 * var(--key-size) + 1.5 * var(--key-gap)); width: calc(2.5 * var(--key-size) + 1.5 * var(--key-gap)); }
+        .key.caps     { flex: 0 0 calc(1.75 * var(--key-size) + 0.75 * var(--key-gap)); width: calc(1.75 * var(--key-size) + 0.75 * var(--key-gap)); }
+        .key.tab      { flex: 0 0 calc(2 * var(--key-size) + 1 * var(--key-gap)); width: calc(2 * var(--key-size) + 1 * var(--key-gap)); }
+        .key.enter    { flex: 0 0 calc(2.25 * var(--key-size) + 1.25 * var(--key-gap)); width: calc(2.25 * var(--key-size) + 1.25 * var(--key-gap)); }
+        .key.backspace{ flex: 0 0 calc(2 * var(--key-size) + 1 * var(--key-gap)); width: calc(2 * var(--key-size) + 1 * var(--key-gap)); }
+        .key.win-key  { flex: 0 0 calc(1.25 * var(--key-size) + 0.25 * var(--key-gap)); width: calc(1.25 * var(--key-size) + 0.25 * var(--key-gap)); font-size: 13px; }
+        .key.alt-key  { flex: 0 0 calc(1.25 * var(--key-size) + 0.25 * var(--key-gap)); width: calc(1.25 * var(--key-size) + 0.25 * var(--key-gap)); }
+        .key.ctrl-key { flex: 0 0 calc(1.25 * var(--key-size) + 0.25 * var(--key-gap)); width: calc(1.25 * var(--key-size) + 0.25 * var(--key-gap)); }
 
         /* Finger guide legend */
         .finger-legend {
@@ -4797,6 +4800,8 @@
             }
 
             .keyboard {
+                --kb-width-offset: 380px;
+                --kb-max-size: 62px;
                 padding: 18px 22px;
             }
 
@@ -4824,13 +4829,14 @@
             }
 
             .keyboard {
+                --kb-width-offset: 90px;
+                --kb-max-size: 46px;
                 padding: 14px 16px;
-                gap: 6px;
                 border-radius: 16px;
             }
 
             .keyboard-row {
-                gap: 6px;
+                gap: var(--key-gap);
             }
 
             .key {
@@ -4890,13 +4896,14 @@
             }
 
             .keyboard {
+                --kb-width-offset: 60px;
+                --kb-max-size: 30px;
                 padding: 10px 10px;
-                gap: 4px;
                 border-radius: 14px;
             }
 
             .keyboard-row {
-                gap: 4px;
+                gap: var(--key-gap);
             }
 
             .key {
@@ -4963,15 +4970,23 @@
             }
             .text-display {
                 font-size: 16px;
-                min-height: 70px;
-                flex: 1 1 70px;
+                min-height: 100px;
+                flex: 1 1 100px;
             }
             .keyboard-section {
-                margin-top: 15px;
-                padding-top: 6px;
+                margin-top: 12px;
+                padding-top: 4px;
+            }
+            .keyboard {
+                --kb-height-offset: 320px;
+                --kb-max-size: 48px;
+                padding: 12px 15px;
+                border-radius: 14px;
+            }
+            .keyboard-row {
+                gap: var(--key-gap);
             }
             .key {
-                height: 40px;
                 font-size: 13px;
                 border-radius: 8px;
             }
@@ -4979,14 +4994,6 @@
                 padding: 6px 12px;
                 font-size: 12px;
                 margin-bottom: 6px;
-            }
-            .keyboard {
-                padding: 12px 15px;
-                border-radius: 14px;
-                gap: 5px;
-            }
-            .keyboard-row {
-                gap: 4px;
             }
         }
 
@@ -5000,17 +5007,25 @@
             }
             .text-display {
                 font-size: 15px;
-                min-height: 55px;
-                flex: 1 1 55px;
+                min-height: 80px;
+                flex: 1 1 80px;
                 line-height: 1.4;
                 padding: 6px 10px;
             }
             .keyboard-section {
-                margin-top: 10px;
+                margin-top: 8px;
                 padding-top: 4px;
             }
+            .keyboard {
+                --kb-height-offset: 280px;
+                --kb-max-size: 34px;
+                padding: 8px 10px;
+                border-radius: 10px;
+            }
+            .keyboard-row {
+                gap: var(--key-gap);
+            }
             .key {
-                height: 32px;
                 font-size: 11px;
                 border-radius: 6px;
             }
@@ -5018,14 +5033,6 @@
                 padding: 4px 8px;
                 font-size: 11px;
                 margin-bottom: 4px;
-            }
-            .keyboard {
-                padding: 8px 10px;
-                border-radius: 10px;
-                gap: 4px;
-            }
-            .keyboard-row {
-                gap: 3px;
             }
         }
         /* Kruti Dev 010 Font for Hindi Typing */
@@ -5185,24 +5192,24 @@
 
         .key .key-en {
             position: absolute;
-            top: 2px;
-            left: 4px;
-            font-size: 9px;
-            color: rgba(255, 255, 255, 0.4);
+            top: 4px;
+            left: 5px;
+            font-size: 11.5px;
+            color: rgba(255, 255, 255, 0.6);
             font-family: 'Segoe UI', Tahoma, sans-serif;
-            font-weight: 600;
+            font-weight: 700;
             line-height: 1;
         }
 
         .key .key-hi {
-            font-family: 'Kruti Dev 010', monospace;
-            font-size: 16px;
+            font-family: 'Noto Sans Devanagari', 'Mangal', 'Kokila', 'Arial Unicode MS', sans-serif;
+            font-size: 20px;
             line-height: 1;
-            margin-top: 4px;
+            margin-top: 6px;
         }
 
         body.light-theme .key .key-en {
-            color: rgba(0, 0, 0, 0.4);
+            color: rgba(0, 0, 0, 0.6);
         }
 
         body.light-theme .lang-select-content {
@@ -8791,24 +8798,7 @@
         }
 
         function updateKeySize() {
-            const keyboard = document.querySelector('.keyboard');
-            if (!keyboard) return;
-
-            // Temporarily reset --key-size to auto so we can measure natural width
-            keyboard.style.setProperty('--key-size', 'auto');
-
-            // Find a regular (non-special) key in the first row to measure its width
-            const firstRow = keyboard.querySelector('.keyboard-row');
-            if (!firstRow) return;
-
-            const regularKey = firstRow.querySelector('.key:not(.space):not(.shift):not(.caps):not(.tab):not(.enter):not(.backspace):not(.win-key):not(.alt-key):not(.ctrl-key)');
-            if (!regularKey) return;
-
-            // Measure the rendered width
-            const keyWidth = regularKey.getBoundingClientRect().width;
-            if (keyWidth > 0) {
-                keyboard.style.setProperty('--key-size', keyWidth + 'px');
-            }
+            // Sizing is now handled robustly and responsively via CSS custom properties and math
         }
 
         function toggleHighlight() {
@@ -8908,31 +8898,31 @@
         const krutiDevKeyMap = {
             // Row 1 (number row)
             '`': 'ृ', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5',
-            '6': '6', '7': '7', '8': '8', '9': '(', '0': ')', '-': '-', '=': '=',
+            '6': '6', '7': '7', '8': '8', '9': '9', '0': '0', '-': '.', '=': 'त्र',
             // Row 2 (top row) - mix of consonants and matras (real KD010)
             'q': 'ु', 'w': 'ू', 'e': 'म', 'r': 'त', 't': 'ज', 'y': 'ल', 'u': 'न', 'i': 'प', 'o': 'व', 'p': 'च',
-            '[': 'ड़', ']': '़', '\\': 'ॉ',
+            '[': 'ख्', ']': ',', '\\': '?',
             // Row 3 (home row)
             'a': 'ं', 's': 'े', 'd': 'क', 'f': 'ि', 'g': 'ह', 'h': 'ी', 'j': 'र', 'k': 'ा', 'l': 'स', ';': 'य',
             "'": 'श',
             // Row 4 (bottom row)
-            'z': '्र', 'x': 'ग', 'c': 'ब', 'v': 'अ', 'b': 'इ', 'n': 'द', 'm': 'उ', ',': 'ए', '.': '.', '/': 'य'
+            'z': '्र', 'x': 'ग', 'c': 'ब', 'v': 'अ', 'b': 'इ', 'n': 'द', 'm': 'उ', ',': 'ए', '.': 'ण्', '/': 'ध'
         };
 
         // Shifted characters for Kruti Dev 010 (aspirates, capitals, edge chars)
         const krutiDevShiftMap = {
             // Row 1 (shifted numbers)
-            '~': 'ऽ', '!': '!', '@': '@', '#': '#', '$': '$', '%': '%',
-            '^': '^', '&': '&', '*': '*', '(': '(', ')': ')', '_': '_', '+': '़',
+            '~': 'ँ', '!': '!', '@': '/', '#': 'रु', '$': '+', '%': ':',
+            '^': '‘', '&': '-', '*': '’', '(': ';', ')': 'द्ध', '_': 'ऋ', '+': 'ऑ',
             // Row 2 (shifted top row) - mostly half-consonant forms
             'Q': 'फ', 'W': 'ॅ', 'E': 'म्', 'R': 'त्', 'T': 'ज्', 'Y': 'ल्', 'U': 'न्', 'I': 'प्', 'O': 'व्', 'P': 'च्',
-            '{': 'क्ष', '}': 'त्र', '|': 'ज्ञ',
+            '{': 'क्ष', '}': 'द्व', '|': 'द्य',
             // Row 3 (shifted home row)
-            'A': '।', 'S': 'ै', 'D': 'क्', 'F': 'थ', 'G': 'ळ', 'H': 'भ', 'J': 'श्र', 'K': 'ा', 'L': 'स्', ':': ':',
-            '"': 'श्',
+            'A': '|', 'S': 'ै', 'D': 'क्', 'F': 'थ', 'G': 'ळ', 'H': 'भ', 'J': 'श्र', 'K': 'ज्ञ', 'L': 'स्', ':': 'रू',
+            '"': 'ष्',
             // Row 4 (shifted bottom row)
-            'Z': 'र्', 'X': 'ग्', 'C': 'ब्', 'V': 'ट', 'B': 'ठ', 'N': 'छ', 'M': 'ड',
-            '<': 'ढ', '>': 'झ', '?': '?'
+            'Z': 'र', 'X': 'ग्', 'C': 'ब्', 'V': 'ट', 'B': 'ठ', 'N': 'छ', 'M': 'ड',
+            '<': 'ढ', '>': 'झ', '?': 'घ'
         };
 
         // Map a base (unshifted) ASCII key to its shifted ASCII key (for non-letters)
