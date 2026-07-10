@@ -8,6 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -287,8 +289,8 @@
             background: rgba(30, 30, 50, 0.95);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 8px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 6px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -304,17 +306,17 @@
         }
 
         .back-btn {
-            background: rgba(102, 126, 234, 0.2);
-            border: 1px solid rgba(102, 126, 234, 0.4);
-            color: #e0e0e0;
-            padding: 6px 10px;
+            background: rgba(102, 126, 234, 0.15);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #c0c0d0;
+            padding: 5px 8px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 11px;
             display: flex;
             align-items: center;
             gap: 4px;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             white-space: nowrap;
         }
 
@@ -323,15 +325,15 @@
         }
 
         .app-title {
-            color: #e0e0e0;
-            font-size: 14px;
-            font-weight: 600;
+            color: #b0b0c0;
+            font-size: 12px;
+            font-weight: 500;
             white-space: nowrap;
         }
 
         .app-header-right {
             display: flex;
-            gap: 6px;
+            gap: 4px;
             align-items: center;
         }
 
@@ -339,32 +341,29 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
             color: white;
-            padding: 6px 12px;
+            padding: 5px 10px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 11px;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 6px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            gap: 5px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
             white-space: nowrap;
         }
 
         .header-btn.icon-only {
-            padding: 10px;
-            width: 40px;
-            height: 40px;
+            padding: 6px;
+            width: 30px;
+            height: 30px;
             justify-content: center;
-            text-transform: none;
         }
 
         .header-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
         }
 
         .header-btn:active {
@@ -394,8 +393,8 @@
         }
 
         .header-btn.secondary {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(102, 126, 234, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.3);
             box-shadow: none;
         }
 
@@ -414,20 +413,20 @@
         }
 
         .header-btn i {
-            font-size: 16px;
+            font-size: 13px;
         }
 
         .difficulty-select {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(102, 126, 234, 0.5);
-            color: #e0e0e0;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-size: 15px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #d0d0e0;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 11px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 140px;
+            transition: all 0.2s ease;
+            min-width: 90px;
         }
 
         .difficulty-select:hover {
@@ -554,14 +553,14 @@
             display: none !important;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            font-size: 18px;
+            gap: 6px;
+            font-size: 13px;
             font-weight: 600;
             color: #667eea;
-            padding: 8px 16px;
+            padding: 5px 10px;
             background: rgba(102, 126, 234, 0.1);
-            border-radius: 8px;
-            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 6px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
         }
 
         .timer-display.visible {
@@ -569,7 +568,7 @@
         }
 
         .timer-display i {
-            font-size: 20px;
+            font-size: 13px;
         }
 
         .typing-input {
@@ -738,18 +737,33 @@
         }
 
         .keyboard {
-            --kb-width-offset: 420px;
-            --kb-height-offset: 380px;
-            --kb-max-size: 78px;
-            --key-size: min(var(--kb-max-size), calc((100vw - var(--kb-width-offset)) / 16), calc((100vh - var(--kb-height-offset)) / 5));
-            --key-gap: clamp(3px, calc(var(--key-size) * 0.09), 8px);
             display: flex;
             flex-direction: column;
             gap: var(--key-gap);
-            width: 100%;
-            max-width: calc(15 * var(--key-size) + 14 * var(--key-gap) + 42px);
-            margin: 0 auto;
             align-items: center;
+            flex-shrink: 0;
+            box-sizing: border-box;
+            padding-right: calc(var(--key-gap) * 1.5);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        body.light-theme .keyboard {
+            border-right-color: rgba(0, 0, 0, 0.08);
+        }
+
+        .keyboard-wrapper {
+            --kb-width-offset: 420px;
+            --kb-height-offset: 380px;
+            --kb-max-size: 72px;
+            --key-size: min(var(--kb-max-size), calc((100vw - var(--kb-width-offset)) / 22), calc((100vh - var(--kb-height-offset)) / 5));
+            --key-gap: clamp(3px, calc(var(--key-size) * 0.09), 8px);
+            display: flex;
+            gap: var(--key-gap);
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
             background: linear-gradient(135deg, rgba(35, 35, 50, 0.95), rgba(20, 20, 30, 0.98));
             padding: 18px 20px;
             border-radius: 20px;
@@ -767,7 +781,7 @@
             box-sizing: border-box;
         }
 
-        .keyboard::after {
+        .keyboard-wrapper::after {
             content: '';
             position: absolute;
             bottom: -12px;
@@ -1746,21 +1760,15 @@
         .level-selector {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 4px;
         }
 
         .level-label {
-            color: #e0e0e0;
-            font-size: 14px;
-            font-weight: 600;
+            display: none;
         }
 
         .level-info {
-            color: #888;
-            font-size: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 12px;
-            border-radius: 6px;
+            display: none;
         }
 
         /* Sidebar progress bar styles */
@@ -1800,6 +1808,87 @@
         .middle-left, .middle-right { background: linear-gradient(180deg, rgba(34, 197, 94, 0.42), rgba(34, 197, 94, 0.15)); border-color: rgba(34, 197, 94, 0.55); }
         .index-left, .index-right   { background: linear-gradient(180deg, rgba(59, 130, 246, 0.42), rgba(59, 130, 246, 0.15)); border-color: rgba(59, 130, 246, 0.55); }
         .thumb                      { background: linear-gradient(180deg, rgba(139, 92, 246, 0.42), rgba(139, 92, 246, 0.15)); border-color: rgba(139, 92, 246, 0.55); }
+
+        /* Numpad styles */
+        .numpad {
+            display: flex;
+            flex-direction: column;
+            gap: var(--key-gap);
+            flex-shrink: 0;
+            box-sizing: border-box;
+            padding-left: calc(var(--key-gap) * 2);
+            align-self: stretch;
+            justify-content: flex-start;
+            padding-top: 0;
+        }
+
+        .numpad-grid {
+            display: grid;
+            grid-template-columns: repeat(4, var(--key-size));
+            grid-template-rows: repeat(5, var(--key-size));
+            gap: var(--key-gap);
+            justify-content: center;
+        }
+
+        .numpad-key {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .numpad-key.numpad-plus {
+            grid-row: span 2;
+            height: auto;
+            min-height: calc(var(--key-size) * 2 + var(--key-gap));
+        }
+
+        .numpad-key.numpad-enter {
+            grid-row: span 2;
+            height: auto;
+            min-height: calc(var(--key-size) * 2 + var(--key-gap));
+            font-size: 10px;
+        }
+
+        .numpad-key.numpad-zero {
+            grid-column: span 2;
+            width: auto;
+            min-width: calc(var(--key-size) * 2 + var(--key-gap));
+        }
+
+        .numpad-key.numpad-home::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        body.light-theme .numpad-key.numpad-home::after {
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        /* Hide numpad on very small screens */
+        @media (max-width: 768px) {
+            .numpad {
+                display: none;
+            }
+        }
+
+        /* Numpad-only mode: hide main keyboard, center numpad */
+        body.numpad-practice .keyboard {
+            display: none;
+        }
+
+        body.numpad-practice .numpad {
+            padding-left: 0;
+        }
+
+        body.numpad-practice .keyboard-wrapper {
+            justify-content: center;
+        }
 
         /* Special keys (Tab/Caps/Shift/Space etc.) get neutral background so they don't get finger tints */
         .key.tab, .key.caps, .key.shift, .key.enter, .key.backspace,
@@ -2052,6 +2141,7 @@
         body.light-theme .key.home-row:not(.highlighted)              { background: linear-gradient(180deg, rgba(102, 126, 234, 0.30), rgba(102, 126, 234, 0.12)) !important; }
         body.light-theme .key[data-key="f"]::after,
         body.light-theme .key[data-key="j"]::after                    { background: rgba(0, 0, 0, 0.6); }
+        body.light-theme .keyboard-wrapper                                { background: linear-gradient(135deg, rgba(240, 240, 250, 0.95), rgba(225, 225, 240, 0.98)); border-color: rgba(0, 0, 0, 0.15); }
 
         body.light-theme .settings-modal-content,
         body.light-theme .result-content,
@@ -4799,9 +4889,9 @@
                 padding: 30px;
             }
 
-            .keyboard {
+            .keyboard-wrapper {
                 --kb-width-offset: 380px;
-                --kb-max-size: 62px;
+                --kb-max-size: 56px;
                 padding: 18px 22px;
             }
 
@@ -4828,9 +4918,9 @@
                 padding: 20px;
             }
 
-            .keyboard {
+            .keyboard-wrapper {
                 --kb-width-offset: 90px;
-                --kb-max-size: 46px;
+                --kb-max-size: 42px;
                 padding: 14px 16px;
                 border-radius: 16px;
             }
@@ -4895,7 +4985,7 @@
                 padding: 12px;
             }
 
-            .keyboard {
+            .keyboard-wrapper {
                 --kb-width-offset: 60px;
                 --kb-max-size: 30px;
                 padding: 10px 10px;
@@ -4977,7 +5067,7 @@
                 margin-top: 12px;
                 padding-top: 4px;
             }
-            .keyboard {
+            .keyboard-wrapper {
                 --kb-height-offset: 320px;
                 --kb-max-size: 48px;
                 padding: 12px 15px;
@@ -5016,9 +5106,9 @@
                 margin-top: 8px;
                 padding-top: 4px;
             }
-            .keyboard {
+            .keyboard-wrapper {
                 --kb-height-offset: 280px;
-                --kb-max-size: 34px;
+                --kb-max-size: 36px;
                 padding: 8px 10px;
                 border-radius: 10px;
             }
@@ -5048,8 +5138,7 @@
             font-display: swap;
         }
 
-        /* Noto Sans Devanagari for Unicode Hindi display in UI elements */
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap');
+        /* Noto Sans Devanagari for Unicode Hindi display in UI elements (loaded via @import at top) */
 
         /* Hindi mode: apply Kruti Dev 010 to text display */
         body.hindi-mode .text-display {
@@ -5159,18 +5248,18 @@
 
         /* Language switch button in header */
         .lang-switch-btn {
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: 1px solid rgba(102, 126, 234, 0.4);
-            background: rgba(102, 126, 234, 0.15);
-            color: #e0e0e0;
-            font-size: 13px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            background: rgba(102, 126, 234, 0.1);
+            color: #d0d0e0;
+            font-size: 11px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .lang-switch-btn:hover {
@@ -5185,7 +5274,7 @@
 
         /* Hindi keyboard label styling - dual label (English + Hindi) */
         .key.hindi-label {
-            font-family: 'Kruti Dev 010', monospace;
+            font-family: 'Noto Sans Devanagari', 'Segoe UI', Tahoma, sans-serif;
             font-size: 16px;
             position: relative;
         }
@@ -5355,8 +5444,8 @@
         <div class="app-main">
             <div class="app-header">
                 <div class="app-header-left">
-                    <button class="back-btn" onclick="window.location.href='index.html'">
-                        <i class="fas fa-arrow-left"></i> Back to Home
+                    <button class="back-btn" onclick="window.location.href='index.html'" title="Back to Home">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
                     <div class="app-title" id="lessonTitle">Typing Practice</div>
                 </div>
@@ -5374,17 +5463,17 @@
                     <button class="header-btn icon-only" onclick="toggleSettings()">
                         <i class="fas fa-cog"></i>
                     </button>
-                    <button class="header-btn secondary" onclick="openMoreOptionsModal()">
-                        <i class="fas fa-ellipsis-h"></i> More
+                    <button class="header-btn secondary" onclick="openMoreOptionsModal()" title="More Options">
+                        <i class="fas fa-ellipsis-h"></i>
                     </button>
-                    <button class="header-btn secondary" onclick="loadNewText()">
-                        <i class="fas fa-redo"></i> New Text
+                    <button class="header-btn secondary" onclick="loadNewText()" title="New Text">
+                        <i class="fas fa-redo"></i>
                     </button>
                     <button class="lang-switch-btn" id="langSwitchBtn" onclick="toggleTypingLanguage()">
                         <i class="fas fa-language"></i> <span id="langSwitchLabel">EN</span>
                     </button>
-                    <button class="header-btn secondary" onclick="openGuide()">
-                        <i class="fas fa-question-circle"></i> Guide
+                    <button class="header-btn secondary" onclick="openGuide()" title="Guide">
+                        <i class="fas fa-question-circle"></i>
                     </button>
                 </div>
             </div>
@@ -5399,6 +5488,7 @@
                             <i class="fas fa-hand-point-up"></i> <span id="fingerGuideText">Start typing to see finger guide</span>
                         </div>
 
+                        <div class="keyboard-wrapper">
                         <div class="keyboard">
                             <div class="keyboard-row">
                                 <div class="key pinky-left" data-key="`">`</div>
@@ -5473,6 +5563,29 @@
                             </div>
                         </div>
                         
+                        <div class="numpad" id="numpadSection">
+                            <div class="numpad-grid">
+                                <div class="key numpad-key pinky-right" data-key="NumLock">Num</div>
+                                <div class="key numpad-key ring-right" data-key="/">/</div>
+                                <div class="key numpad-key middle-right" data-key="*">*</div>
+                                <div class="key numpad-key pinky-right" data-key="-">-</div>
+                                <div class="key numpad-key index-right" data-key="7">7</div>
+                                <div class="key numpad-key middle-right" data-key="8">8</div>
+                                <div class="key numpad-key ring-right" data-key="9">9</div>
+                                <div class="key numpad-key pinky-right numpad-plus" data-key="+">+</div>
+                                <div class="key numpad-key index-right" data-key="4">4</div>
+                                <div class="key numpad-key middle-right numpad-home" data-key="5">5</div>
+                                <div class="key numpad-key ring-right" data-key="6">6</div>
+                                <div class="key numpad-key index-right" data-key="1">1</div>
+                                <div class="key numpad-key middle-right" data-key="2">2</div>
+                                <div class="key numpad-key ring-right" data-key="3">3</div>
+                                <div class="key numpad-key pinky-right numpad-enter" data-key="Enter">Enter</div>
+                                <div class="key numpad-key thumb numpad-zero" data-key="0">0</div>
+                                <div class="key numpad-key ring-right" data-key=".">.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
                         <div class="finger-legend">
                             <div class="legend-item">
                                 <div class="legend-color legend-pinky"></div>
@@ -5736,6 +5849,54 @@
                 
                 <div class="guide-page" id="guidePage4" style="display: none;">
                     <div class="guide-section">
+                        <h3><i class="fas fa-bolt"></i> Alt Codes & Special Characters</h3>
+                        <p><strong>Alt Codes</strong> let you type special characters using the numeric keypad (NumPad). Hold <strong>Alt</strong>, type the number, then release.</p>
+                        <h4>Common English Alt Codes</h4>
+                        <div class="guide-two-columns">
+                            <div class="guide-column">
+                                <ul>
+                                    <li>© — Alt + 0169 (Copyright)</li>
+                                    <li>® — Alt + 0174 (Registered)</li>
+                                    <li>™ — Alt + 0153 (Trademark)</li>
+                                    <li>° — Alt + 0176 (Degree)</li>
+                                    <li>± — Alt + 0177 (Plus-Minus)</li>
+                                    <li>× — Alt + 0215 (Multiply)</li>
+                                    <li>÷ — Alt + 0247 (Divide)</li>
+                                    <li>½ — Alt + 0189 (One Half)</li>
+                                    <li>¼ — Alt + 0188 (One Quarter)</li>
+                                    <li>— — Alt + 0151 (Em Dash)</li>
+                                </ul>
+                            </div>
+                            <div class="guide-column">
+                                <ul>
+                                    <li>€ — Alt + 0128 (Euro)</li>
+                                    <li>₹ — Alt + 8377 (Rupee)</li>
+                                    <li>• — Alt + 0149 (Bullet)</li>
+                                    <li>… — Alt + 0133 (Ellipsis)</li>
+                                    <li>§ — Alt + 0167 (Section)</li>
+                                    <li>¶ — Alt + 0182 (Paragraph)</li>
+                                    <li>« — Alt + 0171 (Left Quote)</li>
+                                    <li>» — Alt + 0187 (Right Quote)</li>
+                                    <li>¿ — Alt + 0191 (Inverted ?)</li>
+                                    <li>¡ — Alt + 0161 (Inverted !)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <h4>When to Use Them</h4>
+                        <ul>
+                            <li><strong>©</strong> — Copyright notices in documents</li>
+                            <li><strong>®</strong> — Registered trademark symbols</li>
+                            <li><strong>°</strong> — Temperature (25°C), angles (90°)</li>
+                            <li><strong>₹</strong> — Indian Rupee currency symbol</li>
+                            <li><strong>—</strong> — Em dash for breaks in sentences</li>
+                            <li><strong>±</strong> — Tolerance ranges (±0.5mm)</li>
+                        </ul>
+                        <div class="guide-tip">💡 Use Special Chapters (Menu → Special Chapters) to practice these interactively!</div>
+                    </div>
+                </div>
+                
+                <div class="guide-page" id="guidePage5" style="display: none;">
+                    <div class="guide-section">
                         <h3><i class="fas fa-heart"></i> Health & Tips</h3>
 
                         <div class="guide-two-columns">
@@ -5787,7 +5948,7 @@
                     <div class="guide-page-indicator">
                         <span class="current-page" id="currentPage">1</span>
                         <span class="separator">/</span>
-                        <span class="total-pages" id="totalPages">5</span>
+                        <span class="total-pages" id="totalPages">6</span>
                     </div>
                     <button class="guide-nav-btn" id="nextBtn" onclick="nextGuidePage()">Next</button>
                 </div>
@@ -5979,6 +6140,54 @@
                 
                 <div class="guide-page" id="guidePageHindi4" style="display: none;">
                     <div class="guide-section">
+                        <h3><i class="fas fa-bolt"></i> हिंदी संयुक्त अक्षर और विशेष वर्ण</h3>
+                        <p><strong>कृति देव 010</strong> में कुछ विशेष अक्षर अलग-अलग keys के combination से बनते हैं। ये अभ्यास के लिए महत्वपूर्ण हैं।</p>
+                        <h4>संयुक्त अक्षर (Conjuncts)</h4>
+                        <div class="guide-two-columns">
+                            <div class="guide-column">
+                                <ul>
+                                    <li>प्र — p + z (प + ्र)</li>
+                                    <li>हर्ष — h + Shift+z (ह + र्)</li>
+                                    <li>क्ष — Shift + [ (क्ष)</li>
+                                    <li>ज्ञ — Shift + k (ज्ञ)</li>
+                                    <li>श्र — Shift + j (श्र)</li>
+                                    <li>द्ध — Shift + 9 (द्ध)</li>
+                                    <li>द्व — Shift + ] (द्व)</li>
+                                    <li>द्य — Shift + \ (द्य)</li>
+                                    <li>त्र — = (त्र)</li>
+                                    <li>ऋ — Shift + - (ऋ)</li>
+                                </ul>
+                            </div>
+                            <div class="guide-column">
+                                <ul>
+                                    <li>श्‍ — ' (श्‍)</li>
+                                    <li>ष्‍ — Shift + " (ष्‍)</li>
+                                    <li>ध्‍ — / (ध्‍)</li>
+                                    <li>घ्‍ — Shift + / (घ्‍)</li>
+                                    <li>ण्‍ — . (ण्‍)</li>
+                                    <li>रु — Shift + 3 (रु)</li>
+                                    <li>रू — Shift + ; (रू)</li>
+                                    <li>ऑ — Shift + = (ऑ)</li>
+                                    <li>ँ — Shift + ` (ँ)</li>
+                                    <li>ॅ — Shift + w (ॅ)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <h4>कब उपयोग करें</h4>
+                        <ul>
+                            <li><strong>प्र</strong> — प्रकार, प्रदेश, प्रश्न</li>
+                            <li><strong>क्ष</strong> — क्षत्रिय, मोक्ष, भाक्ष</li>
+                            <li><strong>श्र</strong> — श्रेष्ठ, श्री, श्रवण</li>
+                            <li><strong>ज्ञ</strong> — ज्ञान, संज्ञा, प्रज्ञा</li>
+                            <li><strong>त्र</strong> — त्रिकाल, पात्र, मित्र</li>
+                            <li><strong>हर्ष</strong> — हर्ष, विष्णु, वर्ष</li>
+                        </ul>
+                        <div class="guide-tip">💡 Special Chapters (Menu → Special Chapters) में इन सबका अभ्यास करें!</div>
+                    </div>
+                </div>
+                
+                <div class="guide-page" id="guidePageHindi5" style="display: none;">
+                    <div class="guide-section">
                         <h3><i class="fas fa-heart"></i> स्वास्थ्य और टिप्स</h3>
 
                         <div class="guide-two-columns">
@@ -6030,7 +6239,7 @@
                     <div class="guide-page-indicator">
                         <span class="current-page" id="currentPageHindi">1</span>
                         <span class="separator">/</span>
-                        <span class="total-pages" id="totalPagesHindi">5</span>
+                        <span class="total-pages" id="totalPagesHindi">6</span>
                     </div>
                     <button class="guide-nav-btn" id="nextBtnHindi" onclick="nextGuidePage()">Next</button>
                 </div>
@@ -6681,6 +6890,14 @@
                         <i class="fas fa-book-open"></i>
                         <span>Story Chapters</span>
                     </button>
+                    <button class="more-option-btn" onclick="openSpecialChaptersModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-bolt"></i>
+                        <span>Special Chapters</span>
+                    </button>
+                    <button class="more-option-btn" onclick="openNumpadPracticeModal(); closeMoreOptionsModal();">
+                        <i class="fas fa-calculator"></i>
+                        <span>Numpad Practice</span>
+                    </button>
                     <button class="more-option-btn" onclick="openTimerTestModal(); closeMoreOptionsModal();">
                         <i class="fas fa-stopwatch"></i>
                         <span>Timed Test</span>
@@ -6714,6 +6931,36 @@
             </div>
             <div class="lessons-body">
                 <div class="lessons-list" id="storyChaptersList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lessons-modal" id="specialChaptersModal" style="display: none;">
+        <div class="lessons-content">
+            <div class="lessons-header">
+                <h2><i class="fas fa-bolt"></i> Special Chapters</h2>
+                <button class="close-btn" onclick="closeSpecialChaptersModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="lessons-body">
+                <p style="color: var(--text-secondary); font-size: 13px; text-align: center; margin-bottom: 16px;">Practice special characters, Alt codes, and Hindi conjuncts through typing!</p>
+                <div class="lessons-list" id="specialChaptersList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lessons-modal" id="numpadPracticeModal" style="display: none;">
+        <div class="lessons-content">
+            <div class="lessons-header">
+                <h2><i class="fas fa-calculator"></i> Numpad Practice</h2>
+                <button class="close-btn" onclick="closeNumpadPracticeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="lessons-body">
+                <p style="color: var(--text-secondary); font-size: 13px; text-align: center; margin-bottom: 16px;">Practice numeric keypad typing — numbers, operators, decimals, and calculations!</p>
+                <div class="lessons-list" id="numpadPracticeList"></div>
             </div>
         </div>
     </div>
@@ -6886,6 +7133,35 @@
             });
         }
         
+        // Generate levels 101-110 (Numpad Practice)
+        const numpadLevelNames = {
+            101: 'Numpad: Home Row (4, 5, 6)',
+            102: 'Numpad: All Numbers',
+            103: 'Numpad: Number Patterns',
+            104: 'Numpad: Addition (+)',
+            105: 'Numpad: Subtraction (-)',
+            106: 'Numpad: Multiplication (*)',
+            107: 'Numpad: Division (/)',
+            108: 'Numpad: Mixed Operators',
+            109: 'Numpad: Decimals',
+            110: 'Numpad: Advanced Calculations'
+        };
+        for (let i = 101; i <= 110; i++) {
+            const levelNum = i;
+            const duration = 2 + (levelNum - 101) * 0.5; // 2-6.5 min
+            const difficulty = 'Numpad';
+            const contentLength = 500 + (levelNum - 101) * 100;
+            gameLevels.push({
+                level: levelNum,
+                duration: Math.round(duration * 60),
+                durationDisplay: duration >= 60 ? `${Math.round(duration/60)} min` : `${Math.round(duration)} min`,
+                difficulty: difficulty,
+                contentLength: contentLength,
+                isNumpad: true,
+                name: numpadLevelNames[levelNum]
+            });
+        }
+        
         // Text content for specific level groups
         const homeRowTexts = [
             "asdf jkl; asdf jkl; asdf jkl; a s d f j k l ; a s d f j k l ; dad sad lad fad jak als jaf sld flk dks jls kaf las sad fad jak als jaf sld flk dks jls kaf las dad sad lad fad jak als jaf sld flk dks jls kaf las dad sad lad fad jak als jaf sld flk dks jls kaf las",
@@ -6920,7 +7196,9 @@
         ];
         
         const shortSentences = [
-            "The cat sat on the mat. The dog ran fast. Birds fly high. Fish swim deep. The sun is bright. The moon is white. Stars shine at night. The wind blows softly. Rain falls from sky. Snow covers the ground. Flowers bloom in spring. Leaves fall in autumn. Winter is cold. Summer is hot. Spring is warm. Autumn is cool. The sky is blue. The grass is green. The ocean is deep. Mountains are high. Rivers flow long. Trees grow tall. The earth is round. The world is big. Life is good. Love is kind. Hope is strong. Faith is real. Peace is sweet. Joy is pure. Trust is key. Care is love. Help is good. Share is kind. Give is nice. Take is bad. Work is hard. Play is fun. Learn is smart. Teach is wise. Read is gain. Write is skill. Speak is art. Listen is gift. See is clear. Feel is real. Touch is warm. Smell is sweet. Taste is good. Hear is sound. Think is mind. Know is truth. Be is self. Do is act. Make is create. Build is strong. Grow is life. Live is free. Die is end. Born is start. Rise is up. Fall is down. Stand is firm. Sit is rest. Walk is move. Run is fast. Jump is high. Swim is wet. Fly is sky. Dive is deep. Climb is up. Fall is down. Slide is fun. Roll is round. Spin is fast. Turn is change. Stop is end. Go is start. Come is here. Leave is gone. Stay is now. Wait is time. Hurry is rush. Slow is calm. Fast is quick. Quick is speed. Speed is time. Time is life. Life is love. Love is all. All is one. One is god. God is love.",
+            "The temperature is 25°C today and the angle is 90°. The company name is Acme™ and it is registered as Acme®. The copyright © 2024 belongs to them. The price is ₹500 and the tolerance is ±0.5mm. The result is ½ of the total or ¼ of the value. Use — for breaks in sentences. The bullet • marks items. The section § 3 is important. The paragraph ¶ 2 explains it. « quoted text » is used in French. ¿Qué pasa? ¡Hola! The multiplication × and division ÷ signs are clear.",
+            "Copyright © 2024 by the author. All rights reserved. The trademark ™ and registered ® symbols protect brands. The temperature dropped to -10°C with an angle of 45°. The cost was €100 or ₹8500. The measurement was ±2cm. The fraction ½ plus ¼ equals ¾. The em dash — separates thoughts. The ellipsis… continues. The bullet • lists items. Section § 5 and paragraph ¶ 10 apply. « Hello » she said. ¿Why? ¡Because! 5 × 3 = 15 and 10 ÷ 2 = 5.",
+            "The quick brown fox jumps over the lazy dog. A journey of a thousand miles begins with a single step. Practice makes perfect. Learning to type fast is a valuable skill. The sun rises in the east and sets in the west. Birds fly in the sky and fish swim in the sea. A good friend is like a four-leaf clover. Every day is a new beginning. Take a deep breath and start again. Success is not final, failure is not fatal. The best time to plant a tree was twenty years ago. The second best time is now. Life is what happens when you're busy making other plans. In the middle of difficulty lies opportunity. The only way to do great work is to love what you do. Believe you can and you're halfway there. Happiness depends upon ourselves. The future belongs to those who believe in their dreams. It does not matter how slowly you go as long as you do not stop. Act as if what you do makes a difference. It does. The mind is everything. What you think you become. Change your thoughts and you change your world. What lies behind us and what lies before us are tiny matters compared to what lies within us. Be the change that you wish to see in the world.",
             "A quick brown fox jumps over the lazy dog. The sun rises in the east. Birds fly in the sky. Fish swim in the sea. The cat sat on the mat. The dog ran very fast. The moon is very bright. Stars shine at night. The wind blows softly. Rain falls from the sky. Snow covers the ground. Flowers bloom in spring. Leaves fall in autumn. Winter is very cold. Summer is very hot. Spring is very warm. Autumn is very cool. The sky is very blue. The grass is very green. The ocean is very deep. Mountains are very high. Rivers flow very long. Trees grow very tall. The earth is very round. The world is very big. Life is very good. Love is very kind. Hope is very strong. Faith is very real. Peace is very sweet. Joy is very pure. Trust is very key. Care is very love. Help is very good. Share is very kind. Give is very nice. Take is very bad. Work is very hard. Play is very fun. Learn is very smart. Teach is very wise. Read is very gain. Write is very skill. Speak is very art. Listen is very gift. See is very clear. Feel is very real. Touch is very warm. Smell is very sweet. Taste is very good. Hear is very sound. Think is very mind. Know is very truth. Be is very self. Do is very act. Make is very create. Build is very strong. Grow is very life. Live is very free. Die is very end. Born is very start. Rise is very up. Fall is very down. Stand is very firm. Sit is very rest. Walk is very move. Run is very fast. Jump is very high. Swim is very wet. Fly is very sky. Dive is very deep. Climb is very up. Fall is very down. Slide is very fun. Roll is very round. Spin is very fast. Turn is very change. Stop is very end. Go is very start. Come is very here. Leave is very gone. Stay is very now. Wait is very time. Hurry is very rush. Slow is very calm. Fast is very quick. Quick is very speed. Speed is very time. Time is very life. Life is very love. Love is very all. All is very one. One is very god. God is very love.",
             "The quick brown fox jumps over the lazy dog. A journey of a thousand miles begins with a single step. Practice makes perfect. Learning to type fast is a valuable skill. The sun rises in the east and sets in the west. Birds fly in the sky and fish swim in the sea. A good friend is like a four-leaf clover. Every day is a new beginning. Take a deep breath and start again. Success is not final, failure is not fatal. The best time to plant a tree was twenty years ago. The second best time is now. Life is what happens when you're busy making other plans. In the middle of difficulty lies opportunity. The only way to do great work is to love what you do. Believe you can and you're halfway there. Happiness depends upon ourselves. The future belongs to those who believe in their dreams. It does not matter how slowly you go as long as you do not stop. Act as if what you do makes a difference. It does. The mind is everything. What you think you become. Change your thoughts and you change your world. What lies behind us and what lies before us are tiny matters compared to what lies within us. Be the change that you wish to see in the world.",
             "The quick brown fox jumps over the lazy dog. A journey of a thousand miles begins with a single step. Practice makes perfect. Learning to type fast is a valuable skill. The sun rises in the east and sets in the west. Birds fly in the sky and fish swim in the sea. A good friend is like a four-leaf clover. Every day is a new beginning. Take a deep breath and start again. Success is not final, failure is not fatal. The best time to plant a tree was twenty years ago. The second best time is now. Life is what happens when you're busy making other plans. In the middle of difficulty lies opportunity. The only way to do great work is to love what you do. Believe you can and you're halfway there. Happiness depends upon ourselves. The future belongs to those who believe in their dreams. It does not matter how slowly you go as long as you do not stop. Act as if what you do makes a difference. It does. The mind is everything. What you think you become. Change your thoughts and you change your world. What lies behind us and what lies before us are tiny matters compared to what lies within us. Be the change that you wish to see in the world.",
@@ -6928,6 +7206,8 @@
         ];
         
         const detailedParagraphs = [
+            "In modern business documents, special characters are essential. The copyright symbol © protects intellectual property. The registered trademark ® indicates official registration. The trademark ™ marks brand identity. Temperature readings use the degree symbol ° (e.g., 37°C or 98.6°F). Mathematical operations use × for multiplication and ÷ for division. The plus-minus sign ± indicates tolerance (±0.5mm). Fractions like ½ and ¼ appear in measurements. The em dash — separates clauses in sentences. The ellipsis… shows continuation. Bullet points • organize lists. Section § and paragraph ¶ symbols reference legal documents. The Euro € and Rupee ₹ symbols represent currencies. Guillemets « » are used in French quotations. The inverted question mark ¿ and exclamation mark ¡ appear in Spanish text. These characters make documents professional and precise.",
+            "Professional typing requires mastery of special characters. The copyright © notice appears on books, websites, and software. Companies display ® for registered trademarks and ™ for unregistered ones. Scientific writing uses ° for temperature (25°C) and angles (90°). Engineering documents use ± for tolerances (±0.01m). Mathematics employs × and ÷ for operations, ½ and ¼ for fractions. The em dash — creates dramatic pauses. The ellipsis… suggests trailing thoughts. Bullet points • structure information clearly. Legal texts reference § (section) and ¶ (paragraph). Financial reports use € (Euro) and ₹ (Rupee). French quotations use « and ». Spanish uses ¿ and ¡ for questions and exclamations. A skilled typist handles all these symbols efficiently.",
             "Programming is the art of telling a computer what to do. It requires patience, logic, and creativity to write efficient code. The internet has revolutionized how we communicate, work, and learn. It connects people across the globe instantly. Machine learning algorithms can analyze vast amounts of data to find patterns and make predictions. Climate change is one of the most pressing challenges of our time, requiring global cooperation and innovation. Effective communication is essential in both personal and professional relationships. It builds trust and understanding. Technology continues to evolve at an unprecedented pace, transforming every aspect of our lives. From smartphones to artificial intelligence, these innovations shape how we interact with the world. Education is the most powerful weapon which you can use to change the world. Knowledge is power, but sharing knowledge is even more powerful. The pursuit of knowledge should never end. Every problem is an opportunity in disguise. Challenges help us grow and become stronger versions of ourselves. Resilience is the ability to bounce back from adversity stronger than before. Success is not about avoiding failure, but about learning from it and moving forward.",
             "Quantum computing leverages quantum-mechanical phenomena such as superposition and entanglement to perform computations exponentially faster than classical computers. The implementation of artificial neural networks in deep learning has enabled breakthroughs in image recognition, natural language processing, and autonomous systems. Cryptocurrency and blockchain technology are disrupting traditional financial systems by enabling decentralized, secure, and transparent transactions without intermediaries. The CRISPR-Cas9 gene editing technology has revolutionized molecular biology by allowing precise modifications to DNA sequences, opening new possibilities in medicine and agriculture. The Internet of Things (IoT) ecosystem connects billions of devices, sensors, and systems, creating smart environments that collect and analyze data in real-time. Edge computing brings computation and data storage closer to the location where it is needed, improving response times and saving bandwidth. Augmented reality and virtual reality are transforming entertainment, education, and training by creating immersive digital experiences. 5G networks promise unprecedented speed and connectivity, enabling new applications in telemedicine, autonomous vehicles, and smart cities. Cybersecurity remains a critical concern as digital threats become increasingly sophisticated, requiring advanced defense mechanisms and constant vigilance.",
             "The rapid advancement of artificial intelligence has transformed numerous industries, from healthcare to finance, manufacturing to entertainment. Machine learning models can now process vast amounts of data to identify patterns, make predictions, and automate complex tasks that were previously thought to require human intelligence. Natural language processing has enabled machines to understand and generate human language with remarkable accuracy, while computer vision systems can recognize and interpret visual information with human-like precision. Robotics has evolved from simple automation to sophisticated systems capable of performing delicate surgeries, exploring hazardous environments, and assisting in daily household tasks. The integration of AI with the Internet of Things has created smart homes, smart cities, and smart industries where devices communicate and collaborate autonomously. However, these technological advancements also raise important ethical questions about privacy, security, job displacement, and the potential for misuse. As we continue to push the boundaries of what is possible, it is crucial to ensure that technological progress benefits all of humanity and does not exacerbate existing inequalities or create new forms of discrimination.",
@@ -6937,6 +7217,8 @@
 
         // === NEW CONTENT: Hard stories for Levels 51-75 (25 unique topics) ===
         const hardStories = [
+            "The multinational corporation © 2024 reported revenue of €2.5 billion — a 15% increase over last year. Their registered trademark ® covers products in 45° countries. The CEO stated, « Our growth trajectory is remarkable » with a tolerance of ±0.3%. The company uses the bullet • symbol in all official documents. Section § 12 of their annual report (paragraph ¶ 8) details the ₹500 crore investment in renewable energy. The temperature in their data centers is maintained at 18°C ± 2°C. Their best-selling product holds a trademark ™ and has captured ½ of the market share. The report uses ÷ to show per-unit costs and × for total calculations. The ellipsis… suggests future expansion plans.",
+            "In academic writing, precision matters. The copyright © symbol protects research papers. Temperature is recorded as 37°C or 98.6°F. Angles use the degree symbol ° (e.g., 90°). The plus-minus ± sign indicates measurement uncertainty (±0.05mm). Mathematical notation uses × for multiplication, ÷ for division, ½ for one-half, ¼ for one-quarter. The em dash — separates independent clauses. The ellipsis… indicates omitted text. Bullet points • organize findings. Section § and paragraph ¶ references appear in legal citations. The Euro € and Rupee ₹ symbols denote currency in financial tables. French quotations use « and » while Spanish uses ¿ and ¡. A professional typist must master all these special characters.",
             "The Amazon rainforest, often called the lungs of our planet, spans across nine nations and harbors nearly ten percent of all known species. Its dense canopy shelters jaguars, macaws, poison dart frogs, and countless insects that have yet to be catalogued by scientists. The river itself, stretching over four thousand miles, carries more water than the next seven largest rivers combined. Indigenous tribes have inhabited these lands for millennia, developing profound knowledge of medicinal plants and ecological balance. Deforestation, however, threatens this fragile ecosystem at an alarming rate; cattle ranching, illegal logging, and soy cultivation have already claimed vast portions of the forest. Conservation efforts require international cooperation, sustainable economic alternatives, and respect for indigenous sovereignty. The rainforest's disappearance would release billions of tons of stored carbon, accelerating climate catastrophe irreversibly.",
             "Quantum entanglement, a phenomenon Einstein famously dismissed as 'spooky action at a distance,' describes the inexplicable correlation between two particles regardless of the distance separating them. When researchers measure the spin of one entangled particle, its partner instantly assumes the opposite state—even if they are light-years apart. This defiance of classical locality has been confirmed through rigorous experiments, including those conducted by Alain Aspect, John Clauser, and Anton Zeilinger, who jointly received the Nobel Prize in Physics in 2022. Quantum computing exploits this peculiar behavior to perform parallel calculations that would take classical computers millennia. Tech giants like IBM, Google, and Rigetti are racing to build fault-tolerant quantum processors using superconducting qubits, trapped ions, and topological architectures. Yet challenges remain: decoherence, error correction, and cryogenic cooling requirements make practical quantum computers extraordinarily difficult to engineer.",
             "The ancient Silk Road was not merely a trade route but a conduit of civilization itself, stretching from Chang'an in China to the shores of the Mediterranean Sea. Merchants transported silk, spices, jade, and porcelain across treacherous deserts and over towering mountain passes. Caravanserais dotted the route every thirty miles, offering weary travelers shelter, water, and protection from bandits. The exchange went far beyond goods: Buddhism traveled from India to China, while paper-making technology flowed westward to the Islamic world and eventually to Europe. Genghis Khan's Mongol Empire pacified the route in the thirteenth century, creating a Pax Mongolica that allowed unprecedented cultural exchange. Marco Polo's seventeen-year journey along this network became one of history's greatest travelogues. Today, China's Belt and Road Initiative echoes this ancient vision, investing trillions in infrastructure across Eurasia and Africa.",
@@ -6966,6 +7248,8 @@
 
         // === NEW CONTENT: Expert stories for Levels 76-100 (25 unique topics) ===
         const expertStories = [
+            "The international trade agreement © 2024 was signed by 45° countries. The document bears the ® registered symbol and ™ trademark notice. Article § 15 (paragraph ¶ 3) states that tariffs shall not exceed ±2% of the goods' value. The total trade volume is estimated at €500 billion or ₹45 lakh crore. Temperature-sensitive shipments must be maintained at 4°C ± 1°C. The agreement uses • bullets for itemized lists and — em dashes for explanatory notes. Fractions like ½ and ¼ appear in quota calculations. The multiplication × and division ÷ symbols are used in tariff formulas. French delegations insisted on « guillemet » quotations, while Spanish representatives used ¿ and ¡ in their statements. The ellipsis… indicates ongoing negotiations.",
+            "Scientific publications require precise use of special characters. The copyright © notice protects intellectual property. Temperature is denoted by ° (e.g., 100°C, -40°C, 98.6°F). Measurement uncertainty uses ± (±0.001g). Mathematical operations employ × (multiplication) and ÷ (division). Fractions ½, ¼, and ¾ appear in stoichiometric ratios. The em dash — connects related clauses. The ellipsis… indicates truncated quotations. Bullet points • enumerate experimental conditions. Section § and paragraph ¶ references cite prior work. Currency symbols € (Euro) and ₹ (Rupee) appear in funding disclosures. French sources use « and » for quotations. Spanish texts employ ¿ and ¡ for interrogative and exclamatory sentences. Mastery of these symbols distinguishes professional scientific writing from amateur work.",
             "Deep neural networks, inspired by the layered architecture of biological brains, have revolutionized machine learning through their ability to approximate extraordinarily complex functions from raw data. A typical convolutional network processes images through successive layers: convolutional filters detect edges and textures, pooling operations reduce spatial dimensions, and fully connected layers classify features into semantic categories. The backpropagation algorithm, though described in 1986 by Rumelhart, Hinton, and Williams, only became practical when GPU acceleration and massive datasets like ImageNet became available. AlexNet's triumph in the 2012 ImageNet competition—achieving a top-five error rate of 15.3% versus the next-best 26.2%—ignited the deep learning era. Transformer architectures, introduced by Vaswani et al. in 2017, replaced recurrence with self-attention, enabling parallel training and unprecedented sequence modeling capabilities. GPT-4, with an estimated 1.7 trillion parameters, demonstrates emergent abilities in reasoning, code generation, and multilingual translation that were unforeseen by its creators.",
             "Bioluminescence, the production and emission of light by living organisms, evolved independently at least forty times across the tree of life—a phenomenon biologists call convergent evolution. In the deep ocean, where sunlight never penetrates, over ninety percent of organisms produce light through chemical reactions involving luciferin, a substrate, and luciferase, an enzyme. The anglerfish dangles a bioluminescent lure above its cavernous mouth; the vampire squid ejects a cloud of luminous mucus instead of ink; dinoflagellates create sparkling waves when disturbed by boat wakes or swimming motions. On land, fireflies use species-specific flash patterns to attract mates, while foxfire—the glow emitted by Armillaria and Panellus fungi—results from oxidative metabolism in decaying wood. Scientists have harnessed these mechanisms: green fluorescent protein (GFP), isolated from the jellyfish Aequorea victoria by Osamu Shimomura, revolutionized cell biology by allowing researchers to visualize protein expression in living organisms. GFP's discovery earned the 2008 Nobel Prize in Chemistry.",
             "The Mongol Empire, forged by Temüjin—who proclaimed himself Genghis Khan in 1206—became the largest contiguous land empire in history, stretching from Korea to Hungary and from Siberia to the Persian Gulf. The Mongols' military genius lay in their composite bow, fired from horseback with devastating accuracy, and their revolutionary tactics: feigned retreats, encirclement maneuvers, and psychological warfare that shattered enemy morale. Genghis Khan's meritocratic promotion system, religious tolerance, and adoption of useful technologies from conquered peoples enabled unprecedented administrative efficiency. The Yam, a continent-spanning postal system, relayed messages across six thousand miles in under two weeks. The Pax Mongolica that followed facilitated Silk Road trade, the transfer of gunpowder from China to Europe, and the journeys of Marco Polo, Ibn Battuta, and Rabban Bar Sauma. The empire eventually fractured into four khanates—Yuan, Ilkhanate, Chagatai, and Golden Horde—whose descendants ruled parts of Asia for centuries.",
@@ -7039,11 +7323,11 @@
         ];
 
         const hindiShortSentences = [
+            "izprk iQfrd gSA og izkphu le; ls dke djrk gSA izfr;ksx dh lQyrk izkIr gksrh gSA",
+            "Kku ogh gS tks lgh vkSj xyr dk Kku djk,A izKku ls izse izkIr gksrk gSA",
+            "izfr;ksxh yksx cgqr esgurh gksrs gSaA og izkphu jktk ls izse djrs gSaA",
+            "esjk ns'k Hkkjr egku gS vkSj ge lc bldk eku djrs gSaA ;gh lPpk O;ogkj gSA",
             "esjk uke jke gS vkSj ge lc Hkkjr ds oklh gSA",
-            "esjk Hkkjr egku gS vkSj ;gka lc yksx Hkys gSaA",
-            "rqe cgqr Hkys gks vkSj lc dke le; ij djrs gksA",
-            "dey dk Qwy cgqr lqanj gksrk gS vkSj ge lc dks Hkkrk gSA",
-            "gekjk ns'k egku gS vkSj ge lc bldk eku djrs gSaA",
             "esjk ifjokj cgqr vPNk gSA eSa vius ekrk firk dk lg;ksx djrk gwaA",
             "Hkkjr esa cgqr ls xkao gSa vkSj xkao esa yksx esgurh ls jgrs gSaA",
             "Qwy lqanj gksrs gSa vkSj gekjs /keZ dks vPNk djrs gSaA",
@@ -7067,6 +7351,8 @@
         ];
 
         const hindiDetailedParagraphs = [
+            "izprk iQfrd gSA og izkphu le; ls vius dke djrk gSA mldh izfr;ksx dh lQyrk cgqr vPNk gSA og izKku ls izse izkIr djrk gSA izfr;ksxh yksx esgurh ls dke djrs gSaA",
+            "Kku ogh gS tks lgh vkSj xyr dk Kku djk,A izKku ls izse izkIr gksrk gSA izfr;ksxh yksx izkphu jktk ls izse djrs gSaA izkphu le; esa yksx izfr;ksx djrs gSaA",
             "esjk uke jke gSA eSa jkst lqcg mBdj vius dke ij tkrk gwaA gekjk ns'k Hkkjr egku gS vkSj ge lc bl ij xoZ djrs gSaA lc yksx feydj vius ns'k dks vkSj Hkyk cukrs gSaA",
             "esjk Hkkjr egku gSA ;gka ds yksx cgqr Hkys vkSj esgurh gSaA ge lc feydj dke djrs gSa vkSj vius ns'k dk eku c<+krs gSaA ;g gekjk drZO; gS fd ge vius ns'k dh lsok djsaA",
             "dey dk Qwy cgqr lqanj gksrk gSA og ikuh esa f[kyrk gS vkSj lcdks vPNk yxrk gSA gekjs ns'k esa cgqr ls Qwy gksrs gSaA ge lc dks Hkyk dk;Z djuk pkfg,A",
@@ -7095,6 +7381,8 @@
         ];
 
         const hindiHardStories = [
+            "izfr;ksxh yksx izkphu le; ls dke djrs gSaA izKku ls izse izkIr gksrk gSA izprk iQfrd gSA og izfr;ksx dh lQyrk izkIr djrk gSA izfr;ksxh yksx esgurh ls jgrs gSaA izkphu jktk us izfr;ksxh yksxksa dk /;ku j[kkA",
+            "izkphu le; esa ,d izfr;ksxh jktk FkkA og izKku ls izse izkIr djrk FkkA mldh izfr;ksx dh lQyrk cgqr vPNk FkhA og izprk iQfrd FkkA mlds ns'k esa yksx izfr;ksx djrs FksA",
             ",d xkao esa ,d fdlku jgrk FkkA og cgqr esgurh FkkA og jkst lqcg mBdj vius [ksr esa dke djrk FkkA ,d fnu mldks ,d crZu feykA ml crZu esa cgqr lksuk FkkA fdlku us lkspk fd bl lksus ls og cM+k vkneh cu tk,xkA ij fQj mlus lkspk fd esgur gh lPpk /ku gSA mlus og lksuk xkao ds yksxksa esa ckaV fn;kA lc yksx mldk eku djus yxsA",
             ",d taxy esa ,d 'ksj jgrk FkkA og cgqr rkdroj FkkA ,d fnu og lks jgk FkkA ,d NksVk pwgk mlds mij p<+ x;kA 'ksj tkx x;k vkSj pwgs dks idM+ fy;kA pwgs us dgk fd eq>s NksM+ nksA ,d fnu eSa rqEgkjs dke vkšaxkA 'ksj gal iM+k ij mlus pwgs dks NksM+ fn;kA dqN fnu ckn 'ksj tky esa Qal x;kA pwgs us tky dkVdj 'ksj dks cpk fy;kA",
             ",d xkao esa nks fe= jgrs FksA os gj txg lkFk tkrs FksA ,d fnu os taxy ls xqtj jgs FksA rHkh ,d Hkkyw vk x;kA ,d fe= isM+ ij p<+ x;kA nwljk fe= tehu ij ysV x;kA Hkkyw us mls lwaxk vkSj pyk x;kA igys fe= us iwNk fd Hkkyw us D;k dgkA nwljs us dgk fd lPpk fe= eqlhcr esa dke vkrk gSA",
@@ -7123,6 +7411,8 @@
         ];
 
         const hindiExpertStories = [
+            "izfr;ksxh yksx izkphu le; ls izse izkIr djrs gSaA izKku ls izse izkIr gksrk gSA izprk iQfrd gSA og izfr;ksx dh lQyrk izkIr djrk gSA izkphu jktk us izfr;ksxh yksxksa dk /;ku j[kkA izfr;ksxh yksx esgurh ls dke djrs gSaA",
+            "izkphu le; esa izfr;ksxh yksx izse izkIr djrs FksA izKku ls izse izkIr gksrk gSA izprk iQfrd FkkA og izfr;ksx dh lQyrk izkIr djrk FkkA izkphu jktk us izfr;ksxh yksxksa dk /;ku j[kk FkkA izfr;ksxh yksx esgurh ls dke djrs FksA",
             "cgqr le; igys ,d jktk FkkA mldk uke Hkkst FkkA og cgqr U;k;fç; vkSj n;kyq FkkA mlds jkT; esa lc yksx lq[k ls jgrs FksA ,d fnu ,d xjhc fdlku mlds njckj esa vk;kA mlus dgk fd egkjkt esjs [ksr esa dke djrs le; eq>s ,d [ktkuk feyk gSA ij og [ktkuk esjk ugha gSA og rks vkidk gSA jktk mldh bZekunkjh ns[kdj cgqr [kq'k gqvkA mlus dgk fd tks [ktkuk rqEgkjh tehu ls feyk gS ogh rqEgkjk gSA fdlku us euk dj fn;kA var esa jktk us og /ku xjhcksa esa ckaV fn;kA lPph bZekunkjh gh lcls cM+k /ku gksrh gSA",
             ",d NksVs ls xkao esa ,d fo/kok vkSjr jgrh FkhA mldk ,d gh csVk FkkA og cgqr esgurh vkSj lPpk FkkA og jkst taxy ls ydM+h ykdj cktkj esa csprk FkkA blh ls mudk ?kj pyrk FkkA ,d fnu og taxy esa cgqr nwj fudy x;kA ogka mlus ,d cw<+s lar dks ns[kkA lar I;klk FkkA yM+ds us mUgsa ikuh fiyk;kA lar cgqr [kq'k gq,A mUgksaus yM+ds dks vk'khokZn fn;kA mlh fnu ls yM+ds ds thou esa lq[k vkus yxkA lPph lsok dHkh csdkj ugha tkrhA",
             ",d ckj dh ckr gSA ,d taxy esa cgqr ls tkuoj jgrs FksA lc feytqydj jgrs FksA ,d fnu taxy esa vkx yx x;hA lc tkuoj Mjdj bèkj mèkj Hkkxus yxsA rHkh ,d NksVh fpfM+;k us fgEer fn[kk;hA og vius NksVs ls pksap esa ikuh ykdj vkx ij Mkyus yxhA ckdh tkuoj galus yxsA ij fpfM+;k us gkj ugha ekuhA mldh fgEer ns[kdj ckdh tkuoj Hkh enn djus yxsA lc us feydj vkx cq>k nhA ,drk esa gh cgqr cM+h 'kfDr gksrh gSA",
@@ -7148,6 +7438,39 @@
             "esjk fo|k cgqr vPNk gS vkSj eSa mldks eu djrk gwaA og esjk lg;ksx djrk gSA eSa vius fo|k ls cgqr [kq'k gwaA fo|k cgqr vPNk gSA Kku cgqr vPNk gSA tks Kku dk eku djrk gS og lQy gksrk gSA",
             "ge lc dks Kku pkfg, vkSj vius ns'k dks Iyk cukuk pkfg,A Kku cgqr vPNk gSA tks Kku dk eku djrk gS og lQy gksrk gSA ;gh lPpk gSA Kku ls lc dqN eqefdu gks tkrk gSA",
             "dk;Z djuk cgqr vPNk gSA tks yksx dke djrs gSa os lQy gksrs gSaA dke ls /ku feyrk gSA dke ls lQyrk feyrh gSA ;gh lPpk O;ogkj gSA dke esgur ls gksrk gSA ;gh lQyrk dk jkt gSA"
+        ];
+
+        // === NUMPAD PRACTICE TEXTS (Levels 101-110) ===
+        // Levels 101-103: Basic number typing (home row: 4, 5, 6)
+        const numpadBasicTexts = [
+            "456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 4 5 6 4 5 6 4 5 6 4 5 6 4 5 6 4 5 6 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 4 5 6 4 5 6 4 5 6 4 5 6 4 5 6 4 5 6 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 4 5 6 4 5 6 4 5 6 4 5 6 4 5 6 4 5 6 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456 456",
+            "123 456 789 123 456 789 123 456 789 123 456 789 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 123 456 789 123 456 789 123 456 789 123 456 789 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 123 456 789 123 456 789 123 456 789 123 456 789 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 123 456 789 123 456 789 123 456 789 123 456 789 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 123 456 789 123 456 789 123 456 789 123 456 789 1 2 3 4 5 6 7 8 9 1 2 3 4 5 6 7 8 9 123 456 789 123 456 789 123 456 789 123 456 789",
+            "147 258 369 147 258 369 147 258 369 147 258 369 1 4 7 2 5 8 3 6 9 1 4 7 2 5 8 3 6 9 147 258 369 147 258 369 147 258 369 147 258 369 1 4 7 2 5 8 3 6 9 1 4 7 2 5 8 3 6 9 147 258 369 147 258 369 147 258 369 147 258 369 1 4 7 2 5 8 3 6 9 1 4 7 2 5 8 3 6 9 147 258 369 147 258 369 147 258 369 147 258 369 1 4 7 2 5 8 3 6 9 1 4 7 2 5 8 3 6 9 147 258 369 147 258 369 147 258 369 147 258 369 1 4 7 2 5 8 3 6 9 1 4 7 2 5 8 3 6 9 147 258 369 147 258 369 147 258 369 147 258 369",
+            "0123456789 0123456789 0123456789 0123456789 0123456789 0123456789 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0123456789 0123456789 0123456789 0123456789 0123456789 0123456789 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 9876543210 9876543210 9876543210 9876543210 9876543210 9876543210 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9876543210 9876543210 9876543210 9876543210 9876543210 9876543210 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 13579 24680 13579 24680 13579 24680 13579 24680 1 3 5 7 9 2 4 6 8 0 1 3 5 7 9 2 4 6 8 0 13579 24680 13579 24680 13579 24680 13579 24680 1 3 5 7 9 2 4 6 8 0 1 3 5 7 9 2 4 6 8 0",
+            "741 852 963 741 852 963 741 852 963 741 852 963 7 4 1 8 5 2 9 6 3 7 4 1 8 5 2 9 6 3 741 852 963 741 852 963 741 852 963 741 852 963 7 4 1 8 5 2 9 6 3 7 4 1 8 5 2 9 6 3 963 852 741 963 852 741 963 852 741 963 852 741 9 6 3 8 5 2 7 4 1 9 6 3 8 5 2 7 4 1 963 852 741 963 852 741 963 852 741 963 852 741 9 6 3 8 5 2 7 4 1 9 6 3 8 5 2 7 4 1 159 357 753 951 159 357 753 951 1 5 9 3 5 7 7 5 3 9 5 1 1 5 9 3 5 7 7 5 3 9 5 1 159 357 753 951 159 357 753 951 1 5 9 3 5 7 7 5 3 9 5 1 1 5 9 3 5 7 7 5 3 9 5 1 159 357 753 951 159 357 753 951 1 5 9 3 5 7 7 5 3 9 5 1 1 5 9 3 5 7 7 5 3 9 5 1"
+        ];
+
+        // Levels 104-106: Numbers with operators (+, -, *, /)
+        const numpadOperatorTexts = [
+            "12 + 34 = 46 56 + 23 = 79 45 + 67 = 112 89 + 12 = 101 34 + 56 = 90 78 + 90 = 168 23 + 45 = 68 67 + 89 = 156 11 + 22 = 33 33 + 44 = 77 55 + 66 = 121 77 + 88 = 165 99 + 11 = 110 12 + 34 = 46 56 + 23 = 79 45 + 67 = 112 89 + 12 = 101 34 + 56 = 90 78 + 90 = 168 23 + 45 = 68 67 + 89 = 156 11 + 22 = 33 33 + 44 = 77 55 + 66 = 121 77 + 88 = 165 99 + 11 = 110 15 + 25 = 40 35 + 45 = 80 55 + 65 = 120 75 + 85 = 160 95 + 15 = 110 25 + 35 = 60 45 + 55 = 100 65 + 75 = 140 85 + 95 = 180 12 + 34 = 46 56 + 23 = 79 45 + 67 = 112 89 + 12 = 101 34 + 56 = 90 78 + 90 = 168 23 + 45 = 68 67 + 89 = 156",
+            "99 - 45 = 54 88 - 23 = 65 77 - 34 = 43 66 - 12 = 54 55 - 20 = 35 90 - 45 = 45 80 - 35 = 45 70 - 25 = 45 60 - 15 = 45 50 - 10 = 40 99 - 45 = 54 88 - 23 = 65 77 - 34 = 43 66 - 12 = 54 55 - 20 = 35 90 - 45 = 45 80 - 35 = 45 70 - 25 = 45 60 - 15 = 45 50 - 10 = 40 100 - 50 = 50 200 - 100 = 100 300 - 150 = 150 400 - 200 = 200 500 - 250 = 250 100 - 50 = 50 200 - 100 = 100 300 - 150 = 150 400 - 200 = 200 500 - 250 = 250 999 - 111 = 888 888 - 222 = 666 777 - 333 = 444 666 - 444 = 222 555 - 555 = 0 999 - 111 = 888 888 - 222 = 666 777 - 333 = 444 666 - 444 = 222 555 - 555 = 0 99 - 45 = 54 88 - 23 = 65 77 - 34 = 43 66 - 12 = 54 55 - 20 = 35 90 - 45 = 45 80 - 35 = 45 70 - 25 = 45 60 - 15 = 45 50 - 10 = 40",
+            "5 * 3 = 15 7 * 4 = 28 9 * 6 = 54 8 * 5 = 40 6 * 7 = 42 4 * 9 = 36 3 * 8 = 24 2 * 7 = 14 9 * 9 = 81 8 * 8 = 64 7 * 7 = 49 6 * 6 = 36 5 * 5 = 25 4 * 4 = 16 3 * 3 = 9 2 * 2 = 4 5 * 3 = 15 7 * 4 = 28 9 * 6 = 54 8 * 5 = 40 6 * 7 = 42 4 * 9 = 36 3 * 8 = 24 2 * 7 = 14 9 * 9 = 81 8 * 8 = 64 7 * 7 = 49 6 * 6 = 36 5 * 5 = 25 4 * 4 = 16 3 * 3 = 9 2 * 2 = 4 12 * 3 = 36 15 * 4 = 60 18 * 5 = 90 21 * 6 = 126 24 * 7 = 168 12 * 3 = 36 15 * 4 = 60 18 * 5 = 90 21 * 6 = 126 24 * 7 = 168 25 * 4 = 100 50 * 2 = 100 75 * 4 = 300 25 * 8 = 200 35 * 3 = 105 25 * 4 = 100 50 * 2 = 100 75 * 4 = 300 25 * 8 = 200 35 * 3 = 105 5 * 3 = 15 7 * 4 = 28 9 * 6 = 54 8 * 5 = 40 6 * 7 = 42 4 * 9 = 36 3 * 8 = 24 2 * 7 = 14",
+            "100 / 4 = 25 200 / 5 = 40 300 / 6 = 50 400 / 8 = 50 500 / 10 = 50 144 / 12 = 12 169 / 13 = 13 196 / 14 = 14 225 / 15 = 15 256 / 16 = 16 100 / 4 = 25 200 / 5 = 40 300 / 6 = 50 400 / 8 = 50 500 / 10 = 50 144 / 12 = 12 169 / 13 = 13 196 / 14 = 14 225 / 15 = 15 256 / 16 = 16 81 / 9 = 9 72 / 8 = 9 63 / 7 = 9 54 / 6 = 9 45 / 5 = 9 81 / 9 = 9 72 / 8 = 9 63 / 7 = 9 54 / 6 = 9 45 / 5 = 9 90 / 3 = 30 80 / 4 = 20 70 / 2 = 35 60 / 3 = 20 50 / 2 = 25 90 / 3 = 30 80 / 4 = 20 70 / 2 = 35 60 / 3 = 20 50 / 2 = 25 100 / 4 = 25 200 / 5 = 40 300 / 6 = 50 400 / 8 = 50 500 / 10 = 50 144 / 12 = 12 169 / 13 = 13 196 / 14 = 14 225 / 15 = 15 256 / 16 = 16",
+            "12 + 34 - 12 = 34 56 + 23 - 33 = 46 45 * 2 + 10 = 100 80 - 20 * 3 = 20 50 + 50 / 2 = 75 100 - 25 * 2 = 50 36 / 6 + 14 = 20 72 / 8 - 5 = 4 9 * 9 + 19 = 100 7 * 8 - 16 = 40 12 + 34 - 12 = 34 56 + 23 - 33 = 46 45 * 2 + 10 = 100 80 - 20 * 3 = 20 50 + 50 / 2 = 75 100 - 25 * 2 = 50 36 / 6 + 14 = 20 72 / 8 - 5 = 4 9 * 9 + 19 = 100 7 * 8 - 16 = 40 144 / 12 + 88 = 100 200 / 4 - 25 = 25 15 * 5 + 25 = 100 18 * 3 - 14 = 40 24 * 4 + 4 = 100 144 / 12 + 88 = 100 200 / 4 - 25 = 25 15 * 5 + 25 = 100 18 * 3 - 14 = 40 24 * 4 + 4 = 100 99 + 1 - 50 = 50 88 - 8 + 20 = 100 77 + 23 * 1 = 100 66 - 6 * 11 = 0 55 + 45 / 5 = 64 99 + 1 - 50 = 50 88 - 8 + 20 = 100 77 + 23 * 1 = 100 66 - 6 * 11 = 0 55 + 45 / 5 = 64 12 + 34 - 12 = 34 56 + 23 - 33 = 46 45 * 2 + 10 = 100 80 - 20 * 3 = 20 50 + 50 / 2 = 75"
+        ];
+
+        // Levels 107-108: Decimal numbers
+        const numpadDecimalTexts = [
+            "3.14 2.71 1.41 0.99 5.67 8.23 4.56 7.89 0.25 0.50 0.75 1.25 1.50 1.75 2.25 2.50 2.75 3.25 3.50 3.75 3.14 2.71 1.41 0.99 5.67 8.23 4.56 7.89 0.25 0.50 0.75 1.25 1.50 1.75 2.25 2.50 2.75 3.25 3.50 3.75 4.25 4.50 4.75 5.25 5.50 5.75 6.25 6.50 6.75 7.25 7.50 4.25 4.50 4.75 5.25 5.50 5.75 6.25 6.50 6.75 7.25 7.50 3.14 2.71 1.41 0.99 5.67 8.23 4.56 7.89 0.25 0.50 0.75 1.25 1.50 1.75 2.25 2.50 2.75 3.25 3.50 3.75 4.25 4.50 4.75 5.25 5.50 5.75 6.25 6.50 6.75 7.25 7.50 8.25 8.50 8.75 9.25 9.50 9.75 8.25 8.50 8.75 9.25 9.50 9.75 3.14 2.71 1.41 0.99 5.67 8.23 4.56 7.89 0.25 0.50 0.75 1.25 1.50 1.75 2.25 2.50 2.75 3.25 3.50 3.75",
+            "12.50 + 3.25 = 15.75 45.75 - 12.50 = 33.25 6.25 * 4 = 25.00 100.00 / 4 = 25.00 7.50 + 2.50 = 10.00 15.99 - 3.49 = 12.50 9.99 + 0.01 = 10.00 50.00 - 25.50 = 24.50 12.50 + 3.25 = 15.75 45.75 - 12.50 = 33.25 6.25 * 4 = 25.00 100.00 / 4 = 25.00 7.50 + 2.50 = 10.00 15.99 - 3.49 = 12.50 9.99 + 0.01 = 10.00 50.00 - 25.50 = 24.50 33.33 + 66.67 = 100.00 99.99 - 49.99 = 50.00 12.50 * 2 = 25.00 75.00 / 3 = 25.00 33.33 + 66.67 = 100.00 99.99 - 49.99 = 50.00 12.50 * 2 = 25.00 75.00 / 3 = 25.00 0.25 + 0.75 = 1.00 1.50 + 2.50 = 4.00 3.75 - 1.25 = 2.50 5.50 + 4.50 = 10.00 0.25 + 0.75 = 1.00 1.50 + 2.50 = 4.00 3.75 - 1.25 = 2.50 5.50 + 4.50 = 10.00 12.50 + 3.25 = 15.75 45.75 - 12.50 = 33.25 6.25 * 4 = 25.00 100.00 / 4 = 25.00 7.50 + 2.50 = 10.00 15.99 - 3.49 = 12.50 9.99 + 0.01 = 10.00 50.00 - 25.50 = 24.50 0.25 + 0.75 = 1.00 1.50 + 2.50 = 4.00 3.75 - 1.25 = 2.50 5.50 + 4.50 = 10.00",
+            "123.45 + 67.89 = 191.34 234.56 - 123.45 = 111.11 345.67 + 456.78 = 802.45 567.89 - 345.67 = 222.22 789.00 + 111.11 = 900.11 999.99 - 888.88 = 111.11 123.45 + 67.89 = 191.34 234.56 - 123.45 = 111.11 345.67 + 456.78 = 802.45 567.89 - 345.67 = 222.22 789.00 + 111.11 = 900.11 999.99 - 888.88 = 111.11 10.50 * 3 = 31.50 25.25 * 4 = 101.00 12.75 * 8 = 102.00 5.55 * 9 = 49.95 10.50 * 3 = 31.50 25.25 * 4 = 101.00 12.75 * 8 = 102.00 5.55 * 9 = 49.95 100.00 / 8 = 12.50 250.00 / 10 = 25.00 500.00 / 4 = 125.00 1000.00 / 5 = 200.00 100.00 / 8 = 12.50 250.00 / 10 = 25.00 500.00 / 4 = 125.00 1000.00 / 5 = 200.00 123.45 + 67.89 = 191.34 234.56 - 123.45 = 111.11 345.67 + 456.78 = 802.45 567.89 - 345.67 = 222.22 789.00 + 111.11 = 900.11 999.99 - 888.88 = 111.11 10.50 * 3 = 31.50 25.25 * 4 = 101.00 12.75 * 8 = 102.00 5.55 * 9 = 49.95 100.00 / 8 = 12.50 250.00 / 10 = 25.00 500.00 / 4 = 125.00 1000.00 / 5 = 200.00",
+            "0.125 0.250 0.375 0.500 0.625 0.750 0.875 1.000 1.125 1.250 1.375 1.500 1.625 1.750 1.875 2.000 0.125 0.250 0.375 0.500 0.625 0.750 0.875 1.000 1.125 1.250 1.375 1.500 1.625 1.750 1.875 2.000 2.125 2.250 2.375 2.500 2.625 2.750 2.875 3.000 2.125 2.250 2.375 2.500 2.625 2.750 2.875 3.000 3.141 2.718 1.414 1.732 0.577 2.236 3.142 1.618 3.141 2.718 1.414 1.732 0.577 2.236 3.142 1.618 0.111 0.222 0.333 0.444 0.555 0.666 0.777 0.888 0.999 0.111 0.222 0.333 0.444 0.555 0.666 0.777 0.888 0.999 0.125 0.250 0.375 0.500 0.625 0.750 0.875 1.000 1.125 1.250 1.375 1.500 1.625 1.750 1.875 2.000 2.125 2.250 2.375 2.500 2.625 2.750 2.875 3.000 3.141 2.718 1.414 1.732 0.577 2.236 3.142 1.618"
+        ];
+
+        // Levels 109-110: Advanced calculations
+        const numpadAdvancedTexts = [
+            "123 + 456 = 579 789 - 321 = 468 147 * 3 = 441 963 / 9 = 107 258 + 654 = 912 852 - 147 = 705 369 * 2 = 738 456 / 4 = 114 123 + 456 = 579 789 - 321 = 468 147 * 3 = 441 963 / 9 = 107 258 + 654 = 912 852 - 147 = 705 369 * 2 = 738 456 / 4 = 114 999 + 1 = 1000 1000 - 1 = 999 500 * 2 = 1000 1000 / 5 = 200 999 + 1 = 1000 1000 - 1 = 999 500 * 2 = 1000 1000 / 5 = 200 111 + 222 + 333 = 666 999 - 444 - 555 = 0 100 * 5 * 2 = 1000 1000 / 10 / 10 = 10 111 + 222 + 333 = 666 999 - 444 - 555 = 0 100 * 5 * 2 = 1000 1000 / 10 / 10 = 10 12.50 + 34.75 = 47.25 99.99 - 45.50 = 54.49 25.00 * 4 = 100.00 500.00 / 8 = 62.50 12.50 + 34.75 = 47.25 99.99 - 45.50 = 54.49 25.00 * 4 = 100.00 500.00 / 8 = 62.50 123 + 456 = 579 789 - 321 = 468 147 * 3 = 441 963 / 9 = 107 258 + 654 = 912 852 - 147 = 705 369 * 2 = 738 456 / 4 = 114 999 + 1 = 1000 1000 - 1 = 999 500 * 2 = 1000 1000 / 5 = 200 111 + 222 + 333 = 666 999 - 444 - 555 = 0 100 * 5 * 2 = 1000 1000 / 10 / 10 = 10",
+            "3.14159 + 2.71828 = 5.85987 9.81 * 2 = 19.62 100.00 - 33.33 = 66.67 144.00 / 12.00 = 12.00 3.14159 + 2.71828 = 5.85987 9.81 * 2 = 19.62 100.00 - 33.33 = 66.67 144.00 / 12.00 = 12.00 777.77 + 222.22 = 999.99 555.55 - 111.11 = 444.44 333.33 * 3 = 999.99 888.88 / 8 = 111.11 777.77 + 222.22 = 999.99 555.55 - 111.11 = 444.44 333.33 * 3 = 999.99 888.88 / 8 = 111.11 1000.00 / 4.00 = 250.00 250.00 * 4.00 = 1000.00 125.50 + 874.50 = 1000.00 1000.00 - 500.25 = 499.75 1000.00 / 4.00 = 250.00 250.00 * 4.00 = 1000.00 125.50 + 874.50 = 1000.00 1000.00 - 500.25 = 499.75 45.67 + 89.12 - 34.56 = 100.23 12.34 * 5.67 = 69.96 987.65 / 4.56 = 216.59 234.56 + 765.43 = 999.99 45.67 + 89.12 - 34.56 = 100.23 12.34 * 5.67 = 69.96 987.65 / 4.56 = 216.59 234.56 + 765.43 = 999.99 3.14159 + 2.71828 = 5.85987 9.81 * 2 = 19.62 100.00 - 33.33 = 66.67 144.00 / 12.00 = 12.00 777.77 + 222.22 = 999.99 555.55 - 111.11 = 444.44 333.33 * 3 = 999.99 888.88 / 8 = 111.11 1000.00 / 4.00 = 250.00 250.00 * 4.00 = 1000.00 125.50 + 874.50 = 1000.00 1000.00 - 500.25 = 499.75 45.67 + 89.12 - 34.56 = 100.23 12.34 * 5.67 = 69.96 987.65 / 4.56 = 216.59 234.56 + 765.43 = 999.99"
         ];
 
         // Store text arrays in localStorage for admin panel access
@@ -7339,7 +7662,12 @@
             for (let i = 1; i <= 100; i++) {
                 const option = document.createElement('option');
                 option.value = i;
-                option.textContent = `Level ${i}`;
+                if (i <= 100) {
+                    option.textContent = `Level ${i}`;
+                } else {
+                    const levelData = gameLevels[i - 1];
+                    option.textContent = `Level ${i} - ${levelData.name}`;
+                }
                 levelSelect.appendChild(option);
             }
             levelSelect.value = currentLevel;
@@ -7358,8 +7686,18 @@
             let baseText;
             let textArray;
 
-            // If Hindi mode, use Hindi text arrays
-            if (currentTypingLanguage === 'hi') {
+            // Numpad levels (101-110): always use numpad texts regardless of language
+            if (level >= 101 && level <= 110) {
+                if (level <= 103) {
+                    textArray = numpadBasicTexts;
+                } else if (level <= 106) {
+                    textArray = numpadOperatorTexts;
+                } else if (level <= 108) {
+                    textArray = numpadDecimalTexts;
+                } else {
+                    textArray = numpadAdvancedTexts;
+                }
+            } else if (currentTypingLanguage === 'hi') {
                 if (level <= 5) {
                     textArray = hindiHomeRowTexts;
                 } else if (level <= 10) {
@@ -7534,10 +7872,51 @@
                     { key: '-', name: '— (Em Dash)', finger: 'Type -', tip: 'Long dash. Type - (hyphen) to match.' },
                     { key: '"', name: '" (Smart Quotes)', finger: 'Type "', tip: 'Curved quotation marks. Type regular " (Shift + \') to match.' }
                 ]
+            },
+            101: {
+                title: 'Numpad: Number Keys',
+                chars: [
+                    { key: '4', name: '4', finger: 'Left Index', tip: 'Press 4 with your left index finger (home row on numpad)' },
+                    { key: '5', name: '5', finger: 'Left Middle', tip: 'Press 5 with your left middle finger (center of numpad)' },
+                    { key: '6', name: '6', finger: 'Left Ring', tip: 'Press 6 with your left ring finger' },
+                    { key: '0', name: '0', finger: 'Left Thumb', tip: 'Press 0 with your left thumb (bottom of numpad)' }
+                ]
+            },
+            104: {
+                title: 'Numpad: Operators',
+                chars: [
+                    { key: '+', name: '+ (Plus)', finger: 'Left Pinky', tip: 'Press + with your left pinky finger' },
+                    { key: '-', name: '- (Minus)', finger: 'Left Ring', tip: 'Press - with your left ring finger' },
+                    { key: '*', name: '* (Multiply)', finger: 'Left Middle', tip: 'Press * with your left middle finger' },
+                    { key: '/', name: '/ (Divide)', finger: 'Left Index', tip: 'Press / with your left index finger' },
+                    { key: '=', name: '= (Equals)', finger: 'Right Pinky', tip: 'Press = with your right pinky finger (top row)' }
+                ]
+            },
+            107: {
+                title: 'Numpad: Decimal Point',
+                chars: [
+                    { key: '.', name: '. (Decimal)', finger: 'Left Middle', tip: 'Press . (decimal point) with your left middle finger' },
+                    { key: '0', name: '0 (Zero)', finger: 'Left Thumb', tip: 'Press 0 with your left thumb — used in decimal numbers like 0.50' }
+                ]
+            },
+            109: {
+                title: 'Numpad: Advanced Calculations',
+                chars: [
+                    { key: '1', name: '1', finger: 'Left Index', tip: 'Press 1 with your left index finger (bottom-left of numpad)' },
+                    { key: '2', name: '2', finger: 'Left Middle', tip: 'Press 2 with your left middle finger' },
+                    { key: '3', name: '3', finger: 'Left Ring', tip: 'Press 3 with your left ring finger' },
+                    { key: '7', name: '7', finger: 'Left Index', tip: 'Press 7 with your left index finger (top-left of numpad)' },
+                    { key: '8', name: '8', finger: 'Left Middle', tip: 'Press 8 with your left middle finger' },
+                    { key: '9', name: '9', finger: 'Left Ring', tip: 'Press 9 with your left ring finger' }
+                ]
             }
         };
 
         function getLevelGroup(level) {
+            if (level >= 101 && level <= 103) return 101;
+            if (level >= 104 && level <= 106) return 104;
+            if (level >= 107 && level <= 108) return 107;
+            if (level >= 109 && level <= 110) return 109;
             if (level <= 5) return 1;
             if (level <= 10) return 6;
             if (level <= 15) return 11;
@@ -7611,6 +7990,12 @@
             previousLineIndex = -1;
             // Clear any keyboard highlight from previous run
             document.querySelectorAll('.key').forEach(k => k.classList.remove('highlighted'));
+            // Toggle numpad-only mode for numpad levels
+            if (currentLevel >= 101 && currentLevel <= 110) {
+                document.body.classList.add('numpad-practice');
+            } else {
+                document.body.classList.remove('numpad-practice');
+            }
             typingInput.value = '';
             typingInput.disabled = false;
             wpmDisplay.textContent = '0';
@@ -8518,7 +8903,12 @@
             for (let i = 1; i <= 100; i++) {
                 const option = document.createElement('option');
                 option.value = i;
-                option.textContent = `Level ${i}`;
+                if (i <= 100) {
+                    option.textContent = `Level ${i}`;
+                } else {
+                    const levelData = gameLevels[i - 1];
+                    option.textContent = `Level ${i} - ${levelData.name}`;
+                }
                 select.appendChild(option);
             }
             select.value = currentLevel;
@@ -8601,6 +8991,16 @@
             updateLevelInfo();
             saveUserData();
             loadNewText();
+            // Immediately reset and show timer for the new level
+            if (!isCustomMode) {
+                const levelData = gameLevels[currentLevel - 1];
+                timeRemaining = levelData.duration;
+            } else {
+                timeRemaining = customModeDuration;
+            }
+            timerDisplay.classList.add('visible');
+            timerDisplay.style.display = 'flex';
+            updateTimerDisplay();
         });
         
         // Initialize on page load
@@ -8645,10 +9045,15 @@
             // Make regular keys square: set --key-size to actual rendered width
             updateKeySize();
             const keyboardEl = document.querySelector('.keyboard');
+            const typingAreaEl = document.querySelector('.typing-area');
             if (keyboardEl) {
                 new ResizeObserver(updateKeySize).observe(keyboardEl);
             }
+            if (typingAreaEl) {
+                new ResizeObserver(updateKeySize).observe(typingAreaEl);
+            }
             window.addEventListener('resize', updateKeySize);
+            window.addEventListener('orientationchange', function() { setTimeout(updateKeySize, 200); });
 
             // Set text size select value
             const textSizeSelect = document.getElementById('textSizeSelect');
@@ -8797,8 +9202,81 @@
             setTimeout(updateKeySize, 0);
         }
 
+        let _keySizeUpdating = false;
         function updateKeySize() {
-            // Sizing is now handled robustly and responsively via CSS custom properties and math
+            if (_keySizeUpdating) return;
+            _keySizeUpdating = true;
+
+            const keyboardWrapper = document.querySelector('.keyboard-wrapper');
+            const keyboardSection = document.querySelector('.keyboard-section');
+            const typingArea = document.querySelector('.typing-area');
+            if (!keyboardWrapper || !keyboardSection || !typingArea) { _keySizeUpdating = false; return; }
+
+            // Skip if keyboard is hidden
+            if (keyboardSection.style.display === 'none' || !keyboardSection.offsetParent) { _keySizeUpdating = false; return; }
+
+            // Get actual available width from the keyboard-section container
+            const availWidth = keyboardSection.clientWidth;
+
+            // Get keyboard-wrapper padding from computed style
+            const kwStyle = getComputedStyle(keyboardWrapper);
+            const kwPaddingL = parseFloat(kwStyle.paddingLeft) || 18;
+            const kwPaddingR = parseFloat(kwStyle.paddingRight) || 18;
+            const kwBorder = parseFloat(kwStyle.borderLeftWidth) + parseFloat(kwStyle.borderRightWidth) || 2;
+            const kwPaddingH = kwPaddingL + kwPaddingR + kwBorder;
+
+            // Main keyboard: widest row = 16 key-widths + 14 gaps
+            // Numpad: 4 key-widths + 3 gaps + wrapper gap (1 gap between keyboard and numpad)
+            // Divider padding: keyboard padding-right (1.5*gap) + numpad padding-left (2*gap) = 3.5 * key-gap, plus border 1px
+            // Total = 20 key-widths + 17 gaps + 3.5 * gap + 1px = 20 key-widths + 20.5 gaps + 1px
+            // gap ≈ 0.09 * ks, so: availWidth = (20 + 20.5*0.09) * ks + kwPaddingH + 1
+            const isNumpadVisible = !document.body.classList.contains('numpad-practice');
+            const numpad = document.querySelector('.numpad');
+            const numpadVisible = isNumpadVisible && numpad && getComputedStyle(numpad).display !== 'none';
+
+            const totalKeys = numpadVisible ? 20 : 16;
+            const totalGaps = numpadVisible ? 20.5 : 14;
+            const extraBorder = numpadVisible ? 1 : 0;
+            const gapRatio = 0.09;
+            let ksFromWidth = (availWidth - kwPaddingH - extraBorder) / (totalKeys + totalGaps * gapRatio);
+
+            // Calculate key-size from available height
+            const taStyle = getComputedStyle(typingArea);
+            const taPaddingH = (parseFloat(taStyle.paddingTop) || 0) + (parseFloat(taStyle.paddingBottom) || 0);
+            const taGap = parseFloat(taStyle.gap) || 8;
+            const taHeight = typingArea.clientHeight - taPaddingH;
+
+            const textDisplay = typingArea.querySelector('.text-display');
+            const fingerGuide = typingArea.querySelector('.finger-guide-display');
+            const textDisplayH = textDisplay ? textDisplay.offsetHeight : 120;
+            const fingerGuideH = fingerGuide ? fingerGuide.offsetHeight : 0;
+            const kbSectionMargin = keyboardSection.offsetTop > 0 ? 20 : 20;
+
+            const availHeight = taHeight - textDisplayH - fingerGuideH - taGap - kbSectionMargin;
+
+            // Keyboard height = 5 rows * ks + 4 gaps + vertical padding
+            const kwPaddingV = (parseFloat(kwStyle.paddingTop) || 18) + (parseFloat(kwStyle.paddingBottom) || 18);
+            // availHeight = 5 * ks + 4 * gap + kwPaddingV = (5 + 4*0.09) * ks + kwPaddingV = 5.36 * ks + kwPaddingV
+            let ksFromHeight = (availHeight - kwPaddingV) / 5.36;
+
+            // Get max size from CSS variable or default
+            let maxSize = parseFloat(kwStyle.getPropertyValue('--kb-max-size')) || 72;
+            maxSize = isNaN(maxSize) ? 72 : maxSize;
+
+            // Use the minimum of width-based, height-based, and max-size
+            let keySize = Math.min(maxSize, ksFromWidth, ksFromHeight);
+
+            // Ensure a reasonable minimum
+            keySize = Math.max(keySize, 24);
+
+            // Calculate gap proportional to key size
+            let keyGap = Math.max(3, Math.min(8, keySize * 0.09));
+
+            // Apply to keyboard-wrapper (which cascades to .keyboard and .numpad)
+            keyboardWrapper.style.setProperty('--key-size', keySize + 'px');
+            keyboardWrapper.style.setProperty('--key-gap', keyGap + 'px');
+
+            _keySizeUpdating = false;
         }
 
         function toggleHighlight() {
@@ -8901,12 +9379,12 @@
             '6': '6', '7': '7', '8': '8', '9': '9', '0': '0', '-': '.', '=': 'त्र',
             // Row 2 (top row) - mix of consonants and matras (real KD010)
             'q': 'ु', 'w': 'ू', 'e': 'म', 'r': 'त', 't': 'ज', 'y': 'ल', 'u': 'न', 'i': 'प', 'o': 'व', 'p': 'च',
-            '[': 'ख्', ']': ',', '\\': '?',
+            '[': 'ख्‍', ']': ',', '\\': '?',
             // Row 3 (home row)
             'a': 'ं', 's': 'े', 'd': 'क', 'f': 'ि', 'g': 'ह', 'h': 'ी', 'j': 'र', 'k': 'ा', 'l': 'स', ';': 'य',
-            "'": 'श',
+            "'": 'श्‍',
             // Row 4 (bottom row)
-            'z': '्र', 'x': 'ग', 'c': 'ब', 'v': 'अ', 'b': 'इ', 'n': 'द', 'm': 'उ', ',': 'ए', '.': 'ण्', '/': 'ध'
+            'z': '्र', 'x': 'ग', 'c': 'ब', 'v': 'अ', 'b': 'इ', 'n': 'द', 'm': 'उ', ',': 'ए', '.': 'ण्‍', '/': 'ध्‍'
         };
 
         // Shifted characters for Kruti Dev 010 (aspirates, capitals, edge chars)
@@ -8915,14 +9393,14 @@
             '~': 'ँ', '!': '!', '@': '/', '#': 'रु', '$': '+', '%': ':',
             '^': '‘', '&': '-', '*': '’', '(': ';', ')': 'द्ध', '_': 'ऋ', '+': 'ऑ',
             // Row 2 (shifted top row) - mostly half-consonant forms
-            'Q': 'फ', 'W': 'ॅ', 'E': 'म्', 'R': 'त्', 'T': 'ज्', 'Y': 'ल्', 'U': 'न्', 'I': 'प्', 'O': 'व्', 'P': 'च्',
+            'Q': 'फ', 'W': 'ॅ', 'E': 'म्‍', 'R': 'त्‍', 'T': 'ज्‍', 'Y': 'ल्‍', 'U': 'न्‍', 'I': 'प्‍', 'O': 'व्‍', 'P': 'च्‍',
             '{': 'क्ष', '}': 'द्व', '|': 'द्य',
             // Row 3 (shifted home row)
-            'A': '|', 'S': 'ै', 'D': 'क्', 'F': 'थ', 'G': 'ळ', 'H': 'भ', 'J': 'श्र', 'K': 'ज्ञ', 'L': 'स्', ':': 'रू',
-            '"': 'ष्',
+            'A': '|', 'S': 'ै', 'D': 'क्‍', 'F': 'थ', 'G': 'ळ', 'H': 'भ', 'J': 'श्र', 'K': 'ज्ञ', 'L': 'स्‍', ':': 'रू',
+            '"': 'ष्‍',
             // Row 4 (shifted bottom row)
-            'Z': 'र', 'X': 'ग्', 'C': 'ब्', 'V': 'ट', 'B': 'ठ', 'N': 'छ', 'M': 'ड',
-            '<': 'ढ', '>': 'झ', '?': 'घ'
+            'Z': 'र्', 'X': 'ग्‍', 'C': 'ब्‍', 'V': 'ट', 'B': 'ठ', 'N': 'छ', 'M': 'ड',
+            '<': 'ढ', '>': 'झ', '?': 'घ्‍'
         };
 
         // Map a base (unshifted) ASCII key to its shifted ASCII key (for non-letters)
@@ -8967,6 +9445,8 @@
             const modal = document.getElementById('langSelectModal');
             if (modal) modal.style.display = 'none';
             applyTypingLanguage();
+            // Reload text for the selected language
+            loadNewText();
             // After language selection, proceed to login check
             proceedAfterLanguageSelect();
         }
@@ -9110,7 +9590,7 @@
         }
 
         let currentGuidePage = 0;
-        const totalGuidePages = 5;
+        const totalGuidePages = 6;
 
         function nextGuidePage() {
             const lang = document.querySelector('.guide-content-english.active') ? 'english' : 'hindi';
@@ -9947,6 +10427,208 @@
             updateDisplay();
         }
 
+        // ===== Special Chapters (Alt Codes & Hindi Conjuncts) =====
+        const specialChapterEnglishData = [
+            { char: '©', code: 'Alt + 0169', name: 'Copyright', uses: '© 2024 Company Name' },
+            { char: '®', code: 'Alt + 0174', name: 'Registered Trademark', uses: 'BrandName®' },
+            { char: '™', code: 'Alt + 0153', name: 'Trademark', uses: 'Product™' },
+            { char: '°', code: 'Alt + 0176', name: 'Degree Symbol', uses: '25°C, 90° angle' },
+            { char: '½', code: 'Alt + 0189', name: 'One Half', uses: '½ cup, ½ kg' },
+            { char: '¼', code: 'Alt + 0188', name: 'One Quarter', uses: '¼ teaspoon' },
+            { char: '—', code: 'Alt + 0151', name: 'Em Dash', uses: 'Wait — there is more!' },
+            { char: '±', code: 'Alt + 0177', name: 'Plus-Minus', uses: '±0.5mm tolerance' },
+            { char: '×', code: 'Alt + 0215', name: 'Multiplication', uses: '5 × 3 = 15' },
+            { char: '÷', code: 'Alt + 0247', name: 'Division', uses: '10 ÷ 2 = 5' },
+            { char: '€', code: 'Alt + 0128', name: 'Euro', uses: '€50, €100' },
+            { char: '₹', code: 'Alt + 8377', name: 'Indian Rupee', uses: '₹500, ₹1000' },
+            { char: '•', code: 'Alt + 0149', name: 'Bullet Point', uses: '• Item one' },
+            { char: '…', code: 'Alt + 0133', name: 'Ellipsis', uses: 'Wait for it…' },
+            { char: '§', code: 'Alt + 0167', name: 'Section', uses: '§1, §2 of the Act' },
+            { char: '¶', code: 'Alt + 0182', name: 'Pilcrow', uses: '¶ Paragraph mark' },
+            { char: '«', code: 'Alt + 0171', name: 'Left Guillemet', uses: '«quote»' },
+            { char: '»', code: 'Alt + 0187', name: 'Right Guillemet', uses: '«quote»' },
+            { char: '¿', code: 'Alt + 0191', name: 'Inverted Question', uses: '¿Cómo estás?' },
+            { char: '¡', code: 'Alt + 0161', name: 'Inverted Exclamation', uses: '¡Hola!' }
+        ];
+
+        const specialChapterHindiData = [
+            { char: 'प्र', code: 'p + z', name: 'प्र (pra)', uses: 'प्रकाश, प्रदेश, प्रश्न' },
+            { char: 'हर्ष', code: 'h + Shift+z', name: 'हर्ष (harṣa)', uses: 'हर्ष, विष्णु, वर्ष' },
+            { char: 'क्ष', code: 'Shift + [', name: 'क्ष (kṣa)', uses: 'क्षत्रिय, मोक्ष, भाक्ष' },
+            { char: 'ज्ञ', code: 'Shift + k', name: 'ज्ञ (jña)', uses: 'ज्ञान, संज्ञा, प्रज्ञा' },
+            { char: 'श्र', code: 'Shift + j', name: 'श्र (śra)', uses: 'श्रेष्ठ, श्री, श्रवण' },
+            { char: 'द्ध', code: 'Shift + 9', name: 'द्ध (ddha)', uses: 'द्ध, अद्ध, सन्द्ध' },
+            { char: 'द्व', code: 'Shift + ]', name: 'द्व (dva)', uses: 'द्वार, द्वन्द्व, द्वैत' },
+            { char: 'द्य', code: 'Shift + \\', name: 'द्य (dya)', uses: 'द्य, विद्या, सद्य' },
+            { char: 'त्र', code: '=', name: 'त्र (tra)', uses: 'त्रिकाल, पात्र, मित्र' },
+            { char: 'ऋ', code: 'Shift + -', name: 'ऋ (ṛ)', uses: 'ऋषि, ऋक्, ऋतु' },
+            { char: 'श्‍', code: "'", name: 'श्‍ (ś)', uses: 'श्‍, श्वेत, श्मश्रु' },
+            { char: 'ष्‍', code: 'Shift + "', name: 'ष्‍ (ṣ)', uses: 'ष्‍, षड्, षष्ठ' },
+            { char: 'ध्‍', code: '/', name: 'ध्‍ (dh)', uses: 'ध्‍, धर्म, ध्यान' },
+            { char: 'घ्‍', code: 'Shift + /', name: 'घ्‍ (gh)', uses: 'घ्‍, घर, घन' },
+            { char: 'ण्‍', code: '.', name: 'ण्‍ (ṇ)', uses: 'ण्‍, गण, कण' },
+            { char: 'रु', code: 'Shift + 3', name: 'रु (ru)', uses: 'रुपया, रुक, रुचि' },
+            { char: 'रू', code: 'Shift + ;', name: 'रू (rū)', uses: 'रूप, रूख, बरू' },
+            { char: 'ऑ', code: 'Shift + =', name: 'ऑ (oṁ)', uses: 'ऑक्स, ऑनलाइन' },
+            { char: 'ँ', code: 'Shift + `', name: 'ँ (candrabindu)', uses: 'चाँद, आँख, हाँ' },
+            { char: 'ॅ', code: 'Shift + w', name: 'ॅ (reph)', uses: 'कॅ, पॅ, बॅ' }
+        ];
+
+        const specialChapters = [
+            {
+                id: 1,
+                title: 'English Alt Codes — Basic',
+                category: 'English',
+                icon: 'fa-keyboard',
+                description: 'Practice common Alt code symbols: ©, ®, ™, °, ₹',
+                chars: specialChapterEnglishData.slice(0, 6)
+            },
+            {
+                id: 2,
+                title: 'English Alt Codes — Math & Currency',
+                category: 'English',
+                icon: 'fa-calculator',
+                description: 'Practice math and currency symbols: ±, ×, ÷, €, ₹, ½, ¼',
+                chars: specialChapterEnglishData.slice(4, 12)
+            },
+            {
+                id: 3,
+                title: 'English Alt Codes — Typography',
+                category: 'English',
+                icon: 'fa-paragraph',
+                description: 'Practice typography symbols: —, •, …, §, ¶, «, », ¿, ¡',
+                chars: specialChapterEnglishData.slice(12)
+            },
+            {
+                id: 4,
+                title: 'Hindi Conjuncts — Basic',
+                category: 'Hindi',
+                icon: 'fa-language',
+                description: 'Practice common Hindi conjuncts: प्र, क्ष, श्र, ज्ञ, त्र, हर्ष',
+                chars: specialChapterHindiData.slice(0, 6)
+            },
+            {
+                id: 5,
+                title: 'Hindi Conjuncts — Advanced',
+                category: 'Hindi',
+                icon: 'fa-language',
+                description: 'Practice advanced Hindi conjuncts: द्ध, द्व, द्य, ऋ, श्‍, ष्‍',
+                chars: specialChapterHindiData.slice(6, 15)
+            },
+            {
+                id: 6,
+                title: 'Hindi Conjuncts — Special Vowels',
+                category: 'Hindi',
+                icon: 'fa-language',
+                description: 'Practice special vowel forms: रु, रू, ऑ, ँ, ॅ',
+                chars: specialChapterHindiData.slice(15)
+            }
+        ];
+
+        function openSpecialChaptersModal() {
+            document.getElementById('specialChaptersModal').style.display = 'flex';
+            renderSpecialChapters();
+        }
+
+        function closeSpecialChaptersModal() {
+            document.getElementById('specialChaptersModal').style.display = 'none';
+        }
+
+        function renderSpecialChapters() {
+            const list = document.getElementById('specialChaptersList');
+            list.innerHTML = specialChapters.map(chapter => `
+                <div class="lesson-card" onclick="startSpecialChapter(${chapter.id})">
+                    <div class="lesson-card-header">
+                        <span class="lesson-card-title"><i class="fas ${chapter.icon}"></i> ${chapter.title}</span>
+                        <span class="lesson-card-level">${chapter.category}</span>
+                    </div>
+                    <div class="lesson-card-description">${chapter.description}</div>
+                    <div class="lesson-card-keys">${chapter.chars.length} special characters</div>
+                </div>
+            `).join('');
+        }
+
+        function startSpecialChapter(chapterId) {
+            const chapter = specialChapters.find(c => c.id === chapterId);
+            if (!chapter) return;
+
+            resetTyping();
+
+            let text;
+            if (chapter.category === 'Hindi') {
+                text = chapter.chars.map(c => c.uses).join('  ');
+            } else {
+                text = chapter.chars.map(c => `${c.char} ${c.uses}  (${c.code})  `).join('  ');
+            }
+
+            currentText = text;
+            currentLessonId = null;
+            isCustomMode = false;
+            isChallengeMode = false;
+
+            document.getElementById('lessonTitle').textContent = chapter.title;
+            closeSpecialChaptersModal();
+            updateDisplay();
+        }
+
+        // ===== Numpad Practice =====
+        const numpadChapters = [
+            { id: 1, title: 'Home Row (4, 5, 6)', icon: 'fa-keyboard', description: 'Practice numpad home row keys: 4, 5, 6', texts: numpadBasicTexts },
+            { id: 2, title: 'All Numbers', icon: 'fa-keyboard', description: 'Practice all numpad number keys: 0-9', texts: numpadBasicTexts },
+            { id: 3, title: 'Number Patterns', icon: 'fa-sort-numeric-down', description: 'Practice number patterns and sequences', texts: numpadBasicTexts },
+            { id: 4, title: 'Addition (+)', icon: 'fa-plus', description: 'Practice addition with the + operator', texts: numpadOperatorTexts },
+            { id: 5, title: 'Subtraction (-)', icon: 'fa-minus', description: 'Practice subtraction with the - operator', texts: numpadOperatorTexts },
+            { id: 6, title: 'Multiplication (*)', icon: 'fa-times', description: 'Practice multiplication with the * operator', texts: numpadOperatorTexts },
+            { id: 7, title: 'Division (/)', icon: 'fa-divide', description: 'Practice division with the / operator', texts: numpadOperatorTexts },
+            { id: 8, title: 'Mixed Operators', icon: 'fa-calculator', description: 'Practice mixed calculations with +, -, *, /', texts: numpadOperatorTexts },
+            { id: 9, title: 'Decimals', icon: 'fa-decimal', description: 'Practice decimal number typing', texts: numpadDecimalTexts },
+            { id: 10, title: 'Advanced Calculations', icon: 'fa-square-root-alt', description: 'Practice advanced calculations with decimals and operators', texts: numpadAdvancedTexts }
+        ];
+
+        function openNumpadPracticeModal() {
+            document.getElementById('numpadPracticeModal').style.display = 'flex';
+            renderNumpadPractice();
+        }
+
+        function closeNumpadPracticeModal() {
+            document.getElementById('numpadPracticeModal').style.display = 'none';
+        }
+
+        function renderNumpadPractice() {
+            const list = document.getElementById('numpadPracticeList');
+            list.innerHTML = numpadChapters.map(chapter => `
+                <div class="lesson-card" onclick="startNumpadChapter(${chapter.id})">
+                    <div class="lesson-card-header">
+                        <span class="lesson-card-title"><i class="fas ${chapter.icon}"></i> ${chapter.title}</span>
+                        <span class="lesson-card-level">Numpad</span>
+                    </div>
+                    <div class="lesson-card-description">${chapter.description}</div>
+                </div>
+            `).join('');
+        }
+
+        function startNumpadChapter(chapterId) {
+            const chapter = numpadChapters.find(c => c.id === chapterId);
+            if (!chapter) return;
+
+            resetTyping();
+
+            const textArray = chapter.texts;
+            const randomIndex = Math.floor(Math.random() * textArray.length);
+            currentText = textArray[randomIndex];
+            currentLessonId = null;
+            isCustomMode = false;
+            isChallengeMode = false;
+
+            // Enable numpad-only mode
+            currentLevel = 101 + (chapterId - 1);
+            document.body.classList.add('numpad-practice');
+
+            document.getElementById('lessonTitle').textContent = `Numpad: ${chapter.title}`;
+            closeNumpadPracticeModal();
+            updateDisplay();
+        }
+
         // ===== Timed Test =====
         const timerTestOptions = [
             { id: '1min', label: '1 Minute', duration: 60, icon: '⏱️' },
@@ -10208,6 +10890,9 @@
             currentLevel = savedLevel;
             levelSelect.value = currentLevel;
             updateLevelInfo();
+
+            // Reload text for the user's saved level and current language
+            loadNewText();
 
             // Update displays
             updateXPDisplay();
@@ -10798,7 +11483,17 @@
             if (highlightEnabled && currentIndex < currentText.length) {
                 const nextChar = currentText[currentIndex];
                 const lookupChar = getBaseKey(nextChar);
-                const keyElement = document.querySelector(`[data-key="${lookupChar}"]`);
+                const isNumpadLevel = currentLevel >= 101 && currentLevel <= 110;
+                let keyElement;
+                if (isNumpadLevel) {
+                    // Prefer numpad key for numpad practice levels
+                    keyElement = document.querySelector(`.numpad-key[data-key="${lookupChar}"]`);
+                    if (!keyElement) {
+                        keyElement = document.querySelector(`[data-key="${lookupChar}"]`);
+                    }
+                } else {
+                    keyElement = document.querySelector(`[data-key="${lookupChar}"]`);
+                }
 
                 // Remove highlight from all keys
                 document.querySelectorAll('.key').forEach(key => {
@@ -10810,12 +11505,13 @@
                     keyElement.classList.add('highlighted');
                 }
 
-                // If Shift is required, highlight the Shift keys
+                // If Shift is required, highlight only the left Shift key (default for typing)
                 const isShiftRequired = (nextChar !== ' ' && nextChar !== lookupChar);
                 if (isShiftRequired) {
-                    document.querySelectorAll('[data-key="Shift"]').forEach(shiftKey => {
-                        shiftKey.classList.add('highlighted');
-                    });
+                    const shiftKeys = document.querySelectorAll('[data-key="Shift"]');
+                    if (shiftKeys.length > 0) {
+                        shiftKeys[0].classList.add('highlighted');
+                    }
                 }
             }
 
@@ -10824,7 +11520,16 @@
             if (fingerGuideEnabled && currentIndex < currentText.length) {
                 const nextChar = currentText[currentIndex];
                 const lookupChar = getBaseKey(nextChar);
-                const keyElement = document.querySelector(`[data-key="${lookupChar}"]`);
+                const isNumpadLevelFG = currentLevel >= 101 && currentLevel <= 110;
+                let keyElement;
+                if (isNumpadLevelFG) {
+                    keyElement = document.querySelector(`.numpad-key[data-key="${lookupChar}"]`);
+                    if (!keyElement) {
+                        keyElement = document.querySelector(`[data-key="${lookupChar}"]`);
+                    }
+                } else {
+                    keyElement = document.querySelector(`[data-key="${lookupChar}"]`);
+                }
 
                 if (keyElement) {
                     // Determine finger to use
@@ -10904,10 +11609,38 @@
             }
 
             const lookupChar = getBaseKey(key);
-            // Highlight ALL matching keys (e.g. both Shift keys), not just the first one
-            let keyElements = document.querySelectorAll(`[data-key="${lookupChar}"]`);
-            if (keyElements.length === 0) {
-                keyElements = document.querySelectorAll(`[data-key="${key}"]`);
+            // Check if the key was pressed on the physical numpad
+            const isNumpadKey = e.code && e.code.startsWith('Numpad');
+
+            // Find matching key elements
+            let keyElements;
+            if (isNumpadKey) {
+                // Only highlight numpad keys when physical numpad is used
+                keyElements = document.querySelectorAll(`.numpad-key[data-key="${lookupChar}"]`);
+                if (keyElements.length === 0) {
+                    keyElements = document.querySelectorAll(`.numpad-key[data-key="${key}"]`);
+                }
+            } else {
+                // Exclude numpad keys when the key was NOT pressed on the physical numpad
+                const allMatches = document.querySelectorAll(`[data-key="${lookupChar}"]`);
+                keyElements = Array.from(allMatches).filter(el => !el.classList.contains('numpad-key'));
+                if (keyElements.length === 0) {
+                    const allByKey = document.querySelectorAll(`[data-key="${key}"]`);
+                    keyElements = Array.from(allByKey).filter(el => !el.classList.contains('numpad-key'));
+                }
+            }
+
+            // For duplicate keys (Shift, Control, Alt), only highlight the one that was actually pressed
+            const duplicateKeys = ['Shift', 'Control', 'Alt', 'Meta'];
+            if (duplicateKeys.includes(lookupChar) || duplicateKeys.includes(key)) {
+                const targetKey = duplicateKeys.includes(lookupChar) ? lookupChar : key;
+                const allMatches = document.querySelectorAll(`[data-key="${targetKey}"]`);
+                if (allMatches.length > 1 && e.code) {
+                    // e.code gives us 'ShiftLeft', 'ShiftRight', 'ControlLeft', etc.
+                    const isRight = e.code.includes('Right');
+                    // First match is left, last match is right (based on keyboard layout order)
+                    keyElements = isRight ? [allMatches[allMatches.length - 1]] : [allMatches[0]];
+                }
             }
 
             keyElements.forEach(keyElement => {

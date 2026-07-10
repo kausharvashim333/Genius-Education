@@ -41,7 +41,7 @@ function sanitizeHTML(str) {
 }
 
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
