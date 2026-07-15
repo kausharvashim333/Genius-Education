@@ -45,6 +45,14 @@
         #blogModal select option { background: #1e293b; color:#fff; }
         #blogModal input[type="file"] { border-style: dashed !important; background: rgba(255,255,255,0.05) !important; cursor: pointer; }
         #blogModal input[type="file"]::file-selector-button { background: linear-gradient(135deg, #667eea, #764ba2); color:#fff; border:none; padding:6px 14px; border-radius:6px; margin-right:12px; cursor:pointer; font-weight:600; }
+        #blogModal .modal-footer button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+        }
         #blogModal .modal-footer .btn-secondary {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px) saturate(180%);
@@ -964,9 +972,9 @@
                 <input type="hidden" id="blogStatus" value="pending">
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeBlogEditor()">Cancel</button>
-                <button class="btn-draft" onclick="saveBlog('draft')"><i class="fas fa-save"></i> Save as Draft</button>
-                <button class="btn-primary" onclick="saveBlog('pending')"><i class="fas fa-paper-plane"></i> Submit for Approval</button>
+                <button class="btn btn-secondary" onclick="closeBlogEditor()">Cancel</button>
+                <button class="btn btn-draft" onclick="saveBlog('draft')"><i class="fas fa-save"></i> Save as Draft</button>
+                <button class="btn btn-primary" onclick="saveBlog('pending')"><i class="fas fa-paper-plane"></i> Submit for Approval</button>
             </div>
         </div>
     </div>
