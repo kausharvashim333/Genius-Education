@@ -15223,14 +15223,63 @@ window.filterSidebarMenu = function() {
 
 // Auto-expand Dropdown of Active Page
 function autoExpandActiveDropdown() {
+    // Clear previous parent highlights
+    document.querySelectorAll('.dropdown.has-active').forEach(d => d.classList.remove('has-active'));
     const activeLink = document.querySelector('.sidebar-menu a.active');
     if (activeLink) {
         const parentDropdown = activeLink.closest('.dropdown');
         if (parentDropdown) {
             parentDropdown.classList.add('open');
+            parentDropdown.classList.add('has-active');
         }
     }
 }
+
+// Sidebar Tooltips (Collapsed Mode)
+(function initSidebarTooltips() {
+    let tooltipEl = null;
+
+    function getTooltip() {
+        if (!tooltipEl) {
+            tooltipEl = document.createElement('div');
+            tooltipEl.className = 'sidebar-tooltip';
+            document.body.appendChild(tooltipEl);
+        }
+        return tooltipEl;
+    }
+
+    function showTooltip(link) {
+        const sidebar = document.querySelector('.sidebar');
+        if (!sidebar || !sidebar.classList.contains('collapsed')) return;
+        // Get label text (excluding badge counts)
+        const label = Array.from(link.childNodes)
+            .filter(n => n.nodeType === Node.TEXT_NODE)
+            .map(n => n.textContent.trim())
+            .join(' ').trim();
+        if (!label) return;
+        const tip = getTooltip();
+        tip.textContent = label;
+        const rect = link.getBoundingClientRect();
+        tip.style.left = (rect.right + 12) + 'px';
+        tip.style.top = (rect.top + rect.height / 2) + 'px';
+        tip.classList.add('visible');
+    }
+
+    function hideTooltip() {
+        if (tooltipEl) tooltipEl.classList.remove('visible');
+    }
+
+    document.addEventListener('mouseover', function(e) {
+        const link = e.target.closest('.sidebar-menu > li > a');
+        if (link) {
+            showTooltip(link);
+        } else {
+            hideTooltip();
+        }
+    });
+
+    document.addEventListener('scroll', hideTooltip, true);
+})();
 
 // Update Header Welcome Greeting & Digital Clock
 function updateHeaderClock() {
