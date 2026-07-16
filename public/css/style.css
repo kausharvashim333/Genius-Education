@@ -6292,8 +6292,40 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         font-size: 1.6rem;
         margin: 0;
     }
+    /* Collapsed sidebar: flyout submenus on hover */
     .sidebar.collapsed .dropdown-menu {
-        display: none !important; /* Close all dropdown menus in collapsed mode */
+        display: none !important;
+        position: fixed;
+        left: 75px;
+        min-width: 200px;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        padding: 8px;
+        z-index: 1002;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    .sidebar.collapsed .dropdown:hover .dropdown-menu,
+    .sidebar.collapsed .dropdown.flyout-open .dropdown-menu {
+        display: block !important;
+    }
+    .sidebar.collapsed .dropdown-menu a {
+        font-size: 0.9rem !important;
+        padding: 10px 14px !important;
+        justify-content: flex-start !important;
+        gap: 10px !important;
+        white-space: nowrap;
+    }
+    .sidebar.collapsed .dropdown-menu a span,
+    .sidebar.collapsed .dropdown-menu a i.fa-chevron-down {
+        display: inline !important;
+    }
+    .sidebar.collapsed .dropdown-menu a i:first-child {
+        font-size: 1rem !important;
+        margin: 0 !important;
     }
     .sidebar.collapsed .sidebar-collapse-btn i {
         transform: rotate(180deg);

@@ -95,7 +95,10 @@ const validateRequest = (req, res, next) => {
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
     'http://192.168.31.12:3000',
+    'http://192.168.31.12:3001',
     'http://localhost',
     'http://127.0.0.1'
 ];

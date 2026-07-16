@@ -15281,6 +15281,44 @@ function autoExpandActiveDropdown() {
     document.addEventListener('scroll', hideTooltip, true);
 })();
 
+// Collapsed Sidebar Flyout Submenus
+(function initCollapsedFlyout() {
+    document.addEventListener('mouseover', function(e) {
+        const sidebar = document.querySelector('.sidebar');
+        if (!sidebar || !sidebar.classList.contains('collapsed')) return;
+        const dropdown = e.target.closest('.sidebar-menu > li.dropdown');
+        if (!dropdown) return;
+        const menu = dropdown.querySelector('.dropdown-menu');
+        if (!menu) return;
+        const toggle = dropdown.querySelector('.dropdown-toggle');
+        if (toggle) {
+            const rect = toggle.getBoundingClientRect();
+            menu.style.top = rect.top + 'px';
+        }
+    });
+
+    // Click support for touch devices in collapsed mode
+    document.addEventListener('click', function(e) {
+        const sidebar = document.querySelector('.sidebar');
+        if (!sidebar || !sidebar.classList.contains('collapsed')) return;
+        const toggle = e.target.closest('.sidebar-menu > li.dropdown > .dropdown-toggle');
+        if (toggle) {
+            e.preventDefault();
+            const dropdown = toggle.closest('.dropdown');
+            const isOpen = dropdown.classList.contains('flyout-open');
+            document.querySelectorAll('.sidebar-menu > li.dropdown.flyout-open').forEach(d => d.classList.remove('flyout-open'));
+            if (!isOpen) dropdown.classList.add('flyout-open');
+            const menu = dropdown.querySelector('.dropdown-menu');
+            if (menu && !isOpen) {
+                const rect = toggle.getBoundingClientRect();
+                menu.style.top = rect.top + 'px';
+            }
+        } else {
+            document.querySelectorAll('.sidebar-menu > li.dropdown.flyout-open').forEach(d => d.classList.remove('flyout-open'));
+        }
+    });
+})();
+
 // Update Header Welcome Greeting & Digital Clock
 function updateHeaderClock() {
     const greetingEl = document.getElementById('welcomeGreeting');
