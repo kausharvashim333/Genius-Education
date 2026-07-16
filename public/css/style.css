@@ -6275,10 +6275,18 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         padding: 14px 0;
         border-radius: 12px;
         gap: 0;
+        font-size: 0; /* Hide plain text node labels */
     }
     .sidebar.collapsed .sidebar-menu a i:first-child {
         margin: 0;
         font-size: 1.25rem;
+    }
+    .sidebar.collapsed .admin-logo {
+        justify-content: center;
+    }
+    .sidebar.collapsed .admin-logo i {
+        font-size: 1.6rem;
+        margin: 0;
     }
     .sidebar.collapsed .dropdown-menu {
         display: none !important; /* Close all dropdown menus in collapsed mode */
