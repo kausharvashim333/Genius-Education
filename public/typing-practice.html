@@ -833,6 +833,34 @@
             text-shadow: 0 0 6px rgba(0, 255, 136, 0.4);
         }
 
+        .fg-hand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, rgba(100, 200, 255, 0.2), rgba(50, 150, 255, 0.15));
+            border: 1px solid rgba(100, 200, 255, 0.5);
+            color: #66ccff;
+            font-weight: 700;
+            font-size: 12px;
+            border-radius: 20px;
+            text-shadow: 0 0 6px rgba(100, 200, 255, 0.4);
+        }
+
+        .fg-hand-badge.left {
+            background: linear-gradient(135deg, rgba(255, 180, 100, 0.2), rgba(255, 140, 50, 0.15));
+            border: 1px solid rgba(255, 180, 100, 0.5);
+            color: #ffbb66;
+            text-shadow: 0 0 6px rgba(255, 180, 100, 0.4);
+        }
+
+        .fg-hand-badge.right {
+            background: linear-gradient(135deg, rgba(100, 200, 255, 0.2), rgba(50, 150, 255, 0.15));
+            border: 1px solid rgba(100, 200, 255, 0.5);
+            color: #66ccff;
+            text-shadow: 0 0 6px rgba(100, 200, 255, 0.4);
+        }
+
         .fg-shift-badge {
             display: inline-flex;
             align-items: center;
@@ -5260,7 +5288,7 @@
                 height: 24px;
                 font-size: 12px;
             }
-            .fg-finger-badge, .fg-shift-badge {
+            .fg-finger-badge, .fg-shift-badge, .fg-hand-badge {
                 font-size: 11px;
                 padding: 2px 8px;
             }
@@ -5316,7 +5344,7 @@
                 height: 22px;
                 font-size: 11px;
             }
-            .fg-finger-badge, .fg-shift-badge {
+            .fg-finger-badge, .fg-shift-badge, .fg-hand-badge {
                 font-size: 10px;
                 padding: 2px 6px;
             }
@@ -11929,8 +11957,19 @@
                 if (symbolGuide) {
                     const baseKey = symbolGuide.shift ? symbolGuide.key : symbolGuide.key.toLowerCase();
                     const fingerForSymbol = getFingerForChar(baseKey);
-                    const fingerName = fingerForSymbol === 'unknown' ? 'appropriate finger' :
-                        fingerForSymbol.replace('-', ' ').replace('left', 'Left').replace('right', 'Right');
+                    let fingerName = 'appropriate finger';
+                    let handName = '';
+                    let handClass = '';
+                    if (fingerForSymbol !== 'unknown') {
+                        const parts = fingerForSymbol.split('-');
+                        const fingerPart = parts[0];
+                        const handPart = parts[1] || '';
+                        fingerName = fingerPart.charAt(0).toUpperCase() + fingerPart.slice(1);
+                        if (handPart === 'left') { handName = 'Left'; handClass = 'left'; }
+                        else if (handPart === 'right') { handName = 'Right'; handClass = 'right'; }
+                        else if (handPart === '') { handName = 'Both'; handClass = ''; }
+                    }
+                    const handBadge = handName ? `<span class="fg-hand-badge ${handClass}"><i class="fas fa-hand-paper"></i> ${handName} Hand</span>` : '';
                     const shiftBadge = symbolGuide.shift ? `<span class="fg-shift-badge"><i class="fas fa-arrow-up"></i> Shift</span>` : '';
                     fingerGuideDisplay.classList.add('active');
                     fingerGuideText.innerHTML =
@@ -11939,7 +11978,8 @@
                         `<span class="fg-real-code"><i class="fas fa-info-circle"></i> ${symbolGuide.realCode}</span>` +
                         `<span class="fg-separator"></span>` +
                         `<span class="fg-key-badge">${symbolGuide.key}</span>` +
-                        `<span class="fg-finger-badge"><i class="fas fa-hand-paper"></i> ${fingerName}</span>` +
+                        `<span class="fg-hand-badge ${handClass}"><i class="fas fa-hand-paper"></i> ${handName} Hand</span>` +
+                        `<span class="fg-finger-badge"><i class="fas fa-hand-point-up"></i> ${fingerName}</span>` +
                         shiftBadge;
                 } else {
                     const lookupChar = getBaseKey(nextChar);
@@ -11955,23 +11995,23 @@
                     }
 
                     if (keyElement) {
-                        // Determine finger to use
+                        // Determine finger and hand to use
                         let finger = '';
-                        let fingerIcon = 'fa-hand-paper';
-                        if (keyElement.classList.contains('pinky-left') || keyElement.classList.contains('pinky-right')) {
-                            finger = 'Pinky';
-                        } else if (keyElement.classList.contains('ring-left') || keyElement.classList.contains('ring-right')) {
-                            finger = 'Ring';
-                        } else if (keyElement.classList.contains('middle-left') || keyElement.classList.contains('middle-right')) {
-                            finger = 'Middle';
-                        } else if (keyElement.classList.contains('index-left') || keyElement.classList.contains('index-right')) {
-                            finger = 'Index';
-                        } else if (keyElement.classList.contains('thumb')) {
-                            finger = 'Thumb';
-                            fingerIcon = 'fa-thumbs-up';
-                        } else {
-                            finger = 'Any';
-                        }
+                        let hand = '';
+                        let handClass = '';
+                        let fingerIcon = 'fa-hand-point-up';
+                        if (keyElement.classList.contains('pinky-left')) { finger = 'Pinky'; hand = 'Left'; handClass = 'left'; }
+                        else if (keyElement.classList.contains('pinky-right')) { finger = 'Pinky'; hand = 'Right'; handClass = 'right'; }
+                        else if (keyElement.classList.contains('ring-left')) { finger = 'Ring'; hand = 'Left'; handClass = 'left'; }
+                        else if (keyElement.classList.contains('ring-right')) { finger = 'Ring'; hand = 'Right'; handClass = 'right'; }
+                        else if (keyElement.classList.contains('middle-left')) { finger = 'Middle'; hand = 'Left'; handClass = 'left'; }
+                        else if (keyElement.classList.contains('middle-right')) { finger = 'Middle'; hand = 'Right'; handClass = 'right'; }
+                        else if (keyElement.classList.contains('index-left')) { finger = 'Index'; hand = 'Left'; handClass = 'left'; }
+                        else if (keyElement.classList.contains('index-right')) { finger = 'Index'; hand = 'Right'; handClass = 'right'; }
+                        else if (keyElement.classList.contains('thumb')) { finger = 'Thumb'; hand = 'Both'; fingerIcon = 'fa-thumbs-up'; }
+                        else { finger = 'Any'; hand = ''; }
+
+                        const handBadge = hand ? `<span class="fg-hand-badge ${handClass}"><i class="fas fa-hand-paper"></i> ${hand} Hand</span>` : '';
 
                         // Show the actual key to press (normalized) and Shift if needed
                         const normalizedNext = normalizeChar(nextChar);
@@ -11984,11 +12024,13 @@
                             fingerGuideText.innerHTML =
                                 `<span class="fg-symbol-display">${krutiDevKeyMap[lookupChar]}</span>` +
                                 `<span class="fg-key-badge">${lookupChar.toUpperCase()}</span>` +
+                                handBadge +
                                 `<span class="fg-finger-badge"><i class="fas ${fingerIcon}"></i> ${finger}</span>` +
                                 shiftBadge;
                         } else {
                             fingerGuideText.innerHTML =
                                 `<span class="fg-key-badge">${displayKey}</span>` +
+                                handBadge +
                                 `<span class="fg-finger-badge"><i class="fas ${fingerIcon}"></i> ${finger}</span>` +
                                 shiftBadge;
                         }
