@@ -9792,11 +9792,16 @@
                         }
                         lastInputTime = currentTime;
 
-                        // Normalize both for comparison (em dash → hyphen, smart quotes → straight quotes)
+                        // Normalize both for comparison (em dash → hyphen, smart quotes → straight quotes, © → c, etc.)
                         const normalizedKey = normalizeChar(key);
                         const normalizedExpected = normalizeChar(expectedChar);
 
-                        if (normalizedKey === normalizedExpected) {
+                        // Case-insensitive comparison for special symbol mappings
+                        const isSymbol = symbolTypingGuide[expectedChar] !== undefined;
+                        const compareKey = isSymbol ? normalizedKey.toLowerCase() : normalizedKey;
+                        const compareExpected = isSymbol ? normalizedExpected.toLowerCase() : normalizedExpected;
+
+                        if (compareKey === compareExpected) {
                             streak++;
                             combo = Math.min(combo + 0.1, 5);
                             maxStreak = Math.max(maxStreak, streak);
@@ -11369,32 +11374,50 @@
             '\u2026': '...', // … (ellipsis) → ...
             '\u00A0': ' ',   // (non-breaking space) → (space)
             '\u00E8': 'e',   // è → e (Kruti Dev 010 compatibility)
-            '\u00E9': 'e'    // é → e (Kruti Dev 010 compatibility)
+            '\u00E9': 'e',   // é → e (Kruti Dev 010 compatibility)
+            // Special symbols → typeable ASCII equivalents
+            '\u00A9': 'c',   // © (Copyright) → c
+            '\u00AE': 'r',   // ® (Registered) → r
+            '\u2122': 't',   // ™ (Trademark) → t
+            '\u00B0': 'o',   // ° (Degree) → o
+            '\u00B1': '+',   // ± (Plus-Minus) → +
+            '\u00D7': 'x',   // × (Multiply) → x
+            '\u00F7': '/',   // ÷ (Divide) → /
+            '\u00BD': '1',   // ½ (One Half) → 1
+            '\u00BC': '1',   // ¼ (One Quarter) → 1
+            '\u00BE': '3',   // ¾ (Three Quarters) → 3
+            '\u20AC': 'e',   // € (Euro) → e
+            '\u20B9': 'r',   // ₹ (Rupee) → r
+            '\u2022': '.',   // • (Bullet) → .
+            '\u00A7': 's',   // § (Section) → s
+            '\u00B6': 'p',   // ¶ (Paragraph) → p
+            '\u00AB': '<',   // « (Left Guillemet) → <
+            '\u00BB': '>',   // » (Right Guillemet) → >
+            '\u00BF': '?',   // ¿ (Inverted ?) → ?
+            '\u00A1': '!'    // ¡ (Inverted !) → !
         };
 
         // Special symbol typing guide: maps Unicode symbols to their typing instructions
         const symbolTypingGuide = {
-            '\u00A9': { name: 'Copyright', instruction: 'Alt + 0169 (NumPad)', key: 'Alt' },
-            '\u00AE': { name: 'Registered', instruction: 'Alt + 0174 (NumPad)', key: 'Alt' },
-            '\u2122': { name: 'Trademark', instruction: 'Alt + 0153 (NumPad)', key: 'Alt' },
-            '\u00B0': { name: 'Degree', instruction: 'Alt + 0176 (NumPad)', key: 'Alt' },
-            '\u00B1': { name: 'Plus-Minus', instruction: 'Alt + 0177 (NumPad)', key: 'Alt' },
-            '\u00D7': { name: 'Multiply', instruction: 'Alt + 0215 (NumPad)', key: 'Alt' },
-            '\u00F7': { name: 'Divide', instruction: 'Alt + 0247 (NumPad)', key: 'Alt' },
-            '\u00BD': { name: 'One Half', instruction: 'Alt + 0189 (NumPad)', key: 'Alt' },
-            '\u00BC': { name: 'One Quarter', instruction: 'Alt + 0188 (NumPad)', key: 'Alt' },
-            '\u00BE': { name: 'Three Quarters', instruction: 'Alt + 0190 (NumPad)', key: 'Alt' },
-            '\u20AC': { name: 'Euro', instruction: 'Alt + 0128 (NumPad)', key: 'Alt' },
-            '\u20B9': { name: 'Rupee', instruction: 'Alt + 8377 (NumPad)', key: 'Alt' },
-            '\u2022': { name: 'Bullet', instruction: 'Alt + 0149 (NumPad)', key: 'Alt' },
-            '\u2026': { name: 'Ellipsis', instruction: 'Alt + 0133 (NumPad)', key: 'Alt' },
-            '\u00A7': { name: 'Section', instruction: 'Alt + 0167 (NumPad)', key: 'Alt' },
-            '\u00B6': { name: 'Paragraph', instruction: 'Alt + 0182 (NumPad)', key: 'Alt' },
-            '\u00AB': { name: 'Left Guillemet', instruction: 'Alt + 0171 (NumPad)', key: 'Alt' },
-            '\u00BB': { name: 'Right Guillemet', instruction: 'Alt + 0187 (NumPad)', key: 'Alt' },
-            '\u00BF': { name: 'Inverted ?', instruction: 'Alt + 0191 (NumPad)', key: 'Alt' },
-            '\u00A1': { name: 'Inverted !', instruction: 'Alt + 0161 (NumPad)', key: 'Alt' },
-            '\u2014': { name: 'Em Dash', instruction: 'Alt + 0151 (NumPad)', key: 'Alt' }
+            '\u00A9': { name: 'Copyright', display: '©', key: 'C', shift: false },
+            '\u00AE': { name: 'Registered', display: '®', key: 'R', shift: false },
+            '\u2122': { name: 'Trademark', display: '™', key: 'T', shift: false },
+            '\u00B0': { name: 'Degree', display: '°', key: 'O', shift: false },
+            '\u00B1': { name: 'Plus-Minus', display: '±', key: '+', shift: true },
+            '\u00D7': { name: 'Multiply', display: '×', key: 'X', shift: false },
+            '\u00F7': { name: 'Divide', display: '÷', key: '/', shift: false },
+            '\u00BD': { name: 'One Half', display: '½', key: '1', shift: false },
+            '\u00BC': { name: 'One Quarter', display: '¼', key: '1', shift: false },
+            '\u00BE': { name: 'Three Quarters', display: '¾', key: '3', shift: false },
+            '\u20AC': { name: 'Euro', display: '€', key: 'E', shift: false },
+            '\u20B9': { name: 'Rupee', display: '₹', key: 'R', shift: false },
+            '\u2022': { name: 'Bullet', display: '•', key: '.', shift: false },
+            '\u00A7': { name: 'Section', display: '§', key: 'S', shift: false },
+            '\u00B6': { name: 'Paragraph', display: '¶', key: 'P', shift: false },
+            '\u00AB': { name: 'Left Quote', display: '«', key: '<', shift: true },
+            '\u00BB': { name: 'Right Quote', display: '»', key: '>', shift: true },
+            '\u00BF': { name: 'Inverted ?', display: '¿', key: '?', shift: true },
+            '\u00A1': { name: 'Inverted !', display: '¡', key: '!', shift: true }
         };
 
         function normalizeChar(char) {
@@ -11425,7 +11448,7 @@
             if (['6', '7', 'y', 'u', 'h', 'j', 'n', 'm'].includes(charLower)) return 'index-right';
             if (['8', 'i', 'k', ','].includes(charLower)) return 'middle-right';
             if (['9', 'o', 'l', '.'].includes(charLower)) return 'ring-right';
-            if (['0', 'p', ';', '/', '[', ']', "'", '-'].includes(charLower)) return 'pinky-right';
+            if (['0', 'p', ';', '/', '[', ']', "'", '-', '='].includes(charLower)) return 'pinky-right';
 
             // Space and special keys
             if (char === ' ') return 'thumb';
@@ -11643,7 +11666,10 @@
                 }
 
                 // If Shift is required, highlight only the left Shift key (default for typing)
-                const isShiftRequired = (nextChar !== ' ' && nextChar !== lookupChar);
+                const symbolInfo = symbolTypingGuide[nextChar];
+                const normalizedNext = normalizeChar(nextChar);
+                const isShiftRequired = symbolInfo ? symbolInfo.shift :
+                    (normalizedNext !== ' ' && normalizedNext !== lookupChar && normalizedNext === nextChar);
                 if (isShiftRequired) {
                     const shiftKeys = document.querySelectorAll('[data-key="Shift"]');
                     if (shiftKeys.length > 0) {
@@ -11660,7 +11686,12 @@
                 // Check if it's a special symbol with typing guide
                 const symbolGuide = symbolTypingGuide[nextChar];
                 if (symbolGuide) {
-                    fingerGuideText.innerHTML = `<strong>${symbolGuide.name}</strong> ('${nextChar}') → ${symbolGuide.instruction} <span style="opacity:0.7">— Hold Alt with Left Pinky, type numbers on NumPad</span>`;
+                    const baseKey = symbolGuide.shift ? symbolGuide.key : symbolGuide.key.toLowerCase();
+                    const fingerForSymbol = getFingerForChar(baseKey);
+                    const fingerName = fingerForSymbol === 'unknown' ? 'appropriate finger' :
+                        fingerForSymbol.replace('-', ' ').replace('left', 'Left').replace('right', 'Right');
+                    const shiftNote = symbolGuide.shift ? ' (Hold Shift!)' : '';
+                    fingerGuideText.innerHTML = `<strong>${symbolGuide.name}</strong> ('${symbolGuide.display}') → Press '${symbolGuide.key}' with ${fingerName}${shiftNote}`;
                 } else {
                     const lookupChar = getBaseKey(nextChar);
                     const isNumpadLevelFG = currentLevel >= 101 && currentLevel <= 110;
