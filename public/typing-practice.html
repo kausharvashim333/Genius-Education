@@ -11667,7 +11667,7 @@
             '\u2019': "'",   // ' (right single quote) → ' (apostrophe)
             '\u201C': '"',   // " (left double quote) → "
             '\u201D': '"',   // " (right double quote) → "
-            '\u2026': '...', // … (ellipsis) → ...
+            '\u2026': '.',   // … (ellipsis) → . (single dot, typed 3 times for …)
             '\u00A0': ' ',   // (non-breaking space) → (space)
             '\u00E8': 'e',   // è → e (Kruti Dev 010 compatibility)
             '\u00E9': 'e',   // é → e (Kruti Dev 010 compatibility)
@@ -11715,7 +11715,8 @@
             '\u00AB': { name: 'Left Quote', display: '«', key: '<', shift: true, realCode: 'Alt + 0171 (NumPad)' },
             '\u00BB': { name: 'Right Quote', display: '»', key: '>', shift: true, realCode: 'Alt + 0187 (NumPad)' },
             '\u00BF': { name: 'Inverted ?', display: '¿', key: '?', shift: true, realCode: 'Alt + 0191 (NumPad)' },
-            '\u00A1': { name: 'Inverted !', display: '¡', key: '!', shift: true, realCode: 'Alt + 0161 (NumPad)' }
+            '\u00A1': { name: 'Inverted !', display: '¡', key: '!', shift: true, realCode: 'Alt + 0161 (NumPad)' },
+            '\u2026': { name: 'Ellipsis', display: '…', key: '.', shift: false, realCode: 'Alt + 0133 (NumPad)' }
         };
 
         function normalizeChar(char) {
