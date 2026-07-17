@@ -716,23 +716,24 @@
         }
 
         .finger-guide-display {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
-            border: 1.5px solid rgba(102, 126, 234, 0.5);
-            border-radius: 12px;
-            padding: 10px 16px;
-            margin-bottom: 8px;
+            background: linear-gradient(135deg, #1a1a3e, #2d1b4e);
+            border: 2px solid transparent;
+            border-radius: 14px;
+            padding: 12px 18px;
+            margin-bottom: 10px;
             text-align: center;
-            color: #a8b4e8;
+            color: #e0e0ff;
             font-size: 13px;
             font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             flex-shrink: 0;
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
+            background-clip: padding-box;
         }
 
         .finger-guide-display::before {
@@ -740,111 +741,157 @@
             position: absolute;
             top: 0;
             left: -100%;
-            width: 100%;
+            width: 60%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
-            animation: guideShine 3s ease-in-out infinite;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.15), transparent);
+            animation: guideShine 2.5s ease-in-out infinite;
+        }
+
+        .finger-guide-display::after {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            z-index: -1;
+            opacity: 0.6;
+            animation: borderRotate 4s linear infinite;
+            background-size: 300% 300%;
+        }
+
+        @keyframes borderRotate {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         @keyframes guideShine {
             0% { left: -100%; }
-            50% { left: 100%; }
-            100% { left: 100%; }
+            50% { left: 200%; }
+            100% { left: 200%; }
         }
 
         .finger-guide-display.active {
-            border-color: rgba(102, 126, 234, 0.8);
-            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3), inset 0 0 10px rgba(102, 126, 234, 0.05);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.4), 0 0 40px rgba(118, 75, 162, 0.2);
         }
 
-        .finger-guide-display i {
-            font-size: 18px;
-            animation: fingerPulse 1.5s ease-in-out infinite;
+        .finger-guide-display > i {
+            font-size: 20px;
+            color: #667eea;
+            animation: fingerPulse 1.2s ease-in-out infinite;
+            filter: drop-shadow(0 0 4px rgba(102, 126, 234, 0.6));
         }
 
         @keyframes fingerPulse {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.15); opacity: 1; }
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            75% { transform: scale(1.1) rotate(5deg); }
         }
 
         .fg-key-badge {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 28px;
-            height: 28px;
-            padding: 0 8px;
+            min-width: 32px;
+            height: 32px;
+            padding: 0 10px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: #fff;
-            font-weight: 700;
-            font-size: 14px;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+            font-weight: 800;
+            font-size: 15px;
+            border-radius: 8px;
+            box-shadow: 0 3px 12px rgba(102, 126, 234, 0.5), inset 0 1px 0 rgba(255,255,255,0.3);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            animation: keyBadgePulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes keyBadgePulse {
+            0%, 100% { transform: translateY(0); box-shadow: 0 3px 12px rgba(102, 126, 234, 0.5), inset 0 1px 0 rgba(255,255,255,0.3); }
+            50% { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6), inset 0 1px 0 rgba(255,255,255,0.3); }
         }
 
         .fg-finger-badge {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 3px 10px;
-            background: rgba(0, 255, 136, 0.15);
-            border: 1px solid rgba(0, 255, 136, 0.4);
+            gap: 5px;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 200, 100, 0.15));
+            border: 1px solid rgba(0, 255, 136, 0.5);
             color: #00ff88;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 12px;
             border-radius: 20px;
+            text-shadow: 0 0 6px rgba(0, 255, 136, 0.4);
         }
 
         .fg-shift-badge {
             display: inline-flex;
             align-items: center;
-            padding: 3px 10px;
-            background: rgba(255, 170, 0, 0.15);
-            border: 1px solid rgba(255, 170, 0, 0.5);
-            color: #ffaa00;
-            font-weight: 700;
+            gap: 4px;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, rgba(255, 170, 0, 0.25), rgba(255, 100, 0, 0.15));
+            border: 1px solid rgba(255, 170, 0, 0.6);
+            color: #ffcc44;
+            font-weight: 800;
             font-size: 12px;
             border-radius: 20px;
-            animation: shiftBlink 1s ease-in-out infinite;
+            text-shadow: 0 0 6px rgba(255, 170, 0, 0.5);
+            animation: shiftBlink 0.8s ease-in-out infinite;
         }
 
         @keyframes shiftBlink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.95); }
         }
 
         .fg-real-code {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, rgba(255, 100, 200, 0.15), rgba(200, 50, 255, 0.1));
+            border: 1px solid rgba(255, 100, 200, 0.4);
+            color: #ff99dd;
+            font-weight: 600;
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.5);
-            font-style: italic;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .fg-real-code i {
+            font-size: 10px;
+            opacity: 0.7;
         }
 
         .fg-separator {
             width: 1px;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.15);
+            height: 24px;
+            background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.25), transparent);
             display: inline-block;
+            flex-shrink: 0;
         }
 
         .fg-symbol-name {
-            color: #c4cbe8;
-            font-weight: 600;
+            color: #f0f0ff;
+            font-weight: 700;
+            font-size: 13px;
+            text-shadow: 0 0 8px rgba(102, 126, 234, 0.3);
         }
 
         .fg-symbol-display {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 24px;
-            height: 24px;
-            padding: 0 6px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 4px;
-            font-size: 15px;
+            min-width: 28px;
+            height: 28px;
+            padding: 0 8px;
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.15), rgba(102, 126, 234, 0.1));
+            border: 1px solid rgba(240, 147, 251, 0.4);
+            border-radius: 6px;
+            font-size: 16px;
             color: #fff;
+            box-shadow: 0 2px 8px rgba(240, 147, 251, 0.2);
         }
 
         .keyboard {
@@ -5205,6 +5252,10 @@
                 font-size: 11px;
                 padding: 2px 8px;
             }
+            .fg-real-code {
+                font-size: 10px;
+                padding: 2px 6px;
+            }
         }
 
         @media (max-height: 700px) {
@@ -5259,6 +5310,10 @@
                 font-size: 13px;
             }
             .fg-real-code {
+                font-size: 9px;
+                padding: 2px 5px;
+            }
+            .fg-real-code i {
                 display: none;
             }
         }
@@ -11865,7 +11920,7 @@
                     fingerGuideText.innerHTML =
                         `<span class="fg-symbol-name">${symbolGuide.name}</span>` +
                         `<span class="fg-symbol-display">${symbolGuide.display}</span>` +
-                        `<span class="fg-real-code">Real: ${symbolGuide.realCode}</span>` +
+                        `<span class="fg-real-code"><i class="fas fa-info-circle"></i> ${symbolGuide.realCode}</span>` +
                         `<span class="fg-separator"></span>` +
                         `<span class="fg-key-badge">${symbolGuide.key}</span>` +
                         `<span class="fg-finger-badge"><i class="fas fa-hand-paper"></i> ${fingerName}</span>` +
