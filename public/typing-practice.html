@@ -5894,7 +5894,35 @@
                                 </ul>
                             </div>
                         </div>
-                        <div class="guide-tip">💡 During typing practice, watch the finger guide bar — it shows exactly which key and finger to use for every character, including symbols!</div>
+                        <h4>Unicode Symbols (Alt Codes)</h4>
+                        <p style="font-size: 13px; color: var(--text-secondary);">These special symbols require <strong>Alt + number code</strong> on NumPad. In practice, press the shown key instead. The finger guide will display the real Alt code for learning.</p>
+                        <div class="guide-two-columns">
+                            <div class="guide-column">
+                                <ul>
+                                    <li>© — Alt + 0169 (Copyright)</li>
+                                    <li>® — Alt + 0174 (Registered)</li>
+                                    <li>™ — Alt + 0153 (Trademark)</li>
+                                    <li>° — Alt + 0176 (Degree)</li>
+                                    <li>± — Alt + 0177 (Plus-Minus)</li>
+                                    <li>× — Alt + 0215 (Multiply)</li>
+                                    <li>÷ — Alt + 0247 (Divide)</li>
+                                    <li>• — Alt + 0149 (Bullet)</li>
+                                </ul>
+                            </div>
+                            <div class="guide-column">
+                                <ul>
+                                    <li>€ — Alt + 0128 (Euro)</li>
+                                    <li>₹ — Alt + 8377 (Indian Rupee)</li>
+                                    <li>§ — Alt + 0167 (Section)</li>
+                                    <li>¶ — Alt + 0182 (Paragraph)</li>
+                                    <li>½ — Alt + 0189 (One Half)</li>
+                                    <li>¼ — Alt + 0188 (One Quarter)</li>
+                                    <li>¾ — Alt + 0190 (Three Quarters)</li>
+                                    <li>… — Alt + 0133 (Ellipsis)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="guide-tip">💡 During typing practice, watch the finger guide bar — it shows the <strong>real Alt code</strong> for learning AND the <strong>practice key</strong> to press for each symbol!</div>
                     </div>
                 </div>
                 
@@ -11398,26 +11426,28 @@
         };
 
         // Special symbol typing guide: maps Unicode symbols to their typing instructions
+        // realCode: how the symbol is actually typed in real life (for education)
+        // key: which key to press in this practice (simplified)
         const symbolTypingGuide = {
-            '\u00A9': { name: 'Copyright', display: '©', key: 'C', shift: false },
-            '\u00AE': { name: 'Registered', display: '®', key: 'R', shift: false },
-            '\u2122': { name: 'Trademark', display: '™', key: 'T', shift: false },
-            '\u00B0': { name: 'Degree', display: '°', key: 'O', shift: false },
-            '\u00B1': { name: 'Plus-Minus', display: '±', key: '+', shift: true },
-            '\u00D7': { name: 'Multiply', display: '×', key: 'X', shift: false },
-            '\u00F7': { name: 'Divide', display: '÷', key: '/', shift: false },
-            '\u00BD': { name: 'One Half', display: '½', key: '1', shift: false },
-            '\u00BC': { name: 'One Quarter', display: '¼', key: '1', shift: false },
-            '\u00BE': { name: 'Three Quarters', display: '¾', key: '3', shift: false },
-            '\u20AC': { name: 'Euro', display: '€', key: 'E', shift: false },
-            '\u20B9': { name: 'Rupee', display: '₹', key: 'R', shift: false },
-            '\u2022': { name: 'Bullet', display: '•', key: '.', shift: false },
-            '\u00A7': { name: 'Section', display: '§', key: 'S', shift: false },
-            '\u00B6': { name: 'Paragraph', display: '¶', key: 'P', shift: false },
-            '\u00AB': { name: 'Left Quote', display: '«', key: '<', shift: true },
-            '\u00BB': { name: 'Right Quote', display: '»', key: '>', shift: true },
-            '\u00BF': { name: 'Inverted ?', display: '¿', key: '?', shift: true },
-            '\u00A1': { name: 'Inverted !', display: '¡', key: '!', shift: true }
+            '\u00A9': { name: 'Copyright', display: '©', key: 'C', shift: false, realCode: 'Alt + 0169 (NumPad)' },
+            '\u00AE': { name: 'Registered', display: '®', key: 'R', shift: false, realCode: 'Alt + 0174 (NumPad)' },
+            '\u2122': { name: 'Trademark', display: '™', key: 'T', shift: false, realCode: 'Alt + 0153 (NumPad)' },
+            '\u00B0': { name: 'Degree', display: '°', key: 'O', shift: false, realCode: 'Alt + 0176 (NumPad)' },
+            '\u00B1': { name: 'Plus-Minus', display: '±', key: '+', shift: true, realCode: 'Alt + 0177 (NumPad)' },
+            '\u00D7': { name: 'Multiply', display: '×', key: 'X', shift: false, realCode: 'Alt + 0215 (NumPad)' },
+            '\u00F7': { name: 'Divide', display: '÷', key: '/', shift: false, realCode: 'Alt + 0247 (NumPad)' },
+            '\u00BD': { name: 'One Half', display: '½', key: '1', shift: false, realCode: 'Alt + 0189 (NumPad)' },
+            '\u00BC': { name: 'One Quarter', display: '¼', key: '1', shift: false, realCode: 'Alt + 0188 (NumPad)' },
+            '\u00BE': { name: 'Three Quarters', display: '¾', key: '3', shift: false, realCode: 'Alt + 0190 (NumPad)' },
+            '\u20AC': { name: 'Euro', display: '€', key: 'E', shift: false, realCode: 'Alt + 0128 (NumPad)' },
+            '\u20B9': { name: 'Rupee', display: '₹', key: 'R', shift: false, realCode: 'Alt + 8377 (NumPad) or Ctrl+Shift+4' },
+            '\u2022': { name: 'Bullet', display: '•', key: '.', shift: false, realCode: 'Alt + 0149 (NumPad)' },
+            '\u00A7': { name: 'Section', display: '§', key: 'S', shift: false, realCode: 'Alt + 0167 (NumPad)' },
+            '\u00B6': { name: 'Paragraph', display: '¶', key: 'P', shift: false, realCode: 'Alt + 0182 (NumPad)' },
+            '\u00AB': { name: 'Left Quote', display: '«', key: '<', shift: true, realCode: 'Alt + 0171 (NumPad)' },
+            '\u00BB': { name: 'Right Quote', display: '»', key: '>', shift: true, realCode: 'Alt + 0187 (NumPad)' },
+            '\u00BF': { name: 'Inverted ?', display: '¿', key: '?', shift: true, realCode: 'Alt + 0191 (NumPad)' },
+            '\u00A1': { name: 'Inverted !', display: '¡', key: '!', shift: true, realCode: 'Alt + 0161 (NumPad)' }
         };
 
         function normalizeChar(char) {
@@ -11691,7 +11721,7 @@
                     const fingerName = fingerForSymbol === 'unknown' ? 'appropriate finger' :
                         fingerForSymbol.replace('-', ' ').replace('left', 'Left').replace('right', 'Right');
                     const shiftNote = symbolGuide.shift ? ' (Hold Shift!)' : '';
-                    fingerGuideText.innerHTML = `<strong>${symbolGuide.name}</strong> ('${symbolGuide.display}') → Press '${symbolGuide.key}' with ${fingerName}${shiftNote}`;
+                    fingerGuideText.innerHTML = `<strong>${symbolGuide.name}</strong> ('${symbolGuide.display}') → Real: <span style="opacity:0.8">${symbolGuide.realCode}</span> | Practice: Press '${symbolGuide.key}' with ${fingerName}${shiftNote}`;
                 } else {
                     const lookupChar = getBaseKey(nextChar);
                     const isNumpadLevelFG = currentLevel >= 101 && currentLevel <= 110;
