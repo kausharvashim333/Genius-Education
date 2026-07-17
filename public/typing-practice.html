@@ -908,6 +908,30 @@
             flex-shrink: 0;
         }
 
+        .fg-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.45);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .fg-label.real {
+            color: rgba(255, 153, 221, 0.7);
+        }
+
+        .fg-label.practice {
+            color: rgba(102, 126, 234, 0.7);
+        }
+
+        .fg-info-text {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+            white-space: nowrap;
+        }
+
         .fg-symbol-name {
             color: #f0f0ff;
             font-weight: 700;
@@ -5292,6 +5316,9 @@
                 font-size: 11px;
                 padding: 2px 8px;
             }
+            .fg-label {
+                font-size: 9px;
+            }
             .fg-real-code {
                 font-size: 10px;
                 padding: 2px 6px;
@@ -5347,6 +5374,9 @@
             .fg-finger-badge, .fg-shift-badge, .fg-hand-badge {
                 font-size: 10px;
                 padding: 2px 6px;
+            }
+            .fg-label {
+                font-size: 8px;
             }
             .fg-symbol-display {
                 min-width: 20px;
@@ -11975,10 +12005,13 @@
                     fingerGuideText.innerHTML =
                         `<span class="fg-symbol-name">${symbolGuide.name}</span>` +
                         `<span class="fg-symbol-display">${symbolGuide.display}</span>` +
+                        `<span class="fg-separator"></span>` +
+                        `<span class="fg-label real">Real Alt Code</span>` +
                         `<span class="fg-real-code"><i class="fas fa-info-circle"></i> ${symbolGuide.realCode}</span>` +
                         `<span class="fg-separator"></span>` +
+                        `<span class="fg-label practice">Practice Key</span>` +
                         `<span class="fg-key-badge">${symbolGuide.key}</span>` +
-                        `<span class="fg-hand-badge ${handClass}"><i class="fas fa-hand-paper"></i> ${handName} Hand</span>` +
+                        handBadge +
                         `<span class="fg-finger-badge"><i class="fas fa-hand-point-up"></i> ${fingerName}</span>` +
                         shiftBadge;
                 } else {
@@ -12023,12 +12056,14 @@
                         if (currentTypingLanguage === 'hi' && krutiDevKeyMap[lookupChar]) {
                             fingerGuideText.innerHTML =
                                 `<span class="fg-symbol-display">${krutiDevKeyMap[lookupChar]}</span>` +
+                                `<span class="fg-label practice">Press</span>` +
                                 `<span class="fg-key-badge">${lookupChar.toUpperCase()}</span>` +
                                 handBadge +
                                 `<span class="fg-finger-badge"><i class="fas ${fingerIcon}"></i> ${finger}</span>` +
                                 shiftBadge;
                         } else {
                             fingerGuideText.innerHTML =
+                                `<span class="fg-label practice">Press</span>` +
                                 `<span class="fg-key-badge">${displayKey}</span>` +
                                 handBadge +
                                 `<span class="fg-finger-badge"><i class="fas ${fingerIcon}"></i> ${finger}</span>` +
