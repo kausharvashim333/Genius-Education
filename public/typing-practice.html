@@ -5849,49 +5849,52 @@
                 
                 <div class="guide-page" id="guidePage4" style="display: none;">
                     <div class="guide-section">
-                        <h3><i class="fas fa-bolt"></i> Alt Codes & Special Characters</h3>
-                        <p><strong>Alt Codes</strong> let you type special characters using the numeric keypad (NumPad). Hold <strong>Alt</strong>, type the number, then release.</p>
-                        <h4>Common English Alt Codes</h4>
+                        <h3><i class="fas fa-bolt"></i> Special Characters & Symbols</h3>
+                        <p>Special characters are typed using <strong>Shift</strong> + a number/symbol key. The finger guide below the keyboard will show you exactly which key to press during practice!</p>
+                        <h4>Shift + Number Keys</h4>
                         <div class="guide-two-columns">
                             <div class="guide-column">
                                 <ul>
-                                    <li>© — Alt + 0169 (Copyright)</li>
-                                    <li>® — Alt + 0174 (Registered)</li>
-                                    <li>™ — Alt + 0153 (Trademark)</li>
-                                    <li>° — Alt + 0176 (Degree)</li>
-                                    <li>± — Alt + 0177 (Plus-Minus)</li>
-                                    <li>× — Alt + 0215 (Multiply)</li>
-                                    <li>÷ — Alt + 0247 (Divide)</li>
-                                    <li>½ — Alt + 0189 (One Half)</li>
-                                    <li>¼ — Alt + 0188 (One Quarter)</li>
-                                    <li>— — Alt + 0151 (Em Dash)</li>
+                                    <li>! — Shift + 1 (Exclamation)</li>
+                                    <li>@ — Shift + 2 (At sign)</li>
+                                    <li># — Shift + 3 (Hash)</li>
+                                    <li>$ — Shift + 4 (Dollar)</li>
+                                    <li>% — Shift + 5 (Percent)</li>
+                                    <li>^ — Shift + 6 (Caret)</li>
                                 </ul>
                             </div>
                             <div class="guide-column">
                                 <ul>
-                                    <li>€ — Alt + 0128 (Euro)</li>
-                                    <li>₹ — Alt + 8377 (Rupee)</li>
-                                    <li>• — Alt + 0149 (Bullet)</li>
-                                    <li>… — Alt + 0133 (Ellipsis)</li>
-                                    <li>§ — Alt + 0167 (Section)</li>
-                                    <li>¶ — Alt + 0182 (Paragraph)</li>
-                                    <li>« — Alt + 0171 (Left Quote)</li>
-                                    <li>» — Alt + 0187 (Right Quote)</li>
-                                    <li>¿ — Alt + 0191 (Inverted ?)</li>
-                                    <li>¡ — Alt + 0161 (Inverted !)</li>
+                                    <li>&amp; — Shift + 7 (Ampersand)</li>
+                                    <li>* — Shift + 8 (Asterisk)</li>
+                                    <li>( — Shift + 9 (Open paren)</li>
+                                    <li>) — Shift + 0 (Close paren)</li>
+                                    <li>_ — Shift + - (Underscore)</li>
+                                    <li>+ — Shift + = (Plus)</li>
                                 </ul>
                             </div>
                         </div>
-                        <h4>When to Use Them</h4>
-                        <ul>
-                            <li><strong>©</strong> — Copyright notices in documents</li>
-                            <li><strong>®</strong> — Registered trademark symbols</li>
-                            <li><strong>°</strong> — Temperature (25°C), angles (90°)</li>
-                            <li><strong>₹</strong> — Indian Rupee currency symbol</li>
-                            <li><strong>—</strong> — Em dash for breaks in sentences</li>
-                            <li><strong>±</strong> — Tolerance ranges (±0.5mm)</li>
-                        </ul>
-                        <div class="guide-tip">💡 Use Special Chapters (Menu → Special Chapters) to practice these interactively!</div>
+                        <h4>Shift + Symbol Keys</h4>
+                        <div class="guide-two-columns">
+                            <div class="guide-column">
+                                <ul>
+                                    <li>{ — Shift + [ (Open brace)</li>
+                                    <li>} — Shift + ] (Close brace)</li>
+                                    <li>| — Shift + \ (Pipe)</li>
+                                    <li>: — Shift + ; (Colon)</li>
+                                    <li>" — Shift + ' (Double quote)</li>
+                                </ul>
+                            </div>
+                            <div class="guide-column">
+                                <ul>
+                                    <li>&lt; — Shift + , (Less than)</li>
+                                    <li>&gt; — Shift + . (Greater than)</li>
+                                    <li>? — Shift + / (Question mark)</li>
+                                    <li>~ — Shift + ` (Tilde)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="guide-tip">💡 During typing practice, watch the finger guide bar — it shows exactly which key and finger to use for every character, including symbols!</div>
                     </div>
                 </div>
                 
@@ -6944,7 +6947,7 @@
                 </button>
             </div>
             <div class="lessons-body">
-                <p style="color: var(--text-secondary); font-size: 13px; text-align: center; margin-bottom: 16px;">Practice special characters, Alt codes, and Hindi conjuncts through typing!</p>
+                <p style="color: var(--text-secondary); font-size: 13px; text-align: center; margin-bottom: 16px;">Practice special characters, symbols, and Hindi conjuncts through typing!</p>
                 <div class="lessons-list" id="specialChaptersList"></div>
             </div>
         </div>
@@ -11369,6 +11372,31 @@
             '\u00E9': 'e'    // é → e (Kruti Dev 010 compatibility)
         };
 
+        // Special symbol typing guide: maps Unicode symbols to their typing instructions
+        const symbolTypingGuide = {
+            '\u00A9': { name: 'Copyright', instruction: 'Alt + 0169 (NumPad)', key: 'Alt' },
+            '\u00AE': { name: 'Registered', instruction: 'Alt + 0174 (NumPad)', key: 'Alt' },
+            '\u2122': { name: 'Trademark', instruction: 'Alt + 0153 (NumPad)', key: 'Alt' },
+            '\u00B0': { name: 'Degree', instruction: 'Alt + 0176 (NumPad)', key: 'Alt' },
+            '\u00B1': { name: 'Plus-Minus', instruction: 'Alt + 0177 (NumPad)', key: 'Alt' },
+            '\u00D7': { name: 'Multiply', instruction: 'Alt + 0215 (NumPad)', key: 'Alt' },
+            '\u00F7': { name: 'Divide', instruction: 'Alt + 0247 (NumPad)', key: 'Alt' },
+            '\u00BD': { name: 'One Half', instruction: 'Alt + 0189 (NumPad)', key: 'Alt' },
+            '\u00BC': { name: 'One Quarter', instruction: 'Alt + 0188 (NumPad)', key: 'Alt' },
+            '\u00BE': { name: 'Three Quarters', instruction: 'Alt + 0190 (NumPad)', key: 'Alt' },
+            '\u20AC': { name: 'Euro', instruction: 'Alt + 0128 (NumPad)', key: 'Alt' },
+            '\u20B9': { name: 'Rupee', instruction: 'Alt + 8377 (NumPad)', key: 'Alt' },
+            '\u2022': { name: 'Bullet', instruction: 'Alt + 0149 (NumPad)', key: 'Alt' },
+            '\u2026': { name: 'Ellipsis', instruction: 'Alt + 0133 (NumPad)', key: 'Alt' },
+            '\u00A7': { name: 'Section', instruction: 'Alt + 0167 (NumPad)', key: 'Alt' },
+            '\u00B6': { name: 'Paragraph', instruction: 'Alt + 0182 (NumPad)', key: 'Alt' },
+            '\u00AB': { name: 'Left Guillemet', instruction: 'Alt + 0171 (NumPad)', key: 'Alt' },
+            '\u00BB': { name: 'Right Guillemet', instruction: 'Alt + 0187 (NumPad)', key: 'Alt' },
+            '\u00BF': { name: 'Inverted ?', instruction: 'Alt + 0191 (NumPad)', key: 'Alt' },
+            '\u00A1': { name: 'Inverted !', instruction: 'Alt + 0161 (NumPad)', key: 'Alt' },
+            '\u2014': { name: 'Em Dash', instruction: 'Alt + 0151 (NumPad)', key: 'Alt' }
+        };
+
         function normalizeChar(char) {
             return unicodeToAscii[char] !== undefined ? unicodeToAscii[char] : char;
         }
@@ -11628,42 +11656,54 @@
             const fingerGuideEnabled = localStorage.getItem('fingerGuide') !== 'false';
             if (fingerGuideEnabled && currentIndex < currentText.length) {
                 const nextChar = currentText[currentIndex];
-                const lookupChar = getBaseKey(nextChar);
-                const isNumpadLevelFG = currentLevel >= 101 && currentLevel <= 110;
-                let keyElement;
-                if (isNumpadLevelFG) {
-                    keyElement = document.querySelector(`.numpad-key[data-key="${lookupChar}"]`);
-                    if (!keyElement) {
+
+                // Check if it's a special symbol with typing guide
+                const symbolGuide = symbolTypingGuide[nextChar];
+                if (symbolGuide) {
+                    fingerGuideText.innerHTML = `<strong>${symbolGuide.name}</strong> ('${nextChar}') → ${symbolGuide.instruction} <span style="opacity:0.7">— Hold Alt with Left Pinky, type numbers on NumPad</span>`;
+                } else {
+                    const lookupChar = getBaseKey(nextChar);
+                    const isNumpadLevelFG = currentLevel >= 101 && currentLevel <= 110;
+                    let keyElement;
+                    if (isNumpadLevelFG) {
+                        keyElement = document.querySelector(`.numpad-key[data-key="${lookupChar}"]`);
+                        if (!keyElement) {
+                            keyElement = document.querySelector(`[data-key="${lookupChar}"]`);
+                        }
+                    } else {
                         keyElement = document.querySelector(`[data-key="${lookupChar}"]`);
                     }
-                } else {
-                    keyElement = document.querySelector(`[data-key="${lookupChar}"]`);
-                }
 
-                if (keyElement) {
-                    // Determine finger to use
-                    let finger = '';
-                    if (keyElement.classList.contains('pinky-left') || keyElement.classList.contains('pinky-right')) {
-                        finger = 'Pinky Finger';
-                    } else if (keyElement.classList.contains('ring-left') || keyElement.classList.contains('ring-right')) {
-                        finger = 'Ring Finger';
-                    } else if (keyElement.classList.contains('middle-left') || keyElement.classList.contains('middle-right')) {
-                        finger = 'Middle Finger';
-                    } else if (keyElement.classList.contains('index-left') || keyElement.classList.contains('index-right')) {
-                        finger = 'Index Finger';
-                    } else if (keyElement.classList.contains('thumb')) {
-                        finger = 'Thumb';
+                    if (keyElement) {
+                        // Determine finger to use
+                        let finger = '';
+                        if (keyElement.classList.contains('pinky-left') || keyElement.classList.contains('pinky-right')) {
+                            finger = 'Pinky Finger';
+                        } else if (keyElement.classList.contains('ring-left') || keyElement.classList.contains('ring-right')) {
+                            finger = 'Ring Finger';
+                        } else if (keyElement.classList.contains('middle-left') || keyElement.classList.contains('middle-right')) {
+                            finger = 'Middle Finger';
+                        } else if (keyElement.classList.contains('index-left') || keyElement.classList.contains('index-right')) {
+                            finger = 'Index Finger';
+                        } else if (keyElement.classList.contains('thumb')) {
+                            finger = 'Thumb';
+                        } else {
+                            finger = 'Use appropriate finger';
+                        }
+
+                        // Show the actual key to press (normalized) and Shift if needed
+                        const normalizedNext = normalizeChar(nextChar);
+                        const isShiftRequired = (normalizedNext !== ' ' && normalizedNext !== lookupChar);
+                        const shiftNote = isShiftRequired ? ' (Hold Shift!)' : '';
+                        // For Hindi, show the Hindi character being typed
+                        if (currentTypingLanguage === 'hi' && krutiDevKeyMap[lookupChar]) {
+                            fingerGuideText.textContent = `Press '${lookupChar.toUpperCase()}' for '${krutiDevKeyMap[lookupChar]}' with ${finger}${shiftNote}`;
+                        } else {
+                            fingerGuideText.textContent = `Press '${normalizedNext}' with ${finger}${shiftNote}`;
+                        }
                     } else {
-                        finger = 'Use appropriate finger';
+                        fingerGuideText.textContent = 'Start typing to see finger guide';
                     }
-
-                    // Show the actual key to press (normalized) and Shift if needed
-                    const normalizedNext = normalizeChar(nextChar);
-                    const isShiftRequired = (normalizedNext !== ' ' && normalizedNext !== lookupChar);
-                    const shiftNote = isShiftRequired ? ' (Hold Shift!)' : '';
-                    fingerGuideText.textContent = `Press '${normalizedNext}' with ${finger}${shiftNote}`;
-                } else {
-                    fingerGuideText.textContent = 'Start typing to see finger guide';
                 }
             } else {
                 fingerGuideText.textContent = 'Start typing to see finger guide';
