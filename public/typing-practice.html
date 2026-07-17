@@ -716,24 +716,135 @@
         }
 
         .finger-guide-display {
-            background: rgba(102, 126, 234, 0.2);
-            border: 1px solid rgba(102, 126, 234, 0.4);
-            border-radius: 8px;
-            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+            border: 1.5px solid rgba(102, 126, 234, 0.5);
+            border-radius: 12px;
+            padding: 10px 16px;
             margin-bottom: 8px;
             text-align: center;
-            color: #667eea;
+            color: #a8b4e8;
             font-size: 13px;
             font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .finger-guide-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            animation: guideShine 3s ease-in-out infinite;
+        }
+
+        @keyframes guideShine {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+
+        .finger-guide-display.active {
+            border-color: rgba(102, 126, 234, 0.8);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3), inset 0 0 10px rgba(102, 126, 234, 0.05);
         }
 
         .finger-guide-display i {
             font-size: 18px;
+            animation: fingerPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes fingerPulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+
+        .fg-key-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            padding: 0 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .fg-finger-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid rgba(0, 255, 136, 0.4);
+            color: #00ff88;
+            font-weight: 600;
+            font-size: 12px;
+            border-radius: 20px;
+        }
+
+        .fg-shift-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            background: rgba(255, 170, 0, 0.15);
+            border: 1px solid rgba(255, 170, 0, 0.5);
+            color: #ffaa00;
+            font-weight: 700;
+            font-size: 12px;
+            border-radius: 20px;
+            animation: shiftBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes shiftBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .fg-real-code {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+        }
+
+        .fg-separator {
+            width: 1px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            display: inline-block;
+        }
+
+        .fg-symbol-name {
+            color: #c4cbe8;
+            font-weight: 600;
+        }
+
+        .fg-symbol-display {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+            padding: 0 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            font-size: 15px;
+            color: #fff;
         }
 
         .keyboard {
@@ -5081,9 +5192,18 @@
                 border-radius: 8px;
             }
             .finger-guide-display {
-                padding: 6px 12px;
+                padding: 6px 10px;
                 font-size: 12px;
                 margin-bottom: 6px;
+            }
+            .fg-key-badge {
+                min-width: 24px;
+                height: 24px;
+                font-size: 12px;
+            }
+            .fg-finger-badge, .fg-shift-badge {
+                font-size: 11px;
+                padding: 2px 8px;
             }
         }
 
@@ -5123,6 +5243,23 @@
                 padding: 4px 8px;
                 font-size: 11px;
                 margin-bottom: 4px;
+            }
+            .fg-key-badge {
+                min-width: 22px;
+                height: 22px;
+                font-size: 11px;
+            }
+            .fg-finger-badge, .fg-shift-badge {
+                font-size: 10px;
+                padding: 2px 6px;
+            }
+            .fg-symbol-display {
+                min-width: 20px;
+                height: 20px;
+                font-size: 13px;
+            }
+            .fg-real-code {
+                display: none;
             }
         }
         /* Kruti Dev 010 Font for Hindi Typing */
@@ -5485,7 +5622,9 @@
 
                     <div class="keyboard-section" id="keyboardSection">
                         <div class="finger-guide-display" id="fingerGuideDisplay">
-                            <i class="fas fa-hand-point-up"></i> <span id="fingerGuideText">Start typing to see finger guide</span>
+                            <i class="fas fa-hand-point-up"></i>
+                            <span class="fg-separator"></span>
+                            <span id="fingerGuideText">Start typing to see finger guide</span>
                         </div>
 
                         <div class="keyboard-wrapper">
@@ -11710,6 +11849,7 @@
 
             // Show finger guide (separate from highlight)
             const fingerGuideEnabled = localStorage.getItem('fingerGuide') !== 'false';
+            const fingerGuideDisplay = document.getElementById('fingerGuideDisplay');
             if (fingerGuideEnabled && currentIndex < currentText.length) {
                 const nextChar = currentText[currentIndex];
 
@@ -11720,8 +11860,16 @@
                     const fingerForSymbol = getFingerForChar(baseKey);
                     const fingerName = fingerForSymbol === 'unknown' ? 'appropriate finger' :
                         fingerForSymbol.replace('-', ' ').replace('left', 'Left').replace('right', 'Right');
-                    const shiftNote = symbolGuide.shift ? ' (Hold Shift!)' : '';
-                    fingerGuideText.innerHTML = `<strong>${symbolGuide.name}</strong> ('${symbolGuide.display}') → Real: <span style="opacity:0.8">${symbolGuide.realCode}</span> | Practice: Press '${symbolGuide.key}' with ${fingerName}${shiftNote}`;
+                    const shiftBadge = symbolGuide.shift ? `<span class="fg-shift-badge"><i class="fas fa-arrow-up"></i> Shift</span>` : '';
+                    fingerGuideDisplay.classList.add('active');
+                    fingerGuideText.innerHTML =
+                        `<span class="fg-symbol-name">${symbolGuide.name}</span>` +
+                        `<span class="fg-symbol-display">${symbolGuide.display}</span>` +
+                        `<span class="fg-real-code">Real: ${symbolGuide.realCode}</span>` +
+                        `<span class="fg-separator"></span>` +
+                        `<span class="fg-key-badge">${symbolGuide.key}</span>` +
+                        `<span class="fg-finger-badge"><i class="fas fa-hand-paper"></i> ${fingerName}</span>` +
+                        shiftBadge;
                 } else {
                     const lookupChar = getBaseKey(nextChar);
                     const isNumpadLevelFG = currentLevel >= 101 && currentLevel <= 110;
@@ -11738,35 +11886,48 @@
                     if (keyElement) {
                         // Determine finger to use
                         let finger = '';
+                        let fingerIcon = 'fa-hand-paper';
                         if (keyElement.classList.contains('pinky-left') || keyElement.classList.contains('pinky-right')) {
-                            finger = 'Pinky Finger';
+                            finger = 'Pinky';
                         } else if (keyElement.classList.contains('ring-left') || keyElement.classList.contains('ring-right')) {
-                            finger = 'Ring Finger';
+                            finger = 'Ring';
                         } else if (keyElement.classList.contains('middle-left') || keyElement.classList.contains('middle-right')) {
-                            finger = 'Middle Finger';
+                            finger = 'Middle';
                         } else if (keyElement.classList.contains('index-left') || keyElement.classList.contains('index-right')) {
-                            finger = 'Index Finger';
+                            finger = 'Index';
                         } else if (keyElement.classList.contains('thumb')) {
                             finger = 'Thumb';
+                            fingerIcon = 'fa-thumbs-up';
                         } else {
-                            finger = 'Use appropriate finger';
+                            finger = 'Any';
                         }
 
                         // Show the actual key to press (normalized) and Shift if needed
                         const normalizedNext = normalizeChar(nextChar);
                         const isShiftRequired = (normalizedNext !== ' ' && normalizedNext !== lookupChar);
-                        const shiftNote = isShiftRequired ? ' (Hold Shift!)' : '';
+                        const shiftBadge = isShiftRequired ? `<span class="fg-shift-badge"><i class="fas fa-arrow-up"></i> Shift</span>` : '';
+                        const displayKey = (normalizedNext === ' ') ? 'Space' : normalizedNext;
+                        fingerGuideDisplay.classList.add('active');
                         // For Hindi, show the Hindi character being typed
                         if (currentTypingLanguage === 'hi' && krutiDevKeyMap[lookupChar]) {
-                            fingerGuideText.textContent = `Press '${lookupChar.toUpperCase()}' for '${krutiDevKeyMap[lookupChar]}' with ${finger}${shiftNote}`;
+                            fingerGuideText.innerHTML =
+                                `<span class="fg-symbol-display">${krutiDevKeyMap[lookupChar]}</span>` +
+                                `<span class="fg-key-badge">${lookupChar.toUpperCase()}</span>` +
+                                `<span class="fg-finger-badge"><i class="fas ${fingerIcon}"></i> ${finger}</span>` +
+                                shiftBadge;
                         } else {
-                            fingerGuideText.textContent = `Press '${normalizedNext}' with ${finger}${shiftNote}`;
+                            fingerGuideText.innerHTML =
+                                `<span class="fg-key-badge">${displayKey}</span>` +
+                                `<span class="fg-finger-badge"><i class="fas ${fingerIcon}"></i> ${finger}</span>` +
+                                shiftBadge;
                         }
                     } else {
+                        fingerGuideDisplay.classList.remove('active');
                         fingerGuideText.textContent = 'Start typing to see finger guide';
                     }
                 }
             } else {
+                fingerGuideDisplay.classList.remove('active');
                 fingerGuideText.textContent = 'Start typing to see finger guide';
             }
             
