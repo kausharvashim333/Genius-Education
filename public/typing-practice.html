@@ -736,6 +736,14 @@
             background-clip: padding-box;
         }
 
+        #fingerGuideText {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
         .finger-guide-display::before {
             content: '';
             position: absolute;
@@ -5244,6 +5252,9 @@
                 margin-bottom: 6px;
                 gap: 14px;
             }
+            #fingerGuideText {
+                gap: 10px;
+            }
             .fg-key-badge {
                 min-width: 24px;
                 height: 24px;
@@ -5296,6 +5307,9 @@
                 font-size: 11px;
                 margin-bottom: 4px;
                 gap: 10px;
+            }
+            #fingerGuideText {
+                gap: 8px;
             }
             .fg-key-badge {
                 min-width: 22px;
