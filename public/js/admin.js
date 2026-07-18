@@ -14897,54 +14897,23 @@ async function loadTypingUsers() {
         const res = await fetch('/api/typing-scores/all');
         const data = await res.json();
         const scores = data.scores || [];
-        const users = {};
-        
-        scores.forEach(score => {
-            const name = score.studentName || score.name || 'Unknown';
-            if (!users[name]) {
-                users[name] = {
-                    name: name,
-                    totalWPM: 0,
-                    totalAccuracy: 0,
-                    attempts: 0,
-                    completedLevels: new Set(),
-                    lastActive: score.createdAt || score.date
-                };
-            }
-            users[name].totalWPM += score.wpm;
-            users[name].totalAccuracy += score.accuracy;
-            users[name].attempts++;
-            if (score.difficulty) users[name].completedLevels.add(score.difficulty);
-            if (score.level) users[name].completedLevels.add(score.level);
-            const scoreDate = score.createdAt || score.date;
-            if (scoreDate && new Date(scoreDate) > new Date(users[name].lastActive)) {
-                users[name].lastActive = scoreDate;
-            }
-        });
-        
-        const usersArray = Object.values(users).map(user => ({
-            ...user,
-            avgWPM: (user.totalWPM / user.attempts).toFixed(1),
-            avgAccuracy: (user.totalAccuracy / user.attempts).toFixed(1),
-            completedLevels: user.completedLevels.size
-        }));
         
         const table = document.getElementById('typingUsersTable');
-        if (usersArray.length === 0) {
-            table.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center;">No users found</td></tr>';
+        if (scores.length === 0) {
+            table.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center;">No scores found</td></tr>';
             return;
         }
         
-        table.innerHTML = usersArray.map(user => `
+        table.innerHTML = scores.map(score => `
             <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                <td style="padding:12px;">${esc(user.name)}</td>
-                <td style="padding:12px;">${user.avgWPM}</td>
-                <td style="padding:12px;">${user.avgAccuracy}%</td>
-                <td style="padding:12px;">${user.completedLevels}</td>
-                <td style="padding:12px;">${user.attempts}</td>
-                <td style="padding:12px;">${formatDate(user.lastActive)}</td>
+                <td style="padding:12px;">${esc(score.studentName || score.name || 'Unknown')}</td>
+                <td style="padding:12px;">${score.wpm}</td>
+                <td style="padding:12px;">${score.accuracy}%</td>
+                <td style="padding:12px;">${score.difficulty || score.level || '-'}</td>
+                <td style="padding:12px;">${score.duration ? score.duration + 's' : '-'}</td>
+                <td style="padding:12px;">${formatDate(score.createdAt || score.date)}</td>
                 <td style="padding:12px;">
-                    <button class="btn btn-danger" onclick="deleteTypingUser('${esc(user.name)}')" style="padding:4px 8px; font-size:12px;">Delete</button>
+                    <button class="btn btn-danger" onclick="deleteTypingScore('${score.id}')" style="padding:4px 8px; font-size:12px;">Delete</button>
                 </td>
             </tr>
         `).join('');
