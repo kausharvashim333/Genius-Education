@@ -732,8 +732,9 @@
         // Open typing practice in fullscreen
         function openTypingFullscreen(event) {
             event.preventDefault();
-            const url = event.target.getAttribute('href');
-            window.open(url, '_blank', 'fullscreen=yes,menubar=no,toolbar=no,location=no,status=no');
+            const anchor = event.target.closest('a');
+            const url = anchor ? anchor.getAttribute('href') : null;
+            if (url) window.open(url, '_blank', 'fullscreen=yes,menubar=no,toolbar=no,location=no,status=no');
         }
 
         // 3D Card Tilt Effect
