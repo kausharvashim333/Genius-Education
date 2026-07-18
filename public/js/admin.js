@@ -9777,16 +9777,19 @@ function renderStudentsTable(students) {
         html += '<td class="fee-paid">&#8377;' + s.fees.paidAmount + '</td>';
         html += '<td class="' + (s.fees.dueAmount > 0 ? 'fee-due' : 'fee-paid') + '">&#8377;' + s.fees.dueAmount + '</td>';
         html += '<td><span class="badge-' + (s.status === 'Active' ? 'active' : 'inactive') + '">' + s.status + '</span></td>';
-        html += '<td>';
-        html += '<button class="action-btn edit-btn" onclick="openStudentProfile(' + s.id + ')"><i class="fas fa-eye"></i></button>';
-        html += '<button class="action-btn" onclick="openUpdateStudentModal(' + s.id + ')"><i class="fas fa-edit"></i></button>';
-        html += '<button class="action-btn" onclick="openUpdateStudentIdModal(' + s.id + ')" title="Update Student ID"><i class="fas fa-hashtag"></i></button>';
-        html += '<button class="action-btn" onclick="showStudentQR(' + s.id + ')" title="Show QR Code"><i class="fas fa-qrcode"></i></button>';
-        html += '<button class="action-btn" onclick="printStudentForm(' + s.id + ')"><i class="fas fa-print"></i></button>';
-        html += '<button class="action-btn" onclick="generateICard(' + s.id + ')"><i class="fas fa-id-card"></i></button>';
-        html += '<button class="action-btn" onclick="openNotificationModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell"></i></button>';
-        html += '<button class="action-btn" onclick="openStudentNotificationsModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell-slash"></i></button>';
-        html += '<button class="action-btn delete-btn" onclick="deleteStudent(' + s.id + ')"><i class="fas fa-trash"></i></button>';
+        html += '<td class="action-cell" style="position:relative;">';
+        html += '<button class="action-btn options-btn" onclick="toggleRowActions(this, event)" title="Options"><i class="fas fa-ellipsis-v"></i></button>';
+        html += '<div class="row-actions-menu" style="display:none;">';
+        html += '<button onclick="openStudentProfile(' + s.id + ')"><i class="fas fa-eye"></i> View Profile</button>';
+        html += '<button onclick="openUpdateStudentModal(' + s.id + ')"><i class="fas fa-edit"></i> Edit</button>';
+        html += '<button onclick="openUpdateStudentIdModal(' + s.id + ')"><i class="fas fa-hashtag"></i> Update Student ID</button>';
+        html += '<button onclick="showStudentQR(' + s.id + ')"><i class="fas fa-qrcode"></i> QR Code</button>';
+        html += '<button onclick="printStudentForm(' + s.id + ')"><i class="fas fa-print"></i> Print Form</button>';
+        html += '<button onclick="generateICard(' + s.id + ')"><i class="fas fa-id-card"></i> Generate I-Card</button>';
+        html += '<button onclick="openNotificationModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell"></i> Send Notification</button>';
+        html += '<button onclick="openStudentNotificationsModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell-slash"></i> Notification Settings</button>';
+        html += '<button class="delete-action" onclick="deleteStudent(' + s.id + ')"><i class="fas fa-trash"></i> Delete</button>';
+        html += '</div>';
         html += '</td>';
         html += '</tr>';
         return html;
@@ -9796,6 +9799,22 @@ function renderStudentsTable(students) {
 function filterStudents() {
     filterStudentsByBatch();
 }
+
+function toggleRowActions(btn, event) {
+    event.stopPropagation();
+    const menu = btn.nextElementSibling;
+    const isOpen = menu.style.display === 'block';
+    document.querySelectorAll('.row-actions-menu').forEach(m => m.style.display = 'none');
+    if (!isOpen) {
+        menu.style.display = 'block';
+    }
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.action-cell')) {
+        document.querySelectorAll('.row-actions-menu').forEach(m => m.style.display = 'none');
+    }
+});
 
 function toggleAllStudentCheckboxes() {
     const selectAll = document.getElementById('selectAllStudents').checked;
