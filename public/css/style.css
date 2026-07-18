@@ -3656,12 +3656,29 @@ tbody tr:nth-child(even) td {
 }
 
 .modal-content h3 {
-    margin: 0 0 24px 0;
+    position: sticky;
+    top: -30px;
+    margin: -30px -30px 24px -30px;
+    padding: 20px 30px 16px 30px;
     font-size: 1.5rem;
     font-weight: 700;
     color: #fff;
-    padding-bottom: 16px;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 10;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px 16px 0 0;
+}
+
+.modal-content > .modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 16px 16px 0 0;
 }
 
 /* Modal content inputs - override inline styles */
