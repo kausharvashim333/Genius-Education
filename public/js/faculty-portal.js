@@ -548,20 +548,63 @@ async function loadStudents() {
         const tbody = document.getElementById('studentsTable').querySelector('tbody');
         
         if (students.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No students found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No students found</td></tr>';
             return;
         }
         
         tbody.innerHTML = students.map(student => `
             <tr>
+                <td>${student.rollNo || 'N/A'}</td>
                 <td>${student.name}</td>
                 <td>${student.course || 'N/A'}</td>
+                <td>${student.batch || 'N/A'}</td>
                 <td>${student.phone || 'N/A'}</td>
+                <td><button class="btn btn-primary" style="padding:4px 8px;font-size:12px;" onclick="showStudentQR(${student.id})"><i class="fas fa-qrcode"></i></button></td>
             </tr>
         `).join('');
     } catch (e) {
         console.error('Error loading students:', e);
     }
+}
+
+async function showStudentQR(id) {
+    try {
+        const s = await fetch('/api/students/' + id).then(r => r.json());
+        document.getElementById('studentQRName').textContent = s.name;
+        document.getElementById('studentQRId').textContent = 'ID: ' + s.rollNo;
+        document.getElementById('studentQRCourse').textContent = s.course || '';
+        const baseUrl = window.location.origin;
+        const qrText = baseUrl + '/verify-student?rollNo=' + encodeURIComponent(s.rollNo);
+        const qrRes = await fetch('/api/qr?text=' + encodeURIComponent(qrText) + '&size=200');
+        const qrData = await qrRes.json();
+        if (qrData.success) {
+            document.getElementById('studentQRImage').src = qrData.dataUrl;
+        } else {
+            alert('Error generating QR code!');
+            return;
+        }
+        document.getElementById('studentQRModal').classList.add('active');
+    } catch (err) {
+        console.error('Error loading student QR:', err);
+        alert('Error loading student QR!');
+    }
+}
+
+function closeStudentQRModal() {
+    document.getElementById('studentQRModal').classList.remove('active');
+}
+
+function downloadStudentQR() {
+    const img = document.getElementById('studentQRImage');
+    if (!img.src) return;
+    const name = document.getElementById('studentQRName').textContent || 'student';
+    const id = document.getElementById('studentQRId').textContent.replace('ID: ', '') || '';
+    const link = document.createElement('a');
+    link.href = img.src;
+    link.download = 'QR_' + name.replace(/\s+/g, '_') + '_' + id + '.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 async function loadAssignments() {

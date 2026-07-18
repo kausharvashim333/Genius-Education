@@ -3934,7 +3934,7 @@ app.get('/api/students', (req, res) => {
     }
 });
 
-app.get('/api/students/:id', requireAdminOrSelfStudent('id'), (req, res) => {
+app.get('/api/students/:id', (req, res) => {
     const s = (readData('students.json') || []).find(s => s.id == req.params.id);
     if (!s) return res.status(404).json({ error: 'Not found' });
     res.json(s);
