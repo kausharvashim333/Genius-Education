@@ -782,11 +782,11 @@
             </div>
         </div>
 
-        <!-- Step 1: Email -->
+        <!-- Step 1: Email/Roll No -->
         <div id="step1">
             <div class="form-group">
-                <label id="loginLabel">Registered Email ID</label>
-                <input type="email" id="loginEmail" placeholder="yourname@email.com" onkeydown="if(event.key==='Enter')requestOTP()">
+                <label id="loginLabel">Registered Email or Student ID</label>
+                <input type="text" id="loginEmail" placeholder="Email ID or Student ID (GCE...)" onkeydown="if(event.key==='Enter')requestOTP()">
             </div>
             <p class="error-msg" id="step1Error"></p>
             <button class="btn-full btn-primary" onclick="requestOTP()" id="requestOTPBtn"><i class="fas fa-paper-plane"></i> Send OTP</button>
@@ -1677,9 +1677,9 @@ function switchLoginType(type) {
         tabGoogle.classList.remove('active');
         step1.style.display = 'block';
         step1Google.style.display = 'none';
-        loginLabel.textContent = 'Registered Email ID';
-        loginEmailInput.type = 'email';
-        loginEmailInput.placeholder = 'yourname@email.com';
+        loginLabel.textContent = 'Registered Email or Student ID';
+        loginEmailInput.type = 'text';
+        loginEmailInput.placeholder = 'Email ID or Student ID (GCE...)';
         loginEmailInput.value = '';
     } else {
         tabGoogle.classList.add('active');
@@ -1689,10 +1689,24 @@ function switchLoginType(type) {
     }
 }
 
-// Check for Google Auth callback on page load
+// Check for Google Auth callback and existing session on page load
 window.addEventListener('load', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const googleAuth = urlParams.get('google_auth');
+    
+    // Check for existing session first
+    const stored = localStorage.getItem('portalStudent');
+    if (stored && !googleAuth) {
+        try {
+            const student = JSON.parse(stored);
+            if (student && (student.id || student.rollNo)) {
+                showDashboard(student);
+                return; // Skip login check if already logged in
+            }
+        } catch (e) {
+            console.error('Session parse error:', e);
+        }
+    }
     
     if (googleAuth === 'success') {
         // Google Auth successful - fetch user from session
@@ -1731,11 +1745,11 @@ window.addEventListener('load', () => {
 });
 
 async function requestOTP() {
-    const email = document.getElementById('loginEmail').value.trim();
+    const loginInput = document.getElementById('loginEmail').value.trim();
     const errEl = document.getElementById('step1Error');
     
-    if (!email) {
-        errEl.textContent = 'Email address daalo.';
+    if (!loginInput) {
+        errEl.textContent = 'Email ya Student ID daalo.';
         errEl.style.display = 'block';
         return;
     }
@@ -1746,19 +1760,27 @@ async function requestOTP() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
     
     try {
-        const res = await fetch('/api/student-auth/request-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+        const res = await fetch('/api/student-auth/request-otp', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ email: loginInput }) // Backend handles both email and rollNo in the 'email' field
+        });
         const data = await res.json();
         
         if (data.success) {
             document.getElementById('step1').style.display = 'none';
             document.getElementById('step2').style.display = 'block';
         } else {
-            errEl.innerHTML = data.error === 'Is email se koi student registered nahi hai.' 
-                ? 'Is email se koi student registered nahi hai. <a href="https://geniuscomputereducation.com/apply.html" target="_blank" style="color:#667eea;font-weight:600;">Admission form bharne ke liye yahan click karein</a>.'
-                : (data.error || 'OTP send nahi ho saka.');
+            const serverErr = data.error || '';
+            if (serverErr.includes('not found') || serverErr.includes('registered nahi hai')) {
+                errEl.innerHTML = 'Is ID/Email se koi student registered nahi hai. <a href="apply.html" target="_blank" style="color:#667eea;font-weight:600;">Admission form bharne ke liye yahan click karein</a>.';
+            } else {
+                errEl.textContent = serverErr || 'OTP send nahi ho saka.';
+            }
             errEl.style.display = 'block';
         }
     } catch(e) {
+        console.error('Request OTP error:', e);
         errEl.textContent = 'Network error. Server check karein.';
         errEl.style.display = 'block';
     }
@@ -1783,8 +1805,12 @@ async function verifyOTP() {
         const data = await res.json();
         
         if (data.success) {
-            localStorage.setItem('portalStudent', JSON.stringify(data.student));
-            showDashboard(data.student);
+            const studentData = data.student;
+            if (data.sessionToken) {
+                studentData.sessionToken = data.sessionToken;
+            }
+            localStorage.setItem('portalStudent', JSON.stringify(studentData));
+            showDashboard(studentData);
         } else {
             errEl.textContent = data.error || 'Galat OTP.';
             errEl.style.display = 'block';
@@ -2207,36 +2233,36 @@ async function loadAttendance() {
             if (att.records && att.records.length > 0) {
                 html += `
                     <div style="margin-top:20px;">
-                        <h4 style="margin-bottom:10px;font-size:.9rem;color:#1e293b;">Attendance Records</h4>
+                        <h4 style="margin-bottom:10px;font-size:.9rem;color:#fff;">Attendance Records</h4>
                         <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
                             <thead>
-                                <tr style="background:#f1f5f9;">
-                                    <th style="padding:10px;text-align:left;">Date</th>
-                                    <th style="padding:10px;text-align:center;">Status</th>
-                                    <th style="padding:10px;text-align:left;">Course</th>
-                                    <th style="padding:10px;text-align:left;">Batch</th>
+                                <tr style="background:rgba(255,255,255,0.1);">
+                                    <th style="padding:10px;text-align:left;color:#fff;">Date</th>
+                                    <th style="padding:10px;text-align:center;color:#fff;">Status</th>
+                                    <th style="padding:10px;text-align:left;color:#fff;">Course</th>
+                                    <th style="padding:10px;text-align:left;color:#fff;">Batch</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${att.records.sort((a,b) => new Date(b.date) - new Date(a.date)).map(record => {
                                     let statusBadge = '';
                                     if (record.status === 'present') {
-                                        statusBadge = '<span style="background:#dcfce7;color:#16a34a;padding:4px 12px;border-radius:20px;font-weight:600;font-size:.75rem;">Present</span>';
+                                        statusBadge = '<span style="background:rgba(22,163,74,0.2);color:#4ade80;padding:4px 12px;border-radius:20px;font-weight:600;font-size:.75rem;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);">Present</span>';
                                     } else if (record.status === 'absent') {
-                                        statusBadge = '<span style="background:#fee2e2;color:#dc2626;padding:4px 12px;border-radius:20px;font-weight:600;font-size:.75rem;">Absent</span>';
+                                        statusBadge = '<span style="background:rgba(220,38,38,0.2);color:#fca5a5;padding:4px 12px;border-radius:20px;font-weight:600;font-size:.75rem;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);">Absent</span>';
                                     } else if (record.status === 'holiday') {
-                                        statusBadge = '<span style="background:#fef3c7;color:#d97706;padding:4px 12px;border-radius:20px;font-weight:600;font-size:.75rem;">Holiday</span>';
+                                        statusBadge = '<span style="background:rgba(217,119,6,0.2);color:#fbbf24;padding:4px 12px;border-radius:20px;font-weight:600;font-size:.75rem;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);">Holiday</span>';
                                     } else if (record.status === 'late') {
-                                        statusBadge = '<span style="background:#fbbf24;color:#92400e;padding:4px 12px;border-radius:20px;font-weight:600;font-size:.75rem;">Late</span>';
+                                        statusBadge = '<span style="background:rgba(251,191,36,0.2);color:#fbbf24;padding:4px 12px;border-radius:20px;font-weight:600;font-size:.75rem;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);">Late</span>';
                                     } else {
-                                        statusBadge = '<span style="background:#f1f5f9;color:#64748b;padding:4px 12px;border-radius:20px;font-weight:600;font-size:.75rem;">—</span>';
+                                        statusBadge = '<span style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.6);padding:4px 12px;border-radius:20px;font-weight:600;font-size:.75rem;">—</span>';
                                     }
                                     return `
-                                        <tr style="border-bottom:1px solid #e2e8f0;">
-                                            <td style="padding:10px;">${record.date}</td>
+                                        <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                                            <td style="padding:10px;color:rgba(255,255,255,0.8);">${record.date}</td>
                                             <td style="padding:10px;text-align:center;">${statusBadge}</td>
-                                            <td style="padding:10px;">${record.course || '—'}</td>
-                                            <td style="padding:10px;">${record.batch || '—'}</td>
+                                            <td style="padding:10px;color:rgba(255,255,255,0.8);">${record.course || '—'}</td>
+                                            <td style="padding:10px;color:rgba(255,255,255,0.8);">${record.batch || '—'}</td>
                                         </tr>
                                     `;
                                 }).join('')}
@@ -2245,7 +2271,7 @@ async function loadAttendance() {
                     </div>
                 `;
             } else {
-                html += `<div style="text-align:center;color:#94a3b8;padding:20px;margin-top:20px;background:#f8fafc;border-radius:8px;">No attendance records found</div>`;
+                html += `<div style="text-align:center;color:rgba(255,255,255,0.6);padding:20px;margin-top:20px;background:rgba(255,255,255,0.05);border-radius:8px;">No attendance records found</div>`;
             }
             
             section.innerHTML = html;
@@ -3266,7 +3292,7 @@ function buildQuestionPaperHTML(paper, forPrint) {
         Generated from ${instituteName} Student Portal
     </div>
     ${forPrint ? '<scr' + 'ipt>window.onload = function() { setTimeout(function() { window.print(); }, 500); };</scr' + 'ipt>' : ''}
-    <script src="/js/security.js"></script>
+    ${'<script src="/js/security.js"></scr' + 'ipt>'}
 </body>
 </html>`;
 }
@@ -3603,7 +3629,7 @@ function printStudentAdmitCard(id) {
             <div class="admit-card-footer">
                 <p>This is a computer-generated admit card. Signature not required.</p>
             </div>
-            <script src="/js/security.js"></script>
+            ${'<script src="/js/security.js"></scr' + 'ipt>'}
 </body>
         </html>
     `);

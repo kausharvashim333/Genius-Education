@@ -2097,20 +2097,35 @@ app.post('/api/student/change-password', async (req, res) => {
 // Student OTP Authentication
 app.post('/api/student-auth/request-otp', (req, res) => {
     const { email } = req.body;
+    if (!email) return res.json({ success: false, error: 'Email ya Student ID daalo.' });
+
     const students = readData('students.json') || [];
-    const student = students.find(s => s.email === email);
+    // Search by email or rollNo (normalized to uppercase for rollNo)
+    const student = students.find(s => 
+        (s.email && s.email.toLowerCase() === email.toLowerCase()) || 
+        (s.rollNo && s.rollNo.toUpperCase() === email.toUpperCase())
+    );
     
     if (!student) {
-        return res.json({ success: false, error: 'Student not found with this email' });
+        return res.json({ success: false, error: 'Registered student nahi mil raha.' });
+    }
+
+    if (student.status === 'Inactive' || student.status === 'Suspended') {
+        return res.json({ success: false, error: 'Aapka account suspended hai. Admin se contact karein.' });
     }
     
+    // Use student's email for sending OTP
+    const targetEmail = student.email;
+    if (!targetEmail) {
+        return res.json({ success: false, error: 'Aapke profile me email nahi hai. Admin se update karwayein.' });
+    }
+
     // Generate cryptographically secure 6-digit numeric OTP
-    const crypto = require('crypto');
     const otp = crypto.randomInt(100000, 1000000).toString();
     
     // Store OTP with expiration (5 minutes)
     const otpData = {
-        email: email,
+        email: targetEmail,
         otp: otp,
         expiresAt: Date.now() + 5 * 60 * 1000,
         studentRollNo: student.rollNo
@@ -2118,8 +2133,8 @@ app.post('/api/student-auth/request-otp', (req, res) => {
     
     // Store in student-otps.json
     const otps = readData('student-otps.json') || [];
-    // Remove old OTPs for this email
-    const filteredOtps = otps.filter(o => o.email !== email);
+    // Remove old OTPs for this student
+    const filteredOtps = otps.filter(o => o.studentRollNo !== student.rollNo);
     filteredOtps.push(otpData);
     writeData('student-otps.json', filteredOtps);
     
@@ -2143,30 +2158,36 @@ app.post('/api/student-auth/request-otp', (req, res) => {
             inst: settings.name || 'Genius Computer Education'
         });
         const mailOptions = {
-            from: smtpUser,
-            to: email,
+            from: `"${settings.name || 'Genius Computer Education'}" <${smtpUser}>`,
+            to: targetEmail,
             subject: rendered.subject,
             html: rendered.html
         };
         
         transporter.sendMail(mailOptions, (err) => {
             if (err) {
-                logEmailFailure('student-otp', email, err);
-                res.json({ success: true, message: 'OTP generated but email not sent', otp: otp });
+                logEmailFailure('student-otp', targetEmail, err);
+                // Return OTP for testing if email fails (mask this in production if needed)
+                res.json({ success: true, message: 'OTP sent (Internal note: email failed, use for test: ' + otp + ')', otp: (process.env.NODE_ENV === 'production' ? null : otp) });
             } else {
                 res.json({ success: true, message: 'OTP sent successfully' });
             }
         });
     } catch (e) {
-        logEmailFailure('student-otp', email, e);
-        res.json({ success: true, message: 'OTP generated but email not sent', otp: otp });
+        logEmailFailure('student-otp', targetEmail, e);
+        res.json({ success: true, message: 'OTP generated but email failed', otp: (process.env.NODE_ENV === 'production' ? null : otp) });
     }
 });
 
 app.post('/api/student-auth/verify-otp', (req, res) => {
     const { email, otp, totpToken } = req.body;
     const otps = readData('student-otps.json') || [];
-    const otpRecord = otps.find(o => o.email === email && o.otp === otp && o.expiresAt > Date.now());
+    
+    // Find OTP record by email OR rollNo (the 'email' field in request can be either)
+    const otpRecord = otps.find(o => 
+        (o.email && o.email.toLowerCase() === email.toLowerCase() && o.otp === otp && o.expiresAt > Date.now()) ||
+        (o.studentRollNo && o.studentRollNo.toUpperCase() === email.toUpperCase() && o.otp === otp && o.expiresAt > Date.now())
+    );
 
     if (!otpRecord) {
         return res.json({ success: false, message: 'Invalid or expired OTP' });
@@ -10794,6 +10815,21 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
             return res.redirect('/student-portal.html?error=email_not_registered');
         }
         
+        // Generate custom session token for API calls (matching OTP flow)
+        const sessionToken = crypto.randomBytes(32).toString('hex');
+        const sessionData = {
+            studentId: student.rollNo,
+            token: sessionToken,
+            expiresAt: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+        };
+
+        const sessions = readData('student-sessions.json') || [];
+        sessions.push(sessionData);
+        writeData('student-sessions.json', sessions);
+        
+        // Store token in session so /api/auth/user can retrieve it
+        req.session.customSessionToken = sessionToken;
+        
         res.redirect('/student-portal.html?google_auth=success');
     });
 
@@ -10810,7 +10846,11 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
 
 app.get('/api/auth/user', (req, res) => {
     if (req.isAuthenticated()) {
-        res.json({ success: true, user: req.user });
+        const userData = { ...req.user };
+        if (req.session.customSessionToken) {
+            userData.sessionToken = req.session.customSessionToken;
+        }
+        res.json({ success: true, user: userData });
     } else {
         res.json({ success: false, message: 'Not authenticated' });
     }
