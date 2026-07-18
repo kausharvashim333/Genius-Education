@@ -3545,6 +3545,24 @@ table {
     border-spacing: 0;
 }
 
+/* Sticky table headers for scrollable tables */
+.table-scroll-wrapper {
+    overflow: auto;
+    max-height: 65vh;
+    border-radius: 10px;
+}
+.table-scroll-wrapper table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(30, 41, 59, 0.95) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.table-scroll-wrapper table thead tr {
+    background: rgba(30, 41, 59, 0.95) !important;
+}
+
 th, td {
     text-align: left;
     padding: 12px;

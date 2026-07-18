@@ -577,6 +577,22 @@
             background: rgba(255, 255, 255, 0.15);
             border-radius: 2px;
         }
+        /* ===== Sticky Table Headers ===== */
+        .table-scroll-wrapper {
+            overflow: auto;
+            max-height: 65vh;
+            border-radius: 10px;
+        }
+        .table-scroll-wrapper table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(30, 41, 59, 0.95) !important;
+            backdrop-filter: blur(10px);
+        }
+        .table-scroll-wrapper table thead tr {
+            background: rgba(30, 41, 59, 0.95) !important;
+        }
     </style>
     <style>
         /* ===== Legal Pages Editor — Glassmorphism ===== */
@@ -1229,10 +1245,12 @@
                         <div class="dash-section-title" style="margin:0;"><i class="fas fa-envelope-open-text"></i> Recent Enquiries</div>
                         <button class="btn btn-sm btn-primary" onclick="document.querySelector('[data-page=enquiries]').click()" style="padding:6px 14px;font-size:13px;"><i class="fas fa-list"></i> View All</button>
                     </div>
+                    <div class="table-scroll-wrapper" style="max-height:300px;">
                     <table class="dash-recent-table" id="recentEnquiriesTable">
                         <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Message</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
                         <tbody><tr><td colspan="7" style="text-align:center;color:#94a3b8;">Loading...</td></tr></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -1252,10 +1270,12 @@
                 </div>
                 <div class="students-stats" id="studentsStats"></div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="studentsTable">
                         <thead><tr><th><input type="checkbox" id="selectAllStudents" onchange="toggleAllStudentCheckboxes()"></th><th>Student ID</th><th>Photo</th><th>Name</th><th>Course</th><th>Phone</th><th>Paid</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -1800,10 +1820,12 @@
                     <button class="btn btn-success" onclick="exportBatchesToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="batchesTable">
                         <thead><tr><th>#</th><th>Batch Name</th><th>Timing</th><th>Start Date</th><th>Total Seats</th><th>Enrolled</th><th>Available</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -1813,10 +1835,12 @@
                     <button class="btn btn-primary" onclick="openNoticeModal()"><i class="fas fa-plus"></i> Add Notice</button>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="noticesTable">
                         <thead><tr><th>#</th><th>Title</th><th>Category</th><th>Date</th><th>Expiry</th><th>File</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -1827,6 +1851,7 @@
                     <button class="btn btn-success" onclick="exportCoursesToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="coursesTable">
                         <thead>
                             <tr>
@@ -1840,6 +1865,7 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -1852,6 +1878,7 @@
                     <button class="btn btn-success" onclick="exportEnquiriesToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="enquiriesTable">
                         <thead>
                             <tr>
@@ -1867,6 +1894,7 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -1881,6 +1909,7 @@
                     </button>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="testimonialsTable">
                         <thead>
                             <tr>
@@ -1895,6 +1924,7 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -2028,6 +2058,7 @@
                     </button>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="facultyTable">
                         <thead>
                             <tr>
@@ -2043,6 +2074,7 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -2058,6 +2090,7 @@
                     <button class="btn btn-success" onclick="exportGalleryToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="galleryTable">
                         <thead>
                             <tr>
@@ -2070,6 +2103,7 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -2398,8 +2432,8 @@
                         <button type="button" class="btn btn-secondary" onclick="clearTypingDateFilter()" style="padding:8px 12px;"><i class="fas fa-times"></i> Clear</button>
                     </div>
                     
-                    <div style="overflow-x:auto;">
-                        <table style="width:100%; border-collapse:collapse;">
+                    <div class="table-scroll-wrapper">
+                        <table style="width:100%; border-collapse:separate; border-spacing:0;">
                             <thead>
                                 <tr style="background:rgba(102,126,234,0.1);">
                                     <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Name</th>
@@ -2470,8 +2504,8 @@
                         <button type="button" class="btn btn-secondary" onclick="exportTypingLeaderboard()"><i class="fas fa-download"></i> Export CSV</button>
                     </div>
                     
-                    <div style="overflow-x:auto;">
-                        <table style="width:100%; border-collapse:collapse;">
+                    <div class="table-scroll-wrapper">
+                        <table style="width:100%; border-collapse:separate; border-spacing:0;">
                             <thead>
                                 <tr style="background:rgba(102,126,234,0.1);">
                                     <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Rank</th>
@@ -2837,10 +2871,12 @@
                     </div>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="announcementsTable">
                         <thead><tr><th><input type="checkbox" id="selectAllAnnouncements" onchange="toggleAllAnnouncementCheckboxes()"></th><th>Title</th><th>Category</th><th>Priority</th><th>Target</th><th>Expiry</th><th>Read Count</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -2854,10 +2890,12 @@
                     </div>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="testsTable">
                         <thead><tr><th><input type="checkbox" id="selectAllTests" onchange="toggleAllTestCheckboxes()"></th><th>Test Name</th><th>Course</th><th>Date</th><th>Total Marks</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -2896,10 +2934,12 @@
                     <button class="btn btn-primary" onclick="openEntranceExamModal()"><i class="fas fa-plus"></i> Create Entrance Exam</button>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="entranceExamsTable">
                         <thead><tr><th>Exam Name</th><th>Code</th><th>Course</th><th>Shifts</th><th>Total Marks</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -2917,10 +2957,12 @@
                     </div>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="entranceQuestionsTable">
                         <thead><tr><th><input type="checkbox" id="entQSelectAll" onchange="toggleAllEntranceQuestions()"></th><th>#</th><th>Question</th><th>Subject</th><th>Difficulty</th><th>Marks</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -2937,10 +2979,12 @@
                     </div>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="entranceRegsTable">
                         <thead><tr><th><input type="checkbox" id="entRegSelectAll" onchange="toggleAllEntranceRegs()"></th><th>Reg No</th><th>Name</th><th>Phone</th><th>Course</th><th>Shift</th><th>Password</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -2961,10 +3005,12 @@
                     <div class="stat-card glass-card" style="background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:15px;"><div style="font-size:12px;opacity:0.7;color:#fff;">Submitted</div><div style="font-size:24px;font-weight:700;color:#10b981;" id="entMonSubmitted">0</div></div>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="entMonitorTable">
                         <thead><tr><th>Reg No</th><th>Name</th><th>Started At</th><th>Status</th><th>Marks</th><th>Action</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -2982,10 +3028,12 @@
                     </div>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="entranceResultsTable">
                         <thead><tr><th>Reg No</th><th>Name</th><th>Marks</th><th>Total</th><th>%</th><th>Submitted</th><th>Published</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -3312,10 +3360,12 @@
                     <button class="btn btn-primary" onclick="openExamModal()"><i class="fas fa-plus"></i> Create Exam</button>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="examManagementTable">
                         <thead><tr><th>Exam Name</th><th>Course</th><th>Date</th><th>Duration</th><th>Total Marks</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -3349,10 +3399,12 @@
                     <button class="btn btn-primary" onclick="filterQuestions()">Filter</button>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="questionBankTable">
                         <thead><tr><th><input type="checkbox" id="selectAllQuestions" onchange="toggleAllQuestionCheckboxes()"></th><th>Question</th><th>Course</th><th>Type</th><th>Difficulty</th><th>Marks</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -3367,10 +3419,12 @@
                     </div>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="examScheduleTable">
                         <thead><tr><th><input type="checkbox" id="selectAllExamSchedules" onchange="toggleAllExamScheduleCheckboxes()"></th><th>Exam</th><th>Course</th><th>Batch</th><th>Date</th><th>Time</th><th>Duration</th><th>Total Marks</th><th>Venue</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -3383,10 +3437,12 @@
                     </div>
                 </div>
                 <div class="data-table">
+                    <div class="table-scroll-wrapper">
                     <table id="examRegistrationTable">
                         <thead><tr><th><input type="checkbox" id="selectAllRegistrations" onchange="toggleAllRegistrationCheckboxes()"></th><th>Student</th><th>Exam</th><th>Course</th><th>Student ID</th><th>Status</th><th>Fee Status</th><th>Registration Date</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -5820,6 +5876,16 @@
             applyEmbedMode();
         }
         setTimeout(applyEmbedMode, 600);
+    })();
+    
+    // Auto-wrap tables in .data-table with .table-scroll-wrapper if not already wrapped
+    (function wrapTables() {
+        document.querySelectorAll('.data-table > table').forEach(function(table) {
+            var wrapper = document.createElement('div');
+            wrapper.className = 'table-scroll-wrapper';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        });
     })();
     </script>
 </body>
