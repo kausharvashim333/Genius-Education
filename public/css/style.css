@@ -2683,6 +2683,14 @@ body {
     color: white;
     padding: 30px 20px;
     border-right: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-menu {
+    list-style: none;
+    flex: 1;
+    overflow-y: auto;
 }
 
 .admin-logo {
@@ -2914,6 +2922,8 @@ img.login-logo {
 
 .sidebar-menu {
     list-style: none;
+    flex: 1;
+    overflow-y: auto;
 }
 
 .sidebar-menu li {
@@ -3811,10 +3821,28 @@ tbody tr:nth-child(even) td {
 .logout-btn {
     background: #dc2626;
     color: white;
-    padding: 8px 20px;
+    padding: 10px 20px;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.logout-btn:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.sidebar-footer {
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 10px;
 }
 
 .hidden {
@@ -6484,6 +6512,16 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     }
     .sidebar.collapsed .sidebar-collapse-btn i {
         transform: rotate(180deg);
+    }
+    .sidebar.collapsed .logout-btn {
+        padding: 10px 0;
+        font-size: 0;
+    }
+    .sidebar.collapsed .logout-btn i {
+        font-size: 1.1rem;
+    }
+    .sidebar.collapsed .sidebar-footer {
+        padding-top: 10px;
     }
 }
 
