@@ -2237,9 +2237,18 @@
                     <h3 style="margin-bottom: 8px;"><i class="fas fa-users"></i> User Management</h3>
                     <p style="color:#64748b; margin-bottom: 16px;">Manage typing practice users, view stats, and delete accounts.</p>
                     
-                    <div style="display:flex; gap:10px; margin-bottom:16px;">
-                        <input type="text" id="typingUserSearch" placeholder="Search users..." style="padding:8px; border:1px solid #e2e8f0; border-radius:6px; flex:1;">
+                    <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+                        <input type="text" id="typingUserSearch" placeholder="Search users..." style="padding:8px; border:1px solid #e2e8f0; border-radius:6px; flex:1; min-width:150px;">
+                        <label style="font-size:13px; color:#64748b;">From:</label>
+                        <input type="date" id="typingDateFrom" style="padding:6px; border:1px solid #e2e8f0; border-radius:6px;">
+                        <label style="font-size:13px; color:#64748b;">To:</label>
+                        <input type="date" id="typingDateTo" style="padding:6px; border:1px solid #e2e8f0; border-radius:6px;">
+                        <select id="typingSortOrder" style="padding:7px; border:1px solid #e2e8f0; border-radius:6px;">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                        </select>
                         <button type="button" class="btn btn-primary" onclick="loadTypingUsers()"><i class="fas fa-sync"></i> Refresh</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearTypingDateFilter()" style="padding:8px 12px;"><i class="fas fa-times"></i> Clear</button>
                     </div>
                     
                     <div style="overflow-x:auto;">

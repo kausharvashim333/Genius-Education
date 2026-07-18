@@ -14896,7 +14896,39 @@ async function loadTypingUsers() {
     try {
         const res = await fetch('/api/typing-scores/all');
         const data = await res.json();
-        const scores = data.scores || [];
+        let scores = data.scores || [];
+        
+        // Apply search filter
+        const searchTerm = (document.getElementById('typingUserSearch')?.value || '').toLowerCase();
+        if (searchTerm) {
+            scores = scores.filter(score => 
+                (score.studentName || score.name || 'Unknown').toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        // Apply date filters
+        const dateFrom = document.getElementById('typingDateFrom')?.value;
+        const dateTo = document.getElementById('typingDateTo')?.value;
+        if (dateFrom) {
+            scores = scores.filter(score => {
+                const d = new Date(score.createdAt || score.date);
+                return d >= new Date(dateFrom + 'T00:00:00');
+            });
+        }
+        if (dateTo) {
+            scores = scores.filter(score => {
+                const d = new Date(score.createdAt || score.date);
+                return d <= new Date(dateTo + 'T23:59:59');
+            });
+        }
+        
+        // Apply sort order
+        const sortOrder = document.getElementById('typingSortOrder')?.value || 'newest';
+        scores.sort((a, b) => {
+            const dateA = new Date(a.createdAt || a.date).getTime();
+            const dateB = new Date(b.createdAt || b.date).getTime();
+            return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+        });
         
         const table = document.getElementById('typingUsersTable');
         if (scores.length === 0) {
@@ -14920,6 +14952,17 @@ async function loadTypingUsers() {
     } catch (e) {
         showNotification('Error loading users: ' + e.message, 'error');
     }
+}
+
+// Clear date filters
+function clearTypingDateFilter() {
+    const fromInput = document.getElementById('typingDateFrom');
+    const toInput = document.getElementById('typingDateTo');
+    const searchInput = document.getElementById('typingUserSearch');
+    if (fromInput) fromInput.value = '';
+    if (toInput) toInput.value = '';
+    if (searchInput) searchInput.value = '';
+    loadTypingUsers();
 }
 
 // Delete typing practice user
