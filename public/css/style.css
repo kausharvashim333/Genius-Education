@@ -6342,12 +6342,12 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 
 .sidebar-collapse-btn {
     position: absolute;
-    top: 25px;
-    right: -15px;
-    width: 30px;
-    height: 30px;
+    top: 20px;
+    right: 5px;
+    width: 28px;
+    height: 28px;
     background: linear-gradient(135deg, #667eea, #764ba2);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     color: white;
     border-radius: 50%;
     cursor: pointer;
@@ -6357,10 +6357,12 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     z-index: 1001;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     transition: all 0.2s ease;
+    font-size: 12px;
 }
 .sidebar-collapse-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 12px rgba(102, 126, 234, 0.6);
+    transform: scale(1.15);
+    box-shadow: 0 0 15px rgba(102, 126, 234, 0.8);
+    background: linear-gradient(135deg, #764ba2, #667eea);
 }
 
 /* Collapsed Sidebar State Rules */
