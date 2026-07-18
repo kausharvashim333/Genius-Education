@@ -1554,33 +1554,105 @@ async function aiWriteCourseDesc() {
 }
 
 // ===== Enquiries =====
+let allEnquiries = [];
+let enquiriesCurrentPage = 1;
+const enquiriesPerPage = 25;
+let enquiriesFiltered = [];
+
 async function loadEnquiriesTable() {
     const tbody = document.querySelector('#enquiriesTable tbody');
     renderLoadingSpinner(tbody, 'Loading enquiries...');
     try {
-        const enquiries = await fetch('/api/enquiries').then(r => r.json());
-        if (enquiries.length === 0) {
-            renderEmptyState(tbody, 'envelope-open', 'No enquiries yet');
-            return;
-        }
-        let html = '';
-        enquiries.forEach(e => {
-            const statusBadge = e.replied
-                ? '<span class="enq-badge enq-badge-replied">Replied</span>'
-                : '<span class="enq-badge enq-badge-pending">Pending</span>';
-            html += '<tr>';
-            html += '<td><input type="checkbox" class="enquiry-checkbox" data-id="' + e.id + '"></td>';
-            html += '<td>' + (e.name || '-') + '</td>';
-            html += '<td>' + (e.email || '-') + '</td>';
-            html += '<td>' + (e.phone || '-') + '</td>';
-            html += '<td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + (e.message || '').replace(/"/g, '&quot;') + '">' + (e.message || '-') + '</td>';
-            html += '<td>' + (e.date || '-') + '</td>';
-            html += '<td>' + statusBadge + '</td>';
-            html += '<td><button class="action-btn edit-btn" onclick="openEnquiryReply(' + e.id + ')" title="Reply"><i class="fas fa-reply"></i> Reply</button></td>';
-            html += '</tr>';
-        });
-        tbody.innerHTML = html;
+        allEnquiries = await fetch('/api/enquiries').then(r => r.json());
+        enquiriesCurrentPage = 1;
+        const searchEl = document.getElementById('enquirySearch');
+        const statusEl = document.getElementById('enquiryStatusFilter');
+        if (searchEl) searchEl.value = '';
+        if (statusEl) statusEl.value = '';
+        renderEnquiries(allEnquiries);
     } catch (err) { console.error(err); }
+}
+
+function filterEnquiries() {
+    enquiriesCurrentPage = 1;
+    const search = (document.getElementById('enquirySearch').value || '').toLowerCase();
+    const status = document.getElementById('enquiryStatusFilter').value;
+    let filtered = allEnquiries;
+    if (status === 'pending') filtered = filtered.filter(e => !e.replied);
+    if (status === 'replied') filtered = filtered.filter(e => e.replied);
+    if (search) {
+        filtered = filtered.filter(e =>
+            (e.name && e.name.toLowerCase().includes(search)) ||
+            (e.email && e.email.toLowerCase().includes(search)) ||
+            (e.phone && e.phone.includes(search))
+        );
+    }
+    renderEnquiries(filtered);
+}
+
+function renderEnquiries(enquiries) {
+    enquiriesFiltered = enquiries;
+    const tbody = document.querySelector('#enquiriesTable tbody');
+    const paginationEl = document.getElementById('enquiriesPagination');
+    if (enquiries.length === 0) {
+        renderEmptyState(tbody, 'envelope-open', 'No enquiries found');
+        if (paginationEl) paginationEl.innerHTML = '';
+        return;
+    }
+    const totalPages = Math.ceil(enquiries.length / enquiriesPerPage);
+    if (enquiriesCurrentPage > totalPages) enquiriesCurrentPage = 1;
+    const startIdx = (enquiriesCurrentPage - 1) * enquiriesPerPage;
+    const pageEnquiries = enquiries.slice(startIdx, startIdx + enquiriesPerPage);
+    let html = '';
+    pageEnquiries.forEach(e => {
+        const statusBadge = e.replied
+            ? '<span class="enq-badge enq-badge-replied">Replied</span>'
+            : '<span class="enq-badge enq-badge-pending">Pending</span>';
+        html += '<tr>';
+        html += '<td><input type="checkbox" class="enquiry-checkbox" data-id="' + e.id + '"></td>';
+        html += '<td>' + (e.name || '-') + '</td>';
+        html += '<td>' + (e.email || '-') + '</td>';
+        html += '<td>' + (e.phone || '-') + '</td>';
+        html += '<td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + (e.message || '').replace(/"/g, '&quot;') + '">' + (e.message || '-') + '</td>';
+        html += '<td>' + (e.date || '-') + '</td>';
+        html += '<td>' + statusBadge + '</td>';
+        html += '<td><button class="action-btn edit-btn" onclick="openEnquiryReply(' + e.id + ')" title="Reply"><i class="fas fa-reply"></i> Reply</button></td>';
+        html += '</tr>';
+    });
+    tbody.innerHTML = html;
+    renderEnquiriesPagination(totalPages);
+}
+
+function renderEnquiriesPagination(totalPages) {
+    const container = document.getElementById('enquiriesPagination');
+    if (!container || totalPages <= 1) { if (container) container.innerHTML = ''; return; }
+    let html = '';
+    html += '<button class="pagination-btn" onclick="goToEnquiryPage(' + (enquiriesCurrentPage - 1) + ')" ' + (enquiriesCurrentPage === 1 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i></button>';
+    const maxVisible = 7;
+    let startPage = Math.max(1, enquiriesCurrentPage - 3);
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
+    if (startPage > 1) {
+        html += '<button class="pagination-btn" onclick="goToEnquiryPage(1)">1</button>';
+        if (startPage > 2) html += '<span class="pagination-ellipsis">...</span>';
+    }
+    for (let i = startPage; i <= endPage; i++) {
+        html += '<button class="pagination-btn' + (i === enquiriesCurrentPage ? ' active"' : '"') + ' onclick="goToEnquiryPage(' + i + ')">' + i + '</button>';
+    }
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += '<span class="pagination-ellipsis">...</span>';
+        html += '<button class="pagination-btn" onclick="goToEnquiryPage(' + totalPages + ')">' + totalPages + '</button>';
+    }
+    html += '<button class="pagination-btn" onclick="goToEnquiryPage(' + (enquiriesCurrentPage + 1) + ')" ' + (enquiriesCurrentPage === totalPages ? 'disabled' : '') + '><i class="fas fa-chevron-right"></i></button>';
+    html += '<span class="pagination-info">Page ' + enquiriesCurrentPage + ' of ' + totalPages + '</span>';
+    container.innerHTML = html;
+}
+
+function goToEnquiryPage(page) {
+    const totalPages = Math.ceil(enquiriesFiltered.length / enquiriesPerPage);
+    if (page < 1 || page > totalPages) return;
+    enquiriesCurrentPage = page;
+    renderEnquiries(enquiriesFiltered);
 }
 
 function openEnquiryReply(id) {
@@ -11508,31 +11580,13 @@ async function loadEnquiries() {
     try {
         const res = await fetch('/api/enquiries');
         const result = await res.json();
-        const enquiries = Array.isArray(result) ? result : (result.enquiries || []);
-        
-        const enqTbody = document.querySelector('#enquiriesTable tbody');
-        if (!enqTbody) return;
-        
-        if (enquiries.length > 0) {
-            enqTbody.innerHTML = enquiries.map(e => {
-                const statusBadge = e.replied
-                    ? '<span class="enq-badge enq-badge-replied">Replied</span>'
-                    : '<span class="enq-badge enq-badge-pending">Pending</span>';
-                const safeMsg = (e.message || '-').replace(/"/g, '&quot;');
-                return `<tr>
-                    <td><input type="checkbox" class="enquiry-checkbox" data-id="${e.id}"></td>
-                    <td style="font-weight:600;">${e.name || '-'}</td>
-                    <td style="font-size:13px;">${e.email || '-'}</td>
-                    <td style="font-size:13px;">${e.phone || '-'}</td>
-                    <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;" title="${safeMsg}">${e.message || '-'}</td>
-                    <td style="font-size:13px;">${e.date || '-'}</td>
-                    <td>${statusBadge}</td>
-                    <td><button class="action-btn edit-btn" onclick="openEnquiryReply(${e.id})" title="Reply" style="padding:5px 10px;font-size:12px;"><i class="fas fa-reply"></i> ${e.replied ? 'View' : 'Reply'}</button></td>
-                </tr>`;
-            }).join('');
-        } else {
-            enqTbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:20px;">No enquiries yet</td></tr>';
-        }
+        allEnquiries = Array.isArray(result) ? result : (result.enquiries || []);
+        enquiriesCurrentPage = 1;
+        const searchEl = document.getElementById('enquirySearch');
+        const statusEl = document.getElementById('enquiryStatusFilter');
+        if (searchEl) searchEl.value = '';
+        if (statusEl) statusEl.value = '';
+        renderEnquiries(allEnquiries);
     } catch (err) {
         console.error('Error loading enquiries:', err);
     }
