@@ -5177,6 +5177,20 @@ async function rejectStudyMaterial(id) {
 }
 
 // ===== Videos (Video Learning Platform) =====
+function toggleVideoOptions(id) {
+    const menu = document.getElementById('videoOpts' + id);
+    if (!menu) return;
+    document.querySelectorAll('[id^="videoOpts"]').forEach(m => {
+        if (m !== menu) m.style.display = 'none';
+    });
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('[id^="videoOpts"]') && !e.target.closest('button[onclick*="toggleVideoOptions"]')) {
+        document.querySelectorAll('[id^="videoOpts"]').forEach(m => m.style.display = 'none');
+    }
+});
+
 async function loadVideosTable() {
     const tbody = document.getElementById('videosTable').querySelector('tbody');
     renderLoadingSpinner(tbody, 'Loading videos...');
@@ -5220,14 +5234,14 @@ async function loadVideosTable() {
             html += '<td>' + (v.enforceSingleSession ? '<span style="color:#dc2626;font-weight:600;">Yes</span>' : '<span style="color:#16a34a;">No</span>') + '</td>';
             html += '<td style="font-size:12px;line-height:1.35;">' + (v.lastNotifiedAt ? ('<span title="' + esc(v.lastNotifiedAt) + '">' + formatDateTime(v.lastNotifiedAt) + '</span><br><span style="color:#64748b;">' + (v.lastNotificationSent || 0) + ' sent</span>') : '<span style="color:#94a3b8;">Never</span>') + '</td>';
             html += '<td>' + formatDate(v.uploadedAt) + '</td>';
-            html += '<td>';
-            html += '<button class="action-btn edit-btn" onclick="editVideo(' + v.id + ')">Edit</button>';
-            html += '<button class="action-btn" style="background:#8b5cf6;color:#fff;" onclick="openQuizManager(' + v.id + ',\'' + (v.title || '').replace(/\'/g, "\\'") + '\')">Quiz</button>';
-            html += '<button class="action-btn" style="background:#10b981;color:#fff;" onclick="openResourcesManager(' + v.id + ',\'' + (v.title || '').replace(/\'/g, "\\'") + '\')">Files</button>';
-            html += '<button class="action-btn" style="background:#0ea5e9;color:#fff;" onclick="openHotspotManager(' + v.id + ',\'' + (v.title || '').replace(/\'/g, "\\'") + '\')">Hotspots</button>';
-            html += '<button class="action-btn" style="background:#f59e0b;color:#fff;" onclick="notifyVideoAvailability(' + v.id + ')">Notify</button>';
-            html += '<button class="action-btn delete-btn" onclick="deleteVideo(' + v.id + ')">Delete</button>';
-            html += '</td>';
+            html += '<td><div style="position:relative;"><button class="action-btn edit-btn" onclick="toggleVideoOptions(' + v.id + ')"><i class="fas fa-ellipsis-v"></i> Options</button><div id="videoOpts' + v.id + '" style="display:none;position:absolute;right:0;top:100%;z-index:100;min-width:160px;background:rgba(30,41,59,0.97);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.4);padding:4px;">';
+            html += '<button class="action-btn edit-btn" style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#e2e8f0;padding:8px 12px;border-radius:6px;" onclick="editVideo(' + v.id + ')"><i class="fas fa-edit"></i> Edit</button>';
+            html += '<button style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#a78bfa;padding:8px 12px;border-radius:6px;cursor:pointer;" onclick="openQuizManager(' + v.id + ',\'' + (v.title || '').replace(/\'/g, "\\'") + '\')"><i class="fas fa-question-circle"></i> Quiz</button>';
+            html += '<button style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#10b981;padding:8px 12px;border-radius:6px;cursor:pointer;" onclick="openResourcesManager(' + v.id + ',\'' + (v.title || '').replace(/\'/g, "\\'") + '\')"><i class="fas fa-paperclip"></i> Files</button>';
+            html += '<button style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#0ea5e9;padding:8px 12px;border-radius:6px;cursor:pointer;" onclick="openHotspotManager(' + v.id + ',\'' + (v.title || '').replace(/\'/g, "\\'") + '\')"><i class="fas fa-map-pin"></i> Hotspots</button>';
+            html += '<button style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#f59e0b;padding:8px 12px;border-radius:6px;cursor:pointer;" onclick="notifyVideoAvailability(' + v.id + ')"><i class="fas fa-bell"></i> Notify</button>';
+            html += '<button class="action-btn delete-btn" style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#f5576c;padding:8px 12px;border-radius:6px;" onclick="deleteVideo(' + v.id + ')"><i class="fas fa-trash"></i> Delete</button>';
+            html += '</div></div></td>';
             html += '</tr>';
             return html;
         }).join('');
