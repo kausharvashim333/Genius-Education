@@ -7803,6 +7803,8 @@
         let currentLevel = 1;
         let completedLevels = [];
         let incorrectChars = new Set(); // Track positions of incorrectly typed characters
+        let totalCharsTyped = 0; // Track total characters typed across multiple texts in one session
+        let totalMistakes = 0; // Track total mistakes across multiple texts in one session
         let lastCompletedLine = -1; // Track last completed line for scrolling
         let previousLineIndex = -1; // Track previous line index for animation
 
@@ -8319,6 +8321,8 @@
         function startTyping() {
             isTyping = true;
             startTime = new Date();
+            totalCharsTyped = 0;
+            totalMistakes = 0;
             updateFingerGuide();
 
             if (isCustomMode && customModeDuration > 0) {
@@ -8384,9 +8388,12 @@
             timerDisplay.style.display = 'none';
 
             const timeElapsed = (new Date() - startTime) / 1000 / 60;
+            // Use totalCharsTyped for accurate stats across multiple texts in one session
+            const totalChars = totalCharsTyped || currentIndex;
+            const totalErrs = totalMistakes || mistakes;
             // Standard WPM calculation: (characters typed / 5) / time in minutes
-            const wpm = Math.round((currentIndex / 5) / timeElapsed) || 0;
-            const accuracy = currentIndex > 0 ? Math.round(((currentIndex - mistakes) / currentIndex) * 100) : 100;
+            const wpm = Math.round((totalChars / 5) / timeElapsed) || 0;
+            const accuracy = totalChars > 0 ? Math.round(((totalChars - totalErrs) / totalChars) * 100) : 100;
 
             // Calculate XP
             const xpEarned = calculateXP(wpm, accuracy, currentLevel);
@@ -8406,8 +8413,8 @@
 
             document.getElementById('finalWpm').textContent = wpm;
             document.getElementById('finalAccuracy').textContent = accuracy + '%';
-            document.getElementById('finalChars').textContent = currentIndex;
-            document.getElementById('finalErrors').textContent = mistakes;
+            document.getElementById('finalChars').textContent = totalChars;
+            document.getElementById('finalErrors').textContent = totalErrs;
 
             updateXPDisplay();
             updateDailyStreak();
@@ -10168,6 +10175,7 @@
                             }
                         } else {
                             mistakes++;
+                            totalMistakes++;
                             streak = 0;
                             combo = 1;
                             incorrectChars.add(currentIndex);
@@ -10182,6 +10190,7 @@
                             });
                         }
 
+                        totalCharsTyped++;
                         currentIndex++;
                         updateDisplay();
                         updateStatusBar();
