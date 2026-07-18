@@ -118,6 +118,8 @@ async function checkSessionTimeout() {
             showNotification('Your session has expired. Please login again.', 'error');
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('dashboardSection').classList.add('hidden');
+            const loginNav = document.querySelector('.admin-login-nav');
+            if (loginNav) loginNav.classList.remove('hidden');
         }
     } catch (e) { /* network error - ignore */ }
 }
@@ -482,6 +484,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         sessionStorage.removeItem('adminSessionExpires');
         document.getElementById('loginSection').classList.remove('hidden');
         document.getElementById('dashboardSection').classList.add('hidden');
+        const loginNav = document.querySelector('.admin-login-nav');
+        if (loginNav) loginNav.classList.remove('hidden');
     });
 
     // Mobile menu toggle
@@ -586,6 +590,28 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
+    function updateHeaderToolbar(pageEl) {
+        const toolbar = document.getElementById('headerToolbar');
+        if (!toolbar) return;
+        // Return existing toolbar children to their original pages
+        const existing = toolbar.querySelectorAll('.page-toolbar');
+        existing.forEach(tb => {
+            const originId = tb.getAttribute('data-toolbar-origin');
+            if (originId) {
+                const origin = document.getElementById(originId);
+                if (origin) {
+                    origin.insertBefore(tb, origin.firstChild);
+                }
+            }
+        });
+        if (!pageEl) return;
+        const toolbars = pageEl.querySelectorAll('.page-toolbar');
+        toolbars.forEach(tb => {
+            tb.setAttribute('data-toolbar-origin', pageEl.id);
+            toolbar.appendChild(tb);
+        });
+    }
+
     function loadPage(page) {
         document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
         document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
@@ -597,6 +623,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (pageEl) {
             pageEl.classList.remove('hidden');
             updateHeaderForPage(page);
+            updateHeaderToolbar(pageEl);
             const link = document.querySelector(`.sidebar-menu a[data-page="${page}"]`);
             if (link) link.classList.add('active');
             
@@ -1029,6 +1056,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 function showDashboard() {
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('dashboardSection').classList.remove('hidden');
+    const loginNav = document.querySelector('.admin-login-nav');
+    if (loginNav) loginNav.classList.add('hidden');
     loadDashboard();
     loadAdminLogo();
     
@@ -2741,6 +2770,7 @@ async function viewBatchStudents(batchId, batchName) {
     document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
     document.getElementById('page-students').classList.remove('hidden');
     if (typeof updateHeaderForPage === 'function') updateHeaderForPage('students');
+    if (typeof updateHeaderToolbar === 'function') updateHeaderToolbar(document.getElementById('page-students'));
     
     // Load students table
     await loadStudentsTable();
@@ -9833,6 +9863,7 @@ async function showAdmissionForm() {
     document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
     document.getElementById('page-admission').classList.remove('hidden');
     if (typeof updateHeaderForPage === 'function') updateHeaderForPage('admission');
+    if (typeof updateHeaderToolbar === 'function') updateHeaderToolbar(document.getElementById('page-admission'));
     document.getElementById('admissionForm').reset();
     const admDateEl = document.getElementById('sAdmDate');
     if (admDateEl) admDateEl.value = new Date().toISOString().split('T')[0];
@@ -9865,6 +9896,7 @@ function showStudentsPage() {
     document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
     document.getElementById('page-students').classList.remove('hidden');
     if (typeof updateHeaderForPage === 'function') updateHeaderForPage('students');
+    if (typeof updateHeaderToolbar === 'function') updateHeaderToolbar(document.getElementById('page-students'));
     loadStudentsTable();
 }
 

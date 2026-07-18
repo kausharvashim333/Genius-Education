@@ -2632,20 +2632,29 @@ body {
 /* Admin Dashboard */
 .admin-dashboard {
     display: flex;
+    flex-direction: column;
     min-height: 100vh;
+}
+.dashboard-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
 }
 @media (min-width: 769px) {
     .admin-dashboard {
         height: 100vh;
         overflow: hidden;
     }
+    .dashboard-body {
+        height: calc(100vh - 70px);
+    }
     .sidebar {
-        height: 100vh;
+        height: 100%;
         overflow-y: auto !important;
         flex-shrink: 0;
     }
     .main-content {
-        height: 100vh;
+        height: 100%;
         overflow-y: auto !important;
     }
     /* Custom scrollbars for main content only */
@@ -3214,14 +3223,6 @@ img.login-logo {
     flex: 1;
     padding: 30px;
     background: transparent;
-}
-
-.admin-header {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 10px 0;
 }
 
 .stats-grid {
@@ -5030,6 +5031,9 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     .admin-dashboard {
         flex-direction: column;
     }
+    .dashboard-body {
+        flex-direction: column;
+    }
     
     .main-content {
         padding: 15px;
@@ -6566,12 +6570,30 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 30px;
+    padding: 12px 30px;
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    gap: 20px;
+    flex-shrink: 0;
+}
+.header-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+.header-toolbar:empty {
+    display: none;
+}
+.header-toolbar .page-toolbar {
+    margin-bottom: 0;
 }
 .header-welcome h2 {
     font-size: 1.4rem;
@@ -6833,10 +6855,15 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 
 @media (max-width: 768px) {
     .admin-header {
-        padding: 15px 20px;
+        padding: 10px 15px;
+        flex-wrap: wrap;
     }
     .header-welcome h2 {
         font-size: 1.15rem;
+    }
+    .header-toolbar {
+        width: 100%;
+        margin-left: 0;
     }
 }
 

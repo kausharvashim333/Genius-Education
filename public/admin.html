@@ -1086,6 +1086,18 @@
 
     <!-- Dashboard Section -->
     <div id="dashboardSection" class="admin-dashboard hidden">
+        <div class="admin-header">
+            <div class="header-welcome" id="headerGreeting">
+                <h2 id="welcomeGreeting">Welcome, Admin</h2>
+                <p id="headerDateTime"></p>
+            </div>
+            <div class="header-page-title" id="headerPageTitle" style="display:none;">
+                <h2 id="pageTitleText">Dashboard</h2>
+                <p id="pageBreadcrumb"><i class="fas fa-home"></i> Home</p>
+            </div>
+            <div class="header-toolbar" id="headerToolbar"></div>
+        </div>
+        <div class="dashboard-body">
         <aside class="sidebar">
             <button id="sidebarCollapseBtn" class="sidebar-collapse-btn" onclick="toggleSidebar()"><i class="fas fa-chevron-left"></i></button>
             <div class="admin-logo">
@@ -1211,17 +1223,6 @@
         </button>
 
         <main class="main-content">
-            <div class="admin-header">
-                <div class="header-welcome" id="headerGreeting">
-                    <h2 id="welcomeGreeting">Welcome, Admin</h2>
-                    <p id="headerDateTime"></p>
-                </div>
-                <div class="header-page-title" id="headerPageTitle" style="display:none;">
-                    <h2 id="pageTitleText">Dashboard</h2>
-                    <p id="pageBreadcrumb"><i class="fas fa-home"></i> Home</p>
-                </div>
-            </div>
-
             <!-- Dashboard Page -->
             <div id="page-dashboard" class="page-content">
                 <!-- Stats Cards Row 1 -->
@@ -1430,7 +1431,7 @@
 
             <!-- Admission Form Page (full width) -->
             <div id="page-admission" class="page-content hidden">
-                <div class="form-page-header">
+                <div class="form-page-header page-toolbar">
                     <button class="btn" onclick="showStudentsPage()"><i class="fas fa-arrow-left"></i> Back to Students</button>
                 </div>
                 <form id="admissionForm" enctype="multipart/form-data">
@@ -1995,7 +1996,7 @@
 
             <!-- Courses Page -->
             <div id="page-courses" class="page-content hidden">
-                <div style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
+                <div class="page-toolbar" style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
                     <button class="btn btn-primary" onclick="openCourseModal()"><i class="fas fa-plus"></i> Add Course</button>
                     <button class="btn btn-success" onclick="exportCoursesToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                 </div>
@@ -2020,7 +2021,7 @@
 
             <!-- Enquiries Page -->
             <div id="page-enquiries" class="page-content hidden">
-                <div style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
+                <div class="page-toolbar" style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
                     <button class="btn btn-danger" onclick="deleteSelectedEnquiries()">
                         <i class="fas fa-trash"></i> Delete Selected
                     </button>
@@ -2049,7 +2050,7 @@
 
             <!-- Testimonials Page -->
             <div id="page-testimonials" class="page-content hidden">
-                <div style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
+                <div class="page-toolbar" style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
                     <button class="btn btn-primary" onclick="openAddTestimonialModal()">
                         <i class="fas fa-plus"></i> Add Testimonial
                     </button>
@@ -2197,7 +2198,7 @@
 
             <!-- Faculty Page -->
             <div id="page-faculty" class="page-content hidden">
-                <div style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
+                <div class="page-toolbar" style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
                     <button class="btn btn-primary" onclick="openFacultyModal()">
                         <i class="fas fa-plus"></i> Add Faculty
                     </button>
@@ -2229,7 +2230,7 @@
 
             <!-- Gallery Page -->
             <div id="page-gallery" class="page-content hidden">
-                <div style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
+                <div class="page-toolbar" style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
                     <button class="btn btn-primary" onclick="openGalleryModal()">
                         <i class="fas fa-plus"></i> Add Gallery Item
                     </button>
@@ -2567,7 +2568,7 @@
                     <h3 style="margin-bottom: 8px;"><i class="fas fa-users"></i> User Management</h3>
                     <p style="color:#64748b; margin-bottom: 16px;">Manage typing practice users, view stats, and delete accounts.</p>
                     
-                    <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+                    <div class="page-toolbar" style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
                         <input type="text" id="typingUserSearch" placeholder="Search users..." style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; flex:1; min-width:150px; height:38px; box-sizing:border-box;">
                         <label style="font-size:13px; color:#64748b;">From:</label>
                         <input type="date" id="typingDateFrom" style="padding:6px 10px; border:1px solid #e2e8f0; border-radius:6px; height:38px; box-sizing:border-box;">
@@ -2618,7 +2619,7 @@
                     <h3 style="margin-bottom: 8px;"><i class="fas fa-file-alt"></i> Content Management</h3>
                     <p style="color:#64748b; margin-bottom: 16px;">Manage level content, text, and lessons.</p>
                     
-                    <div style="display:flex; gap:10px; margin-bottom:16px;">
+                    <div class="page-toolbar" style="display:flex; gap:10px; margin-bottom:16px;">
                         <select id="typingLevelSelect" style="padding:8px; border:1px solid #e2e8f0; border-radius:6px;">
                             <option value="">Select Level</option>
                         </select>
@@ -2644,7 +2645,7 @@
                     <h3 style="margin-bottom: 8px;"><i class="fas fa-trophy"></i> Leaderboard Management</h3>
                     <p style="color:#64748b; margin-bottom: 16px;">View, filter, and manage leaderboard entries.</p>
                     
-                    <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+                    <div class="page-toolbar" style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
                         <select id="typingLeaderboardLevelFilter" style="padding:0 10px; border:1px solid #e2e8f0; border-radius:6px; height:38px; box-sizing:border-box;">
                             <option value="all">All Levels</option>
                         </select>
@@ -3013,7 +3014,7 @@
             <!-- Announcements Page -->
             <div id="page-announcements" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openAnnouncementModal()"><i class="fas fa-plus"></i> Add Announcement</button>
                         <button class="btn btn-danger" onclick="deleteSelectedAnnouncements()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportAnnouncementsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3032,7 +3033,7 @@
             <!-- Tests Page -->
             <div id="page-tests" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openTestModal()"><i class="fas fa-plus"></i> Add Test</button>
                         <button class="btn btn-danger" onclick="deleteSelectedTests()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportTestsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3079,7 +3080,7 @@
 
             <!-- Manage Entrance Exams -->
             <div id="page-entrance-exams" class="page-content hidden">
-                <div class="form-page-header">
+                <div class="form-page-header page-toolbar">
                     <button class="btn btn-primary" onclick="openEntranceExamModal()"><i class="fas fa-plus"></i> Create Entrance Exam</button>
                 </div>
                 <div class="data-table">
@@ -3095,7 +3096,7 @@
             <!-- Question Bank -->
             <div id="page-entrance-questions" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;flex-wrap:wrap;">
                         <select id="entQbExam" onchange="loadEntranceQuestions()" style="padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.3);height:40px;">
                             <option value="">Select Exam</option>
                         </select>
@@ -3118,7 +3119,7 @@
             <!-- Registrations -->
             <div id="page-entrance-registrations" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
                         <select id="entRegExam" onchange="loadEntranceRegistrations()" style="padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.3);height:40px;">
                             <option value="">Select Exam</option>
                         </select>
@@ -3140,7 +3141,7 @@
             <!-- Live Monitoring -->
             <div id="page-entrance-monitor" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;align-items:center;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;align-items:center;">
                         <select id="entMonitorExam" onchange="loadEntranceMonitor()" style="padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.3);height:40px;">
                             <option value="">Select Exam</option>
                         </select>
@@ -3166,7 +3167,7 @@
             <!-- Results -->
             <div id="page-entrance-results" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
                         <select id="entResultExam" onchange="loadEntranceResults()" style="padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.3);height:40px;">
                             <option value="">Select Exam</option>
                         </select>
@@ -3505,7 +3506,7 @@
 
             <!-- Exam Management Page -->
             <div id="page-exam-management" class="page-content hidden">
-                <div class="form-page-header">
+                <div class="form-page-header page-toolbar">
                     <button class="btn btn-primary" onclick="openExamModal()"><i class="fas fa-plus"></i> Create Exam</button>
                 </div>
                 <div class="data-table">
@@ -3521,7 +3522,7 @@
             <!-- Question Bank Page -->
             <div id="page-question-bank" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openQuestionModal()"><i class="fas fa-plus"></i> Add Question</button>
                         <button class="btn btn-secondary" onclick="openBulkUploadModal()"><i class="fas fa-upload"></i> Bulk Upload</button>
                         <button class="btn btn-danger" onclick="deleteSelectedQuestions()"><i class="fas fa-trash"></i> Delete Selected</button>
@@ -3560,7 +3561,7 @@
             <!-- Exam Schedule Page -->
             <div id="page-exam-schedule" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openExamScheduleModal()"><i class="fas fa-plus"></i> Add Schedule</button>
                         <button class="btn btn-secondary" onclick="printExamSchedule()"><i class="fas fa-print"></i> Print Schedule</button>
                         <button class="btn btn-danger" onclick="deleteSelectedExamSchedules()"><i class="fas fa-trash"></i> Delete Selected</button>
@@ -3580,7 +3581,7 @@
             <!-- Exam Registration Page -->
             <div id="page-exam-registration" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-danger" onclick="deleteSelectedRegistrations()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportExamRegistrationToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                     </div>
@@ -3598,7 +3599,7 @@
             <!-- Admit Cards Page -->
             <div id="page-admit-cards" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-secondary" onclick="loadAdmitCards()"><i class="fas fa-sync"></i> Refresh</button>
                         <button class="btn btn-success" onclick="exportAdmitCardsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                     </div>
@@ -3615,7 +3616,7 @@
             <!-- Online Exam Page -->
             <div id="page-online-exam" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openOnlineExamModal()"><i class="fas fa-plus"></i> Create Online Exam</button>
                         <button class="btn btn-danger" onclick="deleteSelectedOnlineExams()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportOnlineExamsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3631,7 +3632,7 @@
 
             <!-- Exam Grading Page -->
             <div id="page-exam-grading" class="page-content hidden">
-                <div class="form-page-header">
+                <div class="form-page-header page-toolbar">
                     <button class="btn btn-primary" onclick="openGradingModal()"><i class="fas fa-edit"></i> Grade Exam</button>
                 </div>
                 <div class="data-table">
@@ -3644,7 +3645,7 @@
 
             <!-- Exam Reports Page -->
             <div id="page-exam-reports" class="page-content hidden">
-                <div class="form-page-header">
+                <div class="form-page-header page-toolbar">
                     <button class="btn btn-primary" onclick="generateExamReport()"><i class="fas fa-download"></i> Generate Report</button>
                     <button class="btn btn-success" onclick="exportExamReportsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                 </div>
@@ -3671,7 +3672,7 @@
             <!-- Attendance Page -->
             <div id="page-attendance" class="page-content hidden">
                 <div class="page-header">
-                    <div>
+                    <div class="page-toolbar">
                         <select id="attendanceCourse" style="padding:8px;border-radius:6px;border:1px solid #e2e8f0;min-width:150px;height:40px;">
                             <option value="">Select Course</option>
                         </select>
@@ -3699,7 +3700,7 @@
             <!-- Exam Calendar Page -->
             <div id="page-exam-calendar" class="page-content hidden">
                 <div class="page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openExamModal()"><i class="fas fa-plus"></i> Add Exam</button>
                         <button class="btn btn-danger" onclick="deleteSelectedExams()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportExamCalendarToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3716,7 +3717,7 @@
             <!-- Holidays Page -->
             <div id="page-holidays" class="page-content hidden">
                 <div class="page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openHolidayModal()"><i class="fas fa-plus"></i> Add Holiday</button>
                         <button class="btn btn-danger" onclick="deleteSelectedHolidays()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportHolidaysToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3733,7 +3734,7 @@
             <!-- Blog Page -->
             <div id="page-blog" class="page-content hidden">
                 <div class="page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openBlogModal()"><i class="fas fa-plus"></i> Add Blog Post</button>
                         <button class="btn btn-danger" onclick="deleteSelectedBlogPosts()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportBlogToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3750,7 +3751,7 @@
             <!-- Blog Comments Page -->
             <div id="page-blog-comments" class="page-content hidden">
                 <div class="page-header">
-                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
                         <div class="comment-tabs" style="display:flex;gap:6px;">
                             <button class="btn btn-secondary comment-tab-btn active" data-status="pending" onclick="setCommentTab('pending')"><i class="fas fa-clock"></i> Pending <span id="cmtPendingCount" style="background:#ef4444;color:#fff;padding:1px 8px;border-radius:10px;margin-left:4px;font-size:11px;">0</span></button>
                             <button class="btn btn-secondary comment-tab-btn" data-status="approved" onclick="setCommentTab('approved')"><i class="fas fa-check"></i> Approved</button>
@@ -3767,7 +3768,7 @@
             <!-- Pending Blogs Review Page -->
             <div id="page-blog-pending" class="page-content hidden">
                 <div class="page-header">
-                    <div style="display:flex;gap:10px;align-items:center;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;align-items:center;">
                         <h3 style="margin:0;color:#fff;"><i class="fas fa-clock"></i> Pending Blog Approvals <span id="pendingBlogsCount" style="opacity:0.6;font-weight:normal;font-size:14px;">(0)</span></h3>
                         <button class="btn btn-secondary" onclick="loadPendingBlogs()" style="margin-left:auto;"><i class="fas fa-sync"></i> Refresh</button>
                     </div>
@@ -3778,7 +3779,7 @@
             <!-- Newsletter Subscribers Page -->
             <div id="page-newsletter" class="page-content hidden">
                 <div class="page-header">
-                    <div style="display:flex;gap:10px;align-items:center;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;align-items:center;">
                         <h3 style="margin:0;color:#fff;"><i class="fas fa-envelope-open-text"></i> Newsletter Subscribers <span id="newsletterCount" style="opacity:0.6;font-weight:normal;font-size:14px;">(0)</span></h3>
                         <button class="btn btn-secondary" onclick="loadNewsletterSubs()" style="margin-left:auto;"><i class="fas fa-sync"></i> Refresh</button>
                         <button class="btn btn-success" onclick="exportNewsletterCSV()" style="background:#16a34a;"><i class="fas fa-file-csv"></i> Export CSV</button>
@@ -3818,7 +3819,7 @@
             <!-- Notifications Page -->
             <div id="page-notifications" class="page-content hidden">
                 <div class="page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openAdminNotificationModal()"><i class="fas fa-plus"></i> Send Notification</button>
                         <button class="btn btn-secondary" onclick="loadNotificationsTable()"><i class="fas fa-sync"></i> Refresh</button>
                         <button class="btn btn-danger" onclick="deleteSelectedNotifications()"><i class="fas fa-trash"></i> Delete Selected</button>
@@ -3836,7 +3837,7 @@
             <!-- Study Materials Page -->
             <div id="page-study-materials" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openStudyMaterialModal()"><i class="fas fa-plus"></i> Add Material</button>
                         <button class="btn btn-danger" onclick="deleteSelectedStudyMaterials()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportStudyMaterialsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3853,7 +3854,7 @@
             <!-- Videos Page -->
             <div id="page-videos" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openVideoModal()"><i class="fas fa-plus"></i> Add Video</button>
                         <button class="btn btn-danger" onclick="deleteSelectedVideos()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportVideosToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3888,7 +3889,7 @@
 
             <!-- Video Comments Page -->
             <div id="page-video-comments" class="page-content hidden">
-                <div class="form-page-header">
+                <div class="form-page-header page-toolbar">
                     <button class="btn btn-primary" onclick="loadAdminVideoComments()"><i class="fas fa-sync"></i> Refresh</button>
                     <button class="btn btn-success" onclick="exportVideoCommentsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                 </div>
@@ -3897,7 +3898,7 @@
 
             <!-- Video Analytics Page -->
             <div id="page-video-analytics" class="page-content hidden">
-                <div class="form-page-header">
+                <div class="form-page-header page-toolbar">
                     <button class="btn btn-primary" onclick="loadVideoAnalytics()"><i class="fas fa-sync"></i> Refresh</button>
                 </div>
                 <div class="data-table">
@@ -3911,7 +3912,7 @@
             <!-- Assignments Page -->
             <div id="page-assignments" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openAssignmentModal()"><i class="fas fa-plus"></i> Add Assignment</button>
                         <button class="btn btn-danger" onclick="deleteSelectedAssignments()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportAssignmentsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3928,7 +3929,7 @@
             <!-- Alumni Page -->
             <div id="page-alumni" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openAlumniModal()"><i class="fas fa-plus"></i> Add Alumni</button>
                         <button class="btn btn-danger" onclick="deleteSelectedAlumni()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportAlumniToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3945,7 +3946,7 @@
             <!-- Helpdesk Page -->
             <div id="page-helpdesk" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openTicketModal()"><i class="fas fa-plus"></i> Create Ticket</button>
                         <button class="btn btn-danger" onclick="deleteSelectedTickets()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportHelpdeskToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3962,7 +3963,7 @@
             <!-- Backup & Recovery Page -->
             <div id="page-backup" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="createBackup()"><i class="fas fa-save"></i> Create Backup</button>
                         <button class="btn btn-secondary" onclick="loadBackupsList()"><i class="fas fa-sync"></i> Refresh List</button>
                         <button class="btn btn-success" onclick="exportBackupsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3979,7 +3980,7 @@
             <!-- Roles & Permissions Page -->
             <div id="page-roles" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openRoleModal()"><i class="fas fa-plus"></i> Add Role</button>
                         <button class="btn btn-danger" onclick="deleteSelectedRoles()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportRolesToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -3996,7 +3997,7 @@
             <!-- Exam Results Page -->
             <div id="page-exam-results" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openExamResultModal()"><i class="fas fa-plus"></i> Add Result</button>
                         <button class="btn btn-danger" onclick="deleteSelectedExamResults()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportExamResultsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -4013,7 +4014,7 @@
             <!-- Online Exam Results Page -->
             <div id="page-online-exam-results" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
                         <select id="resultFilterPublished" style="padding:8px;border:1px solid rgba(255,255,255,0.3);border-radius:6px;height:40px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;">
                             <option value="">All Results</option>
                             <option value="unpublished">Unpublished Only</option>
@@ -4132,7 +4133,7 @@
             <!-- Certificates Page -->
             <div id="page-certificates" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-success" onclick="exportCertificatesToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                         <button class="btn btn-primary" onclick="generateCertificate()"><i class="fas fa-plus"></i> Generate Certificate</button>
                         <button class="btn btn-secondary" onclick="generateBulkCertificates()"><i class="fas fa-layer-group"></i> Bulk Generate</button>
@@ -4150,7 +4151,7 @@
             <!-- Fees Page -->
             <div id="page-fees" class="page-content hidden">
                 <div class="form-page-header">
-                    <div style="display:flex;gap:10px;">
+                    <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openFeeModal()"><i class="fas fa-plus"></i> Add Fee Payment</button>
                         <button class="btn btn-success" onclick="exportFeesToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                     </div>
@@ -4165,7 +4166,7 @@
 
             <!-- Payments Page -->
             <div id="page-payments" class="page-content hidden">
-                <div class="form-page-header">
+                <div class="form-page-header page-toolbar">
                     <button class="btn btn-success" onclick="exportPaymentsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                 </div>
                 <div class="data-table">
@@ -4176,6 +4177,7 @@
                 </div>
             </div>
         </main>
+        </div>
     </div>
 
     <!-- Course Modal -->
@@ -5995,7 +5997,8 @@
             body.embed-mode .admin-header,
             body.embed-mode #sidebarToggle { display: none !important; }
             body.embed-mode .main-content { margin-left: 0 !important; padding: 20px !important; width: 100% !important; }
-            body.embed-mode .admin-dashboard { display: block !important; }
+            body.embed-mode .admin-dashboard { display: block !important; height: auto !important; overflow: visible !important; }
+            body.embed-mode .dashboard-body { display: block !important; height: auto !important; }
             body.embed-mode { background: transparent !important; }
         `;
         document.head.appendChild(style);
