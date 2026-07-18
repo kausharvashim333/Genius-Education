@@ -6714,6 +6714,26 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 }
 .header-toolbar .page-toolbar {
     margin-bottom: 0;
+    gap: 8px;
+}
+.header-toolbar .page-toolbar .btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    box-shadow: none;
+}
+.header-toolbar .page-toolbar select,
+.header-toolbar .page-toolbar input {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    height: 32px;
+    border-radius: 6px;
+}
+.header-toolbar .page-toolbar select {
+    width: 140px;
+}
+.header-toolbar .page-toolbar input {
+    width: 200px;
 }
 .header-welcome h2 {
     font-size: 1.4rem;
