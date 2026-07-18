@@ -4317,6 +4317,26 @@ app.put('/api/students/:id', verifyAdminSessionMiddleware, (req, res) => {
     res.json({ success: true, student: students[idx] });
 });
 
+// Update student ID (rollNo) with duplicate check
+app.put('/api/students/:id/update-id', verifyAdminSessionMiddleware, (req, res) => {
+    const students = readData('students.json') || [];
+    const idx = students.findIndex(s => s.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Student not found' });
+
+    const newRollNo = (req.body.newRollNo || '').trim();
+    if (!newRollNo) return res.status(400).json({ success: false, message: 'New Student ID is required' });
+
+    // Check for duplicate rollNo (excluding the current student)
+    const duplicate = students.find(s => s.id != req.params.id && s.rollNo === newRollNo);
+    if (duplicate) {
+        return res.status(409).json({ success: false, message: 'This Student ID already exists: ' + duplicate.name });
+    }
+
+    students[idx].rollNo = newRollNo;
+    writeData('students.json', students);
+    res.json({ success: true, message: 'Student ID updated successfully', student: students[idx] });
+});
+
 app.post('/api/students/:id/icard-status', verifyAdminSessionMiddleware, (req, res) => {
     const students = readData('students.json') || [];
     const idx = students.findIndex(s => s.id == req.params.id);

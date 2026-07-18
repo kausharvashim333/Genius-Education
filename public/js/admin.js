@@ -9530,6 +9530,8 @@ function renderStudentsTable(students) {
         html += '<td>';
         html += '<button class="action-btn edit-btn" onclick="openStudentProfile(' + s.id + ')"><i class="fas fa-eye"></i></button>';
         html += '<button class="action-btn" onclick="openUpdateStudentModal(' + s.id + ')"><i class="fas fa-edit"></i></button>';
+        html += '<button class="action-btn" onclick="openUpdateStudentIdModal(' + s.id + ')" title="Update Student ID"><i class="fas fa-hashtag"></i></button>';
+        html += '<button class="action-btn" onclick="showStudentQR(' + s.id + ')" title="Show QR Code"><i class="fas fa-qrcode"></i></button>';
         html += '<button class="action-btn" onclick="printStudentForm(' + s.id + ')"><i class="fas fa-print"></i></button>';
         html += '<button class="action-btn" onclick="generateICard(' + s.id + ')"><i class="fas fa-id-card"></i></button>';
         html += '<button class="action-btn" onclick="openNotificationModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell"></i></button>';
@@ -10476,6 +10478,80 @@ async function updateStudent() {
         }
     } catch (err) {
         showNotification('Error updating student!', 'error');
+    }
+}
+
+async function openUpdateStudentIdModal(id) {
+    try {
+        const s = await fetch('/api/students/' + id).then(r => r.json());
+        document.getElementById('updateStudentIdRecordId').value = s.id;
+        document.getElementById('updateStudentIdName').value = s.name;
+        document.getElementById('updateStudentIdCurrent').value = s.rollNo;
+        document.getElementById('updateStudentIdNew').value = '';
+        document.getElementById('updateStudentIdModal').classList.add('active');
+    } catch (err) {
+        showNotification('Error loading student data!', 'error');
+    }
+}
+
+async function showStudentQR(id) {
+    try {
+        const s = await fetch('/api/students/' + id).then(r => r.json());
+        document.getElementById('studentQRName').textContent = s.name;
+        document.getElementById('studentQRId').textContent = 'ID: ' + s.rollNo;
+        document.getElementById('studentQRCourse').textContent = s.course || '';
+        const baseUrl = window.location.origin;
+        const qrText = baseUrl + '/student-portal?rollNo=' + encodeURIComponent(s.rollNo);
+        const qrRes = await fetch('/api/qr?text=' + encodeURIComponent(qrText) + '&size=200');
+        const qrData = await qrRes.json();
+        if (qrData.success) {
+            document.getElementById('studentQRImage').src = qrData.dataUrl;
+        } else {
+            showNotification('Error generating QR code!', 'error');
+            return;
+        }
+        document.getElementById('studentQRModal').classList.add('active');
+    } catch (err) {
+        showNotification('Error loading student QR!', 'error');
+    }
+}
+
+function downloadStudentQR() {
+    const img = document.getElementById('studentQRImage');
+    if (!img.src) return;
+    const name = document.getElementById('studentQRName').textContent || 'student';
+    const id = document.getElementById('studentQRId').textContent.replace('ID: ', '') || '';
+    const link = document.createElement('a');
+    link.href = img.src;
+    link.download = 'QR_' + name.replace(/\s+/g, '_') + '_' + id + '.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+async function saveStudentId() {
+    const id = document.getElementById('updateStudentIdRecordId').value;
+    const newId = document.getElementById('updateStudentIdNew').value.trim();
+    if (!newId) {
+        showNotification('New Student ID enter karein!', 'error');
+        return;
+    }
+    try {
+        const res = await fetch('/api/students/' + id + '/update-id', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ newRollNo: newId })
+        });
+        const result = await res.json();
+        if (result.success) {
+            closeModal('updateStudentIdModal');
+            loadStudentsTable();
+            showNotification('Student ID updated successfully!', 'success');
+        } else {
+            showNotification(result.message || 'Error updating Student ID!', 'error');
+        }
+    } catch (err) {
+        showNotification('Error updating Student ID!', 'error');
     }
 }
 

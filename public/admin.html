@@ -4237,6 +4237,52 @@
         </div>
     </div>
 
+    <!-- Update Student ID Modal -->
+    <div id="updateStudentIdModal" class="modal">
+        <div class="modal-content" style="max-width:450px;">
+            <button class="modal-close-btn" onclick="closeModal('updateStudentIdModal')">&times;</button>
+            <h3><i class="fas fa-hashtag"></i> Update Student ID</h3>
+            <input type="hidden" id="updateStudentIdRecordId">
+            <div class="form-group">
+                <label>Student Name</label>
+                <input type="text" id="updateStudentIdName" readonly style="background:#f1f5f9;cursor:not-allowed;">
+            </div>
+            <div class="form-group">
+                <label>Current Student ID</label>
+                <input type="text" id="updateStudentIdCurrent" readonly style="background:#f1f5f9;cursor:not-allowed;">
+            </div>
+            <div class="form-group">
+                <label>New Student ID *</label>
+                <input type="text" id="updateStudentIdNew" placeholder="Enter new student ID" required>
+                <small style="color:#64748b;font-size:12px;">Duplicate ID allowed nahi hai. Unique ID enter karein.</small>
+            </div>
+            <div style="margin-top:15px;">
+                <button type="button" class="btn btn-primary" onclick="saveStudentId()"><i class="fas fa-save"></i> Update ID</button>
+                <button type="button" class="btn" onclick="closeModal('updateStudentIdModal')" style="margin-left:10px;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student QR Code Modal -->
+    <div id="studentQRModal" class="modal">
+        <div class="modal-content" style="max-width:400px;text-align:center;">
+            <button class="modal-close-btn" onclick="closeModal('studentQRModal')">&times;</button>
+            <h3><i class="fas fa-qrcode"></i> Student QR Code</h3>
+            <div id="studentQRInfo" style="margin-bottom:15px;">
+                <p style="margin:5px 0;font-size:16px;font-weight:600;" id="studentQRName"></p>
+                <p style="margin:3px 0;color:#64748b;font-size:14px;" id="studentQRId"></p>
+                <p style="margin:3px 0;color:#64748b;font-size:14px;" id="studentQRCourse"></p>
+            </div>
+            <div id="studentQRContainer" style="display:inline-block;padding:15px;background:white;border:2px solid #1e40af;border-radius:10px;margin-bottom:15px;">
+                <img id="studentQRImage" src="" alt="QR Code" style="width:200px;height:200px;">
+            </div>
+            <div style="margin-top:10px;">
+                <button type="button" class="btn btn-primary" onclick="downloadStudentQR()"><i class="fas fa-download"></i> Download QR</button>
+                <button type="button" class="btn" onclick="closeModal('studentQRModal')" style="margin-left:10px;">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Announcement Modal -->
     <div id="announcementModal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
