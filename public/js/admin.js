@@ -9462,8 +9462,19 @@ async function loadStudentsTable() {
     try {
         allStudents = await fetch('/api/students').then(r => r.json());
         await loadBatchesForStudentFilter();
+        await loadCoursesForStudentFilter();
         renderStudentsTable(allStudents);
     } catch (err) { showNotification('Students load error!', 'error'); }
+}
+
+async function loadCoursesForStudentFilter() {
+    try {
+        const courses = await fetch('/api/courses').then(r => r.json());
+        const select = document.getElementById('studentCourseFilter');
+        select.innerHTML = '<option value="">All Courses</option>' + courses.map(c => '<option value="' + c.name + '">' + c.name + '</option>').join('');
+    } catch (err) {
+        console.error('Error loading courses for filter:', err);
+    }
 }
 
 async function loadBatchesForStudentFilter() {
@@ -9478,9 +9489,15 @@ async function loadBatchesForStudentFilter() {
 
 function filterStudentsByBatch() {
     const selectedBatch = document.getElementById('studentBatchFilter').value;
+    const selectedCourse = document.getElementById('studentCourseFilter').value;
     const searchQuery = document.getElementById('studentSearch').value.toLowerCase();
     
     let filtered = allStudents;
+    
+    // Filter by course
+    if (selectedCourse) {
+        filtered = filtered.filter(s => s.course === selectedCourse);
+    }
     
     // Filter by batch (using batchId for consistency with batch page)
     if (selectedBatch) {
