@@ -9688,6 +9688,9 @@ function getQualificationData() {
 
 // ===== Students =====
 let allStudents = [];
+let studentsCurrentPage = 1;
+const studentsPerPage = 25;
+let studentsFiltered = [];
 
 async function loadStudentsTable() {
     const tbody = document.querySelector('#studentsTable tbody');
@@ -9721,6 +9724,7 @@ async function loadBatchesForStudentFilter() {
 }
 
 function filterStudentsByBatch() {
+    studentsCurrentPage = 1;
     const selectedBatch = document.getElementById('studentBatchFilter').value;
     const selectedCourse = document.getElementById('studentCourseFilter').value;
     const searchQuery = document.getElementById('studentSearch').value.toLowerCase();
@@ -9751,6 +9755,7 @@ function filterStudentsByBatch() {
 }
 
 function renderStudentsTable(students) {
+    studentsFiltered = students;
     const tbody = document.querySelector('#studentsTable tbody');
     const statsEl = document.getElementById('studentsStats');
     const total = students.length;
@@ -9763,9 +9768,14 @@ function renderStudentsTable(students) {
     statsEl.innerHTML = statsHtml;
     if (students.length === 0) {
         renderEmptyState(tbody, 'user-graduate', 'No students found. Click "New Admission" to add one.');
+        document.getElementById('studentsPagination').innerHTML = '';
         return;
     }
-    tbody.innerHTML = students.map(s => {
+    const totalPages = Math.ceil(students.length / studentsPerPage);
+    if (studentsCurrentPage > totalPages) studentsCurrentPage = 1;
+    const startIdx = (studentsCurrentPage - 1) * studentsPerPage;
+    const pageStudents = students.slice(startIdx, startIdx + studentsPerPage);
+    tbody.innerHTML = pageStudents.map(s => {
         let html = '';
         html += '<tr>';
         html += '<td><input type="checkbox" class="student-checkbox" data-id="' + s.id + '"></td>';
@@ -9794,9 +9804,46 @@ function renderStudentsTable(students) {
         html += '</tr>';
         return html;
     }).join('');
+    renderStudentsPagination(totalPages);
+}
+
+function renderStudentsPagination(totalPages) {
+    const container = document.getElementById('studentsPagination');
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+    let html = '';
+    html += '<button class="pagination-btn" onclick="goToStudentPage(' + (studentsCurrentPage - 1) + ')" ' + (studentsCurrentPage === 1 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i></button>';
+    const maxVisible = 7;
+    let startPage = Math.max(1, studentsCurrentPage - 3);
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
+    if (startPage > 1) {
+        html += '<button class="pagination-btn" onclick="goToStudentPage(1)">1</button>';
+        if (startPage > 2) html += '<span class="pagination-ellipsis">...</span>';
+    }
+    for (let i = startPage; i <= endPage; i++) {
+        html += '<button class="pagination-btn' + (i === studentsCurrentPage ? ' active"' : '"') + ' onclick="goToStudentPage(' + i + ')">' + i + '</button>';
+    }
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += '<span class="pagination-ellipsis">...</span>';
+        html += '<button class="pagination-btn" onclick="goToStudentPage(' + totalPages + ')">' + totalPages + '</button>';
+    }
+    html += '<button class="pagination-btn" onclick="goToStudentPage(' + (studentsCurrentPage + 1) + ')" ' + (studentsCurrentPage === totalPages ? 'disabled' : '') + '><i class="fas fa-chevron-right"></i></button>';
+    html += '<span class="pagination-info">Page ' + studentsCurrentPage + ' of ' + totalPages + '</span>';
+    container.innerHTML = html;
+}
+
+function goToStudentPage(page) {
+    const totalPages = Math.ceil(studentsFiltered.length / studentsPerPage);
+    if (page < 1 || page > totalPages) return;
+    studentsCurrentPage = page;
+    renderStudentsTable(studentsFiltered);
 }
 
 function filterStudents() {
+    studentsCurrentPage = 1;
     filterStudentsByBatch();
 }
 

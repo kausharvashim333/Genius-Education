@@ -3698,6 +3698,59 @@ tbody tr:nth-child(even) td {
     font-size: 13px;
 }
 
+/* Pagination */
+.pagination-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px;
+    flex-wrap: wrap;
+}
+
+.pagination-btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+    color: #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.pagination-btn.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+    font-weight: 600;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination-ellipsis {
+    color: #94a3b8;
+    padding: 0 4px;
+}
+
+.pagination-info {
+    margin-left: 10px;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
 .reorder-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
