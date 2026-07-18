@@ -3,6 +3,37 @@ let galleryImageFile = null;
 let galleryEditId = null;
 let carouselImageFile = null;
 
+// ===== Toast Notification System =====
+function showToast(message, type = 'info', duration = 3500) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const icons = { success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' };
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-' + type;
+    toast.innerHTML = '<i class="fas fa-' + (icons[type] || 'info-circle') + ' toast-icon"></i>' +
+        '<span class="toast-msg">' + message + '</span>' +
+        '<i class="fas fa-times toast-close"></i>';
+    container.appendChild(toast);
+    const removeToast = () => {
+        toast.classList.add('toast-out');
+        setTimeout(() => toast.remove(), 300);
+    };
+    toast.querySelector('.toast-close').addEventListener('click', removeToast);
+    if (duration > 0) setTimeout(removeToast, duration);
+}
+
+// ===== Empty State Helper =====
+function renderEmptyState(tbody, icon = 'inbox', text = 'No data found') {
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="100"><div class="empty-state"><i class="fas fa-' + icon + ' empty-icon"></i><div class="empty-text">' + text + '</div></div></td></tr>';
+}
+
+// ===== Loading Spinner Helper =====
+function renderLoadingSpinner(tbody, text = 'Loading...') {
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="100"><div class="table-loading-spinner"><div class="spinner"></div><span class="spinner-text">' + text + '</span></div></td></tr>';
+}
+
 // Auto-inject X-Admin-Session header on all /api/ fetch calls + handle session expiry
 (function () {
     const origFetch = window.fetch.bind(window);
@@ -473,6 +504,88 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Navigation
+    const pageTitles = {
+        'dashboard': { title: 'Dashboard', icon: 'home', breadcrumb: 'Home' },
+        'students': { title: 'Students', icon: 'user-graduate', breadcrumb: 'Home > Students' },
+        'admission': { title: 'New Admission', icon: 'user-plus', breadcrumb: 'Home > Students > New Admission' },
+        'fees': { title: 'Fees Management', icon: 'money-bill-wave', breadcrumb: 'Home > Fees' },
+        'certificates': { title: 'Certificates', icon: 'certificate', breadcrumb: 'Home > Certificates' },
+        'payments': { title: 'Payments', icon: 'rupee-sign', breadcrumb: 'Home > Payments' },
+        'enquiries': { title: 'Enquiries', icon: 'clipboard-list', breadcrumb: 'Home > Enquiries' },
+        'courses': { title: 'Courses', icon: 'book', breadcrumb: 'Home > Courses' },
+        'batches': { title: 'Batches', icon: 'layer-group', breadcrumb: 'Home > Batches' },
+        'faculty': { title: 'Faculty', icon: 'user-tie', breadcrumb: 'Home > Faculty' },
+        'testimonials': { title: 'Testimonials', icon: 'star', breadcrumb: 'Home > Testimonials' },
+        'gallery': { title: 'Gallery', icon: 'images', breadcrumb: 'Home > Gallery' },
+        'hero-section': { title: 'Hero Section', icon: 'image', breadcrumb: 'Home > Settings > Hero Section' },
+        'social': { title: 'Social Media', icon: 'share-alt', breadcrumb: 'Home > Settings > Social Media' },
+        'homepage-sections': { title: 'Homepage Sections', icon: 'th-list', breadcrumb: 'Home > Settings > Homepage Sections' },
+        'legal-pages': { title: 'Legal Pages', icon: 'file-contract', breadcrumb: 'Home > Settings > Legal Pages' },
+        'settings': { title: 'General Settings', icon: 'sliders-h', breadcrumb: 'Home > Settings > General' },
+        'about': { title: 'About Section', icon: 'info-circle', breadcrumb: 'Home > Settings > About' },
+        'helpdesk': { title: 'Helpdesk', icon: 'headset', breadcrumb: 'Home > Admin > Helpdesk' },
+        'backup': { title: 'Backup & Recovery', icon: 'database', breadcrumb: 'Home > Admin > Backup' },
+        'roles': { title: 'Roles & Permissions', icon: 'user-shield', breadcrumb: 'Home > Admin > Roles' },
+        'typing-users': { title: 'Typing - User Management', icon: 'keyboard', breadcrumb: 'Home > Typing > Users' },
+        'typing-content': { title: 'Typing - Content', icon: 'keyboard', breadcrumb: 'Home > Typing > Content' },
+        'typing-leaderboard': { title: 'Typing - Leaderboard', icon: 'trophy', breadcrumb: 'Home > Typing > Leaderboard' },
+        'typing-analytics': { title: 'Typing - Analytics', icon: 'chart-bar', breadcrumb: 'Home > Typing > Analytics' },
+        'typing-settings': { title: 'Typing - Settings', icon: 'cog', breadcrumb: 'Home > Typing > Settings' },
+        'blog': { title: 'Blog Posts', icon: 'blog', breadcrumb: 'Home > Content > Blog' },
+        'blog-pending': { title: 'Pending Blogs', icon: 'blog', breadcrumb: 'Home > Content > Pending Blogs' },
+        'blog-comments': { title: 'Blog Comments', icon: 'comments', breadcrumb: 'Home > Content > Comments' },
+        'newsletter': { title: 'Newsletter', icon: 'envelope', breadcrumb: 'Home > Content > Newsletter' },
+        'notices': { title: 'Notices', icon: 'bullhorn', breadcrumb: 'Home > Content > Notices' },
+        'announcements': { title: 'Announcements', icon: 'bullhorn', breadcrumb: 'Home > Content > Announcements' },
+        'tests': { title: 'Tests', icon: 'clipboard-check', breadcrumb: 'Home > Content > Tests' },
+        'study-materials': { title: 'Study Materials', icon: 'file-alt', breadcrumb: 'Home > Content > Study Materials' },
+        'videos': { title: 'Videos', icon: 'video', breadcrumb: 'Home > Content > Videos' },
+        'video-comments': { title: 'Video Comments', icon: 'comments', breadcrumb: 'Home > Content > Video Comments' },
+        'video-analytics': { title: 'Video Analytics', icon: 'chart-bar', breadcrumb: 'Home > Content > Video Analytics' },
+        'assignments': { title: 'Assignments', icon: 'tasks', breadcrumb: 'Home > Content > Assignments' },
+        'alumni': { title: 'Alumni', icon: 'user-graduate', breadcrumb: 'Home > Content > Alumni' },
+        'notifications': { title: 'Notifications', icon: 'bell', breadcrumb: 'Home > Content > Notifications' },
+        'attendance': { title: 'Attendance', icon: 'calendar-check', breadcrumb: 'Home > Attendance' },
+        'holidays': { title: 'Holidays', icon: 'calendar-times', breadcrumb: 'Home > Attendance > Holidays' },
+        'exam-calendar': { title: 'Exam Calendar', icon: 'calendar-alt', breadcrumb: 'Home > Exams > Calendar' },
+        'exam-management': { title: 'Exam Management', icon: 'clipboard', breadcrumb: 'Home > Exams > Management' },
+        'question-bank': { title: 'Question Bank', icon: 'question-circle', breadcrumb: 'Home > Exams > Questions' },
+        'exam-schedule': { title: 'Exam Schedule', icon: 'calendar-plus', breadcrumb: 'Home > Exams > Schedule' },
+        'exam-registration': { title: 'Exam Registration', icon: 'user-plus', breadcrumb: 'Home > Exams > Registration' },
+        'admit-cards': { title: 'Admit Cards', icon: 'id-card', breadcrumb: 'Home > Exams > Admit Cards' },
+        'online-exam': { title: 'Online Exams', icon: 'laptop-code', breadcrumb: 'Home > Exams > Online Exams' },
+        'online-exam-results': { title: 'Online Exam Results', icon: 'poll', breadcrumb: 'Home > Exams > Results' },
+        'manual-grading': { title: 'Manual Grading', icon: 'pen', breadcrumb: 'Home > Exams > Grading' },
+        'exam-analytics': { title: 'Exam Analytics', icon: 'chart-pie', breadcrumb: 'Home > Exams > Analytics' },
+        're-evaluation': { title: 'Re-evaluation', icon: 'redo', breadcrumb: 'Home > Exams > Re-evaluation' },
+        'exam-reports': { title: 'Exam Reports', icon: 'file-alt', breadcrumb: 'Home > Exams > Reports' },
+        'exam-results': { title: 'Exam Results', icon: 'poll', breadcrumb: 'Home > Exams > Results' },
+        'entrance-dashboard': { title: 'Entrance Exam Dashboard', icon: 'graduation-cap', breadcrumb: 'Home > Entrance > Dashboard' },
+        'entrance-exams': { title: 'Entrance Exams', icon: 'graduation-cap', breadcrumb: 'Home > Entrance > Exams' },
+        'entrance-questions': { title: 'Question Bank', icon: 'question-circle', breadcrumb: 'Home > Entrance > Questions' },
+        'entrance-registrations': { title: 'Registrations', icon: 'user-plus', breadcrumb: 'Home > Entrance > Registrations' },
+        'entrance-monitor': { title: 'Live Monitoring', icon: 'eye', breadcrumb: 'Home > Entrance > Monitor' },
+        'entrance-results': { title: 'Results', icon: 'poll', breadcrumb: 'Home > Entrance > Results' },
+        'entrance-settings': { title: 'Settings', icon: 'cog', breadcrumb: 'Home > Entrance > Settings' }
+    };
+
+    function updateHeaderForPage(page) {
+        const greetingEl = document.getElementById('headerGreeting');
+        const titleEl = document.getElementById('headerPageTitle');
+        if (!greetingEl || !titleEl) return;
+        
+        if (page === 'dashboard') {
+            greetingEl.style.display = '';
+            titleEl.style.display = 'none';
+        } else {
+            greetingEl.style.display = 'none';
+            titleEl.style.display = '';
+            const info = pageTitles[page] || { title: page.charAt(0).toUpperCase() + page.slice(1), icon: 'th-large', breadcrumb: 'Home > ' + page };
+            document.getElementById('pageTitleText').innerHTML = '<i class="fas fa-' + info.icon + '"></i> ' + info.title;
+            document.getElementById('pageBreadcrumb').innerHTML = '<i class="fas fa-home"></i> ' + info.breadcrumb;
+        }
+    }
+
     function loadPage(page) {
         document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
         document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
@@ -483,6 +596,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const pageEl = document.getElementById('page-' + page);
         if (pageEl) {
             pageEl.classList.remove('hidden');
+            updateHeaderForPage(page);
             const link = document.querySelector(`.sidebar-menu a[data-page="${page}"]`);
             if (link) link.classList.add('active');
             
@@ -1061,7 +1175,7 @@ async function loadDashboard() {
                     </tr>`;
                 }).join('');
             } else {
-                enqTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px;">No enquiries yet</td></tr>';
+                renderEmptyState(enqTbody, 'envelope-open', 'No enquiries yet');
             }
         }
 
@@ -1240,9 +1354,11 @@ async function loadAdminLogo() {
 
 // ===== Courses =====
 async function loadCoursesTable() {
+    const tbody = document.querySelector('#coursesTable tbody');
+    renderLoadingSpinner(tbody, 'Loading courses...');
     try {
         const courses = await fetch('/api/courses').then(r => r.json());
-        const tbody = document.querySelector('#coursesTable tbody');
+        if (courses.length === 0) { renderEmptyState(tbody, 'book', 'No courses found. Click "Add Course" to create one.'); return; }
         let html = '';
         courses.forEach((c, index, arr) => {
             html += '<tr data-id="' + c.id + '">';
@@ -1264,7 +1380,7 @@ async function loadCoursesTable() {
             html += '</tr>';
         });
         tbody.innerHTML = html;
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); renderEmptyState(tbody, 'exclamation-circle', 'Error loading courses'); }
 }
 
 async function moveCourseUp(id) {
@@ -1410,11 +1526,12 @@ async function aiWriteCourseDesc() {
 
 // ===== Enquiries =====
 async function loadEnquiriesTable() {
+    const tbody = document.querySelector('#enquiriesTable tbody');
+    renderLoadingSpinner(tbody, 'Loading enquiries...');
     try {
         const enquiries = await fetch('/api/enquiries').then(r => r.json());
-        const tbody = document.querySelector('#enquiriesTable tbody');
         if (enquiries.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No enquiries yet</td></tr>';
+            renderEmptyState(tbody, 'envelope-open', 'No enquiries yet');
             return;
         }
         let html = '';
@@ -1880,14 +1997,15 @@ async function saveTestimonial() {
 }
 
 async function loadTestimonialsTable() {
+    const tbody = document.querySelector('#testimonialsTable tbody');
+    renderLoadingSpinner(tbody, 'Loading testimonials...');
     try {
         const res = await fetch('/api/testimonials');
         const result = await res.json();
         const testimonials = result.testimonials || [];
-        const tbody = document.querySelector('#testimonialsTable tbody');
         
         if (testimonials.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">No testimonials found</td></tr>';
+            renderEmptyState(tbody, 'quote-right', 'No testimonials found');
             return;
         }
 
@@ -2183,13 +2301,14 @@ async function toggleFacultyEntranceManagementAccess(id, currentState) {
 }
 
 async function loadFacultyTable() {
+    const tbody = document.querySelector('#facultyTable tbody');
+    if (!tbody) return;
+    renderLoadingSpinner(tbody, 'Loading faculty...');
     try {
         const faculty = await fetch('/api/faculty').then(r => r.json());
-        const tbody = document.querySelector('#facultyTable tbody');
-        if (!tbody) return;
 
         if (faculty.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No faculty members</td></tr>';
+            renderEmptyState(tbody, 'chalkboard-teacher', 'No faculty members yet. Click "Add Faculty" to create one.');
             return;
         }
 
@@ -2260,9 +2379,10 @@ async function deleteSelectedFaculty() {
 
 // ===== Gallery =====
 async function loadGalleryTable() {
+    const tbody = document.querySelector('#galleryTable tbody');
+    renderLoadingSpinner(tbody, 'Loading gallery...');
     try {
         const gallery = await fetch('/api/gallery').then(r => r.json());
-        const tbody = document.querySelector('#galleryTable tbody');
         let html = '';
         gallery.forEach(item => {
             const categoryColors = {
@@ -2429,11 +2549,12 @@ async function deleteGalleryItem(id) {
 const NOTICE_CATEGORY_COLORS = { General:'#64748b', Exam:'#7c3aed', Fee:'#dc2626', Holiday:'#16a34a', Event:'#0284c7', Result:'#d97706' };
 
 async function loadNoticesTable() {
+    const tbody = document.querySelector('#noticesTable tbody');
+    renderLoadingSpinner(tbody, 'Loading notices...');
     try {
         const notices = await fetch('/api/notices').then(r => r.json());
-        const tbody = document.querySelector('#noticesTable tbody');
         if (notices.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:#999;">Koi notice nahi hai. "Add Notice" karein.</td></tr>';
+            renderEmptyState(tbody, 'bullhorn', 'No notices found. Click "Add Notice" to create one.');
             return;
         }
         const today = new Date().toISOString().split('T')[0];
@@ -2546,10 +2667,11 @@ async function deleteNotice(id) {
 let editingBatchId = null;
 
 async function loadBatchesTable() {
+    const tbody = document.querySelector('#batchesTable tbody');
+    renderLoadingSpinner(tbody, 'Loading batches...');
     try {
         const data = await fetch('/api/batches/seats').then(r => r.json());
-        const tbody = document.querySelector('#batchesTable tbody');
-        if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#999;">Koi batch nahi hai. "Create Batch" karein.</td></tr>'; return; }
+        if (!data.length) { renderEmptyState(tbody, 'layer-group', 'No batches found. Click "Create Batch" to add one.'); return; }
         let html = '';
         data.forEach((b, i) => {
             html += '<tr>';
@@ -2618,6 +2740,7 @@ async function viewBatchStudents(batchId, batchName) {
     document.querySelector('[data-page="students"]').classList.add('active');
     document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
     document.getElementById('page-students').classList.remove('hidden');
+    if (typeof updateHeaderForPage === 'function') updateHeaderForPage('students');
     
     // Load students table
     await loadStudentsTable();
@@ -2634,10 +2757,11 @@ async function viewBatchStudents(batchId, batchName) {
 
 // ===== Announcements =====
 async function loadAnnouncementsTable() {
+    const tbody = document.getElementById('announcementsTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading announcements...');
     try {
         const res = await fetch('/api/announcements');
         const data = await res.json();
-        const tbody = document.getElementById('announcementsTable').querySelector('tbody');
         if (data.success && data.announcements) {
             let html = '';
             data.announcements.forEach(a => {
@@ -2780,10 +2904,11 @@ async function deleteAnnouncement(id) {
 let questionCounter = 0;
 
 async function loadTestsTable() {
+    const tbody = document.getElementById('testsTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading tests...');
     try {
         const res = await fetch('/api/tests');
         const data = await res.json();
-        const tbody = document.getElementById('testsTable').querySelector('tbody');
         if (data.success && data.tests) {
             let html = '';
             data.tests.forEach(t => {
@@ -3050,10 +3175,11 @@ async function deleteTest(id) {
 
 // ===== Fees Management =====
 async function loadFeesTable() {
+    const tbody = document.getElementById('feesTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading fees...');
     try {
         const res = await fetch('/api/students');
         const students = await res.json();
-        const tbody = document.getElementById('feesTable').querySelector('tbody');
         
         if (students && students.length > 0) {
             let html = '';
@@ -3504,10 +3630,11 @@ async function createScheduleFromCalendar(examId) {
 }
 
 async function loadExamCalendarTable() {
+    const tbody = document.querySelector('#examCalendarTable tbody');
+    if (tbody) renderLoadingSpinner(tbody, 'Loading exam calendar...');
     try {
         const res = await fetch('/api/exam-calendar');
         const data = await res.json();
-        const tbody = document.querySelector('#examCalendarTable tbody');
         if (!tbody) {
             console.error('Table body not found!');
             return;
@@ -3743,12 +3870,13 @@ async function deleteExam(examId) {
 
 // Holidays Management Functions
 async function loadHolidaysTable() {
+    const tbody = document.querySelector('#holidaysTable tbody');
+    if (tbody) renderLoadingSpinner(tbody, 'Loading holidays...');
     try {
         const res = await fetch('/api/holidays');
         const data = await res.json();
         
         if (data.success && data.holidays) {
-            const tbody = document.querySelector('#holidaysTable tbody');
             tbody.innerHTML = data.holidays.map(holiday => {
                 let html = '';
                 html += '<tr>';
@@ -3831,6 +3959,8 @@ async function deleteHoliday(holidayId) {
 // Blog Management Functions
 let _allBlogs = [];
 async function loadBlogTable() {
+    const tbody = document.querySelector('#blogTable tbody');
+    if (tbody) renderLoadingSpinner(tbody, 'Loading blogs...');
     try {
         // Check if running in faculty embed mode - filter by faculty ID
         let apiUrl = '/api/blogs?all=1';
@@ -4560,7 +4690,7 @@ async function loadAttendanceTable() {
             statsHtml += '</div>';
             document.getElementById('attendanceStats').innerHTML = statsHtml;
         } else {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">No students found for this course/batch.</td></tr>';
+            renderEmptyState(tbody, 'user-graduate', 'No students found for this course/batch.');
             document.getElementById('attendanceStats').innerHTML = '';
         }
     } catch (e) {}
@@ -4716,10 +4846,11 @@ async function saveAllAttendance() {
 
 // ===== Study Materials =====
 async function loadStudyMaterialsTable() {
+    const tbody = document.getElementById('studyMaterialsTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading study materials...');
     try {
         const res = await fetch('/api/study-materials');
         const data = await res.json();
-        const tbody = document.getElementById('studyMaterialsTable').querySelector('tbody');
         if (data.success && data.materials) {
             tbody.innerHTML = data.materials.map(m => {
                 let html = '';
@@ -4945,13 +5076,14 @@ async function rejectStudyMaterial(id) {
 
 // ===== Videos (Video Learning Platform) =====
 async function loadVideosTable() {
+    const tbody = document.getElementById('videosTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading videos...');
     try {
         const res = await fetch('/api/videos');
         const videos = await res.json();
-        const tbody = document.getElementById('videosTable').querySelector('tbody');
 
         if (videos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;">No videos found</td></tr>';
+            renderEmptyState(tbody, 'video', 'No videos found');
             return;
         }
 
@@ -5259,16 +5391,17 @@ async function deleteVideo(id) {
 
 // ===== Chapters =====
 async function loadChaptersTable() {
+    const tbody = document.getElementById('chaptersTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading chapters...');
     try {
         const courseFilter = document.getElementById('chapterCourseFilter');
         const courseId = courseFilter ? courseFilter.value : '';
         const url = courseId ? '/api/chapters?courseId=' + courseId : '/api/chapters';
         const res = await fetch(url);
         const chapters = await res.json();
-        const tbody = document.getElementById('chaptersTable').querySelector('tbody');
 
         if (chapters.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No chapters found</td></tr>';
+            renderEmptyState(tbody, 'list-ol', 'No chapters found');
             return;
         }
 
@@ -5421,13 +5554,14 @@ async function deleteSelectedVideos() {
 
 // ===== Assignments =====
 async function loadAssignmentsTable() {
+    const tbody = document.getElementById('assignmentsTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading assignments...');
     try {
         const res = await fetch('/api/assignments');
         const assignments = await res.json();
-        const tbody = document.getElementById('assignmentsTable').querySelector('tbody');
         
         if (assignments.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No assignments found</td></tr>';
+            renderEmptyState(tbody, 'tasks', 'No assignments found');
             return;
         }
         
@@ -5627,13 +5761,14 @@ async function deleteSelectedAssignments() {
 
 // ===== Alumni =====
 async function loadAlumniTable() {
+    const tbody = document.getElementById('alumniTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading alumni...');
     try {
         const res = await fetch('/api/alumni');
         const alumni = await res.json();
-        const tbody = document.getElementById('alumniTable').querySelector('tbody');
         
         if (alumni.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No alumni found</td></tr>';
+            renderEmptyState(tbody, 'user-graduate', 'No alumni found');
             return;
         }
         
@@ -5844,13 +5979,14 @@ async function deleteSelectedAlumni() {
 
 // ===== Helpdesk/Tickets =====
 async function loadTicketsTable() {
+    const tbody = document.getElementById('ticketsTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading tickets...');
     try {
         const res = await fetch('/api/tickets');
         const tickets = await res.json();
-        const tbody = document.getElementById('ticketsTable').querySelector('tbody');
         
         if (tickets.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No tickets found</td></tr>';
+            renderEmptyState(tbody, 'ticket-alt', 'No tickets found');
             return;
         }
         
@@ -6130,13 +6266,14 @@ async function sendAdminReply() {
 
 // ===== Backup & Recovery =====
 async function loadBackupsList() {
+    const tbody = document.getElementById('backupsTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading backups...');
     try {
         const res = await fetch('/api/backup/list');
         const data = await res.json();
-        const tbody = document.getElementById('backupsTable').querySelector('tbody');
         
         if (!data.success || data.backups.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No backups found</td></tr>';
+            renderEmptyState(tbody, 'database', 'No backups found');
             return;
         }
         
@@ -6218,13 +6355,14 @@ async function deleteBackup(filename) {
 
 // ===== Roles & Permissions =====
 async function loadRolesTable() {
+    const tbody = document.getElementById('rolesTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading roles...');
     try {
         const res = await fetch('/api/roles');
         const roles = await res.json();
-        const tbody = document.getElementById('rolesTable').querySelector('tbody');
         
         if (roles.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No roles found</td></tr>';
+            renderEmptyState(tbody, 'user-shield', 'No roles found');
             return;
         }
         
@@ -6434,10 +6572,11 @@ async function deleteSelectedRoles() {
 
 // ===== Exam Results =====
 async function loadExamResultsTable() {
+    const tbody = document.getElementById('examResultsTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading exam results...');
     try {
         const res = await fetch('/api/exam-results');
         const data = await res.json();
-        const tbody = document.getElementById('examResultsTable').querySelector('tbody');
         if (data.success && data.results) {
             tbody.innerHTML = data.results.map(r => {
                 let html = '';
@@ -6548,10 +6687,11 @@ async function deleteExamResult(id) {
 
 // ===== Certificates =====
 async function loadCertificatesTable() {
+    const tbody = document.getElementById('certificatesTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading certificates...');
     try {
         const res = await fetch('/api/certificates');
         const data = await res.json();
-        const tbody = document.getElementById('certificatesTable').querySelector('tbody');
         if (data.success && data.certificates) {
             tbody.innerHTML = data.certificates.map(c => {
                 let html = '';
@@ -6618,6 +6758,8 @@ async function deleteSelectedCertificates() {
 
 // ===== Payments =====
 async function loadPaymentsTable() {
+    const tbody = document.querySelector('#paymentsTable tbody');
+    renderLoadingSpinner(tbody, 'Loading payments...');
     try {
         const [res, studentsRes] = await Promise.all([
             fetch('/api/payments'),
@@ -6673,12 +6815,12 @@ async function loadPaymentsTable() {
                 return html;
             }).join('');
         } else {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#64748b;">No payments found</td></tr>';
+            renderEmptyState(tbody, 'money-bill-wave', 'No payments found');
         }
     } catch (err) {
         console.error('Error loading payments:', err);
         const tbody = document.querySelector('#paymentsTable tbody');
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#dc2626;">Error loading payments</td></tr>';
+        renderEmptyState(tbody, 'exclamation-circle', 'Error loading payments');
     }
 }
 
@@ -6743,7 +6885,7 @@ async function openStudentNotificationsModal(studentId, studentName) {
         
         if (data.success && data.notifications) {
             if (data.notifications.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No notifications sent to this student</td></tr>';
+                renderEmptyState(tbody, 'bell', 'No notifications sent to this student');
                 return;
             }
             
@@ -6763,12 +6905,12 @@ async function openStudentNotificationsModal(studentId, studentName) {
                 return html;
             }).join('');
         } else {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No notifications found</td></tr>';
+            renderEmptyState(tbody, 'bell', 'No notifications found');
         }
     } catch (e) {
         console.error('Error loading notifications:', e);
         const tbody = document.getElementById('notificationsTable').querySelector('tbody');
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Error loading notifications</td></tr>';
+        renderEmptyState(tbody, 'exclamation-circle', 'Error loading notifications');
     }
 }
 
@@ -7003,11 +7145,12 @@ function resetNotificationButton() {
 }
 
 async function loadNotificationsTable() {
+    const tbody = document.getElementById('notificationsTable').querySelector('tbody');
+    renderLoadingSpinner(tbody, 'Loading notifications...');
     try {
         console.log('Loading notifications table...');
         const res = await fetch('/api/notifications/all');
         const data = await res.json();
-        const tbody = document.getElementById('notificationsTable').querySelector('tbody');
         
         console.log('Notifications data:', data);
         
@@ -7020,7 +7163,7 @@ async function loadNotificationsTable() {
             console.log('Total notifications:', data.notifications.length);
             
             if (data.notifications.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No notifications found</td></tr>';
+                renderEmptyState(tbody, 'bell', 'No notifications found');
                 return;
             }
             
@@ -7044,20 +7187,21 @@ async function loadNotificationsTable() {
             }).join('');
             console.log('Notifications table rendered');
         } else {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No notifications found</td></tr>';
+            renderEmptyState(tbody, 'bell', 'No notifications found');
         }
     } catch (e) {
         console.error('Error loading notifications:', e);
         const tbody = document.getElementById('notificationsTable').querySelector('tbody');
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Error loading notifications</td></tr>';
+        renderEmptyState(tbody, 'exclamation-circle', 'Error loading notifications');
     }
 }
 
 // ===== Exam Management =====
 async function loadExamManagementTable() {
+    const tbody = document.querySelector('#examManagementTable tbody');
+    renderLoadingSpinner(tbody, 'Loading exams...');
     try {
         const exams = await fetch('/api/exams').then(r => r.json());
-        const tbody = document.querySelector('#examManagementTable tbody');
         let html = '';
         exams.forEach(e => {
             html += '<tr>';
@@ -7078,10 +7222,11 @@ async function loadExamManagementTable() {
 }
 
 async function loadQuestionBankTable() {
+    const tbody = document.querySelector('#questionBankTable tbody');
+    renderLoadingSpinner(tbody, 'Loading question bank...');
     try {
         const data = await fetch('/api/questions').then(r => r.json());
         const questions = Array.isArray(data) ? data : (data.questions || []);
-        const tbody = document.querySelector('#questionBankTable tbody');
         let html = '';
         questions.forEach(q => {
             html += '<tr>';
@@ -7547,9 +7692,10 @@ function filterQuestions() {
 }
 
 async function loadExamScheduleTable() {
+    const tbody = document.querySelector('#examScheduleTable tbody');
+    renderLoadingSpinner(tbody, 'Loading exam schedules...');
     try {
         const schedules = await fetch('/api/exam-schedules').then(r => r.json());
-        const tbody = document.querySelector('#examScheduleTable tbody');
         let html = '';
         schedules.forEach(s => {
             html += '<tr>';
@@ -7777,6 +7923,8 @@ function printExamSchedule() {
 }
 
 async function loadExamRegistrationTable() {
+    const tbody = document.querySelector('#examRegistrationTable tbody');
+    renderLoadingSpinner(tbody, 'Loading exam registrations...');
     try {
         const [registrations, students] = await Promise.all([
             fetch('/api/exam-registrations').then(r => r.json()),
@@ -7784,9 +7932,8 @@ async function loadExamRegistrationTable() {
         ]);
         const studentsMap = {};
         (students || []).forEach(s => { studentsMap[s.id] = s; });
-        const tbody = document.querySelector('#examRegistrationTable tbody');
         if (!registrations || registrations.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:20px;">No exam registrations found</td></tr>';
+            renderEmptyState(tbody, 'clipboard-list', 'No exam registrations found');
             return;
         }
         let html = '';
@@ -8054,9 +8201,10 @@ async function deleteRegistration(id) {
 }
 
 async function loadOnlineExamTable() {
+    const tbody = document.querySelector('#onlineExamTable tbody');
+    renderLoadingSpinner(tbody, 'Loading online exams...');
     try {
         const onlineExams = await fetch('/api/online-exams').then(r => r.json());
-        const tbody = document.querySelector('#onlineExamTable tbody');
         let html = '';
         onlineExams.forEach(e => {
             html += '<tr>';
@@ -8543,9 +8691,10 @@ async function deleteOnlineExam(id) {
 }
 
 async function loadExamGradingTable() {
+    const tbody = document.querySelector('#examGradingTable tbody');
+    renderLoadingSpinner(tbody, 'Loading grades...');
     try {
         const grades = await fetch('/api/exam-grades').then(r => r.json());
-        const tbody = document.querySelector('#examGradingTable tbody');
         let html = '';
         grades.forEach(g => {
             html += '<tr>';
@@ -8603,7 +8752,7 @@ async function loadExamReportsTable() {
         const summary = document.getElementById('reportSummary');
 
         if (!reports || reports.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px;">No exam reports found for selected criteria</td></tr>';
+            renderEmptyState(tbody, 'file-alt', 'No exam reports found for selected criteria');
             if (summary) summary.innerHTML = '';
             return;
         }
@@ -8761,7 +8910,7 @@ async function loadPendingGrading() {
         }
 
         if (items.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:20px;">No attempts found matching criteria</td></tr>';
+            renderEmptyState(tbody, 'clipboard-check', 'No attempts found matching criteria');
             return;
         }
 
@@ -8867,7 +9016,7 @@ async function loadAnalytics() {
 
         const tbody = document.querySelector('#questionAnalysisTable tbody');
         if (Object.keys(questionStats).length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:20px;">No question-level data available</td></tr>';
+            renderEmptyState(tbody, 'question-circle', 'No question-level data available');
             return;
         }
 
@@ -8885,13 +9034,14 @@ async function loadAnalytics() {
 
 // ===== Re-evaluation =====
 async function loadReEvaluationTable() {
+    const tbody = document.querySelector('#reEvaluationTable tbody');
+    if (!tbody) return;
+    renderLoadingSpinner(tbody, 'Loading re-evaluation requests...');
     try {
         const requests = await fetch('/api/re-evaluation').then(r => r.json()).catch(() => []);
-        const tbody = document.querySelector('#reEvaluationTable tbody');
-        if (!tbody) return;
 
         if (requests.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px;">No re-evaluation requests yet</td></tr>';
+            renderEmptyState(tbody, 'sync', 'No re-evaluation requests yet');
             return;
         }
 
@@ -9510,12 +9660,14 @@ function getQualificationData() {
 let allStudents = [];
 
 async function loadStudentsTable() {
+    const tbody = document.querySelector('#studentsTable tbody');
+    renderLoadingSpinner(tbody, 'Loading students...');
     try {
         allStudents = await fetch('/api/students').then(r => r.json());
         await loadBatchesForStudentFilter();
         await loadCoursesForStudentFilter();
         renderStudentsTable(allStudents);
-    } catch (err) { showNotification('Students load error!', 'error'); }
+    } catch (err) { showNotification('Students load error!', 'error'); renderEmptyState(tbody, 'exclamation-circle', 'Error loading students'); }
 }
 
 async function loadCoursesForStudentFilter() {
@@ -9580,7 +9732,7 @@ function renderStudentsTable(students) {
     statsHtml += '<div class="stat-mini s-pending"><span>' + pending + '</span> Fee Pending</div>';
     statsEl.innerHTML = statsHtml;
     if (students.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:#999;">Koi student nahi hai. "New Admission" karein.</td></tr>';
+        renderEmptyState(tbody, 'user-graduate', 'No students found. Click "New Admission" to add one.');
         return;
     }
     tbody.innerHTML = students.map(s => {
@@ -9680,6 +9832,7 @@ async function deleteSelectedStudents() {
 async function showAdmissionForm() {
     document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
     document.getElementById('page-admission').classList.remove('hidden');
+    if (typeof updateHeaderForPage === 'function') updateHeaderForPage('admission');
     document.getElementById('admissionForm').reset();
     const admDateEl = document.getElementById('sAdmDate');
     if (admDateEl) admDateEl.value = new Date().toISOString().split('T')[0];
@@ -9711,6 +9864,7 @@ function showStudentsPage() {
     document.querySelector('[data-page="students"]').classList.add('active');
     document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
     document.getElementById('page-students').classList.remove('hidden');
+    if (typeof updateHeaderForPage === 'function') updateHeaderForPage('students');
     loadStudentsTable();
 }
 
@@ -15580,11 +15734,16 @@ function autoExpandActiveDropdown() {
 function updateHeaderClock() {
     const greetingEl = document.getElementById('welcomeGreeting');
     const clockEl = document.getElementById('headerDateTime');
+    const greetingContainer = document.getElementById('headerGreeting');
     if (!greetingEl && !clockEl) return;
+    
+    // Only update greeting text if greeting container is visible (dashboard page)
+    const isGreetingVisible = greetingContainer && greetingContainer.style.display !== 'none';
     
     const now = new Date();
     
     // Greeting
+    if (isGreetingVisible) {
     const hour = now.getHours();
     let greeting = 'Welcome, Admin';
     if (hour < 12) {
@@ -15595,6 +15754,7 @@ function updateHeaderClock() {
         greeting = 'Good Evening, Admin 🌆';
     }
     if (greetingEl) greetingEl.textContent = greeting;
+    }
     
     // Clock/Date format: Wednesday, 8 Jul 2026 | 08:30:15 AM
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
