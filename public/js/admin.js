@@ -14894,26 +14894,31 @@ async function saveLegalPage() {
 // Load typing practice users
 async function loadTypingUsers() {
     try {
-        const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+        const res = await fetch('/api/typing-scores/all');
+        const data = await res.json();
+        const scores = data.scores || [];
         const users = {};
         
         scores.forEach(score => {
-            if (!users[score.name]) {
-                users[score.name] = {
-                    name: score.name,
+            const name = score.studentName || score.name || 'Unknown';
+            if (!users[name]) {
+                users[name] = {
+                    name: name,
                     totalWPM: 0,
                     totalAccuracy: 0,
                     attempts: 0,
                     completedLevels: new Set(),
-                    lastActive: score.date
+                    lastActive: score.createdAt || score.date
                 };
             }
-            users[score.name].totalWPM += score.wpm;
-            users[score.name].totalAccuracy += score.accuracy;
-            users[score.name].attempts++;
-            users[score.name].completedLevels.add(score.level);
-            if (new Date(score.date) > new Date(users[score.name].lastActive)) {
-                users[score.name].lastActive = score.date;
+            users[name].totalWPM += score.wpm;
+            users[name].totalAccuracy += score.accuracy;
+            users[name].attempts++;
+            if (score.difficulty) users[name].completedLevels.add(score.difficulty);
+            if (score.level) users[name].completedLevels.add(score.level);
+            const scoreDate = score.createdAt || score.date;
+            if (scoreDate && new Date(scoreDate) > new Date(users[name].lastActive)) {
+                users[name].lastActive = scoreDate;
             }
         });
         
@@ -14949,12 +14954,10 @@ async function loadTypingUsers() {
 }
 
 // Delete typing practice user
-function deleteTypingUser(name) {
+async function deleteTypingUser(name) {
     if (!confirm(`Are you sure you want to delete all data for user "${name}"?`)) return;
     try {
-        const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
-        const filteredScores = scores.filter(score => score.name !== name);
-        localStorage.setItem('typingScores', JSON.stringify(filteredScores));
+        await fetch('/api/typing-scores/user/' + encodeURIComponent(name), { method: 'DELETE' });
         loadTypingUsers();
         showNotification('User deleted successfully', 'success');
     } catch (e) {
@@ -15060,12 +15063,14 @@ function saveTypingLevelContent() {
 // Load typing leaderboard
 async function loadTypingLeaderboard() {
     try {
-        const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+        const res = await fetch('/api/typing-scores/all');
+        const data = await res.json();
+        const scores = data.scores || [];
         const levelFilter = document.getElementById('typingLeaderboardLevelFilter').value;
         
         let filteredScores = scores;
         if (levelFilter !== 'all') {
-            filteredScores = scores.filter(score => score.level === parseInt(levelFilter));
+            filteredScores = scores.filter(score => (score.difficulty || score.level) === levelFilter);
         }
         
         filteredScores.sort((a, b) => b.wpm - a.wpm);
@@ -15086,13 +15091,13 @@ async function loadTypingLeaderboard() {
             return `
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
                     <td style="padding:12px;">${rankDisplay}</td>
-                    <td style="padding:12px;">${esc(score.name)}</td>
-                    <td style="padding:12px;">${score.level}</td>
+                    <td style="padding:12px;">${esc(score.studentName || score.name || 'Unknown')}</td>
+                    <td style="padding:12px;">${score.difficulty || score.level || '-'}</td>
                     <td style="padding:12px;">${score.wpm}</td>
                     <td style="padding:12px;">${score.accuracy}%</td>
-                    <td style="padding:12px;">${formatDate(score.date)}</td>
+                    <td style="padding:12px;">${formatDate(score.createdAt || score.date)}</td>
                     <td style="padding:12px;">
-                        <button class="btn btn-danger" onclick="deleteTypingScore(${index})" style="padding:4px 8px; font-size:12px;">Delete</button>
+                        <button class="btn btn-danger" onclick="deleteTypingScore('${score.id}')" style="padding:4px 8px; font-size:12px;">Delete</button>
                     </td>
                 </tr>
             `;
@@ -15103,12 +15108,10 @@ async function loadTypingLeaderboard() {
 }
 
 // Delete typing score
-function deleteTypingScore(index) {
+async function deleteTypingScore(id) {
     if (!confirm('Are you sure you want to delete this score?')) return;
     try {
-        const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
-        scores.splice(index, 1);
-        localStorage.setItem('typingScores', JSON.stringify(scores));
+        await fetch('/api/typing-scores/' + id, { method: 'DELETE' });
         loadTypingLeaderboard();
         showNotification('Score deleted successfully', 'success');
     } catch (e) {
@@ -15117,11 +15120,15 @@ function deleteTypingScore(index) {
 }
 
 // Clear typing leaderboard
-function clearTypingLeaderboard() {
+async function clearTypingLeaderboard() {
     if (!confirm('Are you sure you want to clear ALL leaderboard data? This cannot be undone.')) return;
     try {
-        localStorage.removeItem('typingScores');
-        localStorage.setItem('typingScoresLastCleared', new Date().toISOString());
+        const res = await fetch('/api/typing-scores/all');
+        const data = await res.json();
+        const scores = data.scores || [];
+        for (const score of scores) {
+            await fetch('/api/typing-scores/' + score.id, { method: 'DELETE' });
+        }
         loadTypingLeaderboard();
         showNotification('Leaderboard cleared successfully', 'success');
     } catch (e) {
@@ -15130,17 +15137,19 @@ function clearTypingLeaderboard() {
 }
 
 // Export typing leaderboard to CSV
-function exportTypingLeaderboard() {
+async function exportTypingLeaderboard() {
     try {
-        const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+        const res = await fetch('/api/typing-scores/all');
+        const data = await res.json();
+        const scores = data.scores || [];
         if (scores.length === 0) {
             showNotification('No data to export', 'warning');
             return;
         }
         
-        const csv = 'Rank,Name,Level,WPM,Accuracy,Date\n' + 
+        const csv = 'Rank,Name,Difficulty,WPM,Accuracy,Date\n' + 
             scores.map((score, index) => 
-                `${index + 1},"${score.name}",${score.level},${score.wpm},${score.accuracy}%,${formatDate(score.date)}`
+                `${index + 1},"${score.studentName || score.name || 'Unknown'}",${score.difficulty || score.level || '-'},${score.wpm},${score.accuracy}%,${formatDate(score.createdAt || score.date)}`
             ).join('\n');
         
         const blob = new Blob([csv], { type: 'text/csv' });
@@ -15160,9 +15169,11 @@ function exportTypingLeaderboard() {
 // Load typing analytics
 async function loadTypingAnalytics() {
     try {
-        const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+        const res = await fetch('/api/typing-scores/all');
+        const data = await res.json();
+        const scores = data.scores || [];
         
-        const totalUsers = new Set(scores.map(s => s.name)).size;
+        const totalUsers = new Set(scores.map(s => s.studentName || s.name)).size;
         const totalAttempts = scores.length;
         const avgWPM = scores.length > 0 ? (scores.reduce((sum, s) => sum + s.wpm, 0) / scores.length).toFixed(1) : 0;
         const avgAccuracy = scores.length > 0 ? (scores.reduce((sum, s) => sum + s.accuracy, 0) / scores.length).toFixed(1) : 0;
@@ -15174,19 +15185,20 @@ async function loadTypingAnalytics() {
         
         const wpmByLevel = {};
         scores.forEach(score => {
-            if (!wpmByLevel[score.level]) {
-                wpmByLevel[score.level] = { total: 0, count: 0 };
+            const level = score.difficulty || score.level || 'unknown';
+            if (!wpmByLevel[level]) {
+                wpmByLevel[level] = { total: 0, count: 0 };
             }
-            wpmByLevel[score.level].total += score.wpm;
-            wpmByLevel[score.level].count++;
+            wpmByLevel[level].total += score.wpm;
+            wpmByLevel[level].count++;
         });
         
         const wpmByLevelHtml = Object.entries(wpmByLevel)
-            .sort((a, b) => a[0] - b[0])
+            .sort((a, b) => a[0].localeCompare(b[0]))
             .map(([level, data]) => {
                 const avg = (data.total / data.count).toFixed(1);
                 return `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid rgba(255,255,255,0.1);">
-                    <span>Level ${level}</span>
+                    <span>${level}</span>
                     <span>${avg} WPM (${data.count} attempts)</span>
                 </div>`;
             }).join('');
@@ -15195,14 +15207,15 @@ async function loadTypingAnalytics() {
         
         const levelAttempts = {};
         scores.forEach(score => {
-            levelAttempts[score.level] = (levelAttempts[score.level] || 0) + 1;
+            const level = score.difficulty || score.level || 'unknown';
+            levelAttempts[level] = (levelAttempts[level] || 0) + 1;
         });
         
         const completionHtml = Object.entries(levelAttempts)
-            .sort((a, b) => a[0] - b[0])
+            .sort((a, b) => a[0].localeCompare(b[0]))
             .map(([level, count]) => {
                 return `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid rgba(255,255,255,0.1);">
-                    <span>Level ${level}</span>
+                    <span>${level}</span>
                     <span>${count} attempts</span>
                 </div>`;
             }).join('');

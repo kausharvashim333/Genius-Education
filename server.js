@@ -7488,6 +7488,12 @@ app.get('/api/typing-scores', (req, res) => {
     res.json({ success: true, scores: scores.slice(0, 50) });
 });
 
+app.get('/api/typing-scores/all', (req, res) => {
+    const scores = readData('typing-scores.json') || [];
+    scores.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json({ success: true, scores });
+});
+
 app.post('/api/typing-scores', (req, res) => {
     const { studentId, studentName, wpm, accuracy, difficulty, duration } = req.body;
     
@@ -7520,6 +7526,14 @@ app.delete('/api/typing-scores/:id', (req, res) => {
     scores.splice(idx, 1);
     writeData('typing-scores.json', scores);
     res.json({ success: true });
+});
+
+app.delete('/api/typing-scores/user/:name', (req, res) => {
+    let scores = readData('typing-scores.json') || [];
+    const before = scores.length;
+    scores = scores.filter(s => s.studentName !== req.params.name);
+    writeData('typing-scores.json', scores);
+    res.json({ success: true, deleted: before - scores.length });
 });
 
 // --- Backup & Recovery ---
