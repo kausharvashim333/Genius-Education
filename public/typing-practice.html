@@ -8439,7 +8439,7 @@
             saveSessionToHistory(wpm, accuracy, currentIndex, mistakes, xpEarned);
 
             // Auto-save score to leaderboard
-            saveScore(wpm, accuracy);
+            saveScore(wpm, accuracy, Math.round(timeElapsed * 60));
 
             // Save mistake analysis
             saveMistakeAnalysis();
@@ -9225,7 +9225,7 @@
             });
         }
 
-        async function saveScore(wpm, accuracy) {
+        async function saveScore(wpm, accuracy, durationSeconds) {
             const name = currentUser || 'Anonymous';
             // Save to localStorage for backward compatibility
             const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
@@ -9250,7 +9250,7 @@
                         wpm: wpm,
                         accuracy: accuracy,
                         difficulty: String(currentLevel),
-                        duration: 60
+                        duration: durationSeconds || 60
                     })
                 });
             } catch (err) {
