@@ -542,29 +542,62 @@ async function loadFacultyStats() {
     }
 }
 
+let allFacultyStudents = [];
+
 async function loadStudents() {
     try {
-        const students = await fetch('/api/students').then(r => r.json());
-        const tbody = document.getElementById('studentsTable').querySelector('tbody');
+        allFacultyStudents = await fetch('/api/students').then(r => r.json());
         
-        if (students.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No students found</td></tr>';
-            return;
-        }
+        // Populate course filter
+        const courseFilter = document.getElementById('facultyStudentCourseFilter');
+        const courses = [...new Set(allFacultyStudents.map(s => s.course).filter(Boolean))].sort();
+        courseFilter.innerHTML = '<option value="">All Courses</option>' + courses.map(c => '<option value="' + c + '">' + c + '</option>').join('');
         
-        tbody.innerHTML = students.map(student => `
-            <tr>
-                <td>${student.rollNo || 'N/A'}</td>
-                <td>${student.name}</td>
-                <td>${student.course || 'N/A'}</td>
-                <td>${student.batch || 'N/A'}</td>
-                <td>${student.phone || 'N/A'}</td>
-                <td><button class="btn btn-primary" style="padding:4px 8px;font-size:12px;" onclick="showStudentQR(${student.id})"><i class="fas fa-qrcode"></i></button></td>
-            </tr>
-        `).join('');
+        // Populate batch filter
+        const batchFilter = document.getElementById('facultyStudentBatchFilter');
+        const batches = [...new Set(allFacultyStudents.map(s => s.batch).filter(Boolean))].sort();
+        batchFilter.innerHTML = '<option value="">All Batches</option>' + batches.map(b => '<option value="' + b + '">' + b + '</option>').join('');
+        
+        renderFacultyStudents(allFacultyStudents);
     } catch (e) {
         console.error('Error loading students:', e);
     }
+}
+
+function renderFacultyStudents(students) {
+    const tbody = document.getElementById('studentsTable').querySelector('tbody');
+    if (students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No students found</td></tr>';
+        return;
+    }
+    tbody.innerHTML = students.map(student => `
+        <tr>
+            <td>${student.rollNo || 'N/A'}</td>
+            <td>${student.name}</td>
+            <td>${student.course || 'N/A'}</td>
+            <td>${student.batch || 'N/A'}</td>
+            <td>${student.phone || 'N/A'}</td>
+            <td><button class="btn btn-primary" style="padding:4px 8px;font-size:12px;" onclick="showStudentQR(${student.id})"><i class="fas fa-qrcode"></i></button></td>
+        </tr>
+    `).join('');
+}
+
+function filterFacultyStudents() {
+    const search = (document.getElementById('facultyStudentSearch').value || '').toLowerCase();
+    const course = document.getElementById('facultyStudentCourseFilter').value;
+    const batch = document.getElementById('facultyStudentBatchFilter').value;
+    
+    let filtered = allFacultyStudents;
+    if (course) filtered = filtered.filter(s => s.course === course);
+    if (batch) filtered = filtered.filter(s => s.batch === batch);
+    if (search) {
+        filtered = filtered.filter(s =>
+            (s.name && s.name.toLowerCase().includes(search)) ||
+            (s.rollNo && s.rollNo.toLowerCase().includes(search)) ||
+            (s.phone && s.phone.includes(search))
+        );
+    }
+    renderFacultyStudents(filtered);
 }
 
 async function showStudentQR(id) {
