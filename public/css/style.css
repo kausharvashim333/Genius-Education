@@ -6632,7 +6632,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     }
 }
 
-/* === Floating Enquiry Button === */
+/* === Floating Enquiry Button (Glassmorphism) === */
 .enquiry-fab {
     position: fixed;
     bottom: 30px;
@@ -6642,15 +6642,17 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     align-items: center;
     gap: 8px;
     padding: 14px 22px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: rgba(102, 126, 234, 0.25);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     color: #fff;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 50px;
     cursor: pointer;
     font-size: 15px;
     font-weight: 700;
     font-family: inherit;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5), 0 2px 8px rgba(118, 75, 162, 0.3);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
     transition: all 0.3s ease;
     animation: enquiryFabPulse 2s ease-in-out infinite;
     overflow: visible;
@@ -6659,10 +6661,12 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 .enquiry-fab i {
     font-size: 22px;
     animation: enquiryIconBounce 1.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
 }
 
 .enquiry-fab-text {
     white-space: nowrap;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .enquiry-fab-badge {
@@ -6673,22 +6677,24 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     height: 16px;
     background: #ff4757;
     border-radius: 50%;
-    border: 2px solid #fff;
+    border: 2px solid rgba(255, 255, 255, 0.8);
     animation: enquiryBadgePulse 1.2s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(255, 71, 87, 0.6);
 }
 
 .enquiry-fab:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.7), 0 4px 12px rgba(118, 75, 162, 0.5);
-    background: linear-gradient(135deg, #5a6fd6, #6a3f92);
+    background: rgba(102, 126, 234, 0.4);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 @keyframes enquiryFabPulse {
     0%, 100% {
-        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5), 0 0 0 0 rgba(102, 126, 234, 0.5);
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 0 0 0 rgba(102, 126, 234, 0.4);
     }
     50% {
-        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5), 0 0 0 12px rgba(102, 126, 234, 0);
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 0 0 12px rgba(102, 126, 234, 0);
     }
 }
 
@@ -6703,15 +6709,16 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     50% { transform: scale(1.3); opacity: 0.7; }
 }
 
-/* === Enquiry Modal === */
+/* === Enquiry Modal (Glassmorphism) === */
 .enquiry-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(15, 10, 40, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     z-index: 9999;
     display: flex;
     align-items: center;
@@ -6727,12 +6734,15 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 }
 
 .enquiry-modal {
-    background: #fff;
-    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 24px;
     width: 90%;
     max-width: 480px;
     padding: 0;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3);
     transform: translateY(40px) scale(0.95);
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     overflow: hidden;
@@ -6751,26 +6761,29 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     right: 14px;
     width: 34px;
     height: 34px;
-    border: none;
-    background: rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 16px;
-    color: #666;
+    color: #fff;
     transition: all 0.2s ease;
     z-index: 2;
 }
 
 .enquiry-modal-close:hover {
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.25);
     transform: rotate(90deg);
 }
 
 .enquiry-modal-header {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: rgba(102, 126, 234, 0.15);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     padding: 30px 24px 24px;
     text-align: center;
     color: #fff;
@@ -6780,13 +6793,15 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     width: 56px;
     height: 56px;
     margin: 0 auto 12px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
     animation: enquiryIconFloat 2s ease-in-out infinite;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 @keyframes enquiryIconFloat {
@@ -6798,12 +6813,14 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     font-size: 22px;
     margin: 0 0 6px;
     font-weight: 700;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .enquiry-modal-header p {
     font-size: 13px;
-    opacity: 0.85;
+    opacity: 0.8;
     margin: 0;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .enquiry-modal-form {
@@ -6826,12 +6843,13 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     gap: 6px;
     font-size: 13px;
     font-weight: 600;
-    color: #444;
+    color: rgba(255, 255, 255, 0.9);
     margin-bottom: 6px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .enquiry-form-group label i {
-    color: #667eea;
+    color: #a5b4fc;
     font-size: 12px;
 }
 
@@ -6839,28 +6857,38 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 .enquiry-form-group textarea {
     width: 100%;
     padding: 10px 14px;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
     font-size: 14px;
     font-family: inherit;
+    color: #fff;
     transition: all 0.2s ease;
     outline: none;
     resize: vertical;
 }
 
+.enquiry-form-group input::placeholder,
+.enquiry-form-group textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
 .enquiry-form-group input:focus,
 .enquiry-form-group textarea:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(165, 180, 252, 0.6);
+    box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .enquiry-submit-btn {
     width: 100%;
     padding: 13px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: rgba(102, 126, 234, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     color: #fff;
-    border: none;
-    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 14px;
     font-size: 15px;
     font-weight: 700;
     font-family: inherit;
@@ -6870,16 +6898,18 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     justify-content: center;
     gap: 8px;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .enquiry-submit-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    background: rgba(102, 126, 234, 0.5);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .enquiry-submit-btn:disabled {
-    opacity: 0.7;
+    opacity: 0.6;
     cursor: not-allowed;
     transform: none;
 }
@@ -6891,18 +6921,21 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     gap: 10px;
     padding: 20px;
     margin-top: 16px;
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.05));
-    border: 2px solid rgba(34, 197, 94, 0.3);
-    border-radius: 12px;
-    color: #16a34a;
+    background: rgba(34, 197, 94, 0.2);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    border-radius: 14px;
+    color: #86efac;
     font-size: 15px;
     font-weight: 600;
     text-align: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .enquiry-success-msg i {
     font-size: 28px;
     animation: enquiryCheckPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 0 8px rgba(134, 239, 172, 0.5));
 }
 
 .enquiry-success-msg.show {
@@ -6937,7 +6970,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     }
     .enquiry-modal {
         width: 95%;
-        border-radius: 16px;
+        border-radius: 18px;
     }
     .enquiry-modal-header {
         padding: 24px 20px 20px;
