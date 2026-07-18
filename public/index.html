@@ -324,10 +324,15 @@
     </footer>
 
     <!-- Floating Enquiry Button -->
-    <div class="enquiry-fab" id="enquiryFab" onclick="openEnquiryModal()">
-        <i class="fas fa-question-circle"></i>
-        <span class="enquiry-fab-text">Enquiry</span>
-        <span class="enquiry-fab-badge"></span>
+    <div class="enquiry-fab-wrapper" id="enquiryFab">
+        <div class="enquiry-callout" id="enquiryCallout">
+            <span>Ask Me</span>
+            <div class="enquiry-callout-arrow"></div>
+        </div>
+        <button class="enquiry-fab-btn" onclick="openEnquiryModal()">
+            <i class="fas fa-question-circle"></i>
+            <span class="enquiry-fab-badge"></span>
+        </button>
     </div>
 
     <!-- Enquiry Modal -->
@@ -720,6 +725,7 @@
     <script>
         // === Enquiry FAB & Modal ===
         const enquiryFab = document.getElementById('enquiryFab');
+        const enquiryCallout = document.getElementById('enquiryCallout');
         const enquiryModalOverlay = document.getElementById('enquiryModalOverlay');
         const enquiryModalForm = document.getElementById('enquiryModalForm');
         const enquirySuccessMsg = document.getElementById('enquirySuccessMsg');
@@ -728,6 +734,7 @@
             enquiryModalOverlay.classList.add('active');
             enquiryFab.style.transform = 'scale(0)';
             enquiryFab.style.opacity = '0';
+            enquiryCallout.classList.add('dismissed');
         }
 
         function closeEnquiryModal() {
