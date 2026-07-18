@@ -4936,6 +4936,11 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     100% { transform: translateX(-100%); }
 }
 
+/* Mobile Menu Toggle - hidden on desktop, shown on mobile */
+.mobile-menu-toggle {
+    display: none;
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 769px) {
     /* Sidebar */
