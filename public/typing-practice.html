@@ -9218,8 +9218,9 @@
             });
         }
 
-        function saveScore(wpm, accuracy) {
+        async function saveScore(wpm, accuracy) {
             const name = currentUser || 'Anonymous';
+            // Save to localStorage for backward compatibility
             const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
             const newScore = {
                 name: name,
@@ -9230,22 +9231,46 @@
             };
             scores.push(newScore);
             localStorage.setItem('typingScores', JSON.stringify(scores));
+            
+            // Also save to server API
+            try {
+                await fetch('/api/typing-scores', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentId: Date.now(),
+                        studentName: name,
+                        wpm: wpm,
+                        accuracy: accuracy,
+                        difficulty: String(currentLevel),
+                        duration: 60
+                    })
+                });
+            } catch (err) {
+                console.error('Error saving score to server:', err);
+            }
         }
 
-        function loadLeaderboard() {
+        async function loadLeaderboard() {
             const levelFilter = document.getElementById('leaderboardLevel').value;
-            const scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
             
-            // Migrate old scores without name field
-            scores.forEach(score => {
-                if (!score.name) {
-                    score.name = 'Anonymous';
-                }
-            });
+            // Fetch from server API
+            let scores = [];
+            try {
+                const res = await fetch('/api/typing-scores/all');
+                const data = await res.json();
+                scores = data.scores || [];
+            } catch (err) {
+                console.error('Error fetching leaderboard from server:', err);
+                // Fallback to localStorage
+                scores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+            }
             
             let filteredScores = scores;
             if (levelFilter !== 'all') {
-                filteredScores = scores.filter(score => score.level === parseInt(levelFilter));
+                filteredScores = scores.filter(score => 
+                    String(score.difficulty || score.level) === String(levelFilter)
+                );
             }
             
             // Sort by WPM descending
@@ -9263,8 +9288,9 @@
             
             let html = '';
             filteredScores.forEach((score, index) => {
-                const date = new Date(score.date).toLocaleDateString();
-                const displayName = score.name || 'Anonymous';
+                const date = new Date(score.createdAt || score.date).toLocaleDateString();
+                const displayName = score.studentName || score.name || 'Anonymous';
+                const level = score.difficulty || score.level || '-';
                 let rankDisplay = `#${index + 1}`;
                 if (index === 0) rankDisplay = '🥇';
                 if (index === 1) rankDisplay = '🥈';
@@ -9273,7 +9299,7 @@
                     <div class="leaderboard-row">
                         <div class="rank">${rankDisplay}</div>
                         <div class="name">${displayName}</div>
-                        <div class="level">Level ${score.level}</div>
+                        <div class="level">Level ${level}</div>
                         <div class="wpm">${score.wpm}</div>
                         <div class="accuracy">${score.accuracy}%</div>
                         <div class="date">${date}</div>
