@@ -543,6 +543,9 @@ async function loadFacultyStats() {
 }
 
 let allFacultyStudents = [];
+let facultyStudentsCurrentPage = 1;
+const facultyStudentsPerPage = 25;
+let facultyStudentsFiltered = [];
 
 async function loadStudents() {
     try {
@@ -565,12 +568,19 @@ async function loadStudents() {
 }
 
 function renderFacultyStudents(students) {
+    facultyStudentsFiltered = students;
     const tbody = document.getElementById('studentsTable').querySelector('tbody');
+    const paginationEl = document.getElementById('facultyStudentsPagination');
     if (students.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No students found</td></tr>';
+        if (paginationEl) paginationEl.innerHTML = '';
         return;
     }
-    tbody.innerHTML = students.map(student => `
+    const totalPages = Math.ceil(students.length / facultyStudentsPerPage);
+    if (facultyStudentsCurrentPage > totalPages) facultyStudentsCurrentPage = 1;
+    const startIdx = (facultyStudentsCurrentPage - 1) * facultyStudentsPerPage;
+    const pageStudents = students.slice(startIdx, startIdx + facultyStudentsPerPage);
+    tbody.innerHTML = pageStudents.map(student => `
         <tr>
             <td>${student.rollNo || 'N/A'}</td>
             <td>${student.name}</td>
@@ -580,9 +590,43 @@ function renderFacultyStudents(students) {
             <td><button class="btn btn-primary" style="padding:4px 8px;font-size:12px;" onclick="showStudentQR(${student.id})"><i class="fas fa-qrcode"></i></button></td>
         </tr>
     `).join('');
+    renderFacultyStudentsPagination(totalPages);
+}
+
+function renderFacultyStudentsPagination(totalPages) {
+    const container = document.getElementById('facultyStudentsPagination');
+    if (!container || totalPages <= 1) { if (container) container.innerHTML = ''; return; }
+    let html = '';
+    html += '<button class="pagination-btn" onclick="goToFacultyStudentPage(' + (facultyStudentsCurrentPage - 1) + ')" ' + (facultyStudentsCurrentPage === 1 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i></button>';
+    const maxVisible = 7;
+    let startPage = Math.max(1, facultyStudentsCurrentPage - 3);
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
+    if (startPage > 1) {
+        html += '<button class="pagination-btn" onclick="goToFacultyStudentPage(1)">1</button>';
+        if (startPage > 2) html += '<span class="pagination-ellipsis">...</span>';
+    }
+    for (let i = startPage; i <= endPage; i++) {
+        html += '<button class="pagination-btn' + (i === facultyStudentsCurrentPage ? ' active"' : '"') + ' onclick="goToFacultyStudentPage(' + i + ')">' + i + '</button>';
+    }
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += '<span class="pagination-ellipsis">...</span>';
+        html += '<button class="pagination-btn" onclick="goToFacultyStudentPage(' + totalPages + ')">' + totalPages + '</button>';
+    }
+    html += '<button class="pagination-btn" onclick="goToFacultyStudentPage(' + (facultyStudentsCurrentPage + 1) + ')" ' + (facultyStudentsCurrentPage === totalPages ? 'disabled' : '') + '><i class="fas fa-chevron-right"></i></button>';
+    html += '<span class="pagination-info">Page ' + facultyStudentsCurrentPage + ' of ' + totalPages + '</span>';
+    container.innerHTML = html;
+}
+
+function goToFacultyStudentPage(page) {
+    const totalPages = Math.ceil(facultyStudentsFiltered.length / facultyStudentsPerPage);
+    if (page < 1 || page > totalPages) return;
+    facultyStudentsCurrentPage = page;
+    renderFacultyStudents(facultyStudentsFiltered);
 }
 
 function filterFacultyStudents() {
+    facultyStudentsCurrentPage = 1;
     const search = (document.getElementById('facultyStudentSearch').value || '').toLowerCase();
     const course = document.getElementById('facultyStudentCourseFilter').value;
     const batch = document.getElementById('facultyStudentBatchFilter').value;
