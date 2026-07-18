@@ -5921,7 +5921,7 @@ app.get('/api/study-materials', (req, res) => {
 });
 
 app.post('/api/study-materials', uploadStudyMaterial.single('file'), (req, res) => {
-    const { title, course, type, description, author, category, difficulty, tags, batch } = req.body;
+    const { title, course, type, description, author, category, difficulty, tags, batch, status, submittedBy, submittedById } = req.body;
     if (!title || !course || !type) return res.status(400).json({ success: false, message: 'Title, course, and type required' });
     if (!req.file) return res.status(400).json({ success: false, message: 'File required' });
     
@@ -5939,6 +5939,9 @@ app.post('/api/study-materials', uploadStudyMaterial.single('file'), (req, res) 
         difficulty: difficulty || 'Beginner',
         tags: tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [],
         batch: batch || '',
+        status: status || 'approved',
+        submittedBy: submittedBy || '',
+        submittedById: submittedById || '',
         date: formatDate(new Date()),
         timestamp: new Date().toISOString(),
         viewCount: 0,
@@ -5955,7 +5958,7 @@ app.put('/api/study-materials/:id', (req, res) => {
     const idx = materials.findIndex(m => m.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Material not found' });
     
-    const { title, course, type, url, size, description, author, category, difficulty, tags, batch } = req.body;
+    const { title, course, type, url, size, description, author, category, difficulty, tags, batch, status } = req.body;
     if (title) materials[idx].title = title;
     if (course) materials[idx].course = course;
     if (type) materials[idx].type = type;
@@ -5967,6 +5970,7 @@ app.put('/api/study-materials/:id', (req, res) => {
     if (difficulty !== undefined) materials[idx].difficulty = difficulty;
     if (tags !== undefined) materials[idx].tags = tags;
     if (batch !== undefined) materials[idx].batch = batch;
+    if (status !== undefined) materials[idx].status = status;
     
     writeData('study-materials.json', materials);
     res.json({ success: true, material: materials[idx] });

@@ -451,6 +451,63 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
         }
+
+        /* Faculty Material Modal Glassmorphism */
+        #facultyMaterialModal { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+        #facultyMaterialModal .modal-content {
+            background: rgba(30, 41, 59, 0.85) !important;
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            color: #f1f5f9;
+            position: relative;
+            overflow: hidden;
+        }
+        #facultyMaterialModal .modal-content::before { content:''; position:absolute; top:-80px; right:-80px; width:240px; height:240px; background: radial-gradient(circle, rgba(102,126,234,0.35) 0%, transparent 70%); border-radius:50%; pointer-events:none; }
+        #facultyMaterialModal .modal-content::after { content:''; position:absolute; bottom:-80px; left:-80px; width:240px; height:240px; background: radial-gradient(circle, rgba(245,158,11,0.25) 0%, transparent 70%); border-radius:50%; pointer-events:none; }
+        #facultyMaterialModal .modal-header, #facultyMaterialModal .modal-body, #facultyMaterialModal .modal-footer { position: relative; z-index: 1; }
+        #facultyMaterialModal .modal-header { background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.15); padding: 18px 24px; display:flex; justify-content:space-between; align-items:center; }
+        #facultyMaterialModal .modal-header h3 { color:#fff; margin:0; font-weight:600; display:flex; align-items:center; gap:10px; }
+        #facultyMaterialModal .close-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:20px; transition: all 0.2s; }
+        #facultyMaterialModal .close-btn:hover { background: rgba(239,68,68,0.3); transform: rotate(90deg); }
+        #facultyMaterialModal .modal-footer { background: rgba(255,255,255,0.05); border-top: 1px solid rgba(255,255,255,0.15); padding: 16px 24px; display:flex; justify-content:flex-end; gap:10px; }
+        #facultyMaterialModal label { color:#e2e8f0 !important; font-size:13px; letter-spacing:0.3px; margin-bottom:6px; }
+        #facultyMaterialModal input[type="text"], #facultyMaterialModal input[type="file"], #facultyMaterialModal select, #facultyMaterialModal textarea {
+            background: rgba(255,255,255,0.08) !important;
+            border: 1px solid rgba(255,255,255,0.15) !important;
+            border-radius: 10px !important;
+            color: #fff !important;
+            padding: 10px 14px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        #facultyMaterialModal input::placeholder, #facultyMaterialModal textarea::placeholder { color: rgba(255,255,255,0.4) !important; }
+        #facultyMaterialModal select option { background: #1e293b; color:#fff; }
+        #facultyMaterialModal input[type="file"] { border-style: dashed !important; background: rgba(255,255,255,0.05) !important; cursor: pointer; }
+        #facultyMaterialModal input[type="file"]::file-selector-button { background: linear-gradient(135deg, #667eea, #764ba2); color:#fff; border:none; padding:6px 14px; border-radius:6px; margin-right:12px; cursor:pointer; font-weight:600; }
+        #facultyMaterialModal .modal-footer button {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 20px; border-radius: 10px; font-size: 14px;
+            font-weight: 500; font-family: inherit; border: none; cursor: pointer;
+        }
+        #facultyMaterialModal .modal-footer .btn-secondary {
+            background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        #facultyMaterialModal .modal-footer .btn-secondary:hover { background: rgba(255, 255, 255, 0.18); }
+        #facultyMaterialModal .modal-footer .btn-primary {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8));
+            color: #fff; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        #facultyMaterialModal .modal-footer .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.15);
+        }
+        #facultyMaterialModal .form-group { margin-bottom: 16px; }
+        #facultyMaterialModal .form-group label { display: block; }
+
         .faculty-portal { display: flex; height: 100vh; overflow: hidden; }
         .faculty-sidebar { width: 250px; height: 100vh; overflow-y: auto; background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.1); color: white; padding: 20px; display: flex; flex-direction: column; flex-shrink: 0; }
         .faculty-sidebar::-webkit-scrollbar { width: 4px; }
@@ -902,8 +959,11 @@
 
                 <div id="materialsContent" class="faculty-content-section">
                     <h3>Study Materials</h3>
+                    <div style="margin-bottom:15px;">
+                        <button class="btn btn-primary" onclick="openFacultyMaterialModal()"><i class="fas fa-plus"></i> Add Study Material</button>
+                    </div>
                     <table class="data-table" id="materialsTable">
-                        <thead><tr><th>Title</th><th>Course</th><th>Type</th><th>Author</th><th>Action</th></tr></thead>
+                        <thead><tr><th>Title</th><th>Course</th><th>Type</th><th>Author</th><th>Status</th><th>Action</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -1233,6 +1293,32 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Faculty Study Material Modal -->
+    <div id="facultyMaterialModal" class="modal">
+        <div class="modal-content" style="max-width:600px;max-height:90vh;overflow-y:auto;">
+            <div class="modal-header">
+                <h3><i class="fas fa-folder-plus"></i> Add Study Material</h3>
+                <button class="close-btn" onclick="closeFacultyMaterialModal()">&times;</button>
+            </div>
+            <form id="facultyMaterialForm" onsubmit="saveFacultyMaterial(event)">
+                <div class="form-group"><label>Title *</label><input type="text" id="facultyMaterialTitle" required></div>
+                <div class="form-group"><label>Course *</label><select id="facultyMaterialCourse" required><option value="">Select Course</option></select></div>
+                <div class="form-group"><label>Category</label><select id="facultyMaterialCategory"><option value="General">General</option><option value="Notes">Notes</option><option value="Reference">Reference</option><option value="Practical">Practical</option></select></div>
+                <div class="form-group"><label>Type *</label><select id="facultyMaterialType" required onchange="updateFacultyMaterialFileInput()"><option value="">Select Type</option><option value="pdf">PDF</option><option value="video">Video</option><option value="doc">Document</option><option value="image">Image</option></select></div>
+                <div class="form-group"><label>File *</label><input type="file" id="facultyMaterialFile" accept=".pdf,.doc,.docx,.ppt,.pptx" required></div>
+                <div class="form-group"><label>Description</label><textarea id="facultyMaterialDescription" rows="2" placeholder="Material description"></textarea></div>
+                <div class="form-group"><label>Author</label><input type="text" id="facultyMaterialAuthor" placeholder="Teacher name"></div>
+                <div class="form-group"><label>Difficulty</label><select id="facultyMaterialDifficulty"><option value="Beginner">Beginner</option><option value="Intermediate">Intermediate</option><option value="Advanced">Advanced</option></select></div>
+                <div class="form-group"><label>Tags (comma separated)</label><input type="text" id="facultyMaterialTags" placeholder="e.g., chapter1, important"></div>
+                <div class="form-group"><label>Batch</label><select id="facultyMaterialBatch"><option value="">All Batches</option></select></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeFacultyMaterialModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit for Approval</button>
+                </div>
+            </form>
         </div>
     </div>
 

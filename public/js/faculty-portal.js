@@ -400,7 +400,7 @@ function loadFacultyMenu() {
         menuHTML += '<li><a href="#" onclick="showSection(\'attendance\')"><i class="fas fa-calendar-check"></i> Attendance</a></li>';
     }
 
-    if (hasPermission('materials')) {
+    if (hasPermission('study-materials') || hasPermission('materials')) {
         menuHTML += '<li><a href="#" onclick="showSection(\'materials\')"><i class="fas fa-folder"></i> Study Materials</a></li>';
     }
 
@@ -724,23 +724,119 @@ async function loadMaterials() {
         const materialsTable = document.getElementById('materialsTable');
         
         if (materials.length === 0) {
-            materialsTable.querySelector('tbody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">No study materials found.</td></tr>';
+            materialsTable.querySelector('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">No study materials found.</td></tr>';
             return;
         }
         
-        materialsTable.querySelector('tbody').innerHTML = materials.map(material => `
+        materialsTable.querySelector('tbody').innerHTML = materials.map(material => {
+            const status = material.status || 'approved';
+            const statusBadge = status === 'pending' 
+                ? '<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Pending</span>'
+                : status === 'rejected'
+                ? '<span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Rejected</span>'
+                : '<span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Approved</span>';
+            return `
             <tr>
                 <td>${material.title}</td>
                 <td>${material.course || 'N/A'}</td>
                 <td>${material.type || 'N/A'}</td>
                 <td>${material.author || 'N/A'}</td>
+                <td>${statusBadge}</td>
                 <td>
                     <a href="${material.url}" target="_blank" class="btn btn-primary" style="padding:6px 12px;font-size:12px;">View</a>
                 </td>
-            </tr>
-        `).join('');
+            </tr>`;
+        }).join('');
     } catch (e) {
         console.error('Error loading materials:', e);
+    }
+}
+
+async function openFacultyMaterialModal() {
+    document.getElementById('facultyMaterialTitle').value = '';
+    document.getElementById('facultyMaterialFile').value = '';
+    document.getElementById('facultyMaterialDescription').value = '';
+    document.getElementById('facultyMaterialAuthor').value = currentFaculty ? currentFaculty.name : '';
+    document.getElementById('facultyMaterialCategory').value = 'General';
+    document.getElementById('facultyMaterialDifficulty').value = 'Beginner';
+    document.getElementById('facultyMaterialTags').value = '';
+    document.getElementById('facultyMaterialBatch').value = '';
+    document.getElementById('facultyMaterialType').value = '';
+    await loadCoursesForFacultyMaterial();
+    await loadBatchesForFacultyMaterial();
+    document.getElementById('facultyMaterialModal').classList.add('active');
+}
+
+function closeFacultyMaterialModal() {
+    document.getElementById('facultyMaterialModal').classList.remove('active');
+}
+
+async function loadCoursesForFacultyMaterial() {
+    const res = await fetch('/api/courses');
+    const courses = await res.json();
+    const select = document.getElementById('facultyMaterialCourse');
+    select.innerHTML = '<option value="">Select Course</option>' + courses.map(c => '<option>' + c.name + '</option>').join('');
+}
+
+async function loadBatchesForFacultyMaterial() {
+    const res = await fetch('/api/batches');
+    const batches = await res.json();
+    const select = document.getElementById('facultyMaterialBatch');
+    select.innerHTML = '<option value="">All Batches</option>' + batches.map(b => '<option>' + b.name + '</option>').join('');
+}
+
+function updateFacultyMaterialFileInput() {
+    const type = document.getElementById('facultyMaterialType').value;
+    const fileInput = document.getElementById('facultyMaterialFile');
+    const acceptTypes = {
+        'pdf': '.pdf',
+        'video': '.mp4,.avi,.mov,.mkv',
+        'doc': '.doc,.docx,.ppt,.pptx,.txt',
+        'image': '.jpg,.jpeg,.png,.gif,.bmp'
+    };
+    fileInput.accept = acceptTypes[type] || '*';
+}
+
+async function saveFacultyMaterial(event) {
+    event.preventDefault();
+    try {
+        const fileInput = document.getElementById('facultyMaterialFile');
+        const file = fileInput.files[0];
+        if (!file) { alert('Please select a file'); return; }
+        
+        const title = document.getElementById('facultyMaterialTitle').value;
+        const course = document.getElementById('facultyMaterialCourse').value;
+        const type = document.getElementById('facultyMaterialType').value;
+        if (!title || !course || !type) { alert('Please fill in all required fields'); return; }
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('title', title);
+        formData.append('course', course);
+        formData.append('type', type);
+        formData.append('description', document.getElementById('facultyMaterialDescription').value);
+        formData.append('author', document.getElementById('facultyMaterialAuthor').value);
+        formData.append('category', document.getElementById('facultyMaterialCategory').value);
+        formData.append('difficulty', document.getElementById('facultyMaterialDifficulty').value);
+        formData.append('tags', document.getElementById('facultyMaterialTags').value);
+        formData.append('batch', document.getElementById('facultyMaterialBatch').value);
+        formData.append('status', 'pending');
+        formData.append('submittedBy', currentFaculty ? currentFaculty.name : 'Faculty');
+        formData.append('submittedById', currentFaculty ? currentFaculty.id : '');
+        
+        const res = await fetch('/api/study-materials', { method: 'POST', body: formData });
+        const result = await res.json();
+        
+        if (result.success) {
+            closeFacultyMaterialModal();
+            loadMaterials();
+            alert('Study material submitted for approval!');
+        } else {
+            alert('Error: ' + (result.message || 'Unknown error'));
+        }
+    } catch (e) {
+        console.error('Error:', e);
+        alert('Error: ' + e.message);
     }
 }
 

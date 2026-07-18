@@ -4725,15 +4725,31 @@ async function loadStudyMaterialsTable() {
                 let html = '';
                 html += '<tr>';
                 html += '<td><input type="checkbox" class="study-material-checkbox" data-id="' + m.id + '"></td>';
-                html += '<td><strong>' + m.title + '</strong></td>';
+                html += '<td><strong>' + m.title + '</strong>';
+                if (m.submittedBy) html += '<br><small style="color:#64748b;">by ' + m.submittedBy + '</small>';
+                html += '</td>';
                 html += '<td>' + m.course + '</td>';
                 html += '<td>' + (m.category || 'General') + '</td>';
                 html += '<td>' + m.type.toUpperCase() + '</td>';
                 html += '<td>' + (m.author || 'Admin') + '</td>';
+                html += '<td>';
+                const status = m.status || 'approved';
+                if (status === 'pending') {
+                    html += '<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Pending</span>';
+                } else if (status === 'rejected') {
+                    html += '<span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Rejected</span>';
+                } else {
+                    html += '<span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Approved</span>';
+                }
+                html += '</td>';
                 html += '<td>' + (m.viewCount || 0) + '</td>';
                 html += '<td>' + (m.downloadCount || 0) + '</td>';
                 html += '<td>';
-                html += '<button class="btn" onclick="deleteStudyMaterial(\'' + m.id + '\')"><i class="fas fa-trash"></i></button>';
+                if (status === 'pending') {
+                    html += '<button class="btn btn-success" onclick="approveStudyMaterial(\'' + m.id + '\')" title="Approve" style="padding:5px 8px;font-size:12px;background:#16a34a;"><i class="fas fa-check"></i></button> ';
+                    html += '<button class="btn btn-danger" onclick="rejectStudyMaterial(\'' + m.id + '\')" title="Reject" style="padding:5px 8px;font-size:12px;"><i class="fas fa-times"></i></button> ';
+                }
+                html += '<button class="btn" onclick="deleteStudyMaterial(\'' + m.id + '\')" title="Delete" style="padding:5px 8px;font-size:12px;"><i class="fas fa-trash"></i></button>';
                 html += '</td>';
                 html += '</tr>';
                 return html;
@@ -4889,6 +4905,41 @@ async function deleteStudyMaterial(id) {
         await fetch('/api/study-materials/' + id, { method: 'DELETE' });
         loadStudyMaterialsTable();
         showNotification('Material deleted!', 'success');
+    } catch (e) { showNotification('Error!', 'error'); }
+}
+
+async function approveStudyMaterial(id) {
+    try {
+        const res = await fetch('/api/study-materials/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'approved' })
+        });
+        const data = await res.json();
+        if (data.success) {
+            loadStudyMaterialsTable();
+            showNotification('Material approved!', 'success');
+        } else {
+            showNotification('Error: ' + (data.message || 'Unknown'), 'error');
+        }
+    } catch (e) { showNotification('Error!', 'error'); }
+}
+
+async function rejectStudyMaterial(id) {
+    if (!confirm('Reject this material?')) return;
+    try {
+        const res = await fetch('/api/study-materials/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'rejected' })
+        });
+        const data = await res.json();
+        if (data.success) {
+            loadStudyMaterialsTable();
+            showNotification('Material rejected!', 'success');
+        } else {
+            showNotification('Error: ' + (data.message || 'Unknown'), 'error');
+        }
     } catch (e) { showNotification('Error!', 'error'); }
 }
 
