@@ -9251,6 +9251,35 @@
             }
         }
 
+        // Migrate old localStorage scores to server
+        async function migrateLocalScoresToServer() {
+            const localScores = JSON.parse(localStorage.getItem('typingScores') || '[]');
+            if (localScores.length === 0) return;
+            const migrated = localStorage.getItem('typingScoresMigrated');
+            if (migrated === 'true') return;
+            
+            try {
+                for (const score of localScores) {
+                    await fetch('/api/typing-scores', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            studentId: Date.now() + Math.random(),
+                            studentName: score.name || 'Anonymous',
+                            wpm: score.wpm,
+                            accuracy: score.accuracy,
+                            difficulty: String(score.level || 1),
+                            duration: 60
+                        })
+                    });
+                }
+                localStorage.setItem('typingScoresMigrated', 'true');
+                console.log('Migrated ' + localScores.length + ' scores to server');
+            } catch (err) {
+                console.error('Migration error:', err);
+            }
+        }
+
         async function loadLeaderboard() {
             const levelFilter = document.getElementById('leaderboardLevel').value;
             
@@ -9354,6 +9383,8 @@
 
         window.addEventListener('DOMContentLoaded', function() {
             initializeLevelSelector();
+            // Migrate old localStorage scores to server
+            migrateLocalScoresToServer();
             // Apply saved language on initial load
             if (currentTypingLanguage) {
                 applyTypingLanguage();
