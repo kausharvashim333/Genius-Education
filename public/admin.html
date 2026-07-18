@@ -2419,12 +2419,12 @@
                     <p style="color:#64748b; margin-bottom: 16px;">Manage typing practice users, view stats, and delete accounts.</p>
                     
                     <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
-                        <input type="text" id="typingUserSearch" placeholder="Search users..." style="padding:8px; border:1px solid #e2e8f0; border-radius:6px; flex:1; min-width:150px;">
+                        <input type="text" id="typingUserSearch" placeholder="Search users..." style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; flex:1; min-width:150px; height:38px; box-sizing:border-box;">
                         <label style="font-size:13px; color:#64748b;">From:</label>
-                        <input type="date" id="typingDateFrom" style="padding:6px; border:1px solid #e2e8f0; border-radius:6px;">
+                        <input type="date" id="typingDateFrom" style="padding:6px 10px; border:1px solid #e2e8f0; border-radius:6px; height:38px; box-sizing:border-box;">
                         <label style="font-size:13px; color:#64748b;">To:</label>
-                        <input type="date" id="typingDateTo" style="padding:6px; border:1px solid #e2e8f0; border-radius:6px;">
-                        <select id="typingSortOrder" style="padding:7px; border:1px solid #e2e8f0; border-radius:6px;">
+                        <input type="date" id="typingDateTo" style="padding:6px 10px; border:1px solid #e2e8f0; border-radius:6px; height:38px; box-sizing:border-box;">
+                        <select id="typingSortOrder" style="padding:0 10px; border:1px solid #e2e8f0; border-radius:6px; height:38px; box-sizing:border-box;">
                             <option value="newest">Newest First</option>
                             <option value="oldest">Oldest First</option>
                         </select>
@@ -2496,7 +2496,7 @@
                     <p style="color:#64748b; margin-bottom: 16px;">View, filter, and manage leaderboard entries.</p>
                     
                     <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
-                        <select id="typingLeaderboardLevelFilter" style="padding:8px; border:1px solid #e2e8f0; border-radius:6px;">
+                        <select id="typingLeaderboardLevelFilter" style="padding:0 10px; border:1px solid #e2e8f0; border-radius:6px; height:38px; box-sizing:border-box;">
                             <option value="all">All Levels</option>
                         </select>
                         <button type="button" class="btn btn-primary" onclick="loadTypingLeaderboard()"><i class="fas fa-sync"></i> Refresh</button>
