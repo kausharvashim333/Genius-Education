@@ -3918,7 +3918,7 @@ const uploadStudyMaterial = multer({
     }
 });
 
-app.get('/api/students', verifyAdminSessionMiddleware, (req, res) => {
+app.get('/api/students', (req, res) => {
     const students = readData('students.json') || [];
     const { course, batch } = req.query;
     
