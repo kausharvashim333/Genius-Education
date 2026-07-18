@@ -31,10 +31,29 @@
                 <li><a href="#about">About Us</a></li>
                 <li><a href="#blog">Blog</a></li>
                 <li><a href="#contact">Contact</a></li>
-                <li><a href="typing-practice.html?guide=true&selectLang=true" class="nav-cta nav-typing" onclick="openTypingFullscreen(event)"><i class="fas fa-keyboard icon-3d"></i> Typing Practice</a></li>
-                <li id="navEntranceExamItem" style="display:none;"><a href="entrance-portal.html" class="nav-cta nav-entrance" style="background: linear-gradient(135deg, #f59e0b, #ef4444);"><i class="fas fa-graduation-cap icon-3d"></i> Entrance Exam</a></li>
-                <li><a href="student-portal.html" class="nav-cta nav-student"><i class="fas fa-user-graduate icon-3d"></i> Student Portal</a></li>
-                <li><a href="faculty-portal.html" class="nav-cta nav-faculty"><i class="fas fa-chalkboard-teacher icon-3d"></i> Faculty Portal</a></li>
+                <li class="nav-portals-dropdown">
+                    <a href="#" class="nav-cta nav-portals-toggle" onclick="togglePortalsDropdown(event)">
+                        <i class="fas fa-th-large icon-3d"></i> Portals <i class="fas fa-chevron-down portals-chevron"></i>
+                    </a>
+                    <div class="portals-dropdown-menu" id="portalsDropdownMenu">
+                        <a href="typing-practice.html?guide=true&selectLang=true" onclick="openTypingFullscreen(event); closePortalsDropdown();">
+                            <i class="fas fa-keyboard"></i>
+                            <span>Typing Practice</span>
+                        </a>
+                        <a href="entrance-portal.html" id="navEntranceExamLink" style="display:none;" onclick="closePortalsDropdown()">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Entrance Exam</span>
+                        </a>
+                        <a href="student-portal.html" onclick="closePortalsDropdown()">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>Student Portal</span>
+                        </a>
+                        <a href="faculty-portal.html" onclick="closePortalsDropdown()">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span>Faculty Portal</span>
+                        </a>
+                    </div>
+                </li>
             </ul>
             <div class="hamburger">
                 <span></span>
@@ -384,8 +403,8 @@
                 const res = await fetch('/api/entrance-settings');
                 const data = await res.json();
                 if (data && data.enabled) {
-                    const item = document.getElementById('navEntranceExamItem');
-                    if (item) item.style.display = '';
+                    const link = document.getElementById('navEntranceExamLink');
+                    if (link) link.style.display = '';
                 }
             } catch (e) { /* silently ignore */ }
         })();
@@ -685,6 +704,30 @@
         })();
 
         // Security (right-click + dev tools prevention) handled by /js/security.js
+
+        // Portals Dropdown
+        function togglePortalsDropdown(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const menu = document.getElementById('portalsDropdownMenu');
+            const toggle = e.currentTarget;
+            menu.classList.toggle('open');
+            toggle.classList.toggle('active');
+        }
+
+        function closePortalsDropdown() {
+            const menu = document.getElementById('portalsDropdownMenu');
+            const toggle = document.querySelector('.nav-portals-toggle');
+            menu.classList.remove('open');
+            toggle.classList.remove('active');
+        }
+
+        document.addEventListener('click', function(e) {
+            const dropdown = document.querySelector('.nav-portals-dropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                closePortalsDropdown();
+            }
+        });
 
         // Open typing practice in fullscreen
         function openTypingFullscreen(event) {
