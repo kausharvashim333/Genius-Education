@@ -2681,6 +2681,7 @@ body {
     -webkit-backdrop-filter: blur(30px);
     color: white;
     padding: 30px 20px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .admin-logo {
