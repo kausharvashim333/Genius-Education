@@ -7967,6 +7967,78 @@ app.get('/verify-application', (req, res) => {
     </body></html>`);
 });
 
+// Student verification page (for student QR codes)
+app.get('/verify-student', (req, res) => {
+    const rollNo = req.query.rollNo;
+    const settings = readData('settings.json') || {};
+    const instituteName = settings.name || 'Genius Computer Education';
+    const headerColor = settings.headerColor || '#1e40af';
+
+    if (!rollNo) {
+        return res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Student Verification</title>
+        <style>body{font-family:Arial,sans-serif;background:#f1f5f9;padding:20px;text-align:center;margin:0;}
+        .container{max-width:500px;margin:40px auto;background:#fff;padding:30px;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);}
+        h1{color:#dc2626;margin-bottom:10px;}p{color:#64748b;}</style></head><body>
+        <div class="container"><h1>Invalid Link</h1><p>No Student ID provided. Please scan a valid QR code.</p></div>
+        </body></html>`);
+    }
+
+    const students = readData('students.json') || [];
+    const student = students.find(s => s.rollNo === rollNo);
+
+    if (!student) {
+        return res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Student Verification</title>
+        <style>body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#fee2e2 0%,#fecaca 100%);padding:20px;margin:0;min-height:100vh;}
+        .container{max-width:500px;margin:40px auto;background:#fff;padding:30px;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);text-align:center;}
+        h1{color:#dc2626;margin-bottom:10px;}p{color:#64748b;}
+        .badge{display:inline-block;background:#fee2e2;color:#991b1b;padding:8px 16px;border-radius:20px;font-weight:600;margin-bottom:15px;}</style></head><body>
+        <div class="container"><div class="badge">Not Verified</div><h1>Student Not Found</h1>
+        <p>No record found for Student ID: <strong>${rollNo}</strong></p>
+        <p>Please verify with the institute administration.</p></div>
+        </body></html>`);
+    }
+
+    const photo = student.photo ? `<img src="${student.photo}" alt="Photo" style="width:100px;height:120px;object-fit:cover;border:3px solid ${headerColor};border-radius:8px;display:block;margin:0 auto 15px;">` : '';
+
+    res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Student Verified - ${instituteName}</title>
+    <style>body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px;margin:0;min-height:100vh;}
+    .container{max-width:600px;margin:0 auto;background:#fff;padding:30px;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.2);}
+    .header{text-align:center;padding-bottom:20px;border-bottom:2px solid #e5e7eb;margin-bottom:20px;}
+    .header h1{color:${headerColor};margin:0 0 10px 0;font-size:24px;}
+    .header p{color:#64748b;margin:0;}
+    .verified{display:inline-flex;align-items:center;background:#dcfce7;color:#166534;padding:8px 16px;border-radius:20px;font-weight:600;margin-bottom:15px;}
+    .details{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
+    .detail-item{background:#f8fafc;padding:15px;border-radius:8px;}
+    .detail-item label{display:block;color:#64748b;font-size:12px;margin-bottom:5px;}
+    .detail-item span{color:#1e293b;font-weight:600;font-size:14px;}
+    .full-width{grid-column:1/-1;}
+    .footer{text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid #e5e7eb;color:#64748b;font-size:12px;}
+    @media(max-width:480px){.details{grid-template-columns:1fr;}}</style></head><body>
+    <div class="container">
+        <div class="header">
+            <div class="verified">Verified Student</div>
+            ${photo}
+            <h1>${instituteName}</h1>
+            <p>Student Verification</p>
+        </div>
+        <div class="details">
+            <div class="detail-item"><label>Student ID</label><span>${student.rollNo || 'N/A'}</span></div>
+            <div class="detail-item"><label>Student Name</label><span>${student.name || 'N/A'}</span></div>
+            <div class="detail-item full-width"><label>Father's Name</label><span>${student.fatherName || 'N/A'}</span></div>
+            <div class="detail-item"><label>Date of Birth</label><span>${student.dob || 'N/A'}</span></div>
+            <div class="detail-item"><label>Contact No.</label><span>${student.phone || 'N/A'}</span></div>
+            <div class="detail-item full-width"><label>Course</label><span>${student.course || 'N/A'}</span></div>
+            <div class="detail-item"><label>Batch</label><span>${student.batch || 'N/A'}</span></div>
+            <div class="detail-item"><label>Status</label><span style="color:#16a34a;">${student.status || 'Active'}</span></div>
+        </div>
+        <div class="footer">
+            <p>This student record has been verified from ${instituteName}</p>
+            <p>Verification Date: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</p>
+        </div>
+    </div>
+    </body></html>`);
+});
+
 // Certificate verification page
 app.get('/verify-certificate', (req, res) => {
     res.send(`

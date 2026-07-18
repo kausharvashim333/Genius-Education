@@ -10501,7 +10501,7 @@ async function showStudentQR(id) {
         document.getElementById('studentQRId').textContent = 'ID: ' + s.rollNo;
         document.getElementById('studentQRCourse').textContent = s.course || '';
         const baseUrl = window.location.origin;
-        const qrText = baseUrl + '/student-portal?rollNo=' + encodeURIComponent(s.rollNo);
+        const qrText = baseUrl + '/verify-student?rollNo=' + encodeURIComponent(s.rollNo);
         const qrRes = await fetch('/api/qr?text=' + encodeURIComponent(qrText) + '&size=200');
         const qrData = await qrRes.json();
         if (qrData.success) {
