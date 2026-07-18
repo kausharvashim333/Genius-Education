@@ -11776,8 +11776,6 @@ async function loadPopupImagePreview() {
 
 document.getElementById('settingsForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    // Get current settings to preserve popup image
-    const currentSettings = await fetch('/api/settings').then(r => r.json());
     const data = {
         name: document.getElementById('settingName').value,
         phone: getPhoneNumbers(),
@@ -11786,7 +11784,21 @@ document.getElementById('settingsForm').addEventListener('submit', async functio
         address: document.getElementById('settingAddress').value,
         websiteUrl: document.getElementById('settingWebsiteUrl').value,
         rightClickPrevention: document.getElementById('rightClickPrevention').checked,
-        devToolsPrevention: document.getElementById('devToolsPrevention').checked,
+        devToolsPrevention: document.getElementById('devToolsPrevention').checked
+    };
+    try {
+        await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        loadAdminLogo();
+        loadSettings();
+        showNotification('Settings saved!', 'success');
+    } catch (err) { showNotification('Error saving settings!', 'error'); }
+});
+
+document.getElementById('popupForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    // Get current settings to preserve popup image
+    const currentSettings = await fetch('/api/settings').then(r => r.json());
+    const data = {
         popup: {
             enabled: document.getElementById('popupEnabled').checked,
             title: document.getElementById('popupTitle').value,
@@ -11797,10 +11809,9 @@ document.getElementById('settingsForm').addEventListener('submit', async functio
     };
     try {
         await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        loadAdminLogo();
         loadSettings();
-        showNotification('Settings saved!', 'success');
-    } catch (err) { showNotification('Error saving settings!', 'error'); }
+        showNotification('Popup settings saved!', 'success');
+    } catch (err) { showNotification('Error saving popup settings!', 'error'); }
 });
 
 document.getElementById('smtpForm').addEventListener('submit', async function(e) {
