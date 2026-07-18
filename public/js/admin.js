@@ -14922,36 +14922,113 @@ async function loadTypingUsers() {
             });
         }
         
-        // Apply sort order
+        // Group scores by user name
+        const users = {};
+        scores.forEach(score => {
+            const name = score.studentName || score.name || 'Unknown';
+            if (!users[name]) {
+                users[name] = {
+                    name: name,
+                    bestWPM: score.wpm,
+                    bestAccuracy: score.accuracy,
+                    attempts: 0,
+                    lastActive: score.createdAt || score.date,
+                    allScores: []
+                };
+            }
+            users[name].attempts++;
+            users[name].allScores.push(score);
+            if (score.wpm > users[name].bestWPM) users[name].bestWPM = score.wpm;
+            if (score.accuracy > users[name].bestAccuracy) users[name].bestAccuracy = score.accuracy;
+            const scoreDate = score.createdAt || score.date;
+            if (scoreDate && new Date(scoreDate) > new Date(users[name].lastActive)) {
+                users[name].lastActive = scoreDate;
+            }
+        });
+        
+        // Convert to array and sort by last active (newest first by default)
         const sortOrder = document.getElementById('typingSortOrder')?.value || 'newest';
-        scores.sort((a, b) => {
-            const dateA = new Date(a.createdAt || a.date).getTime();
-            const dateB = new Date(b.createdAt || b.date).getTime();
+        const usersArray = Object.values(users);
+        usersArray.sort((a, b) => {
+            const dateA = new Date(a.lastActive).getTime();
+            const dateB = new Date(b.lastActive).getTime();
             return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
         });
         
         const table = document.getElementById('typingUsersTable');
-        if (scores.length === 0) {
-            table.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center;">No scores found</td></tr>';
+        if (usersArray.length === 0) {
+            table.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center;">No users found</td></tr>';
             return;
         }
         
-        table.innerHTML = scores.map(score => `
+        table.innerHTML = usersArray.map(user => `
             <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                <td style="padding:12px;">${esc(score.studentName || score.name || 'Unknown')}</td>
-                <td style="padding:12px;">${score.wpm}</td>
-                <td style="padding:12px;">${score.accuracy}%</td>
-                <td style="padding:12px;">${score.difficulty || score.level || '-'}</td>
-                <td style="padding:12px;">${score.duration ? score.duration + 's' : '-'}</td>
-                <td style="padding:12px;">${formatDate(score.createdAt || score.date)}</td>
-                <td style="padding:12px;">
-                    <button class="btn btn-danger" onclick="deleteTypingScore('${score.id}')" style="padding:4px 8px; font-size:12px;">Delete</button>
+                <td style="padding:12px; font-weight:600;">${esc(user.name)}</td>
+                <td style="padding:12px; color:#4facfe; font-weight:600;">${user.bestWPM}</td>
+                <td style="padding:12px; color:#43e97b; font-weight:600;">${user.bestAccuracy}%</td>
+                <td style="padding:12px;">${user.attempts}</td>
+                <td style="padding:12px;">${formatDate(user.lastActive)}</td>
+                <td style="padding:12px; display:flex; gap:6px;">
+                    <button class="btn btn-primary" onclick="showTypingHistory('${esc(user.name)}')" style="padding:4px 10px; font-size:12px;"><i class="fas fa-history"></i> History</button>
+                    <button class="btn btn-danger" onclick="deleteTypingUser('${esc(user.name)}')" style="padding:4px 10px; font-size:12px;">Delete</button>
                 </td>
             </tr>
         `).join('');
+        
+        // Store all scores globally for history access
+        window._allTypingScores = scores;
     } catch (e) {
         showNotification('Error loading users: ' + e.message, 'error');
     }
+}
+
+// Show typing history for a specific user
+function showTypingHistory(name) {
+    const allScores = window._allTypingScores || [];
+    const userScores = allScores.filter(s => (s.studentName || s.name || 'Unknown') === name);
+    
+    const modal = document.getElementById('typingHistoryModal');
+    const nameSpan = document.getElementById('typingHistoryName');
+    const body = document.getElementById('typingHistoryBody');
+    
+    nameSpan.textContent = name;
+    
+    if (userScores.length === 0) {
+        body.innerHTML = '<p style="color:rgba(255,255,255,0.5); text-align:center; padding:20px;">No history found</p>';
+    } else {
+        userScores.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
+        body.innerHTML = `
+            <table style="width:100%; border-collapse:separate; border-spacing:0;">
+                <thead>
+                    <tr style="background:rgba(102,126,234,0.15);">
+                        <th style="padding:10px; text-align:left; color:#f8fafc; border-bottom:2px solid rgba(102,126,234,0.5);">WPM</th>
+                        <th style="padding:10px; text-align:left; color:#f8fafc; border-bottom:2px solid rgba(102,126,234,0.5);">Accuracy</th>
+                        <th style="padding:10px; text-align:left; color:#f8fafc; border-bottom:2px solid rgba(102,126,234,0.5);">Level</th>
+                        <th style="padding:10px; text-align:left; color:#f8fafc; border-bottom:2px solid rgba(102,126,234,0.5);">Duration</th>
+                        <th style="padding:10px; text-align:left; color:#f8fafc; border-bottom:2px solid rgba(102,126,234,0.5);">Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${userScores.map((score, i) => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.08); transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background=''">
+                            <td style="padding:10px; color:#4facfe; font-weight:600;">${score.wpm}</td>
+                            <td style="padding:10px; color:#43e97b;">${score.accuracy}%</td>
+                            <td style="padding:10px; color:#e2e8f0;">${score.difficulty || score.level || '-'}</td>
+                            <td style="padding:10px; color:#e2e8f0;">${score.duration ? score.duration + 's' : '-'}</td>
+                            <td style="padding:10px; color:#e2e8f0;">${formatDate(score.createdAt || score.date)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+    
+    modal.style.display = 'flex';
+}
+
+// Close typing history modal
+function closeTypingHistory() {
+    document.getElementById('typingHistoryModal').style.display = 'none';
 }
 
 // Clear date filters

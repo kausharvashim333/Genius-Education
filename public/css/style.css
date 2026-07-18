@@ -3052,12 +3052,15 @@ img.login-logo {
     list-style: none;
     padding: 0;
     margin: 5px 0 0 0;
-    display: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
     padding-left: 20px;
 }
 
 .dropdown.open .dropdown-menu {
-    display: block;
+    max-height: 500px;
+    overflow-y: auto;
 }
 
 .dropdown-menu li {
@@ -6443,6 +6446,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     .sidebar.collapsed .dropdown:hover .dropdown-menu,
     .sidebar.collapsed .dropdown.flyout-open .dropdown-menu {
         display: block !important;
+        max-height: 70vh;
     }
     .sidebar.collapsed .dropdown-menu a {
         font-size: 0.9rem !important;

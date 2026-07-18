@@ -432,6 +432,153 @@
         #blogModal .modal-content::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
     </style>
     <style>
+        /* ===== Typing Practice Pages — Glassmorphism ===== */
+        #page-typing-users .data-table,
+        #page-typing-content .data-table,
+        #page-typing-leaderboard .data-table,
+        #page-typing-analytics .data-table,
+        #page-typing-settings .data-table {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05)) !important;
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            border-radius: 20px !important;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+            padding: 26px !important;
+            color: #f1f5f9;
+        }
+        #page-typing-users h3,
+        #page-typing-content h3,
+        #page-typing-leaderboard h3,
+        #page-typing-analytics h3,
+        #page-typing-settings h3 {
+            color: #f8fafc !important;
+            font-size: 1.35rem;
+            letter-spacing: 0.2px;
+        }
+        #page-typing-users h3 i,
+        #page-typing-content h3 i,
+        #page-typing-leaderboard h3 i,
+        #page-typing-analytics h3 i,
+        #page-typing-settings h3 i {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-right: 6px;
+        }
+        #page-typing-users > .data-table > p,
+        #page-typing-content > .data-table > p,
+        #page-typing-leaderboard > .data-table > p,
+        #page-typing-analytics > .data-table > p,
+        #page-typing-settings > .data-table > p {
+            color: rgba(255, 255, 255, 0.55) !important;
+        }
+        /* Glass inputs for typing pages */
+        #page-typing-users input[type="text"],
+        #page-typing-users input[type="date"],
+        #page-typing-users select,
+        #page-typing-content input,
+        #page-typing-content select,
+        #page-typing-content textarea,
+        #page-typing-leaderboard select,
+        #page-typing-settings input,
+        #page-typing-settings select {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            color: #f1f5f9 !important;
+            border-radius: 10px !important;
+            padding: 8px 12px !important;
+            transition: all 0.2s;
+        }
+        #page-typing-users input:focus,
+        #page-typing-users select:focus,
+        #page-typing-content input:focus,
+        #page-typing-content select:focus,
+        #page-typing-content textarea:focus,
+        #page-typing-leaderboard select:focus,
+        #page-typing-settings input:focus,
+        #page-typing-settings select:focus {
+            background: rgba(255, 255, 255, 0.12) !important;
+            border-color: rgba(102, 126, 234, 0.6) !important;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        #page-typing-users select option,
+        #page-typing-content select option,
+        #page-typing-leaderboard select option,
+        #page-typing-settings select option {
+            background: #1e293b;
+            color: #fff;
+        }
+        #page-typing-users label,
+        #page-typing-content label,
+        #page-typing-settings label {
+            color: #e2e8f0 !important;
+        }
+        /* Glass table styling */
+        #page-typing-users table,
+        #page-typing-leaderboard table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        #page-typing-users table thead tr,
+        #page-typing-leaderboard table thead tr {
+            background: rgba(102, 126, 234, 0.15) !important;
+        }
+        #page-typing-users table th,
+        #page-typing-leaderboard table th {
+            border-bottom: 2px solid rgba(102, 126, 234, 0.5) !important;
+            color: #f8fafc !important;
+            font-weight: 600;
+        }
+        #page-typing-users table td,
+        #page-typing-leaderboard table td {
+            color: #e2e8f0 !important;
+        }
+        #page-typing-users table tr,
+        #page-typing-leaderboard table tr {
+            transition: background 0.15s;
+        }
+        #page-typing-users table tbody tr:hover,
+        #page-typing-leaderboard table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        /* Glass stat cards in analytics */
+        #page-typing-analytics .data-table > div > div[style*="linear-gradient"] {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+        #page-typing-analytics .data-table > div > div[style*="rgba(255,255,255,0.05)"] {
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        }
+        /* ===== Sidebar Dropdown Height Fix ===== */
+        .dropdown-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .dropdown.open .dropdown-menu {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .dropdown-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+        .dropdown-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .dropdown-menu::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
+        }
+    </style>
+    <style>
         /* ===== Legal Pages Editor — Glassmorphism ===== */
         #page-legal-pages .data-table {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05)) !important;
@@ -2256,19 +2403,29 @@
                             <thead>
                                 <tr style="background:rgba(102,126,234,0.1);">
                                     <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Name</th>
-                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">WPM</th>
-                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Accuracy</th>
-                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Level</th>
-                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Duration</th>
-                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Date</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Best WPM</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Best Accuracy</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Total Attempts</th>
+                                    <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Last Active</th>
                                     <th style="padding:12px; text-align:left; border-bottom:2px solid #667eea;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="typingUsersTable">
-                                <tr><td colspan="7" style="padding:20px; text-align:center;">Loading...</td></tr>
+                                <tr><td colspan="6" style="padding:20px; text-align:center;">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- Typing History Modal -->
+            <div id="typingHistoryModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:9999; justify-content:center; align-items:center;" onclick="if(event.target===this)closeTypingHistory()">
+                <div style="background:linear-gradient(135deg, rgba(30,41,59,0.95), rgba(15,23,42,0.95)); backdrop-filter:blur(25px) saturate(180%); border:1px solid rgba(255,255,255,0.18); border-radius:20px; box-shadow:0 25px 60px rgba(0,0,0,0.5); max-width:800px; width:90%; max-height:80vh; overflow:hidden; display:flex; flex-direction:column;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.15);">
+                        <h3 style="margin:0; color:#f8fafc; font-size:1.2rem;"><i class="fas fa-history" style="margin-right:8px; color:#f59e0b;"></i> Typing History - <span id="typingHistoryName" style="color:#fbbf24;"></span></h3>
+                        <button onclick="closeTypingHistory()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:18px; transition:all 0.2s;">&times;</button>
+                    </div>
+                    <div id="typingHistoryBody" style="padding:20px 24px; overflow-y:auto; flex:1;"></div>
                 </div>
             </div>
 
