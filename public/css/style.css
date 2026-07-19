@@ -6595,7 +6595,6 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         from { opacity: 0; transform: translateX(-10px); }
         to { opacity: 1; transform: translateX(0); }
     }
-    .sidebar.collapsed .dropdown:hover .dropdown-menu,
     .sidebar.collapsed .dropdown.flyout-open .dropdown-menu {
         display: block !important;
         max-height: 70vh;

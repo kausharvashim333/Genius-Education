@@ -15897,19 +15897,45 @@ function autoExpandActiveDropdown() {
 
 // Collapsed Sidebar Flyout Submenus
 (function initCollapsedFlyout() {
+    function positionFlyout(sidebar, dropdown) {
+        const menu = dropdown.querySelector('.dropdown-menu');
+        const toggle = dropdown.querySelector('.dropdown-toggle');
+        if (!menu || !toggle) return;
+        const sidebarRect = sidebar.getBoundingClientRect();
+        const toggleRect = toggle.getBoundingClientRect();
+        menu.style.top = (toggleRect.top - sidebarRect.top) + 'px';
+    }
+
+    function closeAllFlyouts() {
+        document.querySelectorAll('.sidebar-menu > li.dropdown.flyout-open').forEach(d => d.classList.remove('flyout-open'));
+    }
+
+    function openFlyout(sidebar, dropdown) {
+        closeAllFlyouts();
+        dropdown.classList.add('flyout-open');
+        positionFlyout(sidebar, dropdown);
+    }
+
+    // Hover support for desktop collapsed mode
     document.addEventListener('mouseover', function(e) {
         const sidebar = document.querySelector('.sidebar');
         if (!sidebar || !sidebar.classList.contains('collapsed')) return;
         const dropdown = e.target.closest('.sidebar-menu > li.dropdown');
         if (!dropdown) return;
-        const menu = dropdown.querySelector('.dropdown-menu');
-        if (!menu) return;
-        const toggle = dropdown.querySelector('.dropdown-toggle');
-        if (toggle) {
-            const sidebarRect = sidebar.getBoundingClientRect();
-            const toggleRect = toggle.getBoundingClientRect();
-            menu.style.top = (toggleRect.top - sidebarRect.top) + 'px';
-        }
+        if (dropdown.classList.contains('flyout-open')) return;
+        openFlyout(sidebar, dropdown);
+    });
+
+    // Close flyout when mouse leaves the dropdown entirely
+    document.addEventListener('mouseout', function(e) {
+        const sidebar = document.querySelector('.sidebar');
+        if (!sidebar || !sidebar.classList.contains('collapsed')) return;
+        const dropdown = e.target.closest('.sidebar-menu > li.dropdown');
+        if (!dropdown) return;
+        // Check if mouse moved to a related element still inside the dropdown
+        const related = e.relatedTarget;
+        if (related && dropdown.contains(related)) return;
+        dropdown.classList.remove('flyout-open');
     });
 
     // Click support for touch devices in collapsed mode
@@ -15921,16 +15947,10 @@ function autoExpandActiveDropdown() {
             e.preventDefault();
             const dropdown = toggle.closest('.dropdown');
             const isOpen = dropdown.classList.contains('flyout-open');
-            document.querySelectorAll('.sidebar-menu > li.dropdown.flyout-open').forEach(d => d.classList.remove('flyout-open'));
-            if (!isOpen) dropdown.classList.add('flyout-open');
-            const menu = dropdown.querySelector('.dropdown-menu');
-            if (menu && !isOpen) {
-                const sidebarRect = sidebar.getBoundingClientRect();
-                const toggleRect = toggle.getBoundingClientRect();
-                menu.style.top = (toggleRect.top - sidebarRect.top) + 'px';
-            }
+            closeAllFlyouts();
+            if (!isOpen) openFlyout(sidebar, dropdown);
         } else {
-            document.querySelectorAll('.sidebar-menu > li.dropdown.flyout-open').forEach(d => d.classList.remove('flyout-open'));
+            closeAllFlyouts();
         }
     });
 })();
