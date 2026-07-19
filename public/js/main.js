@@ -192,7 +192,7 @@ async function loadCourses() {
         const siteLogo = settingsRes.logo || '';
         const logoImg = siteLogo ? `<img src="${siteLogo}" alt="Logo" style="width:14px;height:14px;object-fit:contain;margin-right:4px;border-radius:3px;">` : '<i class="fas fa-graduation-cap"></i>';
         
-        container.innerHTML = courses.map(course => {
+        container.innerHTML = courses.slice(0, 6).map(course => {
             const emoji = getCourseEmoji(course.name);
             const fee = course.fee || course.price || 0;
             const feeType = course.feeType || 'Per Program';
@@ -247,27 +247,74 @@ function openCourseModal(id) {
     const fee = course.fee || course.price || 0;
     const feeType = course.feeType || 'Per Program';
     const priceFormatted = parseInt(fee).toLocaleString('en-IN');
-    const eligibility = course.eligibility || '';
+    const eligibility = course.eligibility || 'Any';
     const desc = course.description || 'Description available nahi hai.';
+    const duration = course.duration || 'N/A';
+
+    // Split description into bullet points if it contains newlines or •
+    const descLines = desc.split(/\n|•/).map(s => s.trim()).filter(s => s.length > 0);
+    const hasBullets = descLines.length > 1;
 
     const modalContent = document.getElementById('courseModalContent');
     modalContent.innerHTML = `
-        <div class="course-modal-header">
-            <span class="course-emoji" style="font-size: 3rem;">${emoji}</span>
-            <h2>${course.name}</h2>
+        <div class="course-detail-hero">
+            <span class="course-detail-emoji">${emoji}</span>
+            <h2 class="course-detail-title">${course.name}</h2>
+            <div class="course-detail-badges">
+                <span class="detail-badge"><i class="fas fa-clock"></i> ${duration}</span>
+                <span class="detail-badge"><i class="fas fa-graduation-cap"></i> ${eligibility}</span>
+                <span class="detail-badge"><i class="fas fa-indian-rupee-sign"></i> ₹${priceFormatted} <small>${feeType}</small></span>
+            </div>
         </div>
-        <div class="course-modal-body">
-            <div class="course-meta">
-                <span class="meta-tag"><i class="fas fa-clock"></i> ${course.duration}</span>
-                ${eligibility ? `<span class="meta-tag"><i class="fas fa-graduation-cap"></i> ${eligibility}</span>` : ''}
+        <div class="course-detail-body">
+            <div class="course-detail-section">
+                <h3 class="course-detail-heading"><i class="fas fa-book-open"></i> Course Overview</h3>
+                <p class="course-detail-desc">${desc}</p>
             </div>
-            <div class="course-description">
-                <h4>Course Description</h4>
-                <p style="white-space: pre-wrap; line-height: 1.6;">${desc}</p>
+            ${hasBullets ? `
+            <div class="course-detail-section">
+                <h3 class="course-detail-heading"><i class="fas fa-list-ul"></i> What You'll Learn</h3>
+                <ul class="course-detail-list">
+                    ${descLines.map(line => `<li><i class="fas fa-check-circle"></i> ${line}</li>`).join('')}
+                </ul>
             </div>
-            <div style="margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <a href="apply.html?course=${encodeURIComponent(course.name)}" class="btn btn-primary" style="flex: 1; min-width: 200px;">
+            ` : ''}
+            <div class="course-detail-info-grid">
+                <div class="course-detail-info-card">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <small>Duration</small>
+                        <strong>${duration}</strong>
+                    </div>
+                </div>
+                <div class="course-detail-info-card">
+                    <i class="fas fa-graduation-cap"></i>
+                    <div>
+                        <small>Eligibility</small>
+                        <strong>${eligibility}</strong>
+                    </div>
+                </div>
+                <div class="course-detail-info-card">
+                    <i class="fas fa-indian-rupee-sign"></i>
+                    <div>
+                        <small>Fee</small>
+                        <strong>₹${priceFormatted}</strong>
+                    </div>
+                </div>
+                <div class="course-detail-info-card">
+                    <i class="fas fa-tag"></i>
+                    <div>
+                        <small>Fee Type</small>
+                        <strong>${feeType}</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="course-detail-cta">
+                <a href="apply.html?course=${encodeURIComponent(course.name)}" class="btn btn-primary course-detail-enroll">
                     <i class="fas fa-user-graduate"></i> Enroll Now
+                </a>
+                <a href="javascript:void(0)" onclick="closeCourseModal()" class="btn course-detail-close-btn">
+                    <i class="fas fa-times"></i> Close
                 </a>
             </div>
         </div>
