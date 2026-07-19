@@ -3330,10 +3330,7 @@ async function loadRevenueReport() {
 
         const modeConfig = [
             { key: 'cash', label: 'Cash', icon: 'fa-money-bill-wave', gradient: 'rgba(22,163,74,0.2),rgba(34,197,94,0.15)', border: 'rgba(22,163,74,0.3)', color: '#4ade80' },
-            { key: 'upi', label: 'UPI', icon: 'fa-mobile-alt', gradient: 'rgba(99,102,241,0.2),rgba(139,92,246,0.15)', border: 'rgba(99,102,241,0.3)', color: '#a78bfa' },
-            { key: 'card', label: 'Card', icon: 'fa-credit-card', gradient: 'rgba(14,165,233,0.2),rgba(59,130,246,0.15)', border: 'rgba(14,165,233,0.3)', color: '#38bdf8' },
-            { key: 'bank', label: 'Bank Transfer', icon: 'fa-university', gradient: 'rgba(245,158,11,0.2),rgba(251,191,36,0.15)', border: 'rgba(245,158,11,0.3)', color: '#fbbf24' },
-            { key: 'cheque', label: 'Cheque', icon: 'fa-money-check', gradient: 'rgba(236,72,153,0.2),rgba(244,114,182,0.15)', border: 'rgba(236,72,153,0.3)', color: '#f472b6' }
+            { key: 'upi', label: 'UPI', icon: 'fa-mobile-alt', gradient: 'rgba(99,102,241,0.2),rgba(139,92,246,0.15)', border: 'rgba(99,102,241,0.3)', color: '#a78bfa' }
         ];
 
         let summaryHtml = `
