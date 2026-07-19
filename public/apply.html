@@ -1012,10 +1012,8 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
 
         <div id="upiSection" style="display:none;margin-bottom:20px;">
-            <label style="display:block;margin-bottom:8px;font-weight:600;color:#fff;">UPI ID:</label>
-            <input type="text" id="upiId" placeholder="yourname@upi" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;margin-bottom:10px;">
-            <label style="display:block;margin-bottom:8px;font-weight:600;color:#fff;">UTR Number:</label>
-            <input type="text" id="utrNumber" placeholder="Enter UTR number" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;margin-bottom:10px;">
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#fff;">Receipt Number:</label>
+            <input type="text" id="utrNumber" placeholder="Enter receipt number" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;margin-bottom:10px;">
             <label style="display:block;margin-bottom:8px;font-weight:600;color:#fff;">Amount Received:</label>
             <input type="number" id="upiAmount" placeholder="Enter amount" oninput="validateUpiAmount()" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;">
         </div>
@@ -2268,15 +2266,10 @@ async function proceedPayment() {
 
 function finalizeSubmission() {
     if (selectedPaymentMode === 'upi') {
-        const upiId = document.getElementById('upiId').value;
         const utrNumber = document.getElementById('utrNumber').value;
         const upiAmount = document.getElementById('upiAmount').value;
-        if (!upiId) {
-            alert('UPI ID enter karein!');
-            return;
-        }
         if (!utrNumber) {
-            alert('UTR number enter karein!');
+            alert('Receipt number enter karein!');
             return;
         }
         if (!upiAmount || parseInt(upiAmount) <= 0) {
@@ -2284,7 +2277,7 @@ function finalizeSubmission() {
             return;
         }
         // Process UPI payment
-        submitApplication('UPI', 'custom', parseInt(upiAmount), upiId, utrNumber, '');
+        submitApplication('UPI', 'custom', parseInt(upiAmount), '', utrNumber, '');
     } else if (selectedPaymentMode === 'cash') {
         const cashAmount = document.getElementById('cashAmount').value;
         const cashReceiptNo = document.getElementById('cashReceiptNo').value;

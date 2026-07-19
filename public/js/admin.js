@@ -970,6 +970,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 formData.append('amountPaid', amountPaid.toString());
                 formData.append('pendingFees', pendingFees.toString());
                 formData.append('transactionId', document.getElementById('sTransactionId')?.value || '');
+                if (paymentMode === 'upi') {
+                    formData.append('utrNumber', document.getElementById('utrNumber')?.value || '');
+                }
+                if (paymentMode === 'cash') {
+                    formData.append('utrNumber', document.getElementById('cashReceiptNo')?.value || '');
+                }
                 formData.append('sendEmail', document.getElementById('sSendEmail')?.checked ? 'true' : 'false');
 
                 const qualification = {
