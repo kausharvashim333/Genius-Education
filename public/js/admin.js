@@ -15897,6 +15897,12 @@ function autoExpandActiveDropdown() {
 
 // Collapsed Sidebar Flyout Submenus
 (function initCollapsedFlyout() {
+    let closeTimer = null;
+
+    function clearCloseTimer() {
+        if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    }
+
     function positionFlyout(sidebar, dropdown) {
         const menu = dropdown.querySelector('.dropdown-menu');
         const toggle = dropdown.querySelector('.dropdown-toggle');
@@ -15907,10 +15913,12 @@ function autoExpandActiveDropdown() {
     }
 
     function closeAllFlyouts() {
+        clearCloseTimer();
         document.querySelectorAll('.sidebar-menu > li.dropdown.flyout-open').forEach(d => d.classList.remove('flyout-open'));
     }
 
     function openFlyout(sidebar, dropdown) {
+        clearCloseTimer();
         closeAllFlyouts();
         dropdown.classList.add('flyout-open');
         positionFlyout(sidebar, dropdown);
@@ -15926,16 +15934,18 @@ function autoExpandActiveDropdown() {
         openFlyout(sidebar, dropdown);
     });
 
-    // Close flyout when mouse leaves the dropdown entirely
+    // Close flyout when mouse leaves the dropdown entirely (with delay)
     document.addEventListener('mouseout', function(e) {
         const sidebar = document.querySelector('.sidebar');
         if (!sidebar || !sidebar.classList.contains('collapsed')) return;
         const dropdown = e.target.closest('.sidebar-menu > li.dropdown');
         if (!dropdown) return;
-        // Check if mouse moved to a related element still inside the dropdown
         const related = e.relatedTarget;
         if (related && dropdown.contains(related)) return;
-        dropdown.classList.remove('flyout-open');
+        clearCloseTimer();
+        closeTimer = setTimeout(function() {
+            dropdown.classList.remove('flyout-open');
+        }, 300);
     });
 
     // Click support for touch devices in collapsed mode

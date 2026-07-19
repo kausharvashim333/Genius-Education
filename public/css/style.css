@@ -6577,7 +6577,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     .sidebar.collapsed .dropdown-menu {
         display: none !important;
         position: fixed;
-        left: 75px;
+        left: 70px;
         min-width: 220px;
         background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(40px) saturate(180%);
@@ -6585,7 +6585,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 16px;
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-        padding: 10px;
+        padding: 10px 10px 10px 15px;
         z-index: 1002;
         max-height: 70vh;
         overflow-y: auto;
