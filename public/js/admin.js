@@ -14789,9 +14789,6 @@ async function exportExamResultsToExcel() {
         if (!table || table.dataset.searchAttached === '1') return;
         if (!table.id) return; // require id
 
-        // Skip studentsTable since it has custom search with batch filter
-        if (table.id === 'studentsTable') return;
-
         // Find the page-content wrapper (the section with the header buttons)
         const pageContent = table.closest('.page-content');
         if (!pageContent) return;
@@ -14801,6 +14798,16 @@ async function exportExamResultsToExcel() {
         if (pageContent.dataset.searchAttached === '1') return;
         const headerToolbar = document.getElementById('headerToolbar');
         if (headerToolbar && headerToolbar.querySelector('.table-search-wrap')) return;
+
+        // Skip if page already has a custom text search input in toolbar/header
+        const existingSearch = pageContent.querySelector('.page-toolbar input[type="text"], .form-page-header input[type="text"]');
+        if (existingSearch) {
+            const ph = (existingSearch.placeholder || '').toLowerCase();
+            if (ph.includes('search') || ph.includes('filter') || existingSearch.oninput) {
+                pageContent.dataset.searchAttached = '1';
+                return;
+            }
+        }
 
         // Look for .page-toolbar first, then .form-page-header
         let header = pageContent.querySelector('.page-toolbar');
