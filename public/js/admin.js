@@ -2781,6 +2781,9 @@ async function toggleGalleryHomepage(id, checked) {
         const data = await res.json();
         if (data.success) {
             showNotification(checked ? 'Image will show on homepage' : 'Image removed from homepage', 'success');
+        } else if (res.status === 401) {
+            showNotification('Session expired. Please login again.', 'error');
+            loadGalleryTable();
         } else {
             showNotification(data.message || 'Failed to update', 'error');
             loadGalleryTable();
