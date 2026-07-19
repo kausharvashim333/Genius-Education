@@ -601,6 +601,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const origin = document.getElementById(originId);
                 if (origin) {
                     origin.insertBefore(tb, origin.firstChild);
+                    // Show parent form-page-header if it was hidden
+                    const parent = tb.parentElement;
+                    if (parent && parent.classList.contains('form-page-header')) {
+                        parent.style.display = '';
+                    }
                 }
             }
         });
@@ -609,6 +614,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         toolbars.forEach(tb => {
             tb.setAttribute('data-toolbar-origin', pageEl.id);
             toolbar.appendChild(tb);
+            // Hide parent form-page-header if it's now empty
+            const parent = tb.parentElement;
+            if (parent && parent.classList.contains('form-page-header') && !parent.children.length) {
+                parent.style.display = 'none';
+            }
         });
     }
 
@@ -14540,21 +14550,29 @@ async function exportExamResultsToExcel() {
         style.id = STYLE_ID;
         style.textContent = `
             .table-search-wrap {
+                display: flex;
+                align-items: center;
+                gap: 0;
                 margin: 0 0 12px 0;
-                position: relative;
-                max-width: 360px;
+                max-width: 420px;
                 background: rgba(255, 255, 255, 0.1);
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 border-radius: 12px;
                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                overflow: hidden;
+            }
+            .table-search-wrap .search-input-area {
+                position: relative;
+                flex: 1;
+                display: flex;
+                align-items: center;
             }
             .table-search-wrap input {
                 width: 100%;
-                padding: 8px 12px 8px 42px;
+                padding: 8px 12px 8px 38px;
                 border: none;
-                border-radius: 12px;
                 font-size: 14px;
                 outline: none;
                 background: transparent;
@@ -14569,7 +14587,7 @@ async function exportExamResultsToExcel() {
             }
             .table-search-wrap i.search-ico {
                 position: absolute;
-                left: 14px;
+                left: 12px;
                 top: 50%;
                 transform: translateY(-50%);
                 color: rgba(255, 255, 255, 0.6);
@@ -14578,7 +14596,7 @@ async function exportExamResultsToExcel() {
             }
             .table-search-wrap .search-count {
                 position: absolute;
-                right: 10px;
+                right: 8px;
                 top: 50%;
                 transform: translateY(-50%);
                 color: rgba(255, 255, 255, 0.7);
@@ -14587,20 +14605,42 @@ async function exportExamResultsToExcel() {
             }
             .table-search-wrap .clear-btn {
                 position: absolute;
-                right: 8px;
+                right: 6px;
                 top: 50%;
                 transform: translateY(-50%);
                 background: rgba(255, 255, 255, 0.2);
                 border: none;
                 color: rgba(255, 255, 255, 0.8);
                 cursor: pointer;
-                padding: 4px;
+                padding: 4px 6px;
                 display: none;
                 border-radius: 6px;
+                font-size: 12px;
             }
             .table-search-wrap .clear-btn:hover { 
                 background: rgba(255, 255, 255, 0.3);
                 color: #fff;
+            }
+            .table-search-wrap .search-go-btn {
+                flex-shrink: 0;
+                padding: 8px 16px;
+                border: none;
+                border-left: 1px solid rgba(255, 255, 255, 0.2);
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: #fff;
+                font-size: 14px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                transition: all .15s;
+                white-space: nowrap;
+            }
+            .table-search-wrap .search-go-btn:hover {
+                background: linear-gradient(135deg, #5a6fd6, #6a3f92);
+            }
+            .table-search-wrap .search-go-btn:active {
+                transform: scale(0.97);
             }
         `;
         document.head.appendChild(style);
@@ -14785,16 +14825,20 @@ async function exportExamResultsToExcel() {
         search.style.marginLeft = 'auto';
         search.style.marginBottom = '0';
         search.innerHTML = `
-            <i class="fas fa-search search-ico"></i>
-            <input type="text" placeholder="Search..." aria-label="Search table">
-            <button type="button" class="clear-btn" title="Clear"><i class="fas fa-times"></i></button>
-            <span class="search-count"></span>
+            <div class="search-input-area">
+                <i class="fas fa-search search-ico"></i>
+                <input type="text" placeholder="Search..." aria-label="Search table">
+                <button type="button" class="clear-btn" title="Clear"><i class="fas fa-times"></i></button>
+                <span class="search-count"></span>
+            </div>
+            <button type="button" class="search-go-btn" title="Search"><i class="fas fa-arrow-right"></i></button>
         `;
         header.appendChild(search);
 
         const input = search.querySelector('input');
         const clearBtn = search.querySelector('.clear-btn');
         const countEl = search.querySelector('.search-count');
+        const goBtn = search.querySelector('.search-go-btn');
 
         const update = () => {
             const q = input.value;
@@ -14812,7 +14856,9 @@ async function exportExamResultsToExcel() {
         };
 
         input.addEventListener('input', update);
+        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); update(); } });
         clearBtn.addEventListener('click', () => { input.value = ''; update(); input.focus(); });
+        goBtn.addEventListener('click', () => { update(); input.focus(); });
 
         // Re-apply filter when tbody contents change (data reloads)
         const tbody = table.tBodies[0];
