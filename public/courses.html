@@ -9,7 +9,7 @@
     <style>
         .courses-page-header {
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.1));
-            padding: 60px 20px 40px;
+            padding: 100px 20px 40px;
             text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
@@ -93,20 +93,46 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="nav-logo">
-                <img src="" alt="Logo" id="navLogo" style="display:none;">
-                <span>Genius Computer Education</span>
-            </a>
+        <div class="container">
+            <div class="nav-brand">
+                <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22%3EG%3C/text%3E%3C/svg%3E" alt="Genius Computer Education Logo" class="nav-logo" id="navLogo" style="display: block; max-height: 45px; max-width: 45px; height: auto; width: auto; border-radius: 10px;">
+                <a href="index.html">Genius Computer Education</a>
+            </div>
             <ul class="nav-menu">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="courses.html" class="active">Courses</a></li>
                 <li><a href="index.html#about">About Us</a></li>
                 <li><a href="index.html#blog">Blog</a></li>
                 <li><a href="index.html#contact">Contact</a></li>
+                <li class="nav-portals-dropdown">
+                    <a href="#" class="nav-cta nav-portals-toggle" onclick="togglePortalsDropdown(event)">
+                        <i class="fas fa-th-large icon-3d"></i> Portals <i class="fas fa-chevron-down portals-chevron"></i>
+                    </a>
+                    <div class="portals-dropdown-menu" id="portalsDropdownMenu">
+                        <a href="typing-practice.html?guide=true&selectLang=true" onclick="openTypingFullscreen(event); closePortalsDropdown();">
+                            <i class="fas fa-keyboard"></i>
+                            <span>Typing Practice</span>
+                        </a>
+                        <a href="entrance-portal.html" id="navEntranceExamLink" style="display:none;" onclick="closePortalsDropdown()">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Entrance Exam</span>
+                        </a>
+                        <a href="student-portal.html" onclick="closePortalsDropdown()">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>Student Portal</span>
+                        </a>
+                        <a href="faculty-portal.html" onclick="closePortalsDropdown()">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span>Faculty Portal</span>
+                        </a>
+                    </div>
+                </li>
             </ul>
-            <a href="apply.html" class="btn btn-primary nav-apply">Apply Online</a>
-            <button class="nav-toggle" aria-label="Menu"><i class="fas fa-bars"></i></button>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
     </nav>
 
@@ -207,6 +233,57 @@
                 navLogo.style.display = '';
             }
         });
+
+        // Portals Dropdown
+        function togglePortalsDropdown(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const menu = document.getElementById('portalsDropdownMenu');
+            const toggle = e.currentTarget;
+            menu.classList.toggle('open');
+            toggle.classList.toggle('active');
+        }
+
+        function closePortalsDropdown() {
+            const menu = document.getElementById('portalsDropdownMenu');
+            const toggle = document.querySelector('.nav-portals-toggle');
+            if (menu) menu.classList.remove('open');
+            if (toggle) toggle.classList.remove('active');
+        }
+
+        document.addEventListener('click', function(e) {
+            const dropdown = document.querySelector('.nav-portals-dropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                closePortalsDropdown();
+            }
+        });
+
+        // Open typing practice in fullscreen
+        function openTypingFullscreen(event) {
+            event.preventDefault();
+            const anchor = event.target.closest('a');
+            const url = anchor ? anchor.getAttribute('href') : null;
+            if (url) window.open(url, '_blank', 'fullscreen=yes,menubar=no,toolbar=no,location=no,status=no');
+        }
+
+        // Show entrance exam link only when feature is enabled
+        (async function () {
+            try {
+                const res = await fetch('/api/settings');
+                const settings = await res.json();
+                if (settings && settings.entranceExamEnabled) {
+                    const link = document.getElementById('navEntranceExamLink');
+                    if (link) link.style.display = '';
+                }
+            } catch (e) {}
+        })();
+
+        // Hamburger menu toggle
+        const hamburgerBtn = document.querySelector('.hamburger');
+        const navMenuEl = document.querySelector('.nav-menu');
+        if (hamburgerBtn && navMenuEl) {
+            hamburgerBtn.addEventListener('click', () => navMenuEl.classList.toggle('active'));
+        }
 
         loadAllCourses();
     </script>

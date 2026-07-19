@@ -37,7 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAnnouncementsTicker();
     loadCourses();
     loadTestimonials();
-    document.getElementById('contactForm').addEventListener('submit', handleContactSubmit);
+    const contactFormEl = document.getElementById('contactForm');
+    if (contactFormEl) contactFormEl.addEventListener('submit', handleContactSubmit);
     
     // Hamburger menu toggle
     const hamburger = document.querySelector('.hamburger');
