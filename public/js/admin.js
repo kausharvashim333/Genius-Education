@@ -15898,6 +15898,7 @@ function autoExpandActiveDropdown() {
 // Collapsed Sidebar Flyout Submenus
 (function initCollapsedFlyout() {
     let closeTimer = null;
+    let lockedDropdown = null;
 
     function clearCloseTimer() {
         if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
@@ -15914,12 +15915,27 @@ function autoExpandActiveDropdown() {
 
     function closeAllFlyouts() {
         clearCloseTimer();
-        document.querySelectorAll('.sidebar-menu > li.dropdown.flyout-open').forEach(d => d.classList.remove('flyout-open'));
+        document.querySelectorAll('.sidebar-menu > li.dropdown.flyout-open').forEach(d => {
+            d.classList.remove('flyout-open');
+            d.classList.remove('flyout-blur');
+            d.classList.remove('flyout-locked');
+        });
+        lockedDropdown = null;
     }
 
     function openFlyout(sidebar, dropdown) {
         clearCloseTimer();
-        closeAllFlyouts();
+        // If a dropdown is locked (clicked), blur it instead of closing
+        if (lockedDropdown && lockedDropdown !== dropdown) {
+            lockedDropdown.classList.add('flyout-blur');
+        }
+        // Close any non-locked open dropdowns
+        document.querySelectorAll('.sidebar-menu > li.dropdown.flyout-open').forEach(d => {
+            if (d !== dropdown && d !== lockedDropdown) {
+                d.classList.remove('flyout-open');
+            }
+        });
+        dropdown.classList.remove('flyout-blur');
         dropdown.classList.add('flyout-open');
         positionFlyout(sidebar, dropdown);
     }
@@ -15930,7 +15946,7 @@ function autoExpandActiveDropdown() {
         if (!sidebar || !sidebar.classList.contains('collapsed')) return;
         const dropdown = e.target.closest('.sidebar-menu > li.dropdown');
         if (!dropdown) return;
-        if (dropdown.classList.contains('flyout-open')) return;
+        if (dropdown.classList.contains('flyout-open') && !dropdown.classList.contains('flyout-blur')) return;
         openFlyout(sidebar, dropdown);
     });
 
@@ -15940,6 +15956,7 @@ function autoExpandActiveDropdown() {
         if (!sidebar || !sidebar.classList.contains('collapsed')) return;
         const dropdown = e.target.closest('.sidebar-menu > li.dropdown');
         if (!dropdown) return;
+        if (dropdown === lockedDropdown) return; // Don't auto-close locked dropdown
         const related = e.relatedTarget;
         if (related && dropdown.contains(related)) return;
         clearCloseTimer();
@@ -15948,7 +15965,7 @@ function autoExpandActiveDropdown() {
         }, 300);
     });
 
-    // Click support for touch devices in collapsed mode
+    // Click support: pin flyout open so user can interact with submenus
     document.addEventListener('click', function(e) {
         const sidebar = document.querySelector('.sidebar');
         if (!sidebar || !sidebar.classList.contains('collapsed')) return;
@@ -15956,10 +15973,25 @@ function autoExpandActiveDropdown() {
         if (toggle) {
             e.preventDefault();
             const dropdown = toggle.closest('.dropdown');
-            const isOpen = dropdown.classList.contains('flyout-open');
-            closeAllFlyouts();
-            if (!isOpen) openFlyout(sidebar, dropdown);
+            const isLocked = dropdown === lockedDropdown;
+            if (isLocked) {
+                // Unlock and close
+                closeAllFlyouts();
+            } else {
+                // Lock this dropdown open
+                closeAllFlyouts();
+                dropdown.classList.add('flyout-open', 'flyout-locked');
+                lockedDropdown = dropdown;
+                positionFlyout(sidebar, dropdown);
+            }
         } else {
+            // Click on a submenu item inside a locked flyout — navigate but keep locked
+            const submenuLink = e.target.closest('.sidebar-menu > li.dropdown .dropdown-menu a[data-page]');
+            if (submenuLink && lockedDropdown) {
+                // Keep the locked dropdown open after navigation
+                return;
+            }
+            // Click outside any dropdown — close all
             closeAllFlyouts();
         }
     });

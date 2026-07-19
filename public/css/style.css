@@ -6536,6 +6536,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         width: 75px;
         padding: 30px 10px;
         overflow: visible !important;
+        z-index: 1001;
     }
     .sidebar.collapsed + .main-content,
     .sidebar.collapsed ~ .main-content {
@@ -6598,6 +6599,15 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     .sidebar.collapsed .dropdown.flyout-open .dropdown-menu {
         display: block !important;
         max-height: 70vh;
+    }
+    .sidebar.collapsed .dropdown.flyout-blur .dropdown-menu {
+        opacity: 0.3;
+        pointer-events: none;
+        filter: blur(2px);
+        transition: opacity 0.15s ease, filter 0.15s ease;
+    }
+    .sidebar.collapsed .dropdown.flyout-locked .dropdown-menu {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(102, 126, 234, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
     }
     .sidebar.collapsed .dropdown-menu a {
         font-size: 0.85rem !important;
