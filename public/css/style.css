@@ -6721,6 +6721,18 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 .header-toolbar .page-toolbar input {
     width: 200px;
 }
+
+/* Header Search Box */
+.header-search-box .header-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+.header-search-box .header-search-input:focus::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+.header-search-box .header-search-clear:hover {
+    color: #fff;
+}
+
 .header-welcome h2 {
     font-size: 1.4rem;
     font-weight: 700;
@@ -6990,6 +7002,14 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     .header-toolbar {
         width: 100%;
         margin-left: 0;
+    }
+    .header-search-box {
+        width: 100%;
+        margin-left: 0 !important;
+    }
+    .header-search-box .header-search-input {
+        width: 100%;
+        min-width: unset !important;
     }
 }
 

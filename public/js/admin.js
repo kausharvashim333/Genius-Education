@@ -612,6 +612,127 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
+    // ===== Header Search System =====
+    const headerSearchState = {};
+
+    function attachHeaderSearch(pageEl) {
+        if (!pageEl) return;
+        const tables = pageEl.querySelectorAll('table[id]');
+        if (!tables.length) return;
+
+        const pageId = pageEl.id;
+
+        // Find the header toolbar (page-toolbar was already moved there by updateHeaderToolbar)
+        const headerToolbar = document.getElementById('headerToolbar');
+        if (!headerToolbar) return;
+
+        // Check if search already exists
+        const existingSearch = headerToolbar.querySelector('.header-search-box');
+        if (existingSearch) return;
+
+        // Create search box
+        const searchBox = document.createElement('div');
+        searchBox.className = 'header-search-box';
+        searchBox.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:8px;position:relative;';
+        searchBox.innerHTML = `
+            <i class="fas fa-search" style="position:absolute;left:12px;color:rgba(255,255,255,0.5);font-size:13px;pointer-events:none;"></i>
+            <input type="text" class="header-search-input" placeholder="Search..." aria-label="Search table"
+                style="padding:8px 12px 8px 34px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;height:40px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;font-size:14px;min-width:220px;outline:none;transition:border-color 0.2s;">
+            <button type="button" class="header-search-clear" title="Clear"
+                style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;padding:4px;font-size:13px;">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        headerToolbar.appendChild(searchBox);
+
+        const input = searchBox.querySelector('input');
+        const clearBtn = searchBox.querySelector('.header-search-clear');
+
+        input.addEventListener('focus', () => { input.style.borderColor = '#667eea'; });
+        input.addEventListener('blur', () => { input.style.borderColor = 'rgba(255,255,255,0.3)'; });
+
+        function doSearch() {
+            const q = input.value.toLowerCase().trim();
+            clearBtn.style.display = q ? 'block' : 'none';
+
+            // Handle paginated pages specially
+            if (pageId === 'page-students' && typeof allStudents !== 'undefined') {
+                const paginationEl = document.getElementById('studentsPagination');
+                if (q) {
+                    const filtered = allStudents.filter(s => {
+                        const text = (s.rollNo + ' ' + s.name + ' ' + (s.course || '') + ' ' + (s.phone || '') + ' ' + (s.email || '') + ' ' + (s.batch || '')).toLowerCase();
+                        return text.includes(q);
+                    });
+                    paginationEl.style.display = 'none';
+                    const origPerPage = studentsPerPage;
+                    studentsPerPage = 999999;
+                    studentsCurrentPage = 1;
+                    renderStudentsTable(filtered);
+                    studentsPerPage = origPerPage;
+                } else {
+                    paginationEl.style.display = '';
+                    studentsCurrentPage = 1;
+                    filterStudentsByBatch();
+                }
+                return;
+            }
+
+            if (pageId === 'page-enquiries' && typeof allEnquiries !== 'undefined') {
+                const paginationEl = document.getElementById('enquiriesPagination');
+                if (q) {
+                    const filtered = allEnquiries.filter(e => {
+                        const text = (e.name + ' ' + (e.phone || '') + ' ' + (e.email || '') + ' ' + (e.message || '') + ' ' + (e.date || '')).toLowerCase();
+                        return text.includes(q);
+                    });
+                    paginationEl.style.display = 'none';
+                    const origPerPage = enquiriesPerPage;
+                    enquiriesPerPage = 999999;
+                    enquiriesCurrentPage = 1;
+                    renderEnquiries(filtered);
+                    enquiriesPerPage = origPerPage;
+                } else {
+                    paginationEl.style.display = '';
+                    enquiriesCurrentPage = 1;
+                    filterEnquiries();
+                }
+                return;
+            }
+
+            // Generic DOM-based search for non-paginated pages
+            const allTables = pageEl.querySelectorAll('table[id]');
+            allTables.forEach(table => {
+                const tbody = table.tBodies[0];
+                if (!tbody) return;
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    if (!q) {
+                        row.style.display = '';
+                        return;
+                    }
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(q) ? '' : 'none';
+                });
+            });
+        }
+
+        input.addEventListener('input', doSearch);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { input.value = ''; doSearch(); input.blur(); }
+        });
+        clearBtn.addEventListener('click', () => { input.value = ''; doSearch(); input.focus(); });
+
+        // Store reference for cleanup
+        headerSearchState[pageId] = { searchBox, input, doSearch };
+    }
+
+    function removeHeaderSearch() {
+        const headerToolbar = document.getElementById('headerToolbar');
+        if (!headerToolbar) return;
+        const existing = headerToolbar.querySelector('.header-search-box');
+        if (existing) existing.remove();
+    }
+
     function loadPage(page) {
         document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
         document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
@@ -624,6 +745,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             pageEl.classList.remove('hidden');
             updateHeaderForPage(page);
             updateHeaderToolbar(pageEl);
+            removeHeaderSearch();
+            attachHeaderSearch(pageEl);
             const link = document.querySelector(`.sidebar-menu a[data-page="${page}"]`);
             if (link) link.classList.add('active');
             
@@ -1562,7 +1685,7 @@ async function aiWriteCourseDesc() {
 // ===== Enquiries =====
 let allEnquiries = [];
 let enquiriesCurrentPage = 1;
-const enquiriesPerPage = 25;
+let enquiriesPerPage = 25;
 let enquiriesFiltered = [];
 
 async function loadEnquiriesTable() {
@@ -9908,7 +10031,7 @@ function getQualificationData() {
 // ===== Students =====
 let allStudents = [];
 let studentsCurrentPage = 1;
-const studentsPerPage = 25;
+let studentsPerPage = 25;
 let studentsFiltered = [];
 
 async function loadStudentsTable() {
