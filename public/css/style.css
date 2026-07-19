@@ -4478,22 +4478,6 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 .badge-inactive { background: #fee2e2; color: #dc2626; padding: 3px 10px; border-radius: 20px; font-size: .8rem; font-weight: 600; }
 
 /* Admission Form */
-.form-page-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.form-page-header h3 { margin: 0; font-size: 1.3rem; color: #fff; }
-
 .form-section-card {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
@@ -5189,16 +5173,6 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     .btn {
         padding: 10px 16px;
         font-size: 0.85rem;
-    }
-    
-    /* Page Headers */
-    .form-page-header {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .form-page-header button {
-        width: 100%;
     }
     
     /* Page Toolbar */

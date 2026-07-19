@@ -601,11 +601,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const origin = document.getElementById(originId);
                 if (origin) {
                     origin.insertBefore(tb, origin.firstChild);
-                    // Show parent form-page-header if it was hidden
-                    const parent = tb.parentElement;
-                    if (parent && parent.classList.contains('form-page-header')) {
-                        parent.style.display = '';
-                    }
                 }
             }
         });
@@ -614,11 +609,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         toolbars.forEach(tb => {
             tb.setAttribute('data-toolbar-origin', pageEl.id);
             toolbar.appendChild(tb);
-            // Hide parent form-page-header if it's now empty
-            const parent = tb.parentElement;
-            if (parent && parent.classList.contains('form-page-header') && !parent.children.length) {
-                parent.style.display = 'none';
-            }
         });
     }
 
@@ -1581,9 +1571,7 @@ async function loadEnquiriesTable() {
     try {
         allEnquiries = await fetch('/api/enquiries').then(r => r.json());
         enquiriesCurrentPage = 1;
-        const searchEl = document.getElementById('enquirySearch');
         const statusEl = document.getElementById('enquiryStatusFilter');
-        if (searchEl) searchEl.value = '';
         if (statusEl) statusEl.value = '';
         renderEnquiries(allEnquiries);
     } catch (err) { console.error(err); }
@@ -1591,18 +1579,10 @@ async function loadEnquiriesTable() {
 
 function filterEnquiries() {
     enquiriesCurrentPage = 1;
-    const search = (document.getElementById('enquirySearch').value || '').toLowerCase();
     const status = document.getElementById('enquiryStatusFilter').value;
     let filtered = allEnquiries;
     if (status === 'pending') filtered = filtered.filter(e => !e.replied);
     if (status === 'replied') filtered = filtered.filter(e => e.replied);
-    if (search) {
-        filtered = filtered.filter(e =>
-            (e.name && e.name.toLowerCase().includes(search)) ||
-            (e.email && e.email.toLowerCase().includes(search)) ||
-            (e.phone && e.phone.includes(search))
-        );
-    }
     renderEnquiries(filtered);
 }
 
@@ -6682,7 +6662,6 @@ async function openRoleModal() {
     document.getElementById('roleId').value = '';
     document.getElementById('roleName').value = '';
     document.getElementById('roleDescription').value = '';
-    document.getElementById('permissionSearch').value = '';
     
     const permissionsRes = await fetch('/api/permissions');
     const permissions = await permissionsRes.json();
@@ -6694,12 +6673,8 @@ async function openRoleModal() {
 
 function renderPermissionsList(permissions) {
     const permissionsList = document.getElementById('permissionsList');
-    const searchTerm = document.getElementById('permissionSearch').value.toLowerCase();
     
-    const filteredPermissions = permissions.filter(p => 
-        p.name.toLowerCase().includes(searchTerm) || 
-        (p.module && p.module.toLowerCase().includes(searchTerm))
-    );
+    const filteredPermissions = permissions;
     
     // Group by module if available
     const grouped = {};
@@ -6724,11 +6699,6 @@ function renderPermissionsList(permissions) {
     }
     
     permissionsList.innerHTML = html;
-}
-
-function filterPermissions() {
-    const permissionsRes = fetch('/api/permissions').then(r => r.json());
-    permissionsRes.then(permissions => renderPermissionsList(permissions));
 }
 
 function selectAllPermissions() {
@@ -6783,7 +6753,6 @@ async function editRole(id) {
         document.getElementById('roleId').value = role.id;
         document.getElementById('roleName').value = role.name;
         document.getElementById('roleDescription').value = role.description || '';
-        document.getElementById('permissionSearch').value = '';
         
         const permissionsRes = await fetch('/api/permissions');
         const permissions = await permissionsRes.json();
@@ -9169,23 +9138,12 @@ async function loadPendingGrading() {
         if (courseSelect && courseSelect.value) params.append('courseId', courseSelect.value);
         const statusSel = document.getElementById('gradingFilterStatus');
         if (statusSel && statusSel.value) params.append('status', statusSel.value);
-        const studentInput = document.getElementById('gradingFilterStudent');
-        if (studentInput && studentInput.value.trim()) params.append('studentName', studentInput.value.trim());
 
         const data = await fetch('/api/grading/pending?' + params.toString()).then(r => r.json());
         const tbody = document.querySelector('#pendingGradingTable tbody');
         if (!tbody) return;
 
         let items = data || [];
-
-        // Client-side student name filter (since API doesn't have studentName param yet)
-        if (studentInput && studentInput.value.trim()) {
-            const q = studentInput.value.trim().toLowerCase();
-            items = items.filter(item => {
-                const name = (item.attempt && (item.attempt.studentName || item.attempt.studentId)) || '';
-                return String(name).toLowerCase().includes(q);
-            });
-        }
 
         // Sort
         const sortBy = document.getElementById('gradingSortBy');
@@ -9988,7 +9946,6 @@ function filterStudentsByBatch() {
     studentsCurrentPage = 1;
     const selectedBatch = document.getElementById('studentBatchFilter').value;
     const selectedCourse = document.getElementById('studentCourseFilter').value;
-    const searchQuery = document.getElementById('studentSearch').value.toLowerCase();
     
     let filtered = allStudents;
     
@@ -10000,16 +9957,6 @@ function filterStudentsByBatch() {
     // Filter by batch (using batchId for consistency with batch page)
     if (selectedBatch) {
         filtered = filtered.filter(s => s.batchId == selectedBatch);
-    }
-    
-    // Filter by search query
-    if (searchQuery) {
-        filtered = filtered.filter(s =>
-            s.name.toLowerCase().includes(searchQuery) ||
-            s.rollNo.toLowerCase().includes(searchQuery) ||
-            (s.phone && s.phone.includes(searchQuery)) ||
-            (s.course && s.course.toLowerCase().includes(searchQuery))
-        );
     }
     
     renderStudentsTable(filtered);
@@ -11771,9 +11718,7 @@ async function loadEnquiries() {
         const result = await res.json();
         allEnquiries = Array.isArray(result) ? result : (result.enquiries || []);
         enquiriesCurrentPage = 1;
-        const searchEl = document.getElementById('enquirySearch');
         const statusEl = document.getElementById('enquiryStatusFilter');
-        if (searchEl) searchEl.value = '';
         if (statusEl) statusEl.value = '';
         renderEnquiries(allEnquiries);
     } catch (err) {
@@ -14542,368 +14487,110 @@ async function exportExamResultsToExcel() {
     }
 }
 
-// ===== Generic Table Search (auto-attaches to every admin table) =====
-(function () {
-    const STYLE_ID = 'admin-table-search-style';
-    if (!document.getElementById(STYLE_ID)) {
-        const style = document.createElement('style');
-        style.id = STYLE_ID;
-        style.textContent = `
-            .table-search-wrap {
-                display: flex;
-                align-items: center;
-                gap: 0;
-                margin: 0 0 12px 0;
-                max-width: 420px;
-                background: rgba(255, 255, 255, 0.1);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 12px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                overflow: hidden;
-            }
-            .table-search-wrap .search-input-area {
-                position: relative;
-                flex: 1;
-                display: flex;
-                align-items: center;
-            }
-            .table-search-wrap input {
-                width: 100%;
-                padding: 8px 12px 8px 38px;
-                border: none;
-                font-size: 14px;
-                outline: none;
-                background: transparent;
-                color: #fff;
-                transition: all .15s;
-            }
-            .table-search-wrap input::placeholder {
-                color: rgba(255, 255, 255, 0.6);
-            }
-            .table-search-wrap input:focus {
-                background: rgba(255, 255, 255, 0.15);
-            }
-            .table-search-wrap i.search-ico {
-                position: absolute;
-                left: 12px;
-                top: 50%;
-                transform: translateY(-50%);
-                color: rgba(255, 255, 255, 0.6);
-                pointer-events: none;
-                font-size: 14px;
-            }
-            .table-search-wrap .search-count {
-                position: absolute;
-                right: 8px;
-                top: 50%;
-                transform: translateY(-50%);
-                color: rgba(255, 255, 255, 0.7);
-                font-size: 12px;
-                pointer-events: none;
-            }
-            .table-search-wrap .clear-btn {
-                position: absolute;
-                right: 6px;
-                top: 50%;
-                transform: translateY(-50%);
-                background: rgba(255, 255, 255, 0.2);
-                border: none;
-                color: rgba(255, 255, 255, 0.8);
-                cursor: pointer;
-                padding: 4px 6px;
-                display: none;
-                border-radius: 6px;
-                font-size: 12px;
-            }
-            .table-search-wrap .clear-btn:hover { 
-                background: rgba(255, 255, 255, 0.3);
-                color: #fff;
-            }
-            .table-search-wrap .search-go-btn {
-                flex-shrink: 0;
-                padding: 8px 16px;
-                border: none;
-                border-left: 1px solid rgba(255, 255, 255, 0.2);
-                background: linear-gradient(135deg, #667eea, #764ba2);
-                color: #fff;
-                font-size: 14px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                transition: all .15s;
-                white-space: nowrap;
-            }
-            .table-search-wrap .search-go-btn:hover {
-                background: linear-gradient(135deg, #5a6fd6, #6a3f92);
-            }
-            .table-search-wrap .search-go-btn:active {
-                transform: scale(0.97);
-            }
-        `;
-        document.head.appendChild(style);
+// ===== TOTP / 2FA Functions =====
+async function checkTOTPStatus() {
+    try {
+        const res = await fetch('/api/admin/totp-status');
+        const data = await res.json();
+        updateTOTPUI(data.configured);
+    } catch (err) {
+        console.error('Error checking TOTP status:', err);
     }
+}
 
-    // TOTP Functions
-    async function checkTOTPStatus() {
-        try {
-            const res = await fetch('/api/admin/totp-status');
-            const data = await res.json();
-            updateTOTPUI(data.configured);
-        } catch (err) {
-            console.error('Error checking TOTP status:', err);
-        }
-    }
-
-    function updateTOTPUI(isConfigured) {
-        const notConfigured = document.getElementById('totpNotConfigured');
-        const configuredEl = document.getElementById('totpConfigured');
-        
-        if (isConfigured) {
-            notConfigured.style.display = 'none';
-            configuredEl.style.display = 'block';
-        } else {
-            notConfigured.style.display = 'block';
-            configuredEl.style.display = 'none';
-        }
-    }
-
-    async function setupTOTP() {
-        document.getElementById('totpSetupSection').style.display = 'block';
-        document.getElementById('totpLoading').style.display = 'block';
-        document.getElementById('qrCodeContainer').style.display = 'none';
-        document.getElementById('totpVerifySection').style.display = 'none';
-        
-        try {
-            const res = await fetch('/api/admin/generate-totp-secret', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const data = await res.json();
-            
-            if (data.success) {
-                document.getElementById('qrCodeImage').src = data.qrCode;
-                document.getElementById('qrCodeContainer').style.display = 'block';
-                document.getElementById('totpVerifySection').style.display = 'block';
-                showNotification('QR code generated. Scan with your authenticator app.', 'success');
-            } else {
-                showNotification(data.message || 'Failed to generate TOTP secret', 'error');
-                cancelTOTPSetup();
-            }
-        } catch (err) {
-            console.error('Error setting up TOTP:', err);
-            showNotification('Error setting up 2FA', 'error');
-            cancelTOTPSetup();
-        } finally {
-            document.getElementById('totpLoading').style.display = 'none';
-        }
-    }
-
-    async function verifyTOTPSetup() {
-        const token = document.getElementById('setupTotpToken').value.trim();
-        
-        if (!token || token.length !== 6) {
-            showNotification('Please enter a valid 6-digit code', 'error');
-            return;
-        }
-        
-        try {
-            const res = await fetch('/api/admin/verify-totp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token })
-            });
-            const data = await res.json();
-            
-            if (data.success) {
-                showNotification('2FA enabled successfully!', 'success');
-                cancelTOTPSetup();
-                checkTOTPStatus();
-            } else {
-                showNotification(data.message || 'Invalid TOTP code', 'error');
-            }
-        } catch (err) {
-            console.error('Error verifying TOTP:', err);
-            showNotification('Error verifying TOTP code', 'error');
-        }
-    }
-
-    function cancelTOTPSetup() {
-        document.getElementById('totpSetupSection').style.display = 'none';
-        document.getElementById('setupTotpToken').value = '';
-    }
-
-    async function disableTOTP() {
-        if (!confirm('Are you sure you want to disable 2FA? This will make your admin account less secure.')) {
-            return;
-        }
-        
-        // Note: This requires a server endpoint to disable TOTP
-        // For now, we'll just show a message
-        showNotification('To disable 2FA, please restart the server to clear the TOTP secret.', 'warning');
-    }
-
-    // Check TOTP status when security tab is opened
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add event listener for security tab
-        const securityTab = document.querySelector('.settings-tab[data-tab="security"]');
-        if (securityTab) {
-            securityTab.addEventListener('click', function() {
-                checkTOTPStatus();
-            });
-        }
-    });
-
-    function applyFilter(table, query) {
-        const q = (query || '').trim().toLowerCase();
-        const tbody = table.tBodies[0];
-        if (!tbody) return { visible: 0, total: 0 };
-        const rows = tbody.querySelectorAll('tr');
-        let visible = 0;
-        rows.forEach(tr => {
-            // Skip empty-state rows (single cell with colspan)
-            const onlyCell = tr.children.length === 1 && tr.children[0].hasAttribute('colspan');
-            if (onlyCell) {
-                tr.style.display = q ? 'none' : '';
-                return;
-            }
-            if (!q) {
-                tr.style.display = '';
-                visible++;
-                return;
-            }
-            const text = (tr.textContent || '').toLowerCase();
-            if (text.includes(q)) {
-                tr.style.display = '';
-                visible++;
-            } else {
-                tr.style.display = 'none';
-            }
-        });
-        return { visible, total: rows.length };
-    }
-
-    function attachSearchToTable(table) {
-        if (!table || table.dataset.searchAttached === '1') return;
-        if (!table.id) return; // require id
-
-        // Find the page-content wrapper (the section with the header buttons)
-        const pageContent = table.closest('.page-content');
-        if (!pageContent) return;
-
-        // Check if search already exists for this page-content
-        // (check both pageContent and the header toolbar since toolbar may have been moved)
-        if (pageContent.dataset.searchAttached === '1') return;
-        const headerToolbar = document.getElementById('headerToolbar');
-        if (headerToolbar && headerToolbar.querySelector('.table-search-wrap')) return;
-
-        // Skip if page already has a custom text search input in toolbar/header
-        const existingSearch = pageContent.querySelector('.page-toolbar input[type="text"], .form-page-header input[type="text"]');
-        if (existingSearch) {
-            const ph = (existingSearch.placeholder || '').toLowerCase();
-            if (ph.includes('search') || ph.includes('filter') || existingSearch.oninput) {
-                pageContent.dataset.searchAttached = '1';
-                return;
-            }
-        }
-
-        // Look for .page-toolbar first, then .form-page-header
-        let header = pageContent.querySelector('.page-toolbar');
-        if (!header) {
-            header = pageContent.querySelector('.form-page-header');
-            if (header) {
-                header.classList.add('page-toolbar');
-            }
-        }
-        if (!header) {
-            header = document.createElement('div');
-            header.className = 'page-toolbar';
-            header.style.display = 'flex';
-            header.style.gap = '10px';
-            header.style.marginBottom = '16px';
-            pageContent.insertBefore(header, pageContent.firstChild);
-        }
-        if (!header) return;
-
-        const search = document.createElement('div');
-        search.className = 'table-search-wrap';
-        search.style.marginLeft = 'auto';
-        search.style.marginBottom = '0';
-        search.innerHTML = `
-            <div class="search-input-area">
-                <i class="fas fa-search search-ico"></i>
-                <input type="text" placeholder="Search..." aria-label="Search table">
-                <button type="button" class="clear-btn" title="Clear"><i class="fas fa-times"></i></button>
-                <span class="search-count"></span>
-            </div>
-            <button type="button" class="search-go-btn" title="Search"><i class="fas fa-arrow-right"></i></button>
-        `;
-        header.appendChild(search);
-
-        const input = search.querySelector('input');
-        const clearBtn = search.querySelector('.clear-btn');
-        const countEl = search.querySelector('.search-count');
-        const goBtn = search.querySelector('.search-go-btn');
-
-        const update = () => {
-            const q = input.value;
-            const { visible, total } = applyFilter(table, q);
-            if (q) {
-                clearBtn.style.display = 'block';
-                countEl.style.display = 'none';
-                countEl.textContent = `${visible}/${total}`;
-                countEl.style.display = 'block';
-                clearBtn.style.right = (countEl.offsetWidth + 12) + 'px';
-            } else {
-                clearBtn.style.display = 'none';
-                countEl.textContent = '';
-            }
-        };
-
-        input.addEventListener('input', update);
-        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); update(); } });
-        clearBtn.addEventListener('click', () => { input.value = ''; update(); input.focus(); });
-        goBtn.addEventListener('click', () => { update(); input.focus(); });
-
-        // Re-apply filter when tbody contents change (data reloads)
-        const tbody = table.tBodies[0];
-        if (tbody && 'MutationObserver' in window) {
-            const mo = new MutationObserver(() => {
-                if (input.value) update();
-            });
-            mo.observe(tbody, { childList: true, subtree: false });
-        }
-
-        table.dataset.searchAttached = '1';
-        pageContent.dataset.searchAttached = '1';
-    }
-
-    function scanAndAttach() {
-        document.querySelectorAll('table').forEach(t => {
-            // Only data tables (skip nested/inline small tables without thead+tbody)
-            if (!t.tHead || !t.tBodies[0]) return;
-            // Skip dashboard "recent" mini tables to keep dashboard clean
-            const id = (t.id || '').toLowerCase();
-            if (id.startsWith('dash') || id.startsWith('recent')) return;
-            // Require an id (so each table is identifiable)
-            if (!t.id) return;
-            attachSearchToTable(t);
-        });
-    }
-
-    // Run after initial load and whenever new content is rendered
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', scanAndAttach);
+function updateTOTPUI(isConfigured) {
+    const notConfigured = document.getElementById('totpNotConfigured');
+    const configuredEl = document.getElementById('totpConfigured');
+    
+    if (isConfigured) {
+        notConfigured.style.display = 'none';
+        configuredEl.style.display = 'block';
     } else {
-        scanAndAttach();
+        notConfigured.style.display = 'block';
+        configuredEl.style.display = 'none';
     }
+}
 
-    // Watch for tables added later (e.g. when navigating to admin pages)
-    const bodyObserver = new MutationObserver(() => scanAndAttach());
-    bodyObserver.observe(document.body, { childList: true, subtree: true });
-})();
+async function setupTOTP() {
+    document.getElementById('totpSetupSection').style.display = 'block';
+    document.getElementById('totpLoading').style.display = 'block';
+    document.getElementById('qrCodeContainer').style.display = 'none';
+    document.getElementById('totpVerifySection').style.display = 'none';
+    
+    try {
+        const res = await fetch('/api/admin/generate-totp-secret', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            document.getElementById('qrCodeImage').src = data.qrCode;
+            document.getElementById('qrCodeContainer').style.display = 'block';
+            document.getElementById('totpVerifySection').style.display = 'block';
+            showNotification('QR code generated. Scan with your authenticator app.', 'success');
+        } else {
+            showNotification(data.message || 'Failed to generate TOTP secret', 'error');
+            cancelTOTPSetup();
+        }
+    } catch (err) {
+        console.error('Error setting up TOTP:', err);
+        showNotification('Error setting up 2FA', 'error');
+        cancelTOTPSetup();
+    } finally {
+        document.getElementById('totpLoading').style.display = 'none';
+    }
+}
+
+async function verifyTOTPSetup() {
+    const token = document.getElementById('setupTotpToken').value.trim();
+    
+    if (!token || token.length !== 6) {
+        showNotification('Please enter a valid 6-digit code', 'error');
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/admin/verify-totp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            showNotification('2FA enabled successfully!', 'success');
+            cancelTOTPSetup();
+            checkTOTPStatus();
+        } else {
+            showNotification(data.message || 'Invalid TOTP code', 'error');
+        }
+    } catch (err) {
+        console.error('Error verifying TOTP:', err);
+        showNotification('Error verifying TOTP code', 'error');
+    }
+}
+
+function cancelTOTPSetup() {
+    document.getElementById('totpSetupSection').style.display = 'none';
+    document.getElementById('setupTotpToken').value = '';
+}
+
+async function disableTOTP() {
+    if (!confirm('Are you sure you want to disable 2FA? This will make your admin account less secure.')) {
+        return;
+    }
+    showNotification('To disable 2FA, please restart the server to clear the TOTP secret.', 'warning');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const securityTab = document.querySelector('.settings-tab[data-tab="security"]');
+    if (securityTab) {
+        securityTab.addEventListener('click', function() {
+            checkTOTPStatus();
+        });
+    }
+});
 
 // ============================================================
 // ===== Blog Comments Moderation =====
@@ -15454,14 +15141,6 @@ async function loadTypingUsers() {
         const data = await res.json();
         let scores = data.scores || [];
         
-        // Apply search filter
-        const searchTerm = (document.getElementById('typingUserSearch')?.value || '').toLowerCase();
-        if (searchTerm) {
-            scores = scores.filter(score => 
-                (score.studentName || score.name || 'Unknown').toLowerCase().includes(searchTerm)
-            );
-        }
-        
         // Apply date filters
         const dateFrom = document.getElementById('typingDateFrom')?.value;
         const dateTo = document.getElementById('typingDateTo')?.value;
@@ -15591,10 +15270,8 @@ function closeTypingHistory() {
 function clearTypingDateFilter() {
     const fromInput = document.getElementById('typingDateFrom');
     const toInput = document.getElementById('typingDateTo');
-    const searchInput = document.getElementById('typingUserSearch');
     if (fromInput) fromInput.value = '';
     if (toInput) toInput.value = '';
-    if (searchInput) searchInput.value = '';
     loadTypingUsers();
 }
 
