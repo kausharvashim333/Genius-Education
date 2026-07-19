@@ -3320,24 +3320,57 @@ async function loadRevenueReport() {
         revenueReportData = payments;
 
         const totalRevenue = payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-        const cashTotal = payments.filter(p => (p.mode || '').toLowerCase() === 'cash').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-        const onlineTotal = payments.filter(p => (p.mode || '').toLowerCase() !== 'cash').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        const modeBreakdown = {};
+        payments.forEach(p => {
+            const mode = (p.mode || 'other').toLowerCase();
+            if (!modeBreakdown[mode]) modeBreakdown[mode] = { total: 0, count: 0 };
+            modeBreakdown[mode].total += parseFloat(p.amount || 0);
+            modeBreakdown[mode].count++;
+        });
 
-        summaryEl.innerHTML = `
-            <div style="flex:1;min-width:180px;padding:16px 20px;border-radius:12px;background:linear-gradient(135deg,rgba(102,126,234,0.2),rgba(118,75,162,0.15));border:1px solid rgba(102,126,234,0.3);">
-                <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Total Revenue</div>
-                <div style="font-size:1.5rem;font-weight:700;color:#fff;">₹${totalRevenue.toLocaleString('en-IN')}</div>
+        const modeConfig = [
+            { key: 'cash', label: 'Cash', icon: 'fa-money-bill-wave', gradient: 'rgba(22,163,74,0.2),rgba(34,197,94,0.15)', border: 'rgba(22,163,74,0.3)', color: '#4ade80' },
+            { key: 'upi', label: 'UPI', icon: 'fa-mobile-alt', gradient: 'rgba(99,102,241,0.2),rgba(139,92,246,0.15)', border: 'rgba(99,102,241,0.3)', color: '#a78bfa' },
+            { key: 'card', label: 'Card', icon: 'fa-credit-card', gradient: 'rgba(14,165,233,0.2),rgba(59,130,246,0.15)', border: 'rgba(14,165,233,0.3)', color: '#38bdf8' },
+            { key: 'bank', label: 'Bank Transfer', icon: 'fa-university', gradient: 'rgba(245,158,11,0.2),rgba(251,191,36,0.15)', border: 'rgba(245,158,11,0.3)', color: '#fbbf24' },
+            { key: 'cheque', label: 'Cheque', icon: 'fa-money-check', gradient: 'rgba(236,72,153,0.2),rgba(244,114,182,0.15)', border: 'rgba(236,72,153,0.3)', color: '#f472b6' }
+        ];
+
+        let summaryHtml = `
+            <div style="flex:1;min-width:200px;padding:16px 20px;border-radius:12px;background:linear-gradient(135deg,rgba(102,126,234,0.25),rgba(118,75,162,0.2));border:1px solid rgba(102,126,234,0.4);">
+                <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;"><i class="fas fa-wallet" style="margin-right:4px;"></i> Total Revenue</div>
+                <div style="font-size:1.6rem;font-weight:700;color:#fff;">₹${totalRevenue.toLocaleString('en-IN')}</div>
                 <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;">${payments.length} transaction(s)</div>
             </div>
-            <div style="flex:1;min-width:150px;padding:16px 20px;border-radius:12px;background:linear-gradient(135deg,rgba(22,163,74,0.2),rgba(34,197,94,0.15));border:1px solid rgba(22,163,74,0.3);">
-                <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Cash Payments</div>
-                <div style="font-size:1.3rem;font-weight:700;color:#4ade80;">₹${cashTotal.toLocaleString('en-IN')}</div>
-            </div>
-            <div style="flex:1;min-width:150px;padding:16px 20px;border-radius:12px;background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(59,130,246,0.15));border:1px solid rgba(14,165,233,0.3);">
-                <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Online Payments</div>
-                <div style="font-size:1.3rem;font-weight:700;color:#38bdf8;">₹${onlineTotal.toLocaleString('en-IN')}</div>
-            </div>
         `;
+
+        modeConfig.forEach(m => {
+            const data = modeBreakdown[m.key];
+            if (data) {
+                summaryHtml += `
+                    <div style="flex:1;min-width:150px;padding:14px 18px;border-radius:12px;background:linear-gradient(135deg,${m.gradient});border:1px solid ${m.border};cursor:pointer;" onclick="filterRevenueByMode('${m.key}')">
+                        <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;"><i class="fas ${m.icon}" style="margin-right:4px;"></i> ${m.label}</div>
+                        <div style="font-size:1.3rem;font-weight:700;color:${m.color};">₹${data.total.toLocaleString('en-IN')}</div>
+                        <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:3px;">${data.count} payment(s)</div>
+                    </div>
+                `;
+            }
+        });
+
+        const otherModes = Object.keys(modeBreakdown).filter(k => !modeConfig.find(m => m.key === k));
+        if (otherModes.length > 0) {
+            const otherTotal = otherModes.reduce((sum, k) => sum + modeBreakdown[k].total, 0);
+            const otherCount = otherModes.reduce((sum, k) => sum + modeBreakdown[k].count, 0);
+            summaryHtml += `
+                <div style="flex:1;min-width:150px;padding:14px 18px;border-radius:12px;background:linear-gradient(135deg,rgba(100,116,139,0.2),rgba(148,163,184,0.15));border:1px solid rgba(100,116,139,0.3);">
+                    <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;"><i class="fas fa-coins" style="margin-right:4px;"></i> Other</div>
+                    <div style="font-size:1.3rem;font-weight:700;color:#94a3b8;">₹${otherTotal.toLocaleString('en-IN')}</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:3px;">${otherCount} payment(s)</div>
+                </div>
+            `;
+        }
+
+        summaryEl.innerHTML = summaryHtml;
 
         if (payments.length === 0) {
             renderEmptyState(tbody, 'chart-line', 'No revenue data found for selected filters');
@@ -3374,6 +3407,11 @@ function clearRevenueFilter() {
     document.getElementById('revenueSummary').innerHTML = '';
     document.querySelector('#revenueTable tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;">Select a date range and click Filter to view revenue</td></tr>';
     revenueReportData = [];
+}
+
+function filterRevenueByMode(mode) {
+    document.getElementById('revenueModeFilter').value = mode;
+    loadRevenueReport();
 }
 
 async function exportRevenueReport() {
