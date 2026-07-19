@@ -3276,7 +3276,8 @@ app.post('/api/gallery', verifyAdminSessionMiddleware, uploadGallery.single('ima
         id: Date.now(),
         title: req.body.title,
         category: req.body.category || 'general',
-        image: '/uploads/gallery/' + req.file.filename
+        image: '/uploads/gallery/' + req.file.filename,
+        showOnHomepage: req.body.showOnHomepage === 'true' || req.body.showOnHomepage === true
     };
     gallery.push(item);
     writeData('gallery.json', gallery);
@@ -3291,6 +3292,9 @@ app.put('/api/gallery/:id', verifyAdminSessionMiddleware, uploadGallery.single('
     const item = gallery[index];
     item.title = req.body.title;
     item.category = req.body.category || 'general';
+    if (req.body.showOnHomepage !== undefined) {
+        item.showOnHomepage = req.body.showOnHomepage === 'true' || req.body.showOnHomepage === true;
+    }
     if (req.file) {
         item.image = '/uploads/gallery/' + req.file.filename;
     }
@@ -3298,6 +3302,15 @@ app.put('/api/gallery/:id', verifyAdminSessionMiddleware, uploadGallery.single('
     gallery[index] = item;
     writeData('gallery.json', gallery);
     res.json({ success: true, item });
+});
+
+app.patch('/api/gallery/:id/homepage', verifyAdminSessionMiddleware, (req, res) => {
+    let gallery = readData('gallery.json') || [];
+    const index = gallery.findIndex(g => g.id == req.params.id);
+    if (index === -1) return res.status(404).json({ success: false, message: 'Gallery item not found' });
+    gallery[index].showOnHomepage = !!req.body.showOnHomepage;
+    writeData('gallery.json', gallery);
+    res.json({ success: true, item: gallery[index] });
 });
 
 app.delete('/api/gallery/:id', verifyAdminSessionMiddleware, (req, res) => {

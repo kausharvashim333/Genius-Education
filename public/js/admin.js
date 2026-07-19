@@ -2619,6 +2619,7 @@ async function loadGalleryTable() {
             html += '<td><img src="' + item.image + '" alt="' + item.title + '" style="width:100px;height:60px;object-fit:cover;"></td>';
             html += '<td>' + item.title + '</td>';
             html += '<td><span style="background:' + categoryColor + ';color:#fff;padding:4px 10px;border-radius:12px;font-size:12px;text-transform:capitalize;">' + (item.category || 'General') + '</span></td>';
+            html += '<td><label class="gallery-home-switch"><input type="checkbox" ' + (item.showOnHomepage ? 'checked' : '') + ' onchange="toggleGalleryHomepage(' + item.id + ', this.checked)"><span class="gallery-home-slider"></span></label></td>';
             html += '<td>';
             html += '<button class="btn" onclick="editGalleryItem(' + item.id + ')"><i class="fas fa-edit"></i></button>';
             html += '<button class="btn delete-btn" onclick="deleteGalleryItem(\'' + item.id + '\')"><i class="fas fa-trash"></i></button>';
@@ -2675,6 +2676,7 @@ function openGalleryModal() {
     document.getElementById('galleryForm').reset();
     galleryImageFile = null;
     galleryEditId = null;
+    document.getElementById('galleryShowOnHomepage').checked = false;
     document.getElementById('galleryPreviewImg').style.display = 'none';
     document.getElementById('galleryPlaceholder').style.display = 'block';
     document.getElementById('galleryFile').value = '';
@@ -2693,6 +2695,7 @@ async function editGalleryItem(id) {
 
         document.getElementById('galleryTitle').value = item.title;
         document.getElementById('galleryCategory').value = item.category || '';
+        document.getElementById('galleryShowOnHomepage').checked = !!item.showOnHomepage;
         galleryEditId = id;
         galleryImageFile = null;
 
@@ -2721,6 +2724,7 @@ async function saveGalleryItem() {
             const formData = new FormData();
             formData.append('title', title);
             formData.append('category', category);
+            formData.append('showOnHomepage', document.getElementById('galleryShowOnHomepage').checked);
             if (galleryImageFile) {
                 formData.append('image', galleryImageFile);
             }
@@ -2739,6 +2743,7 @@ async function saveGalleryItem() {
             const formData = new FormData();
             formData.append('title', title);
             formData.append('category', category);
+            formData.append('showOnHomepage', document.getElementById('galleryShowOnHomepage').checked);
             formData.append('image', galleryImageFile);
             res = await fetch('/api/gallery', { method: 'POST', body: formData });
             data = await res.json();
@@ -2764,6 +2769,27 @@ async function deleteGalleryItem(id) {
         loadGalleryTable();
         showNotification('Deleted!', 'success');
     } catch (err) { showNotification('Error!', 'error'); }
+}
+
+async function toggleGalleryHomepage(id, checked) {
+    try {
+        const res = await fetch('/api/gallery/' + id + '/homepage', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ showOnHomepage: checked })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification(checked ? 'Image will show on homepage' : 'Image removed from homepage', 'success');
+        } else {
+            showNotification(data.message || 'Failed to update', 'error');
+            loadGalleryTable();
+        }
+    } catch (err) {
+        console.error('Error toggling homepage visibility:', err);
+        showNotification('Error updating homepage visibility', 'error');
+        loadGalleryTable();
+    }
 }
 
 // ===== Notices =====

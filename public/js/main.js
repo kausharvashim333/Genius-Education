@@ -334,12 +334,17 @@ async function loadGallery() {
         const gallery = await res.json();
         const container = document.getElementById('galleryContainer');
         if (container) {
-            // Show random 15 images on homepage; rest are viewable on gallery.html
-            const shuffled = [...gallery].sort(() => Math.random() - 0.5);
-            window.galleryData = shuffled.slice(0, 15);
+            // Prefer admin-selected homepage images; fall back to random 15 if none selected
+            const selected = gallery.filter(item => item.showOnHomepage);
+            if (selected.length > 0) {
+                window.galleryData = selected;
+            } else {
+                const shuffled = [...gallery].sort(() => Math.random() - 0.5);
+                window.galleryData = shuffled.slice(0, 15);
+            }
             renderGallery('all');
             const viewMoreWrap = document.getElementById('galleryViewMoreWrap');
-            if (viewMoreWrap) viewMoreWrap.style.display = gallery.length > 15 ? 'flex' : 'none';
+            if (viewMoreWrap) viewMoreWrap.style.display = gallery.length > window.galleryData.length ? 'flex' : 'none';
         }
         setupGalleryFilters();
     } catch (err) { console.error('Error loading gallery:', err); }
