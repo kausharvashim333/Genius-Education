@@ -6578,16 +6578,22 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         display: none !important;
         position: fixed;
         left: 75px;
-        min-width: 200px;
-        background: rgba(15, 23, 42, 0.95);
-        backdrop-filter: blur(30px);
-        -webkit-backdrop-filter: blur(30px);
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        padding: 8px;
+        min-width: 220px;
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(40px) saturate(180%);
+        -webkit-backdrop-filter: blur(40px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+        padding: 10px;
         z-index: 1002;
         max-height: 70vh;
         overflow-y: auto;
+        animation: flyoutSlideIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes flyoutSlideIn {
+        from { opacity: 0; transform: translateX(-10px); }
+        to { opacity: 1; transform: translateX(0); }
     }
     .sidebar.collapsed .dropdown:hover .dropdown-menu,
     .sidebar.collapsed .dropdown.flyout-open .dropdown-menu {
@@ -6595,11 +6601,23 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         max-height: 70vh;
     }
     .sidebar.collapsed .dropdown-menu a {
-        font-size: 0.9rem !important;
+        font-size: 0.85rem !important;
         padding: 10px 14px !important;
         justify-content: flex-start !important;
         gap: 10px !important;
         white-space: nowrap;
+        border-radius: 10px !important;
+        margin-bottom: 2px;
+        transition: all 0.2s ease;
+    }
+    .sidebar.collapsed .dropdown-menu a:hover {
+        background: rgba(102, 126, 234, 0.25) !important;
+        padding-left: 18px !important;
+    }
+    .sidebar.collapsed .dropdown-menu a.active {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3)) !important;
+        border-left: 3px solid #667eea;
+        padding-left: 11px !important;
     }
     .sidebar.collapsed .dropdown-menu a span,
     .sidebar.collapsed .dropdown-menu a i.fa-chevron-down {
@@ -6608,6 +6626,8 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     .sidebar.collapsed .dropdown-menu a i:first-child {
         font-size: 1rem !important;
         margin: 0 !important;
+        width: 20px;
+        text-align: center;
     }
     .sidebar.collapsed .sidebar-collapse-btn i {
         transform: rotate(180deg);
