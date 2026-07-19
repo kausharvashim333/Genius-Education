@@ -14759,8 +14759,22 @@ async function exportExamResultsToExcel() {
         // Check if search already exists in this page-content
         if (pageContent.querySelector('.table-search-wrap')) return;
 
-        // Look for either .form-page-header or .page-toolbar
-        const header = pageContent.querySelector('.form-page-header') || pageContent.querySelector('.page-toolbar');
+        // Look for .page-toolbar first, then .form-page-header
+        let header = pageContent.querySelector('.page-toolbar');
+        if (!header) {
+            header = pageContent.querySelector('.form-page-header');
+            if (header) {
+                header.classList.add('page-toolbar');
+            }
+        }
+        if (!header) {
+            header = document.createElement('div');
+            header.className = 'page-toolbar';
+            header.style.display = 'flex';
+            header.style.gap = '10px';
+            header.style.marginBottom = '16px';
+            pageContent.insertBefore(header, pageContent.firstChild);
+        }
         if (!header) return;
 
         const search = document.createElement('div');
