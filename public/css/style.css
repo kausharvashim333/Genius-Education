@@ -6535,6 +6535,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     .sidebar.collapsed {
         width: 75px;
         padding: 30px 10px;
+        overflow: visible !important;
     }
     .sidebar.collapsed + .main-content,
     .sidebar.collapsed ~ .main-content {

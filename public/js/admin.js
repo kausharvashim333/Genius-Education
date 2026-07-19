@@ -15906,8 +15906,9 @@ function autoExpandActiveDropdown() {
         if (!menu) return;
         const toggle = dropdown.querySelector('.dropdown-toggle');
         if (toggle) {
-            const rect = toggle.getBoundingClientRect();
-            menu.style.top = rect.top + 'px';
+            const sidebarRect = sidebar.getBoundingClientRect();
+            const toggleRect = toggle.getBoundingClientRect();
+            menu.style.top = (toggleRect.top - sidebarRect.top) + 'px';
         }
     });
 
@@ -15924,8 +15925,9 @@ function autoExpandActiveDropdown() {
             if (!isOpen) dropdown.classList.add('flyout-open');
             const menu = dropdown.querySelector('.dropdown-menu');
             if (menu && !isOpen) {
-                const rect = toggle.getBoundingClientRect();
-                menu.style.top = rect.top + 'px';
+                const sidebarRect = sidebar.getBoundingClientRect();
+                const toggleRect = toggle.getBoundingClientRect();
+                menu.style.top = (toggleRect.top - sidebarRect.top) + 'px';
             }
         } else {
             document.querySelectorAll('.sidebar-menu > li.dropdown.flyout-open').forEach(d => d.classList.remove('flyout-open'));
