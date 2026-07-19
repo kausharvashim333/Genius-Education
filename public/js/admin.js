@@ -617,6 +617,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     function attachHeaderSearch(pageEl) {
         if (!pageEl) return;
+        if (pageEl.id === 'page-dashboard') return;
         const tables = pageEl.querySelectorAll('table[id]');
         if (!tables.length) return;
 
