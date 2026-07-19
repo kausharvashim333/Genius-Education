@@ -3276,6 +3276,130 @@ async function deleteTest(id) {
 }
 
 // ===== Fees Management =====
+let revenueReportData = [];
+
+async function loadRevenueReport() {
+    const tbody = document.querySelector('#revenueTable tbody');
+    const summaryEl = document.getElementById('revenueSummary');
+    const dateFrom = document.getElementById('revenueDateFrom').value;
+    const dateTo = document.getElementById('revenueDateTo').value;
+    const modeFilter = (document.getElementById('revenueModeFilter').value || '').toLowerCase();
+
+    renderLoadingSpinner(tbody, 'Loading revenue...');
+
+    try {
+        const [paymentsRes, studentsRes] = await Promise.all([
+            fetch('/api/payments'),
+            fetch('/api/students')
+        ]);
+        const paymentsData = await paymentsRes.json();
+        const studentsData = await studentsRes.json().catch(() => []);
+        const students = Array.isArray(studentsData) ? studentsData : (studentsData.data || []);
+        const studentMap = {};
+        students.forEach(s => { studentMap[s.id] = s; });
+
+        let payments = (paymentsData.payments || []).filter(p => p.status === 'approved');
+
+        if (dateFrom) {
+            payments = payments.filter(p => {
+                const pd = new Date(p.date);
+                return !isNaN(pd.getTime()) && pd >= new Date(dateFrom + 'T00:00:00');
+            });
+        }
+        if (dateTo) {
+            payments = payments.filter(p => {
+                const pd = new Date(p.date);
+                return !isNaN(pd.getTime()) && pd <= new Date(dateTo + 'T23:59:59');
+            });
+        }
+        if (modeFilter) {
+            payments = payments.filter(p => (p.mode || '').toLowerCase() === modeFilter);
+        }
+
+        payments.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        revenueReportData = payments;
+
+        const totalRevenue = payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        const cashTotal = payments.filter(p => (p.mode || '').toLowerCase() === 'cash').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        const onlineTotal = payments.filter(p => (p.mode || '').toLowerCase() !== 'cash').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+
+        summaryEl.innerHTML = `
+            <div style="flex:1;min-width:180px;padding:16px 20px;border-radius:12px;background:linear-gradient(135deg,rgba(102,126,234,0.2),rgba(118,75,162,0.15));border:1px solid rgba(102,126,234,0.3);">
+                <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Total Revenue</div>
+                <div style="font-size:1.5rem;font-weight:700;color:#fff;">₹${totalRevenue.toLocaleString('en-IN')}</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;">${payments.length} transaction(s)</div>
+            </div>
+            <div style="flex:1;min-width:150px;padding:16px 20px;border-radius:12px;background:linear-gradient(135deg,rgba(22,163,74,0.2),rgba(34,197,94,0.15));border:1px solid rgba(22,163,74,0.3);">
+                <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Cash Payments</div>
+                <div style="font-size:1.3rem;font-weight:700;color:#4ade80;">₹${cashTotal.toLocaleString('en-IN')}</div>
+            </div>
+            <div style="flex:1;min-width:150px;padding:16px 20px;border-radius:12px;background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(59,130,246,0.15));border:1px solid rgba(14,165,233,0.3);">
+                <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Online Payments</div>
+                <div style="font-size:1.3rem;font-weight:700;color:#38bdf8;">₹${onlineTotal.toLocaleString('en-IN')}</div>
+            </div>
+        `;
+
+        if (payments.length === 0) {
+            renderEmptyState(tbody, 'chart-line', 'No revenue data found for selected filters');
+            return;
+        }
+
+        tbody.innerHTML = payments.map(p => {
+            const student = studentMap[p.studentId] || {};
+            const modeDisplay = (p.mode || '—').toString().toUpperCase();
+            const txnId = p.utrNo || p.transactionId || '—';
+            const statusBadge = (p.status || 'approved').toLowerCase() === 'approved'
+                ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Approved</span>'
+                : '<span style="background:#e2e8f0;color:#64748b;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">' + (p.status || '—') + '</span>';
+            return '<tr>' +
+                '<td style="white-space:nowrap;">' + (p.date ? formatDate(p.date) : '—') + '</td>' +
+                '<td><strong>' + (p.studentName || student.name || '—') + '</strong></td>' +
+                '<td>' + (student.course || '—') + '</td>' +
+                '<td><strong>₹' + parseFloat(p.amount || 0).toLocaleString('en-IN') + '</strong></td>' +
+                '<td>' + modeDisplay + '</td>' +
+                '<td><code style="font-size:12px;">' + txnId + '</code></td>' +
+                '<td>' + statusBadge + '</td>' +
+                '</tr>';
+        }).join('');
+    } catch (err) {
+        console.error('Error loading revenue report:', err);
+        renderEmptyState(tbody, 'exclamation-circle', 'Error loading revenue data');
+    }
+}
+
+function clearRevenueFilter() {
+    document.getElementById('revenueDateFrom').value = '';
+    document.getElementById('revenueDateTo').value = '';
+    document.getElementById('revenueModeFilter').value = '';
+    document.getElementById('revenueSummary').innerHTML = '';
+    document.querySelector('#revenueTable tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;">Select a date range and click Filter to view revenue</td></tr>';
+    revenueReportData = [];
+}
+
+async function exportRevenueReport() {
+    if (revenueReportData.length === 0) {
+        showNotification('No revenue data to export! Click Filter first.', 'error');
+        return;
+    }
+    const headers = ['Date', 'Student', 'Course', 'Amount', 'Mode', 'UTR/Txn ID', 'Status'];
+    const rows = revenueReportData.map(p => [
+        p.date ? formatDate(p.date) : '—',
+        p.studentName || '—',
+        '—',
+        p.amount || 0,
+        (p.mode || '—').toUpperCase(),
+        p.utrNo || p.transactionId || '—',
+        p.status || '—'
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'revenue_report_' + new Date().toISOString().split('T')[0] + '.csv';
+    link.click();
+    showNotification('Revenue report exported!', 'success');
+}
+
 async function loadFeesTable() {
     const tbody = document.getElementById('feesTable').querySelector('tbody');
     renderLoadingSpinner(tbody, 'Loading fees...');

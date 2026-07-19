@@ -4172,6 +4172,38 @@
                         <button class="btn btn-success" onclick="exportFeesToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                     </div>
                 </div>
+
+                <!-- Revenue Report Section -->
+                <div class="data-table" style="margin-bottom:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                        <h3 style="margin:0;font-size:1.1rem;"><i class="fas fa-chart-line" style="margin-right:6px;color:#667eea;"></i> Revenue Report</h3>
+                    </div>
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+                        <label style="font-size:13px;color:rgba(255,255,255,0.6);">From:</label>
+                        <input type="date" id="revenueDateFrom" style="padding:8px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;height:38px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;box-sizing:border-box;">
+                        <label style="font-size:13px;color:rgba(255,255,255,0.6);">To:</label>
+                        <input type="date" id="revenueDateTo" style="padding:8px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;height:38px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;box-sizing:border-box;">
+                        <select id="revenueModeFilter" style="padding:8px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;height:38px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;box-sizing:border-box;">
+                            <option value="">All Modes</option>
+                            <option value="cash">Cash</option>
+                            <option value="upi">UPI</option>
+                            <option value="card">Card</option>
+                            <option value="bank">Bank Transfer</option>
+                            <option value="cheque">Cheque</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="loadRevenueReport()" style="padding:8px 16px;"><i class="fas fa-search"></i> Filter</button>
+                        <button class="btn btn-secondary" onclick="clearRevenueFilter()" style="padding:8px 16px;"><i class="fas fa-times"></i> Clear</button>
+                        <button class="btn btn-success" onclick="exportRevenueReport()" style="background:#16a34a;padding:8px 16px;"><i class="fas fa-file-excel"></i> Export</button>
+                    </div>
+                    <div id="revenueSummary" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;"></div>
+                    <div class="table-scroll-wrapper">
+                        <table id="revenueTable">
+                            <thead><tr><th>Date</th><th>Student</th><th>Course</th><th>Amount</th><th>Mode</th><th>UTR / Txn ID</th><th>Status</th></tr></thead>
+                            <tbody><tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;">Select a date range and click Filter to view revenue</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="data-table">
                     <table id="feesTable">
                         <thead><tr><th>Student</th><th>Course</th><th>Batch</th><th>Total Fees</th><th>Paid</th><th>Due</th><th>Actions</th></tr></thead>
