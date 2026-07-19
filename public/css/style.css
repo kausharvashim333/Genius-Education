@@ -6692,8 +6692,9 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     margin-left: auto;
+    overflow: hidden;
 }
 .header-toolbar:empty {
     display: none;
@@ -6701,25 +6702,37 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 .header-toolbar .page-toolbar {
     margin-bottom: 0;
     gap: 8px;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 .header-toolbar .page-toolbar .btn {
     padding: 6px 12px;
     font-size: 0.8rem;
     font-weight: 500;
     box-shadow: none;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 .header-toolbar .page-toolbar select,
 .header-toolbar .page-toolbar input {
     padding: 6px 10px;
     font-size: 0.8rem;
-    height: 32px;
+    height: 32px !important;
     border-radius: 6px;
+    box-sizing: border-box;
+    flex-shrink: 0;
 }
 .header-toolbar .page-toolbar select {
     width: 140px;
 }
 .header-toolbar .page-toolbar input {
     width: 200px;
+}
+.header-search-box {
+    flex-shrink: 0;
 }
 
 /* Header Search Box */
@@ -7002,14 +7015,19 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     .header-toolbar {
         width: 100%;
         margin-left: 0;
+        flex-wrap: wrap;
+        overflow: visible;
+    }
+    .header-toolbar .page-toolbar {
+        flex-wrap: wrap !important;
+        overflow: visible;
     }
     .header-search-box {
         width: 100%;
         margin-left: 0 !important;
     }
     .header-search-box .header-search-input {
-        width: 100%;
-        min-width: unset !important;
+        width: 100% !important;
     }
 }
 

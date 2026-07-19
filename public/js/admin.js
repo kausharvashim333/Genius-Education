@@ -636,11 +636,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         searchBox.className = 'header-search-box';
         searchBox.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:8px;position:relative;';
         searchBox.innerHTML = `
-            <i class="fas fa-search" style="position:absolute;left:12px;color:rgba(255,255,255,0.5);font-size:13px;pointer-events:none;"></i>
+            <i class="fas fa-search" style="position:absolute;left:10px;color:rgba(255,255,255,0.5);font-size:12px;pointer-events:none;"></i>
             <input type="text" class="header-search-input" placeholder="Search..." aria-label="Search table"
-                style="padding:8px 12px 8px 34px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;height:40px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;font-size:14px;min-width:220px;outline:none;transition:border-color 0.2s;">
+                style="padding:6px 12px 6px 30px;border:1px solid rgba(255,255,255,0.3);border-radius:6px;height:32px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;font-size:0.8rem;width:180px;outline:none;transition:border-color 0.2s;box-sizing:border-box;">
             <button type="button" class="header-search-clear" title="Clear"
-                style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;padding:4px;font-size:13px;">
+                style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;padding:4px;font-size:12px;">
                 <i class="fas fa-times"></i>
             </button>
         `;
