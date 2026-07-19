@@ -14552,7 +14552,7 @@ async function exportExamResultsToExcel() {
             }
             .table-search-wrap input {
                 width: 100%;
-                padding: 8px 12px 8px 36px;
+                padding: 8px 12px 8px 42px;
                 border: none;
                 border-radius: 12px;
                 font-size: 14px;
@@ -14569,7 +14569,7 @@ async function exportExamResultsToExcel() {
             }
             .table-search-wrap i.search-ico {
                 position: absolute;
-                left: 12px;
+                left: 14px;
                 top: 50%;
                 transform: translateY(-50%);
                 color: rgba(255, 255, 255, 0.6);
@@ -14756,8 +14756,11 @@ async function exportExamResultsToExcel() {
         const pageContent = table.closest('.page-content');
         if (!pageContent) return;
 
-        // Check if search already exists in this page-content
-        if (pageContent.querySelector('.table-search-wrap')) return;
+        // Check if search already exists for this page-content
+        // (check both pageContent and the header toolbar since toolbar may have been moved)
+        if (pageContent.dataset.searchAttached === '1') return;
+        const headerToolbar = document.getElementById('headerToolbar');
+        if (headerToolbar && headerToolbar.querySelector('.table-search-wrap')) return;
 
         // Look for .page-toolbar first, then .form-page-header
         let header = pageContent.querySelector('.page-toolbar');
@@ -14821,6 +14824,7 @@ async function exportExamResultsToExcel() {
         }
 
         table.dataset.searchAttached = '1';
+        pageContent.dataset.searchAttached = '1';
     }
 
     function scanAndAttach() {
