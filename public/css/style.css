@@ -6700,36 +6700,52 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     display: none;
 }
 .header-toolbar .page-toolbar {
-    margin-bottom: 0;
-    gap: 8px;
-    flex-wrap: nowrap !important;
+    display: flex !important;
     align-items: center !important;
+    margin-bottom: 0 !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
     flex-shrink: 1;
     min-width: 0;
     overflow: hidden;
 }
 .header-toolbar .page-toolbar .btn {
-    padding: 6px 12px;
-    font-size: 0.8rem;
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
     font-weight: 500;
     box-shadow: none;
     white-space: nowrap;
     flex-shrink: 0;
+    border-radius: 6px !important;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
 }
 .header-toolbar .page-toolbar select,
 .header-toolbar .page-toolbar input {
-    padding: 6px 10px;
-    font-size: 0.8rem;
+    padding: 6px 10px !important;
+    font-size: 0.8rem !important;
     height: 32px !important;
-    border-radius: 6px;
-    box-sizing: border-box;
+    border-radius: 6px !important;
+    box-sizing: border-box !important;
     flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: #fff !important;
 }
 .header-toolbar .page-toolbar select {
-    width: 140px;
+    width: 140px !important;
 }
-.header-toolbar .page-toolbar input {
-    width: 200px;
+.header-toolbar .page-toolbar input[type="text"],
+.header-toolbar .page-toolbar input[type="date"] {
+    width: 160px !important;
+}
+.header-toolbar .page-toolbar input[type="checkbox"] {
+    width: auto !important;
+    height: auto !important;
 }
 .header-search-box {
     flex-shrink: 0;
