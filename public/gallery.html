@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery - Genius Computer Education</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gallery-page-header {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.1));
+            padding: 100px 20px 30px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .gallery-page-header h1 {
+            font-size: 2.2rem;
+            color: #f8fafc;
+            margin: 0 0 8px;
+            font-weight: 700;
+        }
+        .gallery-page-header p {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin: 0;
+        }
+        .gallery-page-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+        }
+        .gallery-page-back:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .gallery-page-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 26px 20px 10px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .gp-filter-btn {
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.25s ease;
+            text-transform: capitalize;
+        }
+        .gp-filter-btn:hover {
+            background: rgba(102, 126, 234, 0.3);
+            color: #fff;
+        }
+        .gp-filter-btn.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.7), rgba(118, 75, 162, 0.6));
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        /* Pinterest masonry using CSS columns */
+        .gallery-masonry {
+            column-count: 4;
+            column-gap: 16px;
+            max-width: 1200px;
+            margin: 20px auto 60px;
+            padding: 0 20px;
+        }
+        @media (max-width: 1024px) { .gallery-masonry { column-count: 3; } }
+        @media (max-width: 768px) { .gallery-masonry { column-count: 2; } }
+        @media (max-width: 480px) { .gallery-masonry { column-count: 1; } }
+
+        .masonry-card {
+            position: relative;
+            break-inside: avoid;
+            margin-bottom: 16px;
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .masonry-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        .masonry-card img {
+            width: 100%;
+            display: block;
+            border-radius: 14px;
+        }
+        .masonry-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 55%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .masonry-card:hover .masonry-overlay { opacity: 1; }
+        .masonry-overlay p {
+            color: #fff;
+            margin: 0 0 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .masonry-badge {
+            align-self: flex-start;
+            background: rgba(102, 126, 234, 0.9);
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            text-transform: capitalize;
+        }
+        .gallery-empty {
+            text-align: center;
+            color: #94a3b8;
+            padding: 60px 20px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22%3EG%3C/text%3E%3C/svg%3E" alt="Genius Computer Education Logo" class="nav-logo" id="navLogo" style="display: block; max-height: 45px; max-width: 45px; height: auto; width: auto; border-radius: 10px;">
+                <a href="index.html">Genius Computer Education</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="courses.html">Courses</a></li>
+                <li><a href="index.html#about">About Us</a></li>
+                <li><a href="index.html#blog">Blog</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+                <li class="nav-portals-dropdown">
+                    <a href="#" class="nav-cta nav-portals-toggle" onclick="togglePortalsDropdown(event)">
+                        <i class="fas fa-th-large icon-3d"></i> Portals <i class="fas fa-chevron-down portals-chevron"></i>
+                    </a>
+                    <div class="portals-dropdown-menu" id="portalsDropdownMenu">
+                        <a href="typing-practice.html?guide=true&selectLang=true" onclick="openTypingFullscreen(event); closePortalsDropdown();">
+                            <i class="fas fa-keyboard"></i>
+                            <span>Typing Practice</span>
+                        </a>
+                        <a href="entrance-portal.html" id="navEntranceExamLink" style="display:none;" onclick="closePortalsDropdown()">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Entrance Exam</span>
+                        </a>
+                        <a href="student-portal.html" onclick="closePortalsDropdown()">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>Student Portal</span>
+                        </a>
+                        <a href="faculty-portal.html" onclick="closePortalsDropdown()">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span>Faculty Portal</span>
+                        </a>
+                    </div>
+                </li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Gallery Page Header -->
+    <div class="gallery-page-header">
+        <a href="index.html" class="gallery-page-back"><i class="fas fa-arrow-left"></i> Back to Home</a>
+        <h1>Our Gallery</h1>
+        <p>Explore all our moments, category-wise</p>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="gallery-page-filters" id="galleryPageFilters"></div>
+
+    <!-- Masonry Grid -->
+    <div class="gallery-masonry" id="galleryMasonry"></div>
+
+    <script>
+        let allGalleryImages = [];
+        let activeCategory = 'all';
+
+        const CATEGORY_LABELS = {
+            all: 'All',
+            events: 'Events',
+            campus: 'Campus',
+            students: 'Students',
+            awards: 'Awards',
+            facilities: 'Facilities'
+        };
+
+        async function loadGalleryPage() {
+            try {
+                const res = await fetch('/api/gallery');
+                allGalleryImages = await res.json();
+                buildFilters();
+                renderMasonry();
+            } catch (err) {
+                console.error('Error loading gallery:', err);
+                document.getElementById('galleryMasonry').innerHTML = '<p class="gallery-empty">Unable to load gallery.</p>';
+            }
+        }
+
+        function buildFilters() {
+            const categories = ['all', ...new Set(allGalleryImages.map(i => i.category || 'general'))];
+            const filtersEl = document.getElementById('galleryPageFilters');
+            filtersEl.innerHTML = categories.map(cat => {
+                const label = CATEGORY_LABELS[cat] || cat;
+                return `<button class="gp-filter-btn ${cat === 'all' ? 'active' : ''}" data-cat="${cat}" onclick="setCategory('${cat}')">${label}</button>`;
+            }).join('');
+        }
+
+        function setCategory(cat) {
+            activeCategory = cat;
+            document.querySelectorAll('.gp-filter-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.cat === cat);
+            });
+            renderMasonry();
+        }
+
+        function renderMasonry() {
+            const container = document.getElementById('galleryMasonry');
+            const images = activeCategory === 'all'
+                ? allGalleryImages
+                : allGalleryImages.filter(i => (i.category || 'general') === activeCategory);
+
+            if (images.length === 0) {
+                container.innerHTML = '<p class="gallery-empty">No photos in this category.</p>';
+                return;
+            }
+
+            container.innerHTML = images.map(img => `
+                <div class="masonry-card" onclick="openLightbox('${img.image}', '${(img.title || '').replace(/'/g, "\\'")}')">
+                    <img src="${img.image}" alt="${img.title || 'Gallery image'}" loading="lazy">
+                    <div class="masonry-overlay">
+                        <p>${img.title || ''}</p>
+                        <span class="masonry-badge">${img.category || 'General'}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openLightbox(imageUrl, title) {
+            const lightbox = document.createElement('div');
+            lightbox.id = 'galleryLightbox';
+            lightbox.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;justify-content:center;align-items:center;z-index:9999;cursor:pointer;';
+            lightbox.innerHTML = `
+                <div style="position:relative;max-width:90%;max-height:90%;">
+                    <img src="${imageUrl}" alt="${title}" style="max-width:100%;max-height:90vh;object-fit:contain;border-radius:10px;">
+                    <button onclick="closeLightbox(event)" style="position:absolute;top:-40px;right:0;background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:24px;cursor:pointer;">×</button>
+                    <p style="color:#fff;text-align:center;margin-top:10px;font-size:18px;">${title}</p>
+                </div>
+            `;
+            lightbox.onclick = function(e) {
+                if (e.target === lightbox) closeLightbox(e);
+            };
+            document.body.appendChild(lightbox);
+        }
+
+        function closeLightbox(e) {
+            if (e) e.stopPropagation();
+            const lightbox = document.getElementById('galleryLightbox');
+            if (lightbox) lightbox.remove();
+        }
+
+        // Portals Dropdown
+        function togglePortalsDropdown(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const menu = document.getElementById('portalsDropdownMenu');
+            const toggle = e.currentTarget;
+            menu.classList.toggle('open');
+            toggle.classList.toggle('active');
+        }
+
+        function closePortalsDropdown() {
+            const menu = document.getElementById('portalsDropdownMenu');
+            const toggle = document.querySelector('.nav-portals-toggle');
+            if (menu) menu.classList.remove('open');
+            if (toggle) toggle.classList.remove('active');
+        }
+
+        document.addEventListener('click', function(e) {
+            const dropdown = document.querySelector('.nav-portals-dropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                closePortalsDropdown();
+            }
+        });
+
+        function openTypingFullscreen(event) {
+            event.preventDefault();
+            const anchor = event.target.closest('a');
+            const url = anchor ? anchor.getAttribute('href') : null;
+            if (url) window.open(url, '_blank', 'fullscreen=yes,menubar=no,toolbar=no,location=no,status=no');
+        }
+
+        // Load site logo + entrance exam link
+        fetch('/api/settings').then(r => r.json()).catch(() => ({})).then(settings => {
+            if (settings.logo) {
+                const navLogo = document.getElementById('navLogo');
+                navLogo.src = settings.logo;
+            }
+            if (settings.entranceExamEnabled) {
+                const link = document.getElementById('navEntranceExamLink');
+                if (link) link.style.display = '';
+            }
+        });
+
+        // Hamburger menu toggle
+        const hamburgerBtn = document.querySelector('.hamburger');
+        const navMenuEl = document.querySelector('.nav-menu');
+        if (hamburgerBtn && navMenuEl) {
+            hamburgerBtn.addEventListener('click', () => navMenuEl.classList.toggle('active'));
+        }
+
+        loadGalleryPage();
+    </script>
+    <script src="/js/security.js"></script>
+</body>
+</html>

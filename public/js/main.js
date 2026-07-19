@@ -334,8 +334,12 @@ async function loadGallery() {
         const gallery = await res.json();
         const container = document.getElementById('galleryContainer');
         if (container) {
-            window.galleryData = gallery;
+            // Show random 15 images on homepage; rest are viewable on gallery.html
+            const shuffled = [...gallery].sort(() => Math.random() - 0.5);
+            window.galleryData = shuffled.slice(0, 15);
             renderGallery('all');
+            const viewMoreWrap = document.getElementById('galleryViewMoreWrap');
+            if (viewMoreWrap) viewMoreWrap.style.display = gallery.length > 15 ? 'flex' : 'none';
         }
         setupGalleryFilters();
     } catch (err) { console.error('Error loading gallery:', err); }
