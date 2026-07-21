@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Genius Computer Education</title>
-    <link rel="stylesheet" href="css/style.css?v=20260719">
+    <link rel="stylesheet" href="css/style.css?v=20260721">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Quill Rich Text Editor (for blog content) -->
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
@@ -60,11 +60,12 @@
             z-index: 1;
         }
         #blogModal .modal-header {
-            background: rgba(15, 23, 42, 0.9);
+            background: rgba(15, 23, 42, 0.98);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 18px 24px;
+            padding: 18px 30px;
+            margin: -30px -30px 0 -30px;
             position: sticky;
             top: 0;
             z-index: 10;
@@ -100,12 +101,13 @@
             transform: rotate(90deg);
         }
         #blogModal .modal-body {
-            padding: 24px;
+            padding: 24px 0;
         }
         #blogModal .modal-footer {
             background: rgba(255, 255, 255, 0.05);
             border-top: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 16px 24px;
+            padding: 16px 0;
+            margin-top: 8px;
         }
         /* Labels */
         #blogModal label {
@@ -5941,10 +5943,12 @@
     <!-- Generic Modal (for dynamic content like blog preview) -->
     <div id="genericModal" class="modal">
         <div class="modal-content" style="max-width:800px;max-height:90vh;overflow-y:auto;">
-            <button class="modal-close-btn" onclick="closeModal('genericModal')">&times;</button>
-            <h3 id="genericModalTitle"></h3>
-            <div id="genericModalBody"></div>
-            <div id="genericModalFooter" style="margin-top:20px;"></div>
+            <div class="modal-header">
+                <h3 id="genericModalTitle"></h3>
+                <button class="close-btn" onclick="closeModal('genericModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="genericModalBody"></div>
+            <div class="modal-footer" id="genericModalFooter"></div>
         </div>
     </div>
 

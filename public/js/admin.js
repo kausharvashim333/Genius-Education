@@ -12574,8 +12574,9 @@ function showModal(title, bodyHtml, buttons) {
         footer.innerHTML = buttons.map((btn, i) =>
             `<button class="btn ${btn.class || 'btn-secondary'}" onclick="${btn.onclick}" style="padding:8px 16px;${i > 0 ? 'margin-left:10px;' : ''}">${btn.text}</button>`
         ).join('');
+        footer.style.display = '';
     } else {
-        footer.innerHTML = '';
+        footer.style.display = 'none';
     }
     document.getElementById('genericModal').classList.add('active');
 }
@@ -15089,9 +15090,8 @@ async function viewPendingBlog(blogId) {
         if (!blog) return;
         
         const content = `
-            <div style="max-height:70vh;overflow-y:auto;padding:20px;">
-                <h2 style="margin:0 0 15px 0;color:#fff;">${escapeAdminHtml(blog.title)}</h2>
-                <div style="display:flex;gap:15px;align-items:center;margin-bottom:20px;font-size:13px;color:#94a3b8;">
+            <div style="padding:0;">
+                <div style="display:flex;gap:15px;align-items:center;margin-bottom:20px;font-size:13px;color:#94a3b8;flex-wrap:wrap;">
                     <span><i class="fas fa-user"></i> ${escapeAdminHtml(blog.author || 'Unknown')}</span>
                     <span><i class="fas fa-folder"></i> ${escapeAdminHtml(blog.category || 'N/A')}</span>
                     <span><i class="fas fa-calendar"></i> ${formatDate(blog.createdAt)}</span>
