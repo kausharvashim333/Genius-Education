@@ -5311,7 +5311,7 @@ app.put('/api/blogs/:id', (req, res) => {
         let s = String(status).toLowerCase();
         if (!['draft', 'scheduled', 'published', 'pending', 'rejected'].includes(s)) s = 'published';
         // Faculty edits cannot publish/schedule directly — force to draft or pending
-        if (authorRole === 'faculty' || blogs[idx].authorRole === 'faculty') {
+        if (authorRole === 'faculty') {
             s = (s === 'draft') ? 'draft' : 'pending';
         }
         if (s === 'scheduled') {
