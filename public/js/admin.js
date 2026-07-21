@@ -15088,17 +15088,34 @@ async function viewPendingBlog(blogId) {
         const blog = data.blogs.find(b => b.id == blogId);
         
         if (!blog) return;
-        
+
+        const statusBadge = blog.status === 'pending'
+            ? '<span style="background:rgba(245,158,11,0.2);color:#fbbf24;border:1px solid rgba(245,158,11,0.4);padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Pending</span>'
+            : '<span style="background:rgba(34,197,94,0.2);color:#4ade80;border:1px solid rgba(34,197,94,0.4);padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Published</span>';
+
         const content = `
-            <div style="padding:0;">
-                <div style="display:flex;gap:15px;align-items:center;margin-bottom:20px;font-size:13px;color:#94a3b8;flex-wrap:wrap;">
-                    <span><i class="fas fa-user"></i> ${escapeAdminHtml(blog.author || 'Unknown')}</span>
-                    <span><i class="fas fa-folder"></i> ${escapeAdminHtml(blog.category || 'N/A')}</span>
-                    <span><i class="fas fa-calendar"></i> ${formatDate(blog.createdAt)}</span>
+            <div class="blog-preview-wrapper">
+                ${blog.image ? `
+                    <div class="blog-preview-hero">
+                        <img src="${escapeAdminHtml(blog.image)}" alt="${escapeAdminHtml(blog.title)}" />
+                        <div class="blog-preview-hero-overlay"></div>
+                    </div>
+                ` : ''}
+                <div class="blog-preview-meta">
+                    ${statusBadge}
+                    <span class="blog-preview-meta-pill"><i class="fas fa-folder"></i> ${escapeAdminHtml(blog.category || 'N/A')}</span>
+                    <span class="blog-preview-meta-pill"><i class="fas fa-user"></i> ${escapeAdminHtml(blog.author || 'Unknown')}</span>
+                    <span class="blog-preview-meta-pill"><i class="fas fa-calendar"></i> ${formatDate(blog.createdAt)}</span>
                 </div>
-                ${blog.image ? `<img src="${escapeAdminHtml(blog.image)}" alt="Blog Image" style="max-width:100%;border-radius:8px;margin-bottom:20px;">` : ''}
-                <div style="color:#e2e8f0;line-height:1.8;">${blog.content}</div>
-                ${(blog.tags || []).length > 0 ? `<div style="margin-top:20px;"><strong>Tags:</strong> ${blog.tags.map(t => `<span style="background:rgba(102,126,234,0.3);color:#fff;padding:4px 10px;border-radius:15px;font-size:12px;margin-right:8px;">${escapeAdminHtml(t)}</span>`).join('')}</div>` : ''}
+                <div class="blog-preview-content">${blog.content}</div>
+                ${(blog.tags || []).length > 0 ? `
+                    <div class="blog-preview-tags">
+                        <span class="blog-preview-tags-label"><i class="fas fa-tags"></i> Tags</span>
+                        <div class="blog-preview-tags-list">
+                            ${blog.tags.map(t => `<span class="blog-preview-tag">${escapeAdminHtml(t)}</span>`).join('')}
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
         
