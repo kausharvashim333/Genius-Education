@@ -15090,38 +15090,57 @@ async function viewPendingBlog(blogId) {
         if (!blog) return;
 
         const statusBadge = blog.status === 'pending'
-            ? '<span style="background:rgba(245,158,11,0.2);color:#fbbf24;border:1px solid rgba(245,158,11,0.4);padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Pending</span>'
-            : '<span style="background:rgba(34,197,94,0.2);color:#4ade80;border:1px solid rgba(34,197,94,0.4);padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Published</span>';
+            ? '<span class="blog-preview-status pending"><i class="fas fa-clock"></i> Pending</span>'
+            : '<span class="blog-preview-status published"><i class="fas fa-check-circle"></i> Published</span>';
 
         const content = `
             <div class="blog-preview-wrapper">
                 ${blog.image ? `
                     <div class="blog-preview-hero">
                         <img src="${escapeAdminHtml(blog.image)}" alt="${escapeAdminHtml(blog.title)}" />
-                        <div class="blog-preview-hero-overlay"></div>
+                        <div class="blog-preview-hero-gradient"></div>
+                        <button class="blog-preview-close-btn" onclick="closeModal('genericModal')"><i class="fas fa-times"></i></button>
+                        <div class="blog-preview-hero-text">
+                            <div class="blog-preview-hero-badges">
+                                ${statusBadge}
+                                <span class="blog-preview-cat-badge">${escapeAdminHtml(blog.category || 'N/A')}</span>
+                            </div>
+                            <h1 class="blog-preview-hero-title">${escapeAdminHtml(blog.title)}</h1>
+                        </div>
                     </div>
-                ` : ''}
-                <div class="blog-preview-meta">
-                    ${statusBadge}
-                    <span class="blog-preview-meta-pill"><i class="fas fa-folder"></i> ${escapeAdminHtml(blog.category || 'N/A')}</span>
-                    <span class="blog-preview-meta-pill"><i class="fas fa-user"></i> ${escapeAdminHtml(blog.author || 'Unknown')}</span>
-                    <span class="blog-preview-meta-pill"><i class="fas fa-calendar"></i> ${formatDate(blog.createdAt)}</span>
+                ` : `
+                    <div class="blog-preview-no-hero">
+                        <div class="blog-preview-hero-badges">
+                            ${statusBadge}
+                            <span class="blog-preview-cat-badge">${escapeAdminHtml(blog.category || 'N/A')}</span>
+                        </div>
+                        <h1 class="blog-preview-hero-title">${escapeAdminHtml(blog.title)}</h1>
+                    </div>
+                `}
+                <div class="blog-preview-author-bar">
+                    <div class="blog-preview-author-avatar">${escapeAdminHtml((blog.author || 'U').charAt(0).toUpperCase())}</div>
+                    <div class="blog-preview-author-info">
+                        <span class="blog-preview-author-name">${escapeAdminHtml(blog.author || 'Unknown Author')}</span>
+                        <span class="blog-preview-author-date"><i class="fas fa-calendar-alt"></i> ${formatDate(blog.createdAt)}</span>
+                    </div>
                 </div>
                 <div class="blog-preview-content">${blog.content}</div>
                 ${(blog.tags || []).length > 0 ? `
-                    <div class="blog-preview-tags">
-                        <span class="blog-preview-tags-label"><i class="fas fa-tags"></i> Tags</span>
+                    <div class="blog-preview-tags-section">
                         <div class="blog-preview-tags-list">
-                            ${blog.tags.map(t => `<span class="blog-preview-tag">${escapeAdminHtml(t)}</span>`).join('')}
+                            ${blog.tags.map(t => `<span class="blog-preview-tag"><i class="fas fa-tag" style="font-size:9px;opacity:0.6;"></i> ${escapeAdminHtml(t)}</span>`).join('')}
                         </div>
                     </div>
                 ` : ''}
             </div>
         `;
         
-        showModal('Blog Preview', content, [
+        showModal('', content, [
             { text: 'Close', class: 'btn-secondary', onclick: 'closeModal(\'genericModal\')' }
         ]);
+        const modalHeader = document.querySelector('#genericModal .modal-header');
+        if (modalHeader && blog.image) modalHeader.style.display = 'none';
+        else if (modalHeader) modalHeader.style.display = '';
     } catch (e) {
         console.error('Error viewing blog:', e);
     }
