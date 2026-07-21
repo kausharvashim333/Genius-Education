@@ -15098,29 +15098,22 @@ async function viewPendingBlog(blogId) {
                 ${blog.image ? `
                     <div class="blog-preview-hero">
                         <img src="${escapeAdminHtml(blog.image)}" alt="${escapeAdminHtml(blog.title)}" />
-                        <div class="blog-preview-hero-gradient"></div>
-                        <div class="blog-preview-hero-text">
-                            <div class="blog-preview-hero-badges">
-                                ${statusBadge}
-                                <span class="blog-preview-cat-badge">${escapeAdminHtml(blog.category || 'N/A')}</span>
-                            </div>
-                            <h1 class="blog-preview-hero-title">${escapeAdminHtml(blog.title)}</h1>
+                    </div>
+                ` : ''}
+                <div class="${blog.image ? 'blog-preview-title-section' : 'blog-preview-no-hero'}">
+                    <h1 class="blog-preview-title">${escapeAdminHtml(blog.title)}</h1>
+                </div>
+                <div class="blog-preview-meta-bar">
+                    <div class="blog-preview-meta-left">
+                        <div class="blog-preview-author-avatar">${escapeAdminHtml((blog.author || 'U').charAt(0).toUpperCase())}</div>
+                        <div class="blog-preview-author-info">
+                            <span class="blog-preview-author-name">${escapeAdminHtml(blog.author || 'Unknown Author')}</span>
+                            <span class="blog-preview-author-date"><i class="fas fa-calendar-alt"></i> ${formatDate(blog.createdAt)}</span>
                         </div>
                     </div>
-                ` : `
-                    <div class="blog-preview-no-hero">
-                        <div class="blog-preview-hero-badges">
-                            ${statusBadge}
-                            <span class="blog-preview-cat-badge">${escapeAdminHtml(blog.category || 'N/A')}</span>
-                        </div>
-                        <h1 class="blog-preview-hero-title">${escapeAdminHtml(blog.title)}</h1>
-                    </div>
-                `}
-                <div class="blog-preview-author-bar">
-                    <div class="blog-preview-author-avatar">${escapeAdminHtml((blog.author || 'U').charAt(0).toUpperCase())}</div>
-                    <div class="blog-preview-author-info">
-                        <span class="blog-preview-author-name">${escapeAdminHtml(blog.author || 'Unknown Author')}</span>
-                        <span class="blog-preview-author-date"><i class="fas fa-calendar-alt"></i> ${formatDate(blog.createdAt)}</span>
+                    <div class="blog-preview-meta-badges">
+                        ${statusBadge}
+                        <span class="blog-preview-cat-badge">${escapeAdminHtml(blog.category || 'N/A')}</span>
                     </div>
                 </div>
                 <div class="blog-preview-content">${blog.content}</div>
