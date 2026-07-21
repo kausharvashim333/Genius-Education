@@ -15549,6 +15549,16 @@ async function loadTypingLeaderboard() {
         }
         
         filteredScores.sort((a, b) => b.wpm - a.wpm);
+        
+        // Deduplicate: keep only the best score per candidate
+        const seen = new Set();
+        filteredScores = filteredScores.filter(score => {
+            const name = (score.studentName || score.name || 'Unknown').toLowerCase();
+            if (seen.has(name)) return false;
+            seen.add(name);
+            return true;
+        });
+        
         filteredScores = filteredScores.slice(0, 50);
         
         const table = document.getElementById('typingLeaderboardTable');
