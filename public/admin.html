@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Genius Computer Education</title>
-    <link rel="stylesheet" href="css/style.css?v=20260721g">
+    <link rel="stylesheet" href="css/style.css?v=20260721h">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Quill Rich Text Editor (for blog content) -->
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
@@ -437,8 +437,19 @@
             border-radius: 20px;
             overflow: hidden;
         }
+        #genericModal .modal-header {
+            z-index: 20 !important;
+        }
         #genericModal .modal-body {
             padding: 0 !important;
+        }
+        .blog-preview-content h1,
+        .blog-preview-content h2,
+        .blog-preview-content h3,
+        .blog-preview-content h4 {
+            position: static !important;
+            z-index: auto !important;
+            top: auto !important;
         }
         .blog-preview-wrapper {
             padding: 0;
@@ -6167,7 +6178,7 @@
 
     <!-- Generic Modal (for dynamic content like blog preview) -->
     <div id="genericModal" class="modal">
-        <div class="modal-content" style="max-width:800px;max-height:90vh;overflow-y:auto;">
+        <div class="modal-content" style="max-width:900px;width:96vw;max-height:90vh;overflow-y:auto;">
             <div class="modal-header">
                 <h3 id="genericModalTitle"></h3>
                 <button class="close-btn" onclick="closeModal('genericModal')">&times;</button>
@@ -6182,7 +6193,7 @@
     <script src="https://www.google.com/recaptcha/api.js?render=6LfDe_gsAAAAALle5tiQY_6WnVgp-wrRrhwlqk9t"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/admin.js?v=20260721g"></script>
+    <script src="js/admin.js?v=20260721h"></script>
     <script src="js/entrance-admin.js"></script>
     <script>
     // ============ FACULTY EMBED MODE ============
