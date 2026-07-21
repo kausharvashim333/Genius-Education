@@ -4299,7 +4299,19 @@ app.put('/api/students/:id', verifyAdminSessionMiddleware, (req, res) => {
     if (d.fatherPhone !== undefined) students[idx].fatherPhone = d.fatherPhone;
     if (d.motherName !== undefined) students[idx].motherName = d.motherName;
     if (d.familyIncome !== undefined) students[idx].familyIncome = d.familyIncome;
-    if (d.course !== undefined) students[idx].course = d.course;
+    if (d.course !== undefined && d.course !== students[idx].course) {
+        students[idx].course = d.course;
+        // Recalculate fees based on new course fee
+        const courses = readData('courses.json') || [];
+        const courseRec = courses.find(c => c.name === d.course);
+        if (courseRec) {
+            const newTotal = parseInt(courseRec.fee || courseRec.price) || 0;
+            const paidAmount = parseInt(students[idx].fees?.paidAmount) || 0;
+            students[idx].fees = students[idx].fees || { totalFees: 0, paidAmount: 0, dueAmount: 0, payments: [] };
+            students[idx].fees.totalFees = newTotal;
+            students[idx].fees.dueAmount = Math.max(0, newTotal - paidAmount);
+        }
+    }
     if (d.batch !== undefined) {
         students[idx].batch = d.batch;
         // Update batchId when batch is changed
