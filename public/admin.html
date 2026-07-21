@@ -5938,12 +5938,22 @@
         </div>
     </div>
 
+    <!-- Generic Modal (for dynamic content like blog preview) -->
+    <div id="genericModal" class="modal">
+        <div class="modal-content" style="max-width:800px;max-height:90vh;overflow-y:auto;">
+            <button class="modal-close-btn" onclick="closeModal('genericModal')">&times;</button>
+            <h3 id="genericModalTitle"></h3>
+            <div id="genericModalBody"></div>
+            <div id="genericModalFooter" style="margin-top:20px;"></div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://www.google.com/recaptcha/api.js?render=6LfDe_gsAAAAALle5tiQY_6WnVgp-wrRrhwlqk9t"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/admin.js?v=20260719"></script>
+    <script src="js/admin.js?v=20260721"></script>
     <script src="js/entrance-admin.js"></script>
     <script>
     // ============ FACULTY EMBED MODE ============

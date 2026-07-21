@@ -12566,6 +12566,20 @@ document.getElementById('smtpForm').addEventListener('submit', async function(e)
 });
 
 // ===== Utilities =====
+function showModal(title, bodyHtml, buttons) {
+    document.getElementById('genericModalTitle').textContent = title;
+    document.getElementById('genericModalBody').innerHTML = bodyHtml;
+    const footer = document.getElementById('genericModalFooter');
+    if (buttons && buttons.length > 0) {
+        footer.innerHTML = buttons.map((btn, i) =>
+            `<button class="btn ${btn.class || 'btn-secondary'}" onclick="${btn.onclick}" style="padding:8px 16px;${i > 0 ? 'margin-left:10px;' : ''}">${btn.text}</button>`
+        ).join('');
+    } else {
+        footer.innerHTML = '';
+    }
+    document.getElementById('genericModal').classList.add('active');
+}
+
 function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('active');
     if (modalId === 'notificationModal') {
@@ -15070,7 +15084,7 @@ async function viewPendingBlog(blogId) {
     try {
         const res = await fetch('/api/blogs?all=1');
         const data = await res.json();
-        const blog = data.blogs.find(b => b.id === blogId);
+        const blog = data.blogs.find(b => b.id == blogId);
         
         if (!blog) return;
         
@@ -15089,7 +15103,7 @@ async function viewPendingBlog(blogId) {
         `;
         
         showModal('Blog Preview', content, [
-            { text: 'Close', class: 'btn-secondary', onclick: 'closeModal()' }
+            { text: 'Close', class: 'btn-secondary', onclick: 'closeModal(\'genericModal\')' }
         ]);
     } catch (e) {
         console.error('Error viewing blog:', e);

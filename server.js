@@ -7561,6 +7561,38 @@ app.delete('/api/typing-scores/user/:name', (req, res) => {
     res.json({ success: true, deleted: before - scores.length });
 });
 
+// --- Daily Leaderboard Reset ---
+// Remove all typing scores older than today (midnight reset)
+function resetDailyTypingScores() {
+    const scores = readData('typing-scores.json') || [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayScores = scores.filter(s => {
+        const created = new Date(s.createdAt || s.date || 0);
+        return created >= today;
+    });
+    if (todayScores.length !== scores.length) {
+        writeData('typing-scores.json', todayScores);
+        console.log(`[Daily Reset] Cleared ${scores.length - todayScores.length} old typing scores. ${todayScores.length} scores remain for today.`);
+    }
+}
+
+// Run on server startup
+resetDailyTypingScores();
+
+// Schedule daily reset at midnight
+function scheduleNextDailyReset() {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(24, 0, 0, 0);
+    const msUntilMidnight = midnight - now;
+    setTimeout(() => {
+        resetDailyTypingScores();
+        scheduleNextDailyReset();
+    }, msUntilMidnight);
+}
+scheduleNextDailyReset();
+
 // --- Backup & Recovery ---
 app.get('/api/backup/create', async (req, res) => {
     try {
