@@ -15099,7 +15099,6 @@ async function viewPendingBlog(blogId) {
                     <div class="blog-preview-hero">
                         <img src="${escapeAdminHtml(blog.image)}" alt="${escapeAdminHtml(blog.title)}" />
                         <div class="blog-preview-hero-gradient"></div>
-                        <button class="blog-preview-close-btn" onclick="closeModal('genericModal')"><i class="fas fa-times"></i></button>
                         <div class="blog-preview-hero-text">
                             <div class="blog-preview-hero-badges">
                                 ${statusBadge}
@@ -15135,12 +15134,9 @@ async function viewPendingBlog(blogId) {
             </div>
         `;
         
-        showModal('', content, [
+        showModal('Blog Preview', content, [
             { text: 'Close', class: 'btn-secondary', onclick: 'closeModal(\'genericModal\')' }
         ]);
-        const modalHeader = document.querySelector('#genericModal .modal-header');
-        if (modalHeader && blog.image) modalHeader.style.display = 'none';
-        else if (modalHeader) modalHeader.style.display = '';
     } catch (e) {
         console.error('Error viewing blog:', e);
     }
