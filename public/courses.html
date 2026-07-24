@@ -269,7 +269,14 @@
             const features = 'popup=yes,width=' + w + ',height=' + h + ',left=0,top=0,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
             let win = null;
             try { win = window.open(url, 'geniusTypingPractice', features); } catch (e) { win = null; }
-            if (win) { win.focus(); } else { window.location.href = url; }
+            if (win) {
+                win.focus();
+                try {
+                    const popupEl = win.document.documentElement;
+                    const req = popupEl.requestFullscreen || popupEl.webkitRequestFullscreen;
+                    if (req) Promise.resolve(req.call(popupEl)).catch(() => {});
+                } catch (e) {}
+            } else { window.location.href = url; }
         }
 
         // Show entrance exam link only when feature is enabled

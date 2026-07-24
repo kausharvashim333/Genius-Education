@@ -739,17 +739,13 @@
             }
         });
 
-        // Open typing practice in fullscreen
+        // Open typing practice as a separate fullscreen app
         function openTypingFullscreen(event) {
             event.preventDefault();
             const anchor = event.target.closest('a');
             const url = anchor ? anchor.getAttribute('href') : null;
             if (!url) return;
 
-            // Chrome only produces a popup window when width and height are given —
-            // without them it quietly falls back to an ordinary tab. `fullscreen=yes`
-            // is an Internet Explorer feature that every current browser ignores, so
-            // it was doing nothing at all.
             const w = window.screen.availWidth;
             const h = window.screen.availHeight;
             const features = 'popup=yes,width=' + w + ',height=' + h +
@@ -764,9 +760,13 @@
 
             if (win) {
                 win.focus();
+                // Try to fullscreen the popup from the opener (has user gesture)
+                try {
+                    const popupEl = win.document.documentElement;
+                    const req = popupEl.requestFullscreen || popupEl.webkitRequestFullscreen;
+                    if (req) Promise.resolve(req.call(popupEl)).catch(() => {});
+                } catch (e) {}
             } else {
-                // Safari blocks featured popups far more readily than Chrome does, and a
-                // dead link is worse than one that opens in place.
                 window.location.href = url;
             }
         }

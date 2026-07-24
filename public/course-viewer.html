@@ -1254,7 +1254,14 @@
                 const typingUrl = 'typing-practice.html?selectLang=true&app=1';
                 let win = null;
                 try { win = window.open(typingUrl, 'geniusTypingPractice', features); } catch (e) { win = null; }
-                if (!win) window.location.href = typingUrl;
+                if (win) {
+                    win.focus();
+                    try {
+                        const popupEl = win.document.documentElement;
+                        const req = popupEl.requestFullscreen || popupEl.webkitRequestFullscreen;
+                        if (req) Promise.resolve(req.call(popupEl)).catch(() => {});
+                    } catch (e) {}
+                } else { window.location.href = typingUrl; }
             } else {
                 alert('Lesson content not available.');
             }
