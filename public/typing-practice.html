@@ -1243,6 +1243,12 @@
             display: flex;
         }
 
+        /* Hide window controls when fullscreen */
+        body:fullscreen .window-controls,
+        body:-webkit-full-screen .window-controls {
+            display: none !important;
+        }
+
         body.app-mode .window-title-bar {
             display: flex;
         }
