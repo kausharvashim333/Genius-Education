@@ -9839,6 +9839,10 @@
             localStorage.setItem('typingLanguage', lang);
             const modal = document.getElementById('langSelectModal');
             if (modal) modal.style.display = 'none';
+            // Browsers only grant fullscreen from inside a user gesture, so the language
+            // button — the first thing the learner clicks — is the earliest point this
+            // can be requested. Opening the page directly still behaves normally.
+            enterAppFullscreen();
             applyTypingLanguage();
             // Reload text for the selected language
             loadNewText();
@@ -10070,17 +10074,42 @@
             alert('Minimize feature - In a desktop app, this would minimize the window');
         }
 
+        function isFullscreen() {
+            return !!(document.fullscreenElement || document.webkitFullscreenElement);
+        }
+
+        function enterFullscreen() {
+            const el = document.documentElement;
+            const request = el.requestFullscreen || el.webkitRequestFullscreen;
+            // Safari rejects the promise when the gesture has already been spent, and an
+            // unhandled rejection in the console is not worth a cosmetic feature.
+            if (request) Promise.resolve(request.call(el)).catch(() => {});
+        }
+
+        function leaveFullscreen() {
+            const exit = document.exitFullscreen || document.webkitExitFullscreen;
+            if (exit) Promise.resolve(exit.call(document)).catch(() => {});
+        }
+
+        // Only auto-fullscreen for the app-style entry from the home page. Someone who
+        // opens typing-practice.html directly keeps an ordinary page.
+        function enterAppFullscreen() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('app') === '1' && !isFullscreen()) enterFullscreen();
+        }
+
         function maximizeWindow() {
-            // In a real app, this would maximize the window
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen();
-            }
+            isFullscreen() ? leaveFullscreen() : enterFullscreen();
         }
 
         function closeWindow() {
-            if (confirm('Are you sure you want to exit?')) {
+            if (!confirm('Are you sure you want to exit?')) return;
+            if (isFullscreen()) leaveFullscreen();
+            // Opened as its own window from the home page: close it rather than loading
+            // the site back into a chrome-less popup the learner cannot navigate.
+            if (window.opener && !window.opener.closed) {
+                window.close();
+            } else {
                 window.location.href = 'index.html';
             }
         }
