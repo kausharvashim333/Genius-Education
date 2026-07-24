@@ -109,7 +109,7 @@
                         <i class="fas fa-th-large icon-3d"></i> Portals <i class="fas fa-chevron-down portals-chevron"></i>
                     </a>
                     <div class="portals-dropdown-menu" id="portalsDropdownMenu">
-                        <a href="typing-practice.html?guide=true&selectLang=true" onclick="openTypingFullscreen(event); closePortalsDropdown();">
+                        <a href="typing-practice.html?guide=true&selectLang=true&app=1" onclick="openTypingFullscreen(event); closePortalsDropdown();">
                             <i class="fas fa-keyboard"></i>
                             <span>Typing Practice</span>
                         </a>
@@ -258,12 +258,18 @@
             }
         });
 
-        // Open typing practice in fullscreen
+        // Open typing practice as a separate app window
         function openTypingFullscreen(event) {
             event.preventDefault();
             const anchor = event.target.closest('a');
             const url = anchor ? anchor.getAttribute('href') : null;
-            if (url) window.open(url, '_blank', 'fullscreen=yes,menubar=no,toolbar=no,location=no,status=no');
+            if (!url) return;
+            const w = window.screen.availWidth;
+            const h = window.screen.availHeight;
+            const features = 'popup=yes,width=' + w + ',height=' + h + ',left=0,top=0,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
+            let win = null;
+            try { win = window.open(url, 'geniusTypingPractice', features); } catch (e) { win = null; }
+            if (win) { win.focus(); } else { window.location.href = url; }
         }
 
         // Show entrance exam link only when feature is enabled

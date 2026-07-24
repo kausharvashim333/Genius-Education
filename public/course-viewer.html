@@ -1247,8 +1247,14 @@
                     chapter: chapter.title
                 }));
                 
-                // Redirect to typing practice page
-                window.location.href = 'typing-practice.html?selectLang=true';
+                // Open typing practice as a separate app window
+                const w = window.screen.availWidth;
+                const h = window.screen.availHeight;
+                const features = 'popup=yes,width=' + w + ',height=' + h + ',left=0,top=0,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
+                const typingUrl = 'typing-practice.html?selectLang=true&app=1';
+                let win = null;
+                try { win = window.open(typingUrl, 'geniusTypingPractice', features); } catch (e) { win = null; }
+                if (!win) window.location.href = typingUrl;
             } else {
                 alert('Lesson content not available.');
             }

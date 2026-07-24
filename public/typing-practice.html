@@ -1239,6 +1239,14 @@
             display: none;
         }
 
+        body.app-mode .window-controls {
+            display: flex;
+        }
+
+        body.app-mode .window-title-bar {
+            display: flex;
+        }
+
         .window-btn {
             width: 46px;
             height: 100%;
@@ -12423,6 +12431,14 @@
 
         // Initialize
         window.addEventListener('load', function() {
+            // App mode: add class to body for window controls + auto fullscreen
+            const urlParams0 = new URLSearchParams(window.location.search);
+            if (urlParams0.get('app') === '1') {
+                document.body.classList.add('app-mode');
+                // Auto-fullscreen after a small delay (needs user gesture in some browsers)
+                setTimeout(() => { enterAppFullscreen(); }, 100);
+            }
+
             // Hide splash screen after 2.5 seconds
             setTimeout(() => {
                 document.getElementById('splashScreen').classList.add('hidden');
