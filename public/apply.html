@@ -659,7 +659,7 @@
 
     <!-- Form -->
     <div id="applyFormWrap">
-        <form id="applyForm" enctype="multipart/form-data">
+        <form id="applyForm" enctype="multipart/form-data" novalidate>
             <!-- Step Indicator -->
             <div class="step-counter" id="stepCounter">Step 1 of 7 <span>&mdash; Personal</span></div>
             <div class="step-indicator" id="stepIndicator">
@@ -2088,16 +2088,20 @@ let courseFee = 0;
 let partialAmount = 0;
 
 async function showPaymentModal() {
-    const courseSelect = document.getElementById('aCourse');
-    const selectedCourse = courseSelect.value;
-    const courses = await fetch('/api/courses').then(r => r.json());
-    const course = courses.find(c => c.name === selectedCourse);
+    try {
+        const courseSelect = document.getElementById('aCourse');
+        const selectedCourse = courseSelect.value;
+        const courses = await fetch('/api/courses').then(r => r.json());
+        const course = Array.isArray(courses) ? courses.find(c => c.name === selectedCourse) : null;
 
-    if (course) {
-        courseFee = course.fee || 0;
-        const feeType = course.feeType || 'Per Program';
-        document.getElementById('courseFee').textContent = '₹' + courseFee;
-        document.getElementById('courseFeeType').textContent = feeType;
+        if (course) {
+            courseFee = course.fee || 0;
+            const feeType = course.feeType || 'Per Program';
+            document.getElementById('courseFee').textContent = '₹' + courseFee;
+            document.getElementById('courseFeeType').textContent = feeType;
+        }
+    } catch (e) {
+        console.error('Error loading course fee:', e);
     }
 
     document.getElementById('paymentModal').style.display = 'flex';
