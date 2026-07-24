@@ -12201,14 +12201,22 @@
                     keyElement.classList.add('highlighted');
                 }
 
-                // If Shift is required, highlight only the left Shift key (default for typing)
+                // If Shift is required, highlight the opposite-hand Shift key
                 const symbolInfo = symbolTypingGuide[nextChar];
                 const normalizedNext = normalizeChar(nextChar);
                 const isShiftRequired = symbolInfo ? symbolInfo.shift :
                     (normalizedNext !== ' ' && normalizedNext !== lookupChar && normalizedNext === nextChar);
                 if (isShiftRequired) {
                     const shiftKeys = document.querySelectorAll('[data-key="Shift"]');
-                    if (shiftKeys.length > 0) {
+                    if (shiftKeys.length >= 2) {
+                        const finger = getFingerForChar(lookupChar);
+                        // Left-hand chars → right Shift; right-hand chars → left Shift
+                        if (finger.includes('left')) {
+                            shiftKeys[1].classList.add('highlighted'); // Right Shift
+                        } else {
+                            shiftKeys[0].classList.add('highlighted'); // Left Shift
+                        }
+                    } else if (shiftKeys.length > 0) {
                         shiftKeys[0].classList.add('highlighted');
                     }
                 }
