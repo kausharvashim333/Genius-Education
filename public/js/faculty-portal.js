@@ -53,6 +53,43 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     loadFavicon();
 
+    // Apply login panel customization
+    async function loadLoginPanelStyle() {
+        try {
+            const response = await fetch('/api/settings');
+            const settings = await response.json();
+            if (settings.loginPanels && settings.loginPanels.faculty) {
+                const lp = settings.loginPanels.faculty;
+                const brand = document.querySelector('#loginSection .split-brand');
+                if (brand) {
+                    if (lp.image) {
+                        const opacity = lp.opacity != null ? lp.opacity / 100 : 0.3;
+                        brand.style.background = 'linear-gradient(135deg, ' + lp.color1 + ' 0%, ' + lp.color2 + ' 100%)';
+                        brand.style.backgroundImage = 'linear-gradient(135deg, ' + lp.color1 + ' 0%, ' + lp.color2 + ' 100%), url(' + lp.image + ')';
+                        brand.style.backgroundSize = 'cover, cover';
+                        brand.style.backgroundPosition = 'center, center';
+                        brand.style.backgroundBlendMode = 'overlay';
+                        let overlay = brand.querySelector('.lp-overlay');
+                        if (!overlay) {
+                            overlay = document.createElement('div');
+                            overlay.className = 'lp-overlay';
+                            overlay.style.cssText = 'position:absolute;inset:0;background:' + lp.color1 + ';opacity:' + opacity + ';z-index:0;pointer-events:none;';
+                            brand.insertBefore(overlay, brand.firstChild);
+                        } else {
+                            overlay.style.background = lp.color1;
+                            overlay.style.opacity = opacity;
+                        }
+                    } else {
+                        brand.style.background = 'linear-gradient(135deg, ' + lp.color1 + ' 0%, ' + lp.color2 + ' 100%)';
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Failed to load login panel settings:', err);
+        }
+    }
+    loadLoginPanelStyle();
+
     // Set current date
     const dateEl = document.getElementById('currentDate');
     if (dateEl) {

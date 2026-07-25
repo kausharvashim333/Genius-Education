@@ -92,21 +92,36 @@ const validateRequest = (req, res, next) => {
 
 // Middleware
 // CORS configuration - restrict to specific origins
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [
+const defaultOrigins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://localhost:3001',
     'http://127.0.0.1:3001',
-    'http://192.168.31.12:3000',
-    'http://192.168.31.12:3001',
     'http://localhost',
-    'http://127.0.0.1'
+    'http://127.0.0.1',
+    'https://gcebatauli.com',
+    'https://www.gcebatauli.com',
+    'http://gcebatauli.com',
+    'http://www.gcebatauli.com'
 ];
+// Merge env ALLOWED_ORIGINS with defaults (don't replace)
+const allowedOrigins = [...defaultOrigins];
+if (process.env.ALLOWED_ORIGINS) {
+    process.env.ALLOWED_ORIGINS.split(',').forEach(o => {
+        const trimmed = o.trim();
+        if (trimmed && !allowedOrigins.includes(trimmed)) allowedOrigins.push(trimmed);
+    });
+}
+// Also allow any localhost / 127.0.0.1 origin on any port (dev convenience)
+const localOriginPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+// Allow any local network IP (192.168.x.x, 10.x.x.x, 172.16-31.x.x) on any port
+const lanOriginPattern = /^https?:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2[0-9]|3[01])\.\d+\.\d+)(:\d+)?$/;
+
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
+        // Allow requests with no origin (like mobile apps, curl, or same-server requests)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
+        if (allowedOrigins.includes(origin) || localOriginPattern.test(origin) || lanOriginPattern.test(origin)) {
             callback(null, true);
         } else {
             callback(new Error('CORS policy: This origin is not allowed'));
@@ -11343,6 +11358,58 @@ app.delete('/api/favicon', (req, res) => {
     }
     settings.favicon = '';
     writeData('settings.json', settings);
+    res.json({ success: true });
+});
+
+// --- Login Panel Customization ---
+const loginPanelStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = 'uploads/login-panels';
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'))
+});
+const uploadLoginPanel = multer({
+    storage: loginPanelStorage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowed = /jpeg|jpg|png|gif|webp/;
+        const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+        const mime = allowed.test(file.mimetype);
+        if (ext && mime) cb(null, true);
+        else cb(new Error('Only image files are allowed'));
+    }
+});
+
+app.post('/api/login-panel-image', uploadLoginPanel.single('image'), (req, res) => {
+    if (!req.file) return res.status(400).json({ success: false, message: 'No image uploaded' });
+    const settings = readData('settings.json') || {};
+    if (!settings.loginPanels) settings.loginPanels = {};
+    const page = req.body.page || 'admin';
+    if (!settings.loginPanels[page]) settings.loginPanels[page] = {};
+    // Delete old image
+    if (settings.loginPanels[page].image) {
+        const oldPath = path.join(__dirname, settings.loginPanels[page].image);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+    settings.loginPanels[page].image = '/uploads/login-panels/' + req.file.filename;
+    writeData('settings.json', settings);
+    res.json({ success: true, image: settings.loginPanels[page].image });
+});
+
+app.delete('/api/login-panel-image', (req, res) => {
+    const settings = readData('settings.json') || {};
+    const page = req.query.page;
+    if (!page || !settings.loginPanels || !settings.loginPanels[page]) {
+        return res.json({ success: true });
+    }
+    if (settings.loginPanels[page].image) {
+        const imgPath = path.join(__dirname, settings.loginPanels[page].image);
+        if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+        settings.loginPanels[page].image = '';
+        writeData('settings.json', settings);
+    }
     res.json({ success: true });
 });
 

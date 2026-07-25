@@ -83,14 +83,58 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
 .brand-bar .brand-title { font-size: 18px; font-weight: 700; }
 .brand-bar .brand-sub { font-size: 12px; opacity: 0.85; }
 
+/* Login Navbar */
+.portal-login-nav {
+    position: relative;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+}
+.portal-login-nav .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #fff;
+}
+.portal-login-nav .brand img {
+    max-height: 30px;
+    object-fit: contain;
+    border-radius: 10px;
+}
+.portal-login-nav .nav-right a {
+    color: #fff;
+    text-decoration: none;
+    font-size: .88rem;
+    opacity: .85;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: background 0.2s, opacity 0.2s;
+}
+.portal-login-nav .nav-right a:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.1);
+}
+
 /* Disabled Page */
-#disabledPage { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 40px; }
+#disabledPage { display: none; min-height: calc(100vh - 60px); align-items: center; justify-content: center; padding: 40px; }
 #disabledPage.active { display: flex; }
 .disabled-card { max-width: 500px; text-align: center; }
 .disabled-card i { font-size: 80px; color: var(--accent); margin-bottom: 20px; }
 
 /* Login Page */
-#loginPage { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 40px; }
+#loginPage { display: none; min-height: calc(100vh - 60px); align-items: center; justify-content: center; padding: 40px; }
 #loginPage.active { display: flex; }
 .login-card { width: 100%; max-width: 440px; padding: 40px; }
 .login-logo { display: flex; justify-content: center; align-items: center; margin-bottom: 18px; }
@@ -284,6 +328,14 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
 </style>
 </head>
 <body>
+
+<!-- Login Navbar -->
+<nav class="portal-login-nav">
+    <div class="brand"><img src="/uploads/logo/logo.png" alt="Logo" onerror="this.style.display='none';" style="max-height:30px;object-fit:contain;border-radius:10px;"> <i class="fas fa-graduation-cap"></i> <span>Genius Computer Education</span></div>
+    <div class="nav-right">
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+    </div>
+</nav>
 
 <!-- Disabled Page -->
 <div id="disabledPage" class="active">

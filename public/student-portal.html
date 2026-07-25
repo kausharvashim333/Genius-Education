@@ -105,247 +105,101 @@
         /* Header */
         .portal-nav { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-bottom: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 60px; }
         .portal-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; }
-        .portal-nav .nav-right a { color: #fff; text-decoration: none; font-size: .88rem; margin-left: 16px; opacity: .85; }
-        .portal-nav .nav-right a:hover { opacity: 1; }
+        .portal-nav .nav-right a { color: #fff; text-decoration: none; font-size: .88rem; opacity: .85; display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; transition: background 0.2s, opacity 0.2s; }
+        .portal-nav .nav-right a:hover { opacity: 1; background: rgba(255, 255, 255, 0.1); }
 
-        /* Enhanced Login Card (Glassmorphism) */
-        .login-wrap { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: calc(100vh - 60px); 
-            padding: 20px;
+        /* Split Screen Login — Admin Exact Copy (Teal) */
+        .student-login {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background: transparent;
             position: relative;
             z-index: 1;
         }
-
-        .login-card { 
-            background: rgba(255, 255, 255, 0.1); 
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+        .student-login-brand {
+            flex: 1;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 60px 40px;
+            background: linear-gradient(135deg, #134e4a 0%, #0f766e 40%, #14b8a6 100%);
+            position: relative; overflow: hidden;
+        }
+        .student-login-brand::before {
+            content: ''; position: absolute;
+            top: -120px; right: -120px;
+            width: 320px; height: 320px;
+            background: radial-gradient(circle, rgba(45, 212, 191, 0.35) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .student-login-brand::after {
+            content: ''; position: absolute;
+            bottom: -100px; left: -100px;
+            width: 280px; height: 280px;
+            background: radial-gradient(circle, rgba(20, 184, 166, 0.25) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .student-login-brand .brand-logo {
+            width: 84px; height: 84px; border-radius: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 24px; 
-            padding: 40px 36px; 
-            width: 100%; 
-            max-width: 440px; 
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2); 
-            position: relative;
-            overflow: hidden;
-            animation: cardAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 28px; position: relative; z-index: 1;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); overflow: hidden;
+        }
+        .student-login-brand .brand-logo img { max-width: 60px; max-height: 60px; object-fit: contain; border-radius: 10px; }
+        .student-login-brand .brand-logo i { font-size: 34px; color: #fff; }
+        .student-login-brand h1 { font-size: 2rem; font-weight: 800; color: #fff; text-align: center; margin-bottom: 14px; position: relative; z-index: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .student-login-brand .brand-tagline { color: rgba(255,255,255,0.85); text-align: center; font-size: 0.95rem; max-width: 360px; line-height: 1.6; position: relative; z-index: 1; }
+        .student-login-brand .brand-features { margin-top: 40px; display: flex; flex-direction: column; gap: 16px; position: relative; z-index: 1; }
+        .student-login-brand .brand-feature { display: flex; align-items: center; gap: 14px; color: rgba(255,255,255,0.9); font-size: 0.9rem; font-weight: 500; }
+        .student-login-brand .brand-feature i { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+
+        /* Right: Login Form Panel */
+        .student-login-form {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            padding: 40px 24px; position: relative; z-index: 1;
         }
 
-        @keyframes cardAppear {
-            from { opacity: 0; transform: translateY(30px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
+        /* Student-specific form elements (teal accent) */
+        .login-box input:focus { border-color: #2dd4bf; background: rgba(255,255,255,0.12); box-shadow: 0 0 0 3px rgba(45,212,191,0.15); }
+        .login-box .btn-primary { background: linear-gradient(135deg, #14b8a6, #0f766e); border: none; color: #fff; box-shadow: 0 4px 15px rgba(20,184,166,0.3); }
+        .login-box .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(20,184,166,0.4); }
+        .login-box .btn-secondary { background: rgba(255,255,255,0.1); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); color: #fff; margin-top: 14px; }
+        .login-box .btn-secondary:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4); transform: translateY(-2px); }
+        .login-box .btn-full { width: 100%; padding: 14px; border-radius: 12px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 10px; position: relative; overflow: hidden; }
+        .login-box .btn-full::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s ease; }
+        .login-box .btn-full:hover::before { left: 100%; }
+        .login-box .form-group { margin-bottom: 16px; }
+        .login-box .form-group label { display: block; margin-bottom: 8px; color: rgba(255,255,255,0.9); font-weight: 500; font-size: 14px; }
+        .login-box .form-group input { width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; font-size: 15px; color: #fff; outline: none; transition: all 0.3s ease; }
+        .login-box .form-group input::placeholder { color: rgba(255,255,255,0.5); }
 
-        .login-card h2 { 
-            margin: 0 0 10px; 
-            font-size: 28px; 
-            font-weight: 800; 
-            color: #fff; 
-            text-align: center; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 12px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .login-card .sub { 
-            text-align: center; 
-            margin: 0 0 32px; 
-            color: rgba(255, 255, 255, 0.7); 
-            font-size: 15px; 
-            font-weight: 500;
-        }
-
-        .login-card .form-group { margin-bottom: 22px; }
-        .login-card .form-group label { 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            margin-bottom: 10px; 
-            font-weight: 600; 
-            font-size: 14px; 
-            color: rgba(255, 255, 255, 0.9); 
-        }
-
-        .login-card .form-group input { 
-            width: 100%; 
-            padding: 14px 18px; 
-            background: rgba(255, 255, 255, 0.08); 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            border-radius: 14px; 
-            font-size: 16px; 
-            transition: all 0.3s ease; 
-            color: #fff; 
-            outline: none;
-        }
-
-        .login-card .form-group input:focus { 
-            background: rgba(255, 255, 255, 0.15); 
-            border-color: rgba(102, 126, 234, 0.6); 
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1); 
-        }
-
-        .login-card .form-group input::placeholder { color: rgba(255, 255, 255, 0.4); }
-
-        .login-card .btn-full { 
-            width: 100%; 
-            padding: 15px 24px; 
-            border-radius: 14px; 
-            font-size: 16px; 
-            font-weight: 700; 
-            cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 10px; 
-            position: relative; 
-            overflow: hidden; 
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .login-card .btn-primary { 
-            background: rgba(102, 126, 234, 0.35); 
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            color: #fff; 
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .login-card .btn-primary:hover { 
-            background: rgba(102, 126, 234, 0.5); 
-            border-color: rgba(255, 255, 255, 0.4); 
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); 
-        }
-
-        .login-card .btn-primary::before { 
-            content: ''; 
-            position: absolute; 
-            top: 0; 
-            left: -100%; 
-            width: 100%; 
-            height: 100%; 
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); 
-            transition: left 0.6s ease; 
-        }
-
-        .login-card .btn-primary:hover::before { left: 100%; }
-
-        .login-card .btn-secondary { 
-            background: rgba(255, 255, 255, 0.1); 
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            color: #fff; 
-            margin-top: 14px; 
-        }
-
-        .login-card .btn-secondary:hover { 
-            background: rgba(255, 255, 255, 0.2); 
-            border-color: rgba(255, 255, 255, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .login-card .otp-step { display: none; animation: slideIn 0.4s ease; }
+        .login-box .otp-step { display: none; animation: slideIn 0.4s ease; }
         @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .login-box .otp-info { background: rgba(20,184,166,0.15); border: 1px solid rgba(20,184,166,0.3); padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; color: #fff; line-height: 1.6; display: flex; gap: 12px; align-items: flex-start; }
+        .login-box .otp-info i { margin-top: 3px; color: #5eead4; }
+        .login-box .error-msg { color: #fca5a5; font-size: 14px; font-weight: 500; margin-top: 8px; text-align: center; min-height: 22px; }
 
-        .login-card .otp-info { 
-            background: rgba(102, 126, 234, 0.15); 
-            backdrop-filter: blur(10px); 
-            -webkit-backdrop-filter: blur(10px); 
-            border: 1px solid rgba(102, 126, 234, 0.3); 
-            padding: 14px 18px; 
-            border-radius: 12px; 
-            margin-bottom: 24px; 
-            font-size: 14px; 
-            color: #fff; 
-            line-height: 1.6; 
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
+        .login-tabs { display: flex; gap: 8px; margin-bottom: 24px; background: rgba(0,0,0,0.2); padding: 6px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
+        .login-tab { flex: 1; padding: 12px; border: 1px solid transparent; border-radius: 10px; text-align: center; cursor: pointer; font-weight: 600; font-size: 14px; color: rgba(255,255,255,0.6); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .login-tab.active { background: rgba(20,184,166,0.3); border-color: rgba(255,255,255,0.2); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .login-tab:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.08); }
 
-        .login-card .otp-info i { margin-top: 3px; color: #a5b4fc; }
-
-        .login-card .error-msg { 
-            color: #fca5a5; 
-            font-size: 14px; 
-            font-weight: 500;
-            margin-top: 10px; 
-            text-align: center; 
-            min-height: 22px; 
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .login-logo { text-align: center; margin-bottom: 24px; display: flex; justify-content: center; align-items: center; }
-        .login-logo img { 
-            max-width: 140px; 
-            max-height: 90px; 
-            object-fit: contain; 
-            border-radius: 16px; 
-            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
-            background: rgba(255, 255, 255, 0.1);
-            padding: 5px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .login-tabs { 
-            display: flex; 
-            gap: 8px; 
-            margin-bottom: 28px; 
-            background: rgba(0, 0, 0, 0.2); 
-            padding: 6px; 
-            border-radius: 14px; 
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .login-tab { 
-            flex: 1; 
-            padding: 12px; 
-            border: 1px solid transparent; 
-            border-radius: 10px; 
-            text-align: center; 
-            cursor: pointer; 
-            font-weight: 700; 
-            font-size: 14px; 
-            color: rgba(255, 255, 255, 0.6); 
-            transition: all 0.3s ease; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .login-tab.active { 
-            background: rgba(102, 126, 234, 0.3); 
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border-color: rgba(255, 255, 255, 0.2);
-            color: #fff; 
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .login-tab:hover:not(.active) { 
-            color: #fff; 
-            background: rgba(255, 255, 255, 0.08); 
-        }
-
-        .resend-container {
-            text-align: center;
-            margin-top: 18px;
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.6);
+        @media (max-width: 768px) {
+            .student-login { flex-direction: column; height: auto; overflow: visible; }
+            .student-login-brand { padding: 40px 24px 30px; min-height: auto; }
+            .student-login-brand .brand-features { display: none; }
+            .student-login-brand h1 { font-size: 1.5rem; }
+            .student-login-brand .brand-tagline { font-size: 0.85rem; }
+            .student-login-form { padding: 30px 20px; }
         }
 
         .resend-btn {
             background: none;
             border: none;
-            color: #a5b4fc;
+            color: #2dd4bf;
             cursor: pointer;
             font-weight: 700;
             padding: 0;
@@ -755,72 +609,84 @@
     <div class="blob blob-3"></div>
 </div>
 
-<nav class="portal-nav">
-    <div class="brand"><img id="portalLogo" src="" alt="Logo" style="max-height:30px;object-fit:contain;margin-right:8px;display:none;border-radius:10px;"><i class="fas fa-graduation-cap" id="portalDefaultIcon"></i> <span id="portalInstitute">Genius Computer Education</span></div>
-    <div class="nav-right">
-        <a href="index.html"><i class="fas fa-home"></i> Homepage</a>
-        <a href="apply.html"><i class="fas fa-user-graduate"></i> Apply Online</a>
+<!-- Login Section — Split Screen (Admin Style) -->
+<div class="student-login" id="loginWrap">
+    <!-- Left: Branding Panel -->
+    <div class="student-login-brand">
+        <div class="brand-logo">
+            <img src="/uploads/logo/logo.png" alt="Logo" onerror="this.style.display='none';" style="max-width:60px;max-height:60px;object-fit:contain;border-radius:10px;">
+            <i class="fas fa-graduation-cap" style="display:none;"></i>
+        </div>
+        <h1>Student Portal</h1>
+        <p class="brand-tagline">Apne courses, attendance, fees, certificates aur exam results — sab kuch ek jagah check karein.</p>
+        <div class="brand-features">
+            <div class="brand-feature"><i class="fas fa-book-open"></i> Course Materials &amp; Resources</div>
+            <div class="brand-feature"><i class="fas fa-calendar-check"></i> Attendance &amp; Schedule</div>
+            <div class="brand-feature"><i class="fas fa-certificate"></i> Certificates &amp; Results</div>
+        </div>
     </div>
-</nav>
-
-<!-- Login Section -->
-<div class="login-wrap" id="loginWrap">
-    <div class="login-card">
-        <div class="login-logo">
-            <img id="loginLogo" src="/uploads/logo/logo.png" alt="Logo" onerror="this.style.display='none';" style="border-radius: 12px !important;">
-        </div>
-        <h2><i class="fas fa-user-circle" style="color:#667eea;"></i> Student Portal</h2>
-        <p class="sub">Apne profile ki jaankari dekhne ke liye login karein</p>
-
-        <!-- Login Type Tabs -->
-        <div class="login-tabs">
-            <div class="login-tab active" onclick="switchLoginType('email')" id="tabEmail">
-                <i class="fas fa-envelope"></i> Email
+    <!-- Right: Login Form -->
+    <div class="student-login-form">
+        <div class="login-box">
+            <div class="login-box-logo">
+                <img src="/uploads/logo/logo.png" alt="Logo" onerror="this.style.display='none';" style="max-width:44px;max-height:44px;object-fit:contain;border-radius:8px;">
             </div>
-            <div class="login-tab" onclick="switchLoginType('google')" id="tabGoogle">
-                <i class="fab fa-google"></i> Google
-            </div>
-        </div>
+            <h2><i class="fas fa-user-circle" style="color:#2dd4bf;"></i> Student Login</h2>
+            <p class="login-subtitle">Apne profile ki jaankari dekhne ke liye login karein</p>
 
-        <!-- Step 1: Email/Roll No -->
-        <div id="step1">
-            <div class="form-group">
-                <label id="loginLabel">Registered Email or Student ID</label>
-                <input type="text" id="loginEmail" placeholder="Email ID or Student ID (GCE...)" onkeydown="if(event.key==='Enter')requestOTP()">
+            <!-- Login Type Tabs -->
+            <div class="login-tabs">
+                <div class="login-tab active" onclick="switchLoginType('email')" id="tabEmail">
+                    <i class="fas fa-envelope"></i> Email
+                </div>
+                <div class="login-tab" onclick="switchLoginType('google')" id="tabGoogle">
+                    <i class="fab fa-google"></i> Google
+                </div>
             </div>
-            <p class="error-msg" id="step1Error"></p>
-            <button class="btn-full btn-primary" onclick="requestOTP()" id="requestOTPBtn"><i class="fas fa-paper-plane"></i> Send OTP</button>
-        </div>
 
-        <!-- Step 1: Google -->
-        <div id="step1-google" style="display:none;">
-            <div style="text-align:center;padding:20px 0;">
-                <p style="margin-bottom:20px;color:#64748b;font-size:14px;">Google account se login karein</p>
-                <a href="/auth/google" class="btn-full btn-primary" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;">
-                    <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4"/>
-                        <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4205 9 14.4205C6.65591 14.4205 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853"/>
-                        <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59318 3.68182 9C3.68182 8.40682 3.78409 7.83 3.96409 7.29V4.95818H0.957275C0.347727 6.17318 0 7.54773 0 9C0 10.4523 0.347727 11.8268 0.957275 13.0418L3.96409 10.71Z" fill="#FBBC05"/>
-                        <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335"/>
-                    </svg>
-                    Sign in with Google
-                </a>
+            <!-- Step 1: Email/Roll No -->
+            <div id="step1">
+                <div class="form-group">
+                    <label id="loginLabel">Registered Email or Student ID</label>
+                    <input type="text" id="loginEmail" placeholder="Email ID or Student ID (GCE...)" onkeydown="if(event.key==='Enter')requestOTP()">
+                </div>
+                <p class="error-msg" id="step1Error"></p>
+                <button class="btn-full btn-primary" onclick="requestOTP()" id="requestOTPBtn"><i class="fas fa-paper-plane"></i> Send OTP</button>
             </div>
-            <p class="error-msg" id="step1GoogleError"></p>
-        </div>
 
-        <!-- Step 2: OTP -->
-        <div id="step2" class="otp-step">
-            <div class="otp-info"><i class="fas fa-envelope"></i> OTP aapke email par bhej diya gaya hai. 5 minutes mein expire ho jayega.</div>
-            <div class="form-group">
-                <label>6-Digit OTP</label>
-                <input type="text" id="loginOTP" placeholder="Enter OTP" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')verifyOTP()">
+            <!-- Step 1: Google -->
+            <div id="step1-google" style="display:none;">
+                <div style="text-align:center;padding:20px 0;">
+                    <p style="margin-bottom:20px;color:rgba(255,255,255,0.6);font-size:14px;">Google account se login karein</p>
+                    <a href="/auth/google" class="btn-full btn-primary" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;">
+                        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4"/>
+                            <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4205 9 14.4205C6.65591 14.4205 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853"/>
+                            <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59318 3.68182 9C3.68182 8.40682 3.78409 7.83 3.96409 7.29V4.95818H0.957275C0.347727 6.17318 0 7.54773 0 9C0 10.4523 0.347727 11.8268 0.957275 13.0418L3.96409 10.71Z" fill="#FBBC05"/>
+                            <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335"/>
+                        </svg>
+                        Sign in with Google
+                    </a>
+                </div>
+                <p class="error-msg" id="step1GoogleError"></p>
             </div>
-            <p class="error-msg" id="step2Error"></p>
-            <button class="btn-full btn-primary" onclick="verifyOTP()" id="verifyOTPBtn"><i class="fas fa-check"></i> Verify OTP & Login</button>
-            <button class="btn-full btn-secondary" onclick="backToEmail()"><i class="fas fa-arrow-left"></i> Change Email/Phone</button>
-            <p style="text-align:center;margin-top:15px;font-size:.85rem;color:#64748b;">
-                OTP nahi mila? <button type="button" onclick="resendOTP()" id="resendOTPBtn" style="background:none;border:none;color:#667eea;cursor:pointer;font-weight:600;padding:0;">Resend OTP</button> <span id="resendTimer" style="color:#64748b;"></span>
+
+            <!-- Step 2: OTP -->
+            <div id="step2" class="otp-step">
+                <div class="otp-info"><i class="fas fa-envelope"></i> OTP aapke email par bhej diya gaya hai. 5 minutes mein expire ho jayega.</div>
+                <div class="form-group">
+                    <label>6-Digit OTP</label>
+                    <input type="text" id="loginOTP" placeholder="Enter OTP" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')verifyOTP()">
+                </div>
+                <p class="error-msg" id="step2Error"></p>
+                <button class="btn-full btn-primary" onclick="verifyOTP()" id="verifyOTPBtn"><i class="fas fa-check"></i> Verify OTP & Login</button>
+                <button class="btn-full btn-secondary" onclick="backToEmail()"><i class="fas fa-arrow-left"></i> Change Email/Phone</button>
+                <p style="text-align:center;margin-top:15px;font-size:.85rem;color:rgba(255,255,255,0.6);">
+                    OTP nahi mila? <button type="button" onclick="resendOTP()" id="resendOTPBtn" style="background:none;border:none;color:#2dd4bf;cursor:pointer;font-weight:600;padding:0;">Resend OTP</button> <span id="resendTimer" style="color:rgba(255,255,255,0.6);"></span>
+                </p>
+            </div>
+            <p style="text-align:center;margin-top:18px;">
+                <a href="index.html" style="color:#2dd4bf;text-decoration:none;font-size:.85rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-home"></i> Back to Home</a>
             </p>
         </div>
     </div>
@@ -1840,6 +1706,33 @@ async function loadLoginLogo() {
             if (loginLogo) {
                 loginLogo.src = settings.logo;
                 loginLogo.style.display = 'block';
+            }
+        }
+        // Apply login panel customization
+        if (settings.loginPanels && settings.loginPanels.student) {
+            const lp = settings.loginPanels.student;
+            const brand = document.querySelector('.student-login-brand');
+            if (brand) {
+                if (lp.image) {
+                    const opacity = lp.opacity != null ? lp.opacity / 100 : 0.3;
+                    brand.style.background = 'linear-gradient(135deg, ' + lp.color1 + ' 0%, ' + lp.color2 + ' 100%)';
+                    brand.style.backgroundImage = 'linear-gradient(135deg, ' + lp.color1 + ' 0%, ' + lp.color2 + ' 100%), url(' + lp.image + ')';
+                    brand.style.backgroundSize = 'cover, cover';
+                    brand.style.backgroundPosition = 'center, center';
+                    brand.style.backgroundBlendMode = 'overlay';
+                    let overlay = brand.querySelector('.lp-overlay');
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.className = 'lp-overlay';
+                        overlay.style.cssText = 'position:absolute;inset:0;background:' + lp.color1 + ';opacity:' + opacity + ';z-index:0;pointer-events:none;';
+                        brand.insertBefore(overlay, brand.firstChild);
+                    } else {
+                        overlay.style.background = lp.color1;
+                        overlay.style.opacity = opacity;
+                    }
+                } else {
+                    brand.style.background = 'linear-gradient(135deg, ' + lp.color1 + ' 0%, ' + lp.color2 + ' 100%)';
+                }
             }
         }
     } catch (e) {}

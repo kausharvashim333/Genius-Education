@@ -706,6 +706,7 @@
             text-overflow: ellipsis;
             display: -webkit-box;
             -webkit-line-clamp: 3;
+            line-clamp: 3;
             -webkit-box-orient: vertical;
         }
         .course-card-actions {
@@ -760,52 +761,112 @@
             color: #f87171;
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
+        /* Split Screen Login */
+        #loginSection { display: flex; height: 100vh; overflow: hidden; }
+        #loginSection .split-brand {
+            flex: 1;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 60px 40px;
+            background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 40%, #7c3aed 100%);
+            position: relative; overflow: hidden;
+        }
+        #loginSection .split-brand::before {
+            content: ''; position: absolute;
+            top: -120px; right: -120px;
+            width: 320px; height: 320px;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.35) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        #loginSection .split-brand::after {
+            content: ''; position: absolute;
+            bottom: -100px; left: -100px;
+            width: 280px; height: 280px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.25) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        #loginSection .split-brand .brand-logo {
+            width: 84px; height: 84px; border-radius: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 28px; position: relative; z-index: 1;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); overflow: hidden;
+        }
+        #loginSection .split-brand .brand-logo img { max-width: 60px; max-height: 60px; object-fit: contain; border-radius: 10px; }
+        #loginSection .split-brand .brand-logo i { font-size: 34px; color: #fff; }
+        #loginSection .split-brand h1 { font-size: 2rem; font-weight: 800; color: #fff; text-align: center; margin-bottom: 14px; position: relative; z-index: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        #loginSection .split-brand .brand-tagline { color: rgba(255,255,255,0.85); text-align: center; font-size: 0.95rem; max-width: 360px; line-height: 1.6; position: relative; z-index: 1; }
+        #loginSection .split-brand .brand-features { margin-top: 40px; display: flex; flex-direction: column; gap: 16px; position: relative; z-index: 1; }
+        #loginSection .split-brand .brand-feature { display: flex; align-items: center; gap: 14px; color: rgba(255,255,255,0.9); font-size: 0.9rem; font-weight: 500; }
+        #loginSection .split-brand .brand-feature i { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+        #loginSection .split-form {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            padding: 40px 24px; position: relative; z-index: 1;
+        }
+        @media (max-width: 768px) {
+            #loginSection { flex-direction: column; height: auto; overflow: visible; }
+            #loginSection .split-brand { padding: 40px 24px 30px; min-height: auto; }
+            #loginSection .split-brand .brand-features { display: none; }
+            #loginSection .split-brand h1 { font-size: 1.5rem; }
+            #loginSection .split-brand .brand-tagline { font-size: 0.85rem; }
+            #loginSection .split-form { padding: 30px 20px; }
+        }
         .login-container { 
             position: relative;
             z-index: 1;
             display: flex; 
             justify-content: center; 
             align-items: center; 
-            min-height: 100vh; 
             background: transparent; 
-            padding: 20px; 
+            padding: 0;
+            width: 100%;
         }
         .login-box { 
-            background: rgba(255, 255, 255, 0.1); 
+            background: rgba(255, 255, 255, 0.08); 
             backdrop-filter: blur(24px); 
             -webkit-backdrop-filter: blur(24px); 
-            border: 1px solid rgba(255, 255, 255, 0.25); 
-            padding: 40px 36px; 
-            border-radius: 24px; 
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); 
+            border: 1px solid rgba(255, 255, 255, 0.18); 
+            padding: 44px 36px; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1); 
             width: 100%;
-            max-width: 420px; 
+            max-width: 400px; 
             animation: cardAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         @keyframes cardAppear {
             from { opacity: 0; transform: translateY(30px) scale(0.95); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .login-header { text-align: center; margin-bottom: 20px; }
-        .login-header h2 { margin: 5px 0 3px 0; color: #fff; }
-        .login-header p { margin: 0; color: rgba(255,255,255,0.8); }
-        .login-logo { width: 100px; height: 100px; object-fit: cover; display: block; margin: 0 auto 10px auto; border-radius: 12px !important; }
+        .login-box-logo {
+            width: 64px; height: 64px; border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px; overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+        .login-box-logo img { max-width: 44px; max-height: 44px; object-fit: contain; border-radius: 8px; }
+        .login-box h2 { text-align: center; margin-bottom: 8px; font-size: 1.6rem; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .login-box .login-subtitle { text-align: center; margin-bottom: 28px; color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: 500; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 8px; color: #fff; font-weight: 500; }
         .form-group input { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; font-size: 14px; color: #fff; }
-        .form-group input:focus { outline: none; border-color: #667eea; background: rgba(255, 255, 255, 0.15); }
+        .form-group input:focus { outline: none; border-color: #a78bfa; background: rgba(255, 255, 255, 0.15); box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15); }
         .form-group input::placeholder { color: rgba(255,255,255,0.6); }
-        .btn { padding: 12px 24px; border: 1px solid rgba(102,126,234,0.5); border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; }
-        .btn-primary { background: rgba(102,126,234,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: white; }
-        .btn-primary:hover { background: rgba(102,126,234,0.6); border-color: rgba(102,126,234,0.8); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
+        .btn { padding: 12px 24px; border: 1px solid rgba(124, 58, 237, 0.5); border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .btn-primary { background: linear-gradient(135deg, #7c3aed, #6d28d9); border: none; color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35); }
         .btn-danger { background: rgba(239, 68, 68, 0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(239, 68, 68, 0.5); color: white; }
         .btn-danger:hover { background: rgba(239, 68, 68, 0.6); border-color: rgba(239, 68, 68, 0.8); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
         .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.1); color: #fff; }
         .data-table th { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-weight: 600; color: rgba(255,255,255,0.9); }
         .login-method-btn { flex: 1; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); cursor: pointer; font-size: 12px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; color: rgba(255,255,255,0.8); transition: all 0.2s; }
-        .login-method-btn:hover { border-color: #667eea; color: #fff; background: rgba(255,255,255,0.15); }
-        .login-method-btn.active { background: rgba(102,126,234,0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: white; border-color: rgba(102,126,234,0.5); }
+        .login-method-btn:hover { border-color: #a78bfa; color: #fff; background: rgba(255,255,255,0.15); }
+        .login-method-btn.active { background: rgba(124, 58, 237, 0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: white; border-color: rgba(124, 58, 237, 0.5); }
         .login-method-btn.google-btn { background: rgba(66, 133, 244, 0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: white; border-color: rgba(66, 133, 244, 0.5); }
         .login-method-btn.google-btn:hover { background: rgba(66, 133, 244, 0.5); border-color: rgba(66, 133, 244, 0.8); }
         .btn-secondary { background: rgba(100, 116, 139, 0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(100, 116, 139, 0.5); color: white; }
@@ -878,6 +939,50 @@
             66% { transform: translate(-20px, 20px) scale(0.9); }
             100% { transform: translate(0, 0) scale(1); }
         }
+
+        /* Login Navbar */
+        .portal-login-nav {
+            position: relative;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+        .portal-login-nav .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+        .portal-login-nav .brand img {
+            max-height: 30px;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+        .portal-login-nav .nav-right a {
+            color: #fff;
+            text-decoration: none;
+            font-size: .88rem;
+            opacity: .85;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background 0.2s, opacity 0.2s;
+        }
+        .portal-login-nav .nav-right a:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -888,65 +993,80 @@
         <div class="blob blob-3"></div>
     </div>
 
-    <!-- Login Section -->
+    <!-- Login Section — Split Screen -->
     <div id="loginSection">
-        <div class="login-container">
-            <div class="login-box">
-                <div class="login-header">
-                    <div style="width:100px;height:100px;margin:0 auto 15px auto;border-radius:16px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                        <img src="/uploads/logo/logo.png" alt="Genius Computer Education Logo" style="width:100%;height:100%;object-fit:cover;display:block;">
+        <!-- Left: Branding Panel -->
+        <div class="split-brand">
+            <div class="brand-logo">
+                <img src="/uploads/logo/logo.png" alt="Logo" onerror="this.style.display='none';" style="max-width:60px;max-height:60px;object-fit:contain;border-radius:10px;">
+                <i class="fas fa-chalkboard-teacher" style="display:none;"></i>
+            </div>
+            <h1>Faculty Portal</h1>
+            <p class="brand-tagline">Apne students ke liye study materials, assignments, aur results manage karein — sab kuch ek jagah.</p>
+            <div class="brand-features">
+                <div class="brand-feature"><i class="fas fa-book-reader"></i> Study Material &amp; Resources</div>
+                <div class="brand-feature"><i class="fas fa-clipboard-check"></i> Assignments &amp; Grading</div>
+                <div class="brand-feature"><i class="fas fa-user-graduate"></i> Student Performance Tracking</div>
+            </div>
+        </div>
+        <!-- Right: Login Form -->
+        <div class="split-form">
+            <div class="login-container">
+                <div class="login-box">
+                    <div class="login-box-logo">
+                        <img src="/uploads/logo/logo.png" alt="Logo" onerror="this.style.display='none';" style="max-width:44px;max-height:44px;object-fit:contain;border-radius:8px;">
                     </div>
-                    <h2 style="font-size: 26px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">Faculty Portal Login</h2>
-                    <p style="font-weight: 500; color: rgba(255,255,255,0.7);">Genius Computer Education</p>
-                </div>
-                
-                <!-- Login Method Buttons -->
-                <div style="display:flex;gap:10px;margin-bottom:20px;">
-                    <button onclick="showLoginMethod('password')" class="login-method-btn active" data-method="password">
-                        <i class="fas fa-lock"></i> Password
-                    </button>
-                    <button onclick="showLoginMethod('otp')" class="login-method-btn" data-method="otp">
-                        <i class="fas fa-envelope"></i> OTP
-                    </button>
-                    <button onclick="window.location.href='/auth/google/faculty'" class="login-method-btn google-btn">
-                        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                        Google
-                    </button>
-                </div>
-                
-                <!-- Password Login -->
-                <form id="facultyLoginForm" data-login-type="password">
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="facultyEmail" required>
+                    <h2><i class="fas fa-lock" style="color:#a78bfa;"></i> Faculty Login</h2>
+                    <p class="login-subtitle">Apne account se login karein</p>
+                    
+                    <!-- Login Method Buttons -->
+                    <div style="display:flex;gap:10px;margin-bottom:20px;">
+                        <button onclick="showLoginMethod('password')" class="login-method-btn active" data-method="password">
+                            <i class="fas fa-lock"></i> Password
+                        </button>
+                        <button onclick="showLoginMethod('otp')" class="login-method-btn" data-method="otp">
+                            <i class="fas fa-envelope"></i> OTP
+                        </button>
+                        <button onclick="window.location.href='/auth/google/faculty'" class="login-method-btn google-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24"><path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                            Google
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="facultyPassword" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width:100%">Login</button>
-                    <p style="text-align:center;margin-top:15px;color:#64748b;">
-                        <a href="#" onclick="showForgotPassword()" style="color:#667eea;text-decoration:none;">Forgot Password?</a>
+                    
+                    <!-- Password Login -->
+                    <form id="facultyLoginForm" data-login-type="password">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="facultyEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="facultyPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width:100%">Login</button>
+                        <p style="text-align:center;margin-top:15px;color:rgba(255,255,255,0.6);">
+                            <a href="#" onclick="showForgotPassword()" style="color:#a78bfa;text-decoration:none;">Forgot Password?</a>
+                        </p>
+                    </form>
+                    
+                    <!-- OTP Login -->
+                    <form id="otpLoginForm" data-login-type="otp" style="display:none;">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="otpEmail" required>
+                        </div>
+                        <button type="button" onclick="sendOTP()" class="btn btn-secondary" style="width:100%;margin-bottom:10px;">Send OTP</button>
+                        <div class="form-group" id="otpInputGroup" style="display:none;">
+                            <label>Enter OTP</label>
+                            <input type="text" id="otpCode" placeholder="Enter 6-digit OTP" maxlength="6" style="letter-spacing:5px;text-align:center;font-size:20px;">
+                        </div>
+                        <button type="button" onclick="verifyOTP()" class="btn btn-primary" style="width:100%;display:none;" id="verifyOTPBtn">Verify & Login</button>
+                    </form>
+                    
+                    <p style="text-align:center;margin-top:15px;color:rgba(255,255,255,0.6);">
+                        <a href="index.html" style="color:#a78bfa;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-home"></i> Back to Home</a>
                     </p>
-                </form>
-                
-                <!-- OTP Login -->
-                <form id="otpLoginForm" data-login-type="otp" style="display:none;">
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="otpEmail" required>
-                    </div>
-                    <button type="button" onclick="sendOTP()" class="btn btn-secondary" style="width:100%;margin-bottom:10px;">Send OTP</button>
-                    <div class="form-group" id="otpInputGroup" style="display:none;">
-                        <label>Enter OTP</label>
-                        <input type="text" id="otpCode" placeholder="Enter 6-digit OTP" maxlength="6" style="letter-spacing:5px;text-align:center;font-size:20px;">
-                    </div>
-                    <button type="button" onclick="verifyOTP()" class="btn btn-primary" style="width:100%;display:none;" id="verifyOTPBtn">Verify & Login</button>
-                </form>
-                
-                <p style="text-align:center;margin-top:15px;color:#64748b;">
-                    <a href="index.html" style="color:#667eea;text-decoration:none;">Back to Home</a>
-                </p>
+                </div>
             </div>
         </div>
     </div>
