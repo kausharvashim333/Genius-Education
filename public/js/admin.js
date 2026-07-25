@@ -431,8 +431,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const opacity = lp.opacity != null ? lp.opacity / 100 : 0.3;
                     brand.style.background = 'linear-gradient(135deg, ' + lp.color1 + ' 0%, ' + lp.color2 + ' 100%)';
                     brand.style.backgroundImage = 'linear-gradient(135deg, ' + lp.color1 + ' 0%, ' + lp.color2 + ' 100%), url(' + lp.image + ')';
-                    brand.style.backgroundSize = (lp.bgSize || 'cover') + ', cover';
-                    brand.style.backgroundPosition = (lp.bgPosition || 'center center') + ', center';
+                    brand.style.backgroundSize = 'cover, cover';
+                    brand.style.backgroundPosition = 'center, center';
                     brand.style.backgroundBlendMode = 'overlay';
                     brand.style.setProperty('--lp-overlay-opacity', opacity);
                     // Add overlay div for transparency control
@@ -12608,9 +12608,9 @@ document.getElementById('smtpForm').addEventListener('submit', async function(e)
 
 // ===== Login Panel Customization =====
 const LOGIN_PANEL_DEFAULTS = {
-    admin:   { color1: '#1e3a8a', color2: '#2563eb', image: '', opacity: 30, bgSize: 'cover', bgPosition: 'center center' },
-    faculty: { color1: '#4c1d95', color2: '#7c3aed', image: '', opacity: 30, bgSize: 'cover', bgPosition: 'center center' },
-    student: { color1: '#134e4a', color2: '#14b8a6', image: '', opacity: 30, bgSize: 'cover', bgPosition: 'center center' }
+    admin:   { color1: '#1e3a8a', color2: '#2563eb', image: '', opacity: 30 },
+    faculty: { color1: '#4c1d95', color2: '#7c3aed', image: '', opacity: 30 },
+    student: { color1: '#134e4a', color2: '#14b8a6', image: '', opacity: 30 }
 };
 
 async function loadLoginPanelSettings() {
@@ -12624,8 +12624,6 @@ async function loadLoginPanelSettings() {
             document.getElementById('lp' + cap + 'Color2').value = p.color2 || LOGIN_PANEL_DEFAULTS[page].color2;
             document.getElementById('lp' + cap + 'Opacity').value = p.opacity != null ? p.opacity : 30;
             document.getElementById('lp' + cap + 'OpacityValue').textContent = (p.opacity != null ? p.opacity : 30) + '%';
-            document.getElementById('lp' + cap + 'BgSize').value = p.bgSize || 'cover';
-            document.getElementById('lp' + cap + 'BgPosition').value = p.bgPosition || 'center center';
             if (p.image) {
                 const img = document.getElementById('lp' + cap + 'ImagePreviewImg');
                 img.src = p.image;
@@ -12647,34 +12645,70 @@ async function loadLoginPanelSettings() {
     }
 });
 
-// Image upload handlers
+// Image upload handlers — with Cropper.js
+let lpCropper = null;
+let lpCropTargetPage = null;
+
 ['Admin', 'Faculty', 'Student'].forEach(cap => {
     const fileInput = document.getElementById('lp' + cap + 'ImageFile');
     if (fileInput) {
-        fileInput.addEventListener('change', async function(e) {
+        fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-            const page = cap.toLowerCase();
-            const formData = new FormData();
-            formData.append('image', file);
-            formData.append('page', page);
-            try {
-                const res = await fetch('/api/login-panel-image', { method: 'POST', body: formData });
-                const data = await res.json();
-                if (data.success) {
-                    const img = document.getElementById('lp' + cap + 'ImagePreviewImg');
-                    img.src = data.image;
-                    img.style.display = 'block';
-                    document.getElementById('lp' + cap + 'ImagePlaceholder').style.display = 'none';
-                    document.getElementById('lp' + cap + 'RemoveImageBtn').style.display = 'inline-block';
-                    showNotification(cap + ' panel image uploaded!', 'success');
-                } else {
-                    showNotification(data.message || 'Image upload failed!', 'error');
-                }
-            } catch (err) { showNotification('Image upload failed!', 'error'); }
+            lpCropTargetPage = cap.toLowerCase();
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const cropImg = document.getElementById('lpCropImage');
+                cropImg.src = ev.target.result;
+                document.getElementById('lpCropModal').classList.add('active');
+                if (lpCropper) { lpCropper.destroy(); lpCropper = null; }
+                lpCropper = new Cropper(cropImg, {
+                    aspectRatio: 1 / 1.2,
+                    viewMode: 1,
+                    autoCropArea: 0.9,
+                    movable: true,
+                    zoomable: true,
+                    rotatable: false,
+                    scalable: false
+                });
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
         });
     }
 });
+
+function closeLpCropModal() {
+    document.getElementById('lpCropModal').classList.remove('active');
+    if (lpCropper) { lpCropper.destroy(); lpCropper = null; }
+    document.getElementById('lpCropImage').src = '';
+}
+
+async function confirmLpCrop() {
+    if (!lpCropper || !lpCropTargetPage) return;
+    const canvas = lpCropper.getCroppedCanvas({ maxWidth: 1200, maxHeight: 1440 });
+    canvas.toBlob(async function(blob) {
+        const formData = new FormData();
+        formData.append('image', blob, 'cropped-' + lpCropTargetPage + '.png');
+        formData.append('page', lpCropTargetPage);
+        try {
+            const res = await fetch('/api/login-panel-image', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                const cap = lpCropTargetPage.charAt(0).toUpperCase() + lpCropTargetPage.slice(1);
+                const img = document.getElementById('lp' + cap + 'ImagePreviewImg');
+                img.src = data.image;
+                img.style.display = 'block';
+                document.getElementById('lp' + cap + 'ImagePlaceholder').style.display = 'none';
+                document.getElementById('lp' + cap + 'RemoveImageBtn').style.display = 'inline-block';
+                showNotification(cap + ' panel image uploaded!', 'success');
+                closeLpCropModal();
+            } else {
+                showNotification(data.message || 'Image upload failed!', 'error');
+            }
+        } catch (err) { showNotification('Image upload failed!', 'error'); }
+    }, 'image/png');
+}
 
 async function removeLoginPanelImage(page) {
     try {
@@ -12696,23 +12730,17 @@ document.getElementById('loginPanelsForm').addEventListener('submit', async func
             admin: {
                 color1: document.getElementById('lpAdminColor1').value,
                 color2: document.getElementById('lpAdminColor2').value,
-                opacity: parseInt(document.getElementById('lpAdminOpacity').value),
-                bgSize: document.getElementById('lpAdminBgSize').value,
-                bgPosition: document.getElementById('lpAdminBgPosition').value
+                opacity: parseInt(document.getElementById('lpAdminOpacity').value)
             },
             faculty: {
                 color1: document.getElementById('lpFacultyColor1').value,
                 color2: document.getElementById('lpFacultyColor2').value,
-                opacity: parseInt(document.getElementById('lpFacultyOpacity').value),
-                bgSize: document.getElementById('lpFacultyBgSize').value,
-                bgPosition: document.getElementById('lpFacultyBgPosition').value
+                opacity: parseInt(document.getElementById('lpFacultyOpacity').value)
             },
             student: {
                 color1: document.getElementById('lpStudentColor1').value,
                 color2: document.getElementById('lpStudentColor2').value,
-                opacity: parseInt(document.getElementById('lpStudentOpacity').value),
-                bgSize: document.getElementById('lpStudentBgSize').value,
-                bgPosition: document.getElementById('lpStudentBgPosition').value
+                opacity: parseInt(document.getElementById('lpStudentOpacity').value)
             }
         }
     };
@@ -12732,7 +12760,7 @@ document.getElementById('loginPanelsForm').addEventListener('submit', async func
 });
 
 async function resetLoginPanels() {
-    if (!confirm('Reset all login panels to default colors, display settings, and remove all images?')) return;
+    if (!confirm('Reset all login panels to default colors and remove all images?')) return;
     try {
         // Delete all images
         for (const page of ['admin', 'faculty', 'student']) {

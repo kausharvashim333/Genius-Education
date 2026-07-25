@@ -1717,8 +1717,8 @@ async function loadLoginLogo() {
                     const opacity = lp.opacity != null ? lp.opacity / 100 : 0.3;
                     brand.style.background = 'linear-gradient(135deg, ' + lp.color1 + ' 0%, ' + lp.color2 + ' 100%)';
                     brand.style.backgroundImage = 'linear-gradient(135deg, ' + lp.color1 + ' 0%, ' + lp.color2 + ' 100%), url(' + lp.image + ')';
-                    brand.style.backgroundSize = (lp.bgSize || 'cover') + ', cover';
-                    brand.style.backgroundPosition = (lp.bgPosition || 'center center') + ', center';
+                    brand.style.backgroundSize = 'cover, cover';
+                    brand.style.backgroundPosition = 'center, center';
                     brand.style.backgroundBlendMode = 'overlay';
                     let overlay = brand.querySelector('.lp-overlay');
                     if (!overlay) {
