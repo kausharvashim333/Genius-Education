@@ -34,9 +34,14 @@
         }, true);
 
         // Prevent text selection / drag (also helps stop saving content)
-        document.addEventListener('selectstart', function (e) { e.preventDefault(); return false; }, true);
-        document.addEventListener('dragstart', function (e) { e.preventDefault(); return false; }, true);
-        document.addEventListener('copy', function (e) { e.preventDefault(); return false; }, true);
+        // Skip editable elements (inputs, textareas, contenteditable/rich text editors)
+        function isEditable(target) {
+            if (!target || !target.closest) return false;
+            return !!target.closest('input, textarea, select, [contenteditable="true"], [contenteditable=""], .ql-editor');
+        }
+        document.addEventListener('selectstart', function (e) { if (isEditable(e.target)) return; e.preventDefault(); return false; }, true);
+        document.addEventListener('dragstart', function (e) { if (isEditable(e.target)) return; e.preventDefault(); return false; }, true);
+        document.addEventListener('copy', function (e) { if (isEditable(e.target)) return; e.preventDefault(); return false; }, true);
 
         // Devtools open detection (best-effort, not foolproof)
         const threshold = 160;
