@@ -11679,7 +11679,7 @@ app.get('/api/hero-text', (req, res) => {
 
 app.post('/api/hero-text', (req, res) => {
     try {
-        const { heading, subheading, headingSize, subheadingSize, animation, button1Text, button2Text, headingMobile, subheadingMobile, headingSizeMobile, subheadingSizeMobile, button1TextMobile, button2TextMobile } = req.body;
+        const { heading, subheading, headingSize, subheadingSize, animation, button1Text, button2Text, headingMobile, subheadingMobile, headingSizeMobile, subheadingSizeMobile, button1TextMobile, button2TextMobile, badgeText, stats } = req.body;
         
         const heroText = {
             heading: heading || 'Welcome to Genius Computer Education',
@@ -11694,7 +11694,13 @@ app.post('/api/hero-text', (req, res) => {
             headingSizeMobile: parseFloat(headingSizeMobile) || 1.2,
             subheadingSizeMobile: parseFloat(subheadingSizeMobile) || 1,
             button1TextMobile: button1TextMobile || 'View Courses',
-            button2TextMobile: button2TextMobile || 'Apply Online'
+            button2TextMobile: button2TextMobile || 'Apply Online',
+            badgeText: badgeText || '🎓 Admissions Open 2026',
+            stats: {
+                students: (stats && stats.students) || '500+',
+                courses: (stats && stats.courses) || '15+',
+                years: (stats && stats.years) || '10+'
+            }
         };
 
         writeData('hero-text.json', heroText);

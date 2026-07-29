@@ -11821,6 +11821,14 @@ async function loadHeroText() {
             document.getElementById('heroButton1Text').value = data.heroText.button1Text || 'View Courses';
             document.getElementById('heroButton2Text').value = data.heroText.button2Text || 'Apply Online';
             
+            // Badge & Stats
+            document.getElementById('heroBadgeText').value = data.heroText.badgeText || '🎓 Admissions Open 2026';
+            if (data.heroText.stats) {
+                document.getElementById('heroStatStudents').value = data.heroText.stats.students || '500+';
+                document.getElementById('heroStatCourses').value = data.heroText.stats.courses || '15+';
+                document.getElementById('heroStatYears').value = data.heroText.stats.years || '10+';
+            }
+            
             // Mobile fields
             document.getElementById('heroHeadingMobile').value = data.heroText.headingMobile || '';
             document.getElementById('heroSubheadingMobile').value = data.heroText.subheadingMobile || '';
@@ -12058,6 +12066,13 @@ async function saveHeroText() {
         animation: document.getElementById('heroAnimation').value,
         button1Text: document.getElementById('heroButton1Text').value,
         button2Text: document.getElementById('heroButton2Text').value,
+        // Badge & Stats
+        badgeText: document.getElementById('heroBadgeText').value,
+        stats: {
+            students: document.getElementById('heroStatStudents').value,
+            courses: document.getElementById('heroStatCourses').value,
+            years: document.getElementById('heroStatYears').value
+        },
         // Mobile fields
         headingMobile: document.getElementById('heroHeadingMobile').value,
         subheadingMobile: document.getElementById('heroSubheadingMobile').value,
