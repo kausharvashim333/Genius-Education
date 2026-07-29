@@ -1623,8 +1623,9 @@ async function loadBlogForEdit(blogId) {
             document.getElementById('blogCoverRemoveBtn').style.display = 'inline-flex';
         }
         if (_blogQuill) {
-            _blogQuill.root.innerHTML = '';
+            _blogQuill.setContents([]);
             _blogQuill.clipboard.dangerouslyPasteHTML(0, blog.content || '');
+            _blogQuill.setSelection(0);
         }
     } catch (e) {
         console.error('Error loading blog:', e);
