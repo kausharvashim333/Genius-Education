@@ -82,12 +82,26 @@
         </div>
         <div class="hero-overlay">
             <div class="hero-content">
+                <span class="hero-badge" id="heroBadge">🎓 Admissions Open 2026</span>
                 <h1 id="heroHeading">Welcome to Genius Computer Education</h1>
                 <p id="heroSubheading">Apna future banayein digital skills ke saath</p>
-                <a href="#courses" class="btn btn-primary" id="heroButton1">View Courses</a>
-                <a href="apply.html" class="btn btn-hero-apply" id="heroButton2"><i class="fas fa-user-graduate icon-3d"></i> Apply Online</a>
+                <div class="hero-buttons">
+                    <a href="#courses" class="btn btn-primary" id="heroButton1">View Courses</a>
+                    <a href="apply.html" class="btn btn-hero-apply" id="heroButton2"><i class="fas fa-user-graduate icon-3d"></i> Apply Online</a>
+                </div>
+                <div class="hero-stats" id="heroStats">
+                    <div class="stat"><strong>500+</strong><span>Students</span></div>
+                    <div class="stat-divider"></div>
+                    <div class="stat"><strong>15+</strong><span>Courses</span></div>
+                    <div class="stat-divider"></div>
+                    <div class="stat"><strong>10+</strong><span>Years</span></div>
+                </div>
             </div>
         </div>
+        <a href="#courses" class="scroll-indicator">
+            <span>Scroll Down</span>
+            <i class="fas fa-chevron-down"></i>
+        </a>
     </section>
 
     <!-- Notice Ticker Bar -->
@@ -690,6 +704,12 @@
                     
                     // Apply animation (only on desktop)
                     if (headingEl && !isMobile && heroText.animation) {
+                        // Remove gradient class for animations that rely on border/width
+                        if (heroText.animation === 'cursorBlink' || heroText.animation === 'typewriter') {
+                            headingEl.classList.remove('gradient-heading');
+                        } else {
+                            headingEl.classList.add('gradient-heading');
+                        }
                         switch(heroText.animation) {
                             case 'cursorBlink':
                                 headingEl.style.animation = '0.8s infinite cursorBlink';
@@ -706,6 +726,8 @@
                             default:
                                 headingEl.style.animation = 'none';
                         }
+                    } else if (headingEl) {
+                        headingEl.classList.add('gradient-heading');
                     }
                 }
             } catch (err) {
