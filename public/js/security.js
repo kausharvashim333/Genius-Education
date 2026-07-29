@@ -36,8 +36,11 @@
         // Prevent text selection / drag (also helps stop saving content)
         // Skip editable elements (inputs, textareas, contenteditable/rich text editors)
         function isEditable(target) {
+            if (!target) return false;
+            // selectstart target can be a Text node; climb to its parent element
+            if (target.nodeType === 3) target = target.parentElement;
             if (!target || !target.closest) return false;
-            return !!target.closest('input, textarea, select, [contenteditable="true"], [contenteditable=""], .ql-editor');
+            return !!target.closest('input, textarea, select, [contenteditable], .ql-editor, .ql-container');
         }
         document.addEventListener('selectstart', function (e) { if (isEditable(e.target)) return; e.preventDefault(); return false; }, true);
         document.addEventListener('dragstart', function (e) { if (isEditable(e.target)) return; e.preventDefault(); return false; }, true);
