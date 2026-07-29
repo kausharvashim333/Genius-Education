@@ -20,17 +20,18 @@
             border-radius: 20px !important;
             box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1);
             color: #f1f5f9; position: relative; overflow: hidden;
-            max-width: 900px; max-height: 90vh; margin: 0 auto; overflow-y: auto;
+            max-width: 900px; max-height: 90vh; margin: 0 auto;
+            padding: 0 !important;
         }
         #blogModal .modal-header, #blogModal .modal-body, #blogModal .modal-footer { position: relative; z-index: 1; }
         #blogModal .modal-header { background: #0f172a !important; border-bottom: 1px solid rgba(255,255,255,0.12) !important; padding: 18px 32px !important; margin: 0 !important; display:flex; justify-content:space-between; align-items:center; position: sticky; top: 0; z-index: 20; border-radius: 20px 20px 0 0 !important; }
-        #blogModal .modal-header h3 { color:#fff; margin:0; font-weight:600; display:flex; align-items:center; gap:10px; }
+        #blogModal .modal-header h3 { color:#fff !important; margin:0; font-size: 1.2rem !important; font-weight: 700 !important; display:flex; align-items:center; gap:8px; }
         #blogModal .modal-header h3::before { content:'\f044'; font-family:'Font Awesome 6 Free'; font-weight:900; color:#f59e0b; }
-        #blogModal .close-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:20px; transition: all 0.2s; }
-        #blogModal .close-btn:hover { background: rgba(239,68,68,0.3); transform: rotate(90deg); }
+        #blogModal .close-btn { background: transparent; border: none; color: #fff; cursor: pointer; font-size: 22px; opacity: 0.6; transition: opacity 0.2s; }
+        #blogModal .close-btn:hover { opacity: 1; color: #dc2626; }
         #blogModal .modal-body { padding: 24px 32px !important; }
         #blogModal .modal-footer { background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.08); padding: 14px 32px !important; margin-top: 0; display:flex; justify-content:flex-end; gap:10px; }
-        #blogModal label { color:#e2e8f0 !important; font-size:13px; letter-spacing:0.3px; margin-bottom:6px; }
+        #blogModal label { color:#e2e8f0 !important; font-size:13px; letter-spacing:0.3px; margin-bottom:6px !important; }
         #blogModal label small { color: rgba(255,255,255,0.55) !important; }
         #blogModal input[type="text"], #blogModal input[type="file"], #blogModal input[type="datetime-local"], #blogModal select, #blogModal textarea {
             background: rgba(255,255,255,0.08) !important; border: 1px solid rgba(255,255,255,0.18) !important; color:#fff !important;
@@ -144,7 +145,7 @@
         #blogEditorToolbar button.ql-active .ql-stroke { stroke:#f59e0b; }
         #blogEditorToolbar button.ql-active .ql-fill { fill:#f59e0b; }
         #blogEditorToolbar .ql-picker-options { background: #1e293b !important; color:#fff !important; border-color: rgba(255,255,255,0.2) !important; }
-        #blogEditor { background: rgba(255,255,255,0.06) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.18) !important; border-radius: 0 0 10px 10px !important; }
+        #blogEditor { background: rgba(255,255,255,0.06) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.18) !important; border-radius: 0 0 10px 10px !important; min-height: 300px; }
         #blogEditor .ql-editor { min-height: 280px; font-size:15px; line-height:1.7; color:#f1f5f9; }
         #blogEditor .ql-editor img { max-width:100%; height:auto; border-radius:6px; margin: 8px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.3); cursor:pointer; }
         #blogEditor .ql-editor.ql-blank::before { color: rgba(255,255,255,0.4); font-style: normal; }
@@ -1334,11 +1335,11 @@
                 <details style="margin-bottom:12px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:10px;">
                     <summary style="cursor:pointer;font-weight:600;color:#e2e8f0;"><i class="fas fa-search"></i> SEO &amp; Social Sharing (optional)</summary>
                     <div style="margin-top:12px;">
-                        <label style="display:block;margin-bottom:4px;font-size:13px;">Meta Title <small>(max 70 chars)</small></label>
+                        <label style="display:block;margin-bottom:4px;font-size:13px;font-weight:600;">Meta Title <small>(max 70 chars)</small></label>
                         <input type="text" id="blogMetaTitle" maxlength="70" placeholder="Custom title for Google search results" style="width:100%;margin-bottom:10px;">
-                        <label style="display:block;margin-bottom:4px;font-size:13px;">Meta Description <small>(max 200 chars)</small></label>
+                        <label style="display:block;margin-bottom:4px;font-size:13px;font-weight:600;">Meta Description <small>(max 200 chars)</small></label>
                         <textarea id="blogMetaDescription" maxlength="200" rows="2" placeholder="Description for search results" style="width:100%;margin-bottom:10px;font-family:inherit;"></textarea>
-                        <label style="display:block;margin-bottom:4px;font-size:13px;">OG Image URL <small>(1200x630 recommended)</small></label>
+                        <label style="display:block;margin-bottom:4px;font-size:13px;font-weight:600;">OG Image URL <small>(1200x630 recommended)</small></label>
                         <input type="text" id="blogOgImage" placeholder="https://..." style="width:100%;">
                     </div>
                 </details>
