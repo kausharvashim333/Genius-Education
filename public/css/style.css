@@ -793,8 +793,15 @@ body {
     padding: 0;
 }
 
+.carousel-hero .carousel {
+    overflow: hidden;
+    width: 100%;
+}
+
 .carousel-hero .carousel-slide {
+    min-width: 100%;
     position: relative;
+    overflow: hidden;
 }
 
 .carousel-hero .carousel-slide::after {
