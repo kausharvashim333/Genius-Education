@@ -34,6 +34,9 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
             padding: 18px 32px !important;
             margin: 0 !important;
+            position: sticky;
+            top: 0;
+            z-index: 20;
             border-radius: 20px 20px 0 0 !important;
         }
         #blogModal .modal-header h3 {
@@ -176,6 +179,9 @@
             border-bottom: none !important;
             border-radius: 10px 10px 0 0 !important;
             padding: 8px !important;
+            position: sticky !important;
+            top: 59px !important;
+            z-index: 15 !important;
             margin-bottom: 0 !important;
         }
         #blogEditorToolbar .ql-stroke { stroke: rgba(255,255,255,0.85); }
@@ -196,15 +202,12 @@
             background: rgba(255, 255, 255, 0.06) !important;
             border: 1px solid rgba(255, 255, 255, 0.18) !important;
             border-radius: 0 0 10px 10px !important;
-            cursor: text !important;
         }
         #blogEditor .ql-editor {
             min-height: 280px;
             font-size: 15px;
             line-height: 1.7;
             color: #f1f5f9;
-            user-select: text !important;
-            -webkit-user-select: text !important;
         }
         #blogEditor .ql-editor img {
             max-width: 100%;

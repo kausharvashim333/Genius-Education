@@ -4612,9 +4612,8 @@ function editBlog(id) {
             _blogQuill.setContents([]);
             _blogQuill.clipboard.dangerouslyPasteHTML(0, blog.content || '');
             _blogQuill.setSelection(0);
-            setTimeout(() => _blogQuill.focus(), 100);
         }
-    }, 150);
+    }, 50);
 }
 
 function onBlogStatusChange() {
@@ -4965,11 +4964,8 @@ function openBlogModal() {
     document.getElementById('blogModal').style.display = 'block';
     setTimeout(() => {
         initBlogQuill();
-        if (_blogQuill) {
-            _blogQuill.setContents([]);
-            _blogQuill.focus();
-        }
-    }, 150);
+        if (_blogQuill) _blogQuill.setContents([]);
+    }, 50);
 }
 
 function closeBlogModal() {

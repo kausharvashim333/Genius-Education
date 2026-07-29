@@ -1592,12 +1592,9 @@ function openBlogEditor(blogId = null) {
     document.getElementById('blogModal').style.display = 'flex';
     setTimeout(() => {
         initBlogQuill();
-        if (_blogQuill) {
-            _blogQuill.setContents([]);
-            _blogQuill.focus();
-        }
+        if (_blogQuill) _blogQuill.setContents([]);
         if (blogId) loadBlogForEdit(blogId);
-    }, 150);
+    }, 50);
 }
 
 function closeBlogEditor() {
@@ -1629,7 +1626,6 @@ async function loadBlogForEdit(blogId) {
             _blogQuill.setContents([]);
             _blogQuill.clipboard.dangerouslyPasteHTML(0, blog.content || '');
             _blogQuill.setSelection(0);
-            setTimeout(() => _blogQuill.focus(), 100);
         }
     } catch (e) {
         console.error('Error loading blog:', e);
