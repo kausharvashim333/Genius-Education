@@ -202,17 +202,18 @@
             background: rgba(255, 255, 255, 0.06) !important;
             border: 1px solid rgba(255, 255, 255, 0.18) !important;
             border-radius: 0 0 10px 10px !important;
-            position: relative;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
         }
         #blogEditor .ql-editor {
-            min-height: 280px;
+            flex: 1;
+            min-height: 300px;
             font-size: 15px;
             line-height: 1.7;
             color: #f1f5f9;
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            pointer-events: all !important;
             cursor: text !important;
+            padding: 16px 20px !important;
         }
         #blogEditor .ql-editor img {
             max-width: 100%;
