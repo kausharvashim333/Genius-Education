@@ -209,6 +209,23 @@ function resetCarouselTimer() {
     startCarouselTimer();
 }
 
+// Hide scroll indicator when hero section is out of view
+(function() {
+    const heroSection = document.querySelector('.carousel-hero');
+    const scrollIndicator = document.getElementById('scrollIndicator');
+    if (!heroSection || !scrollIndicator) return;
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+                scrollIndicator.classList.remove('hidden');
+            } else {
+                scrollIndicator.classList.add('hidden');
+            }
+        });
+    }, { threshold: [0.5] });
+    observer.observe(heroSection);
+})();
+
 const COURSE_EMOJIS = {
     'basic computer': '🖥️', 'computer': '🖥️', 'tally': '📊', 'accounting': '📊',
     'web': '🌐', 'website': '🌐', 'python': '🐍', 'graphic': '🎨', 'design': '🎨',
