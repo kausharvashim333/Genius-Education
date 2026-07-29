@@ -646,7 +646,12 @@ async function loadSettings() {
         const navBrandLink = document.querySelector('.nav-brand a');
 
         if (addressEl && settings.address) addressEl.textContent = settings.address;
-        if (phoneEl && settings.phone) phoneEl.textContent = settings.phone;
+        if (phoneEl && settings.phone) {
+            const phones = Array.isArray(settings.phone) ? settings.phone : [settings.phone];
+            phoneEl.innerHTML = phones.map(p =>
+                `<a href="tel:${p.replace(/\s/g, '')}" style="color:inherit;text-decoration:none;display:block;margin-bottom:5px;">${p}</a>`
+            ).join('');
+        }
         if (emailEl && settings.email) emailEl.textContent = settings.email;
         if (siteNameEl && settings.name) {
             siteNameEl.textContent = settings.name;
@@ -683,7 +688,12 @@ async function loadSettings() {
         const footerPhone = document.getElementById('footerPhone');
         const footerEmail = document.getElementById('footerEmail');
         if (footerAddress && settings.address) footerAddress.textContent = settings.address;
-        if (footerPhone && settings.phone) footerPhone.textContent = settings.phone;
+        if (footerPhone && settings.phone) {
+            const phones = Array.isArray(settings.phone) ? settings.phone : [settings.phone];
+            footerPhone.innerHTML = phones.map(p =>
+                `<a href="tel:${p.replace(/\s/g, '')}" style="color:inherit;text-decoration:none;display:block;margin-bottom:5px;">${p}</a>`
+            ).join('');
+        }
         if (footerEmail && settings.email) footerEmail.textContent = settings.email;
     } catch (err) { console.error('Error loading settings:', err); }
 }
