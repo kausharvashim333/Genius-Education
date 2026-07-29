@@ -936,12 +936,11 @@ body {
     animation: heroFadeUp 1s 0.1s cubic-bezier(0.22,1,0.36,1) both;
 }
 
-/* Admissions Open badge — inside hero section, top-right */
+/* Admissions Open badge — centered below hero title */
 .admissions-badge {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: linear-gradient(135deg, rgba(245,158,11,0.9), rgba(217,119,6,0.9));
     color: #fff;
     padding: 8px 18px;
@@ -952,10 +951,8 @@ body {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    animation: badgePulse 2s ease-in-out infinite;
+    margin-bottom: 16px;
+    animation: badgePulse 2s ease-in-out infinite, heroFadeUp 1s 0.2s cubic-bezier(0.22,1,0.36,1) both;
     transition: transform 0.3s ease;
 }
 
@@ -971,8 +968,6 @@ body {
 
 @media (max-width: 769px) {
     .admissions-badge {
-        top: 12px;
-        right: 12px;
         font-size: 11px;
         padding: 6px 14px;
     }
