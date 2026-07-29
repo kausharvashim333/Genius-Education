@@ -814,6 +814,12 @@ body {
     display: block;
     width: 100%;
     object-fit: cover;
+    animation: kenBurns 8s ease-out both;
+}
+
+@keyframes kenBurns {
+    0%   { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.12) translate(-1%, -1%); }
 }
 
 @media (max-width: 769px) {
@@ -907,7 +913,7 @@ body {
     box-shadow: 0 8px 24px rgba(255,255,255,0.15);
 }
 
-/* Hero Badge */
+/* Hero Badge — fixed position at top-right */
 .hero-badge {
     display: inline-block;
     background: rgba(245,158,11,0.2);
@@ -921,6 +927,48 @@ body {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     animation: heroFadeUp 1s 0.1s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* Fixed Admissions Open badge — always visible top-right */
+.admissions-badge {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 100;
+    background: linear-gradient(135deg, rgba(245,158,11,0.9), rgba(217,119,6,0.9));
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 4px 20px rgba(245,158,11,0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    animation: badgePulse 2s ease-in-out infinite;
+    transition: transform 0.3s ease;
+}
+
+.admissions-badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 28px rgba(245,158,11,0.6);
+}
+
+@keyframes badgePulse {
+    0%, 100% { box-shadow: 0 4px 20px rgba(245,158,11,0.4); }
+    50% { box-shadow: 0 4px 30px rgba(245,158,11,0.7); }
+}
+
+@media (max-width: 769px) {
+    .admissions-badge {
+        top: 70px;
+        right: 12px;
+        font-size: 11px;
+        padding: 6px 14px;
+    }
 }
 
 /* Hero Stats Bar */
@@ -1027,7 +1075,8 @@ body {
     .carousel-hero .carousel-slide img { height: 280px; }
     .hero-overlay h1 { 
         font-size: 1.5rem; 
-        white-space: nowrap;
+        white-space: normal;
+        word-wrap: break-word;
         width: auto;
         max-width: 100%;
         border: none;
@@ -1048,6 +1097,25 @@ body {
     .hero-stats .stat-divider { height: 24px; }
     .hero-buttons { flex-direction: column; gap: 10px; }
     .hero-buttons .btn { width: 100%; max-width: 240px; text-align: center; }
+}
+
+/* Respect users with motion sensitivity */
+@media (prefers-reduced-motion: reduce) {
+    .carousel-hero .carousel-slide img,
+    .hero-overlay h1,
+    .hero-overlay p,
+    .hero-overlay .hero-buttons,
+    .hero-overlay .btn,
+    .hero-badge,
+    .hero-stats,
+    .scroll-indicator,
+    .admissions-badge {
+        animation: none !important;
+        transition: none !important;
+    }
+    .carousel-track {
+        transition: none !important;
+    }
 }
 
 .btn {
@@ -1680,9 +1748,9 @@ body {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(59, 130, 246, 0.8);
+    background: rgba(255, 255, 255, 0.15);
     color: white;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -1696,8 +1764,10 @@ body {
 }
 
 .carousel-btn:hover {
-    background: rgba(59, 130, 246, 1);
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
     transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
 }
 
 .carousel-btn.prev-btn {
@@ -1729,8 +1799,9 @@ body {
 }
 
 .carousel-dot.active {
-    background: rgba(59, 130, 246, 1);
+    background: rgba(255, 255, 255, 0.9);
     transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
 
 .gallery-item {

@@ -70,6 +70,9 @@
         </div>
     </div>
 
+    <!-- Fixed Admissions Open Badge -->
+    <a href="apply.html" class="admissions-badge" id="admissionsBadge">🎓 Admissions Open 2026</a>
+
     <!-- Carousel + Hero combined -->
     <section id="home" class="hero carousel-hero">
         <div class="carousel-wrapper" id="carouselWrapper">
@@ -82,7 +85,6 @@
         </div>
         <div class="hero-overlay">
             <div class="hero-content">
-                <span class="hero-badge" id="heroBadge">🎓 Admissions Open 2026</span>
                 <h1 id="heroHeading">Welcome to Genius Computer Education</h1>
                 <p id="heroSubheading">Apna future banayein digital skills ke saath</p>
                 <div class="hero-buttons">
@@ -688,11 +690,32 @@
                     const subheadingEl = document.getElementById('heroSubheading');
                     const button1El = document.getElementById('heroButton1');
                     const button2El = document.getElementById('heroButton2');
+                    const badgeEl = document.getElementById('admissionsBadge');
+                    const statsEl = document.getElementById('heroStats');
                     
-                    if (headingEl) headingEl.textContent = heading || 'Welcome to Genius Computer Education';
+                    const headingText = heading || 'Welcome to Genius Computer Education';
+                    if (headingEl) headingEl.textContent = headingText;
                     if (subheadingEl) subheadingEl.textContent = subheading || 'Apna future banayein digital skills ke saath';
                     if (button1El) button1El.textContent = button1Text || 'View Courses';
                     if (button2El) button2El.innerHTML = '<i class="fas fa-user-graduate icon-3d"></i> ' + (button2Text || 'Apply Online');
+                    
+                    // Update badge text from API if available
+                    if (badgeEl && heroText.badgeText) {
+                        badgeEl.innerHTML = heroText.badgeText;
+                    }
+                    
+                    // Update stats from API if available
+                    if (statsEl && heroText.stats) {
+                        const stats = heroText.stats;
+                        const statEls = statsEl.querySelectorAll('.stat strong');
+                        if (statEls[0] && stats.students) statEls[0].textContent = stats.students;
+                        if (statEls[1] && stats.courses) statEls[1].textContent = stats.courses;
+                        if (statEls[2] && stats.years) statEls[2].textContent = stats.years;
+                    }
+                    
+                    // Set global variables for triggerHeroAnimation
+                    if (typeof _heroHeadingText !== 'undefined') _heroHeadingText = headingText;
+                    if (typeof _heroAnimationType !== 'undefined') _heroAnimationType = heroText.animation || 'typewriter';
                     
                     // Update font sizes
                     if (headingEl && headingSize) {

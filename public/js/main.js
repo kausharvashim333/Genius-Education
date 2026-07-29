@@ -68,6 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
 let carouselIndex = 0;
 let carouselItems = [];
 let carouselTimer = null;
+let _heroHeadingText = 'Welcome to Genius Computer Education';
+let _heroAnimationType = 'typewriter';
 
 async function loadCarousel() {
     try {
@@ -81,7 +83,7 @@ async function loadCarousel() {
 
         track.innerHTML = carouselItems.map((item, i) => `
             <div class="carousel-slide">
-                <img src="${item.image}" alt="${item.caption || 'Slide ' + (i+1)}">
+                <img src="${item.image}" alt="${item.caption || 'Slide ' + (i+1)}"${i > 0 ? ' loading="lazy"' : ''}>
                 ${item.caption ? '<div class="carousel-caption">' + item.caption + '</div>' : ''}
             </div>
         `).join('');
@@ -89,6 +91,29 @@ async function loadCarousel() {
         dots.innerHTML = carouselItems.map((_, i) =>
             `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i})"></span>`
         ).join('');
+
+        // Pause on hover
+        const carouselEl = document.getElementById('carousel');
+        if (carouselEl) {
+            carouselEl.addEventListener('mouseenter', () => { clearInterval(carouselTimer); });
+            carouselEl.addEventListener('mouseleave', () => { startCarouselTimer(); });
+        }
+
+        // Touch/swipe support for mobile
+        if (wrapper) {
+            let touchStartX = 0;
+            let touchEndX = 0;
+            wrapper.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            wrapper.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                const diff = touchStartX - touchEndX;
+                if (Math.abs(diff) > 50) {
+                    carouselMove(diff > 0 ? 1 : -1);
+                }
+            }, { passive: true });
+        }
 
         startCarouselTimer();
         triggerHeroAnimation();
@@ -110,7 +135,6 @@ function goToSlide(index) {
     resetCarouselTimer();
 }
 
-const HERO_TEXT = 'Welcome to Genius Computer Education';
 let typewriterTimer = null;
 
 function triggerHeroAnimation() {
@@ -125,14 +149,39 @@ function triggerHeroAnimation() {
         overlay.classList.add('animate');
     }
 
-    // Reset h1
+    // Use the heading text loaded from API (stored in _heroHeadingText)
+    const text = _heroHeadingText;
+    const animType = _heroAnimationType || 'typewriter';
+
+    // For non-typewriter animations, just set text and apply animation
+    if (animType !== 'typewriter') {
+        h1.textContent = text;
+        h1.style.width = 'auto';
+        h1.style.animation = 'none';
+        void h1.offsetWidth;
+        switch (animType) {
+            case 'cursorBlink':
+                h1.style.animation = '0.8s infinite cursorBlink';
+                break;
+            case 'fadeIn':
+                h1.style.animation = 'fadeIn 1s ease-in';
+                break;
+            case 'slideUp':
+                h1.style.animation = 'slideUp 0.8s ease-out';
+                break;
+            default:
+                h1.style.animation = 'none';
+        }
+        return;
+    }
+
+    // Typewriter animation
     h1.textContent = '';
     h1.style.width = '0';
     h1.style.animation = 'none';
 
     clearTimeout(typewriterTimer);
     let i = 0;
-    const text = HERO_TEXT;
     const speed = 55;
 
     function type() {
