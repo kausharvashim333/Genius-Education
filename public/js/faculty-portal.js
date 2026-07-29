@@ -1625,7 +1625,7 @@ async function loadBlogForEdit(blogId) {
         if (_blogQuill) {
             _blogQuill.setContents([]);
             _blogQuill.clipboard.dangerouslyPasteHTML(0, blog.content || '');
-            _blogQuill.setSelection(0);
+            // Cursor will be handled by user click
         }
     } catch (e) {
         console.error('Error loading blog:', e);

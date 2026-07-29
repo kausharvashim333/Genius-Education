@@ -161,26 +161,21 @@
             background: rgba(255,255,255,0.06) !important; 
             border: 1px solid rgba(255,255,255,0.18) !important; 
             border-radius: 0 0 10px 10px !important; 
-            height: 400px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            min-height: 400px;
+            position: relative;
         }
         #blogEditor .ql-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
             border: none !important;
+            font-family: inherit;
         }
         #blogEditor .ql-editor { 
-            flex: 1;
-            overflow-y: auto;
+            min-height: 400px;
             font-size:15px; 
             line-height:1.7; 
             color:#f1f5f9; 
-            cursor: text !important;
             padding: 20px !important;
+            -webkit-user-select: text !important;
+            user-select: text !important;
         }
         #blogEditor .ql-editor img { max-width:100%; height:auto; border-radius:6px; margin: 8px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.3); cursor:pointer; }
         #blogEditor .ql-editor.ql-blank::before { color: rgba(255,255,255,0.4); font-style: normal; }
