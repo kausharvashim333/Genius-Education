@@ -11828,6 +11828,11 @@ async function loadHeroText() {
                 document.getElementById('heroStatCourses').value = data.heroText.stats.courses || '15+';
                 document.getElementById('heroStatYears').value = data.heroText.stats.years || '10+';
             }
+            if (data.heroText.aboutStats) {
+                document.getElementById('aboutStatYears').value = data.heroText.aboutStats.years || '10+';
+                document.getElementById('aboutStatStudents').value = data.heroText.aboutStats.students || '5000+';
+                document.getElementById('aboutStatCourses').value = data.heroText.aboutStats.courses || '50+';
+            }
             
             // Mobile fields
             document.getElementById('heroHeadingMobile').value = data.heroText.headingMobile || '';
@@ -12072,6 +12077,11 @@ async function saveHeroText() {
             students: document.getElementById('heroStatStudents').value,
             courses: document.getElementById('heroStatCourses').value,
             years: document.getElementById('heroStatYears').value
+        },
+        aboutStats: {
+            years: document.getElementById('aboutStatYears').value,
+            students: document.getElementById('aboutStatStudents').value,
+            courses: document.getElementById('aboutStatCourses').value
         },
         // Mobile fields
         headingMobile: document.getElementById('heroHeadingMobile').value,

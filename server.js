@@ -11679,7 +11679,7 @@ app.get('/api/hero-text', (req, res) => {
 
 app.post('/api/hero-text', (req, res) => {
     try {
-        const { heading, subheading, headingSize, subheadingSize, animation, button1Text, button2Text, headingMobile, subheadingMobile, headingSizeMobile, subheadingSizeMobile, button1TextMobile, button2TextMobile, badgeText, stats } = req.body;
+        const { heading, subheading, headingSize, subheadingSize, animation, button1Text, button2Text, headingMobile, subheadingMobile, headingSizeMobile, subheadingSizeMobile, button1TextMobile, button2TextMobile, badgeText, stats, aboutStats } = req.body;
         
         const heroText = {
             heading: heading || 'Welcome to Genius Computer Education',
@@ -11700,6 +11700,11 @@ app.post('/api/hero-text', (req, res) => {
                 students: (stats && stats.students) || '500+',
                 courses: (stats && stats.courses) || '15+',
                 years: (stats && stats.years) || '10+'
+            },
+            aboutStats: {
+                years: (aboutStats && aboutStats.years) || '10+',
+                students: (aboutStats && aboutStats.students) || '5000+',
+                courses: (aboutStats && aboutStats.courses) || '50+'
             }
         };
 

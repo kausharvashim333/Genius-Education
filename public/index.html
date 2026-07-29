@@ -711,6 +711,14 @@
                         if (statEls[2] && stats.years) statEls[2].textContent = stats.years;
                     }
                     
+                    // Update about section stats from API if available
+                    if (heroText.aboutStats) {
+                        const aboutStatNumbers = document.querySelectorAll('.about-stats .stat-number');
+                        if (aboutStatNumbers[0] && heroText.aboutStats.years) aboutStatNumbers[0].textContent = heroText.aboutStats.years;
+                        if (aboutStatNumbers[1] && heroText.aboutStats.students) aboutStatNumbers[1].textContent = heroText.aboutStats.students;
+                        if (aboutStatNumbers[2] && heroText.aboutStats.courses) aboutStatNumbers[2].textContent = heroText.aboutStats.courses;
+                    }
+                    
                     // Set global variables for triggerHeroAnimation
                     if (typeof _heroHeadingText !== 'undefined') _heroHeadingText = headingText;
                     if (typeof _heroAnimationType !== 'undefined') _heroAnimationType = heroText.animation || 'typewriter';
