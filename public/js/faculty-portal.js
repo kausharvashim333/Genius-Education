@@ -1589,7 +1589,7 @@ function openBlogEditor(blogId = null) {
     document.getElementById('blogOgImage').value = '';
     document.getElementById('blogStatus').value = 'pending';
     removeBlogCover();
-    document.getElementById('blogModal').style.display = 'block';
+    document.getElementById('blogModal').style.display = 'flex';
     setTimeout(() => {
         initBlogQuill();
         if (_blogQuill) _blogQuill.setContents([]);
