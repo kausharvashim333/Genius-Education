@@ -23,7 +23,7 @@
             max-width: 900px; max-height: 90vh; margin: 0 auto;
             padding: 0 !important;
         }
-        #blogModal .modal-header, #blogModal .modal-body, #blogModal .modal-footer { position: relative; z-index: 1; }
+        #blogModal .modal-header, #blogModal .modal-body, #blogModal .modal-footer { position: relative; }
         #blogModal .modal-header { background: #0f172a !important; border-bottom: 1px solid rgba(255,255,255,0.12) !important; padding: 18px 32px !important; margin: 0 !important; display:flex; justify-content:space-between; align-items:center; position: sticky; top: 0; z-index: 20; border-radius: 20px 20px 0 0 !important; }
         #blogModal .modal-header h3 { color:#fff !important; margin:0; font-size: 1.2rem !important; font-weight: 700 !important; display:flex; align-items:center; gap:8px; }
         #blogModal .modal-header h3::before { content:'\f044'; font-family:'Font Awesome 6 Free'; font-weight:900; color:#f59e0b; }
@@ -145,8 +145,8 @@
         #blogEditorToolbar button.ql-active .ql-stroke { stroke:#f59e0b; }
         #blogEditorToolbar button.ql-active .ql-fill { fill:#f59e0b; }
         #blogEditorToolbar .ql-picker-options { background: #1e293b !important; color:#fff !important; border-color: rgba(255,255,255,0.2) !important; }
-        #blogEditor { background: rgba(255,255,255,0.06) !important; border: 1px solid rgba(255,255,255,0.18) !important; border-radius: 0 0 10px 10px !important; min-height: 300px; }
-        #blogEditor .ql-editor { min-height: 280px; font-size:15px; line-height:1.7; color:#f1f5f9; }
+        #blogEditor { background: rgba(255,255,255,0.06) !important; border: 1px solid rgba(255,255,255,0.18) !important; border-radius: 0 0 10px 10px !important; min-height: 300px; position: relative; }
+        #blogEditor .ql-editor { min-height: 280px; font-size:15px; line-height:1.7; color:#f1f5f9; transform: translateZ(0); -webkit-transform: translateZ(0); pointer-events: all !important; cursor: text !important; }
         #blogEditor .ql-editor img { max-width:100%; height:auto; border-radius:6px; margin: 8px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.3); cursor:pointer; }
         #blogEditor .ql-editor.ql-blank::before { color: rgba(255,255,255,0.4); font-style: normal; }
         #blogEditor .ql-editor h1, #blogEditor .ql-editor h2, #blogEditor .ql-editor h3 { color:#fff; }
