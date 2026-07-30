@@ -3615,7 +3615,7 @@ app.get('/api/batches/seats', (req, res) => {
     const batches  = readData('batches.json') || [];
     const students = readData('students.json') || [];
     const result = batches.map(b => {
-        const enrolled = students.filter(s => s.batchId == b.id).length;
+        const enrolled = students.filter(s => s.batchId == b.id && s.status !== 'Dropped').length;
         return { ...b, enrolled, available: Math.max(0, b.totalSeats - enrolled) };
     });
     res.json(result);
