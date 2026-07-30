@@ -5003,7 +5003,36 @@
                 <div class="form-group"><label>Batch</label><select id="updateBatch" required><option value="">Select Batch</option></select></div>
                 <div class="form-group"><label>Roll Number</label><input type="text" id="updateRollNo" readonly></div>
                 <div class="form-group"><label>Admission Date</label><input type="date" id="updateAdmissionDate" readonly></div>
-                <div class="form-group"><label>Status</label><select id="updateStatus"><option value="Active">Active</option><option value="Inactive">Inactive</option></select></div>
+                <div class="form-group"><label>Status</label><select id="updateStatus" onchange="toggleDropReasonField()"><option value="Active">Active</option><option value="Inactive">Inactive</option><option value="Dropped">Dropped</option></select></div>
+            </div>
+            
+            <!-- Drop Details (visible only when status = Dropped) -->
+            <div id="dropReasonSection" style="display:none;margin-top:10px;padding:15px;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.25);border-radius:10px;">
+                <h4 style="color:#dc2626;margin:0 0 12px;"><i class="fas fa-user-slash"></i> Drop Details</h4>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                    <div class="form-group">
+                        <label>Drop Reason *</label>
+                        <select id="updateDropReason">
+                            <option value="">Select Reason</option>
+                            <option value="Fees Issue">Fees Issue</option>
+                            <option value="Timing Problem">Timing Problem</option>
+                            <option value="Personal/Family Reason">Personal/Family Reason</option>
+                            <option value="Relocated">Relocated</option>
+                            <option value="Joined Another Institute">Joined Another Institute</option>
+                            <option value="Course Too Difficult">Course Too Difficult</option>
+                            <option value="Health Issue">Health Issue</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Drop Date</label>
+                        <input type="date" id="updateDropDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Remarks (Optional)</label>
+                    <input type="text" id="updateDropRemarks" placeholder="Additional details...">
+                </div>
             </div>
             
             <div style="margin-top:20px;">

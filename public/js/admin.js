@@ -1290,11 +1290,12 @@ async function loadDashboard() {
             }
         }
 
-        // Total Revenue
-        const totalRevenue = students.reduce((sum, s) => sum + (s.fees && s.fees.paidAmount ? parseFloat(s.fees.paidAmount) : 0), 0);
+        // Total Revenue (Dropped students excluded)
+        const activeStudents = students.filter(s => s.status !== 'Dropped');
+        const totalRevenue = activeStudents.reduce((sum, s) => sum + (s.fees && s.fees.paidAmount ? parseFloat(s.fees.paidAmount) : 0), 0);
         document.getElementById('totalRevenue').textContent = '₹' + totalRevenue.toLocaleString('en-IN');
 
-        const totalDues = students.reduce((sum, s) => sum + (s.fees && s.fees.dueAmount ? parseFloat(s.fees.dueAmount) : 0), 0);
+        const totalDues = activeStudents.reduce((sum, s) => sum + (s.fees && s.fees.dueAmount ? parseFloat(s.fees.dueAmount) : 0), 0);
         document.getElementById('totalDues').textContent = '₹' + totalDues.toLocaleString('en-IN');
 
         document.getElementById('totalBatches').textContent = batches.length;
@@ -3486,6 +3487,11 @@ async function loadRevenueReport() {
         students.forEach(s => { studentMap[s.id] = s; });
 
         let payments = (paymentsData.payments || []).filter(p => p.status === 'approved');
+        // Exclude payments of dropped students from revenue
+        payments = payments.filter(p => {
+            const st = studentMap[p.studentId];
+            return !st || st.status !== 'Dropped';
+        });
 
         if (dateFrom) {
             payments = payments.filter(p => {
@@ -10160,11 +10166,13 @@ function renderStudentsTable(students) {
     const statsEl = document.getElementById('studentsStats');
     const total = students.length;
     const active = students.filter(s => s.status === 'Active').length;
-    const pending = students.filter(s => s.fees && s.fees.dueAmount > 0).length;
+    const dropped = students.filter(s => s.status === 'Dropped').length;
+    const pending = students.filter(s => s.status !== 'Dropped' && s.fees && s.fees.dueAmount > 0).length;
     let statsHtml = '';
     statsHtml += '<div class="stat-mini"><span>' + total + '</span> Total</div>';
     statsHtml += '<div class="stat-mini s-active"><span>' + active + '</span> Active</div>';
     statsHtml += '<div class="stat-mini s-pending"><span>' + pending + '</span> Fee Pending</div>';
+    if (dropped > 0) statsHtml += '<div class="stat-mini" style="background:rgba(220,38,38,0.15);border-color:rgba(220,38,38,0.4);"><span>' + dropped + '</span> Dropped</div>';
     statsEl.innerHTML = statsHtml;
     if (students.length === 0) {
         renderEmptyState(tbody, 'user-graduate', 'No students found. Click "New Admission" to add one.');
@@ -10186,7 +10194,7 @@ function renderStudentsTable(students) {
         html += '<td>' + s.phone + '</td>';
         html += '<td class="fee-paid">&#8377;' + s.fees.paidAmount + '</td>';
         html += '<td class="' + (s.fees.dueAmount > 0 ? 'fee-due' : 'fee-paid') + '">&#8377;' + s.fees.dueAmount + '</td>';
-        html += '<td><span class="badge-' + (s.status === 'Active' ? 'active' : 'inactive') + '">' + s.status + '</span></td>';
+        html += '<td><span class="badge-' + (s.status === 'Active' ? 'active' : 'inactive') + '"' + (s.status === 'Dropped' ? ' style="background:rgba(220,38,38,0.2);color:#f87171;border:1px solid rgba(220,38,38,0.4);" title="' + ((s.dropReason || '') + (s.dropDate ? ' (' + s.dropDate + ')' : '')).replace(/"/g, '&quot;') + '"' : '') + '>' + s.status + '</span></td>';
         html += '<td class="action-cell" style="position:relative;">';
         html += '<button class="action-btn options-btn" onclick="toggleRowActions(this, event)" title="Options"><i class="fas fa-ellipsis-v"></i></button>';
         html += '<div class="row-actions-menu" style="display:none;">';
@@ -11061,6 +11069,12 @@ async function openUpdateStudentModal(id) {
         document.getElementById('updateAdmissionDate').value = s.admissionDate;
         document.getElementById('updateStatus').value = s.status;
         
+        // Drop details
+        document.getElementById('updateDropReason').value = s.dropReason || '';
+        document.getElementById('updateDropDate').value = s.dropDate || '';
+        document.getElementById('updateDropRemarks').value = s.dropRemarks || '';
+        toggleDropReasonField();
+        
         // Parse qualification
         const qual = typeof s.qualification === 'string' ? JSON.parse(s.qualification) : s.qualification;
         
@@ -11126,9 +11140,20 @@ async function openUpdateStudentModal(id) {
     }
 }
 
+function toggleDropReasonField() {
+    const section = document.getElementById('dropReasonSection');
+    if (section) section.style.display = document.getElementById('updateStatus').value === 'Dropped' ? 'block' : 'none';
+}
+
 async function updateStudent() {
     try {
         const id = document.getElementById('updateStudentId').value;
+        
+        const statusVal = document.getElementById('updateStatus').value;
+        if (statusVal === 'Dropped' && !document.getElementById('updateDropReason').value) {
+            showNotification('Drop reason select karna zaroori hai!', 'error');
+            return;
+        }
         
         const qualification = {
             tenth: {
@@ -11178,6 +11203,9 @@ async function updateStudent() {
             course: document.getElementById('updateCourse').value,
             batch: document.getElementById('updateBatch').value,
             status: document.getElementById('updateStatus').value,
+            dropReason: document.getElementById('updateStatus').value === 'Dropped' ? document.getElementById('updateDropReason').value : '',
+            dropDate: document.getElementById('updateStatus').value === 'Dropped' ? (document.getElementById('updateDropDate').value || new Date().toISOString().split('T')[0]) : '',
+            dropRemarks: document.getElementById('updateStatus').value === 'Dropped' ? document.getElementById('updateDropRemarks').value : '',
             qualification: qualification
         };
         

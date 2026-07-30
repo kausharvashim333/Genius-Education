@@ -4341,7 +4341,18 @@ app.put('/api/students/:id', verifyAdminSessionMiddleware, (req, res) => {
             }
         }
     }
-    if (d.status !== undefined) students[idx].status = d.status;
+    if (d.status !== undefined) {
+        students[idx].status = d.status;
+        if (d.status === 'Dropped') {
+            students[idx].dropReason = d.dropReason || students[idx].dropReason || '';
+            students[idx].dropDate = d.dropDate || students[idx].dropDate || formatDate(new Date());
+            students[idx].dropRemarks = d.dropRemarks || '';
+        } else {
+            delete students[idx].dropReason;
+            delete students[idx].dropDate;
+            delete students[idx].dropRemarks;
+        }
+    }
 
     if (d.qualification !== undefined) {
         try {
