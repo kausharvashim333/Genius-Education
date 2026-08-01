@@ -1716,9 +1716,18 @@ async function loadFacultyFees() {
     const tbody = document.getElementById('facultyFeesTable').querySelector('tbody');
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;">Loading fees data...</td></tr>';
     try {
-        const res = await fetch('/api/students');
-        const students = await res.json();
+        const [studentsRes, paymentsRes] = await Promise.all([
+            fetch('/api/students'),
+            fetch('/api/payments')
+        ]);
+        const students = await studentsRes.json();
+        const paymentsData = await paymentsRes.json();
         facultyFeeStudents = students;
+        const allPayments = paymentsData.payments || [];
+
+        // Today's collection summary
+        loadFacultyTodayCollection(allPayments);
+
         if (students && students.length > 0) {
             let html = '';
             students.forEach(s => {
@@ -1743,6 +1752,57 @@ async function loadFacultyFees() {
     } catch (e) {
         console.error('Error loading fees:', e);
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#dc2626;">Error loading fees</td></tr>';
+    }
+}
+
+function loadFacultyTodayCollection(allPayments) {
+    const container = document.getElementById('facultyTodayCollection');
+    if (!container) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const todayPayments = allPayments.filter(p => {
+        const pDate = p.date ? new Date(p.date).toISOString().split('T')[0] : null;
+        return pDate === today;
+    });
+
+    const total = todayPayments.reduce((sum, p) => sum + (parseInt(p.amount) || 0), 0);
+    const pending = todayPayments.filter(p => (p.status || 'pending') === 'pending');
+    const approved = todayPayments.filter(p => p.status === 'approved');
+    const denied = todayPayments.filter(p => p.status === 'denied');
+    const pendingAmount = pending.reduce((sum, p) => sum + (parseInt(p.amount) || 0), 0);
+    const approvedAmount = approved.reduce((sum, p) => sum + (parseInt(p.amount) || 0), 0);
+
+    const cards = [
+        { label: 'Today\'s Collection', value: '₹' + total, count: todayPayments.length + ' payments', color: '#667eea', icon: 'fa-money-bill-wave' },
+        { label: 'Pending Approval', value: '₹' + pendingAmount, count: pending.length + ' payments', color: '#f59e0b', icon: 'fa-clock' },
+        { label: 'Approved', value: '₹' + approvedAmount, count: approved.length + ' payments', color: '#16a34a', icon: 'fa-check-circle' },
+        { label: 'Denied', value: '₹' + (denied.reduce((sum, p) => sum + (parseInt(p.amount) || 0), 0)), count: denied.length + ' payments', color: '#dc2626', icon: 'fa-times-circle' }
+    ];
+
+    container.innerHTML = cards.map(c => {
+        return '<div style="flex:1;min-width:160px;padding:16px;border-radius:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(10px);">' +
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><i class="fas ' + c.icon + '" style="color:' + c.color + ';font-size:18px;"></i><span style="color:rgba(255,255,255,0.7);font-size:12px;">' + c.label + '</span></div>' +
+            '<div style="font-size:24px;font-weight:700;color:#fff;">' + c.value + '</div>' +
+            '<div style="color:rgba(255,255,255,0.5);font-size:11px;margin-top:4px;">' + c.count + '</div>' +
+            '</div>';
+    }).join('');
+
+    // Also show today's payment list with status
+    if (todayPayments.length > 0) {
+        let listHtml = '<div style="width:100%;margin-top:12px;">';
+        listHtml += '<h4 style="color:#fff;font-size:14px;margin:0 0 10px 0;"><i class="fas fa-list"></i> Today\'s Payments</h4>';
+        listHtml += '<table class="data-table" style="font-size:13px;"><thead><tr><th>Student</th><th>Amount</th><th>Mode</th><th>Time</th><th>Status</th></tr></thead><tbody>';
+        todayPayments.forEach(p => {
+            const time = p.date ? new Date(p.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '-';
+            const statusBadge = (p.status || 'pending') === 'pending'
+                ? '<span style="background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;">Pending</span>'
+                : p.status === 'approved'
+                ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;">Approved</span>'
+                : '<span style="background:#fee2e2;color:#dc2626;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;">Denied</span>';
+            listHtml += '<tr><td>' + (p.studentName || '-') + '</td><td>₹' + (p.amount || 0) + '</td><td>' + (p.mode || '-') + '</td><td>' + time + '</td><td>' + statusBadge + '</td></tr>';
+        });
+        listHtml += '</tbody></table></div>';
+        container.innerHTML += listHtml;
     }
 }
 
@@ -1827,10 +1887,6 @@ async function saveFacultyFee() {
         const student = students.find(s => String(s.id) === String(studentId));
 
         if (student) {
-            student.fees = student.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0 };
-            student.fees.paidAmount = (student.fees.paidAmount || 0) + parseInt(amount);
-            student.fees.dueAmount = Math.max(0, (student.fees.dueAmount || 0) - parseInt(amount));
-
             const payment = {
                 id: Date.now(),
                 studentId: parseInt(studentId),
@@ -1839,7 +1895,7 @@ async function saveFacultyFee() {
                 mode: mode,
                 utr: utr,
                 date: new Date().toISOString(),
-                status: 'approved',
+                status: 'pending',
                 collectedBy: currentFaculty.name || 'Faculty'
             };
 
@@ -1854,15 +1910,9 @@ async function saveFacultyFee() {
                 body: JSON.stringify({ payments })
             });
 
-            await fetch('/api/students/' + studentId, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(student)
-            });
-
             closeFacultyFeeModal();
             loadFacultyFees();
-            alert('Payment added successfully!');
+            alert('Payment submitted for admin approval!');
         }
     } catch (e) {
         console.error('Error adding payment:', e);
