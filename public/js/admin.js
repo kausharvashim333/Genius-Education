@@ -841,7 +841,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 'exam-analytics': typeof loadAnalyticsPage === 'function' ? loadAnalyticsPage : null,
                 're-evaluation': loadReEvaluationTable,
                 'exam-reports': loadExamReportsTable,
-                'legal-pages': loadLegalPagesEditor
+                'legal-pages': loadLegalPagesEditor,
+                'interview-questions-mgmt': loadIqManagement,
+                'spoken-english-mgmt': loadSeManagement
             };
             const loader = pageLoaders[page];
             if (typeof loader === 'function') {
@@ -2485,7 +2487,7 @@ function applyRolePreset() {
 
     const presets = {
         Faculty: ['students', 'courses', 'batches', 'materials', 'results', 'online-exam', 'test'],
-        Staff: ['enquiries', 'attendance', 'materials', 'notices', 'admissions'],
+        Staff: ['enquiries', 'attendance', 'materials', 'notices', 'admissions', 'fees'],
         Admin: ['all']
     };
 
@@ -7255,7 +7257,7 @@ async function loadPaymentsTable() {
                     ? '<button class="action-btn edit-btn" onclick="approvePayment(\'' + p.id + '\')" style="background:#16a34a;color:#fff;margin-right:5px;"><i class="fas fa-check"></i> Approve</button><button class="action-btn delete-btn" onclick="denyPayment(\'' + p.id + '\')"><i class="fas fa-times"></i> Deny</button>'
                     : '<span style="color:#64748b;font-size:13px;">Processed</span>';
 
-                const txnId = p.utrNo || p.transactionId || '—';
+                const txnId = p.utrNo || p.utr || p.transactionId || '—';
                 const studentReceipt = p.studentReceipt || (String(p.mode || '').toLowerCase() === 'cash' ? p.transactionId : '') || '—';
                 const modeDisplay = (p.mode || '—').toString().toUpperCase();
 
@@ -12295,6 +12297,7 @@ async function loadSettings() {
         document.getElementById('settingWebsiteUrl').value = s.websiteUrl || '';
         document.getElementById('rightClickPrevention').checked = s.rightClickPrevention || false;
         document.getElementById('devToolsPrevention').checked = s.devToolsPrevention || false;
+        document.getElementById('toolsMenuEnabled').checked = s.toolsMenuEnabled !== false;
         
         // Load popup settings
         if (s.popup) {
@@ -12616,7 +12619,8 @@ document.getElementById('settingsForm').addEventListener('submit', async functio
         address: document.getElementById('settingAddress').value,
         websiteUrl: document.getElementById('settingWebsiteUrl').value,
         rightClickPrevention: document.getElementById('rightClickPrevention').checked,
-        devToolsPrevention: document.getElementById('devToolsPrevention').checked
+        devToolsPrevention: document.getElementById('devToolsPrevention').checked,
+        toolsMenuEnabled: document.getElementById('toolsMenuEnabled').checked
     };
     try {
         await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -16362,5 +16366,329 @@ function updateHeaderClock() {
     
     if (clockEl) {
         clockEl.innerHTML = `<i class="far fa-calendar-alt"></i> ${dayName}, ${dateNum} ${monthName} ${year} &nbsp;|&nbsp; <i class="far fa-clock"></i> ${formattedHours}:${minutes}:${seconds} ${ampm}`;
+    }
+}
+
+// ===================== INTERVIEW QUESTIONS MANAGEMENT =====================
+let iqData = { categories: [] };
+
+async function loadIqManagement() {
+    try {
+        const res = await fetch('/api/interview-questions');
+        iqData = await res.json();
+        const sel = document.getElementById('iqCategorySelect');
+        if (sel) {
+            sel.innerHTML = iqData.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            loadIqQuestionsTable();
+        }
+    } catch (err) {
+        console.error('Error loading interview questions:', err);
+    }
+}
+
+function loadIqQuestionsTable() {
+    const catId = document.getElementById('iqCategorySelect')?.value;
+    if (!catId) return;
+    const cat = iqData.categories.find(c => c.id === catId);
+    if (!cat) return;
+    const tbody = document.querySelector('#iqQuestionsTable tbody');
+    if (!tbody) return;
+    if (!cat.questions.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;">No questions yet. Click "Add Question" to create one.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = cat.questions.map((q, i) => `
+        <tr>
+            <td>${i + 1}</td>
+            <td style="max-width:250px;">${q.q || ''}</td>
+            <td style="max-width:200px;font-size:12px;">${(q.options || []).map((o, idx) => `${idx + 1}. ${o}`).join('<br>')}</td>
+            <td>${(q.answer || 0) + 1}</td>
+            <td>${q.difficulty || '-'}</td>
+            <td style="max-width:200px;font-size:12px;">${q.explanation || '-'}</td>
+            <td>
+                <button class="btn btn-primary" style="padding:4px 10px;font-size:12px;" onclick="editIqQuestion(${i})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-danger" style="padding:4px 10px;font-size:12px;" onclick="deleteIqQuestion(${i})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`).join('');
+}
+
+function openIqCategoryModal() {
+    document.getElementById('iqCatName').value = '';
+    document.getElementById('iqCatIcon').value = 'fa-question-circle';
+    openModal('iqCategoryModal');
+}
+
+async function saveIqCategory() {
+    const name = document.getElementById('iqCatName').value.trim();
+    const icon = document.getElementById('iqCatIcon').value.trim() || 'fa-question-circle';
+    if (!name) { alert('Category name required'); return; }
+    try {
+        const res = await fetch('/api/interview-questions/category', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Admin-Session': sessionStorage.getItem('adminSessionToken') },
+            body: JSON.stringify({ name, icon })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal('iqCategoryModal');
+            await loadIqManagement();
+        } else {
+            alert(data.message || 'Failed to save category');
+        }
+    } catch (err) {
+        alert('Error saving category');
+    }
+}
+
+function openIqQuestionModal() {
+    const sel = document.getElementById('iqQCategory');
+    if (sel) {
+        sel.innerHTML = iqData.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        const currentCat = document.getElementById('iqCategorySelect')?.value;
+        if (currentCat) sel.value = currentCat;
+    }
+    document.getElementById('iqEditIdx').value = '-1';
+    document.getElementById('iqModalTitle').textContent = 'Add Question';
+    document.getElementById('iqQText').value = '';
+    for (let i = 0; i < 4; i++) document.getElementById('iqOpt' + i).value = '';
+    document.getElementById('iqAnswer').value = '1';
+    document.getElementById('iqDifficulty').value = 'easy';
+    document.getElementById('iqExplanation').value = '';
+    openModal('iqQuestionModal');
+}
+
+function editIqQuestion(idx) {
+    const catId = document.getElementById('iqCategorySelect').value;
+    const cat = iqData.categories.find(c => c.id === catId);
+    if (!cat || !cat.questions[idx]) return;
+    const q = cat.questions[idx];
+    const sel = document.getElementById('iqQCategory');
+    if (sel) sel.innerHTML = iqData.categories.map(c => `<option value="${c.id}" ${c.id === catId ? 'selected' : ''}>${c.name}</option>`).join('');
+    document.getElementById('iqEditIdx').value = idx;
+    document.getElementById('iqModalTitle').textContent = 'Edit Question';
+    document.getElementById('iqQText').value = q.q || '';
+    for (let i = 0; i < 4; i++) document.getElementById('iqOpt' + i).value = (q.options && q.options[i]) || '';
+    document.getElementById('iqAnswer').value = (q.answer || 0) + 1;
+    document.getElementById('iqDifficulty').value = q.difficulty || 'easy';
+    document.getElementById('iqExplanation').value = q.explanation || '';
+    openModal('iqQuestionModal');
+}
+
+async function saveIqQuestion() {
+    const catId = document.getElementById('iqQCategory').value;
+    const editIdx = parseInt(document.getElementById('iqEditIdx').value);
+    const q = document.getElementById('iqQText').value.trim();
+    const options = [
+        document.getElementById('iqOpt0').value.trim(),
+        document.getElementById('iqOpt1').value.trim(),
+        document.getElementById('iqOpt2').value.trim(),
+        document.getElementById('iqOpt3').value.trim()
+    ].filter(o => o);
+    const answer = parseInt(document.getElementById('iqAnswer').value) - 1;
+    const difficulty = document.getElementById('iqDifficulty').value;
+    const explanation = document.getElementById('iqExplanation').value.trim();
+    if (!q || options.length < 2) { alert('Question and at least 2 options required'); return; }
+    if (answer < 0 || answer >= options.length) { alert('Invalid answer index'); return; }
+    const questionObj = { q, options, answer, difficulty, explanation };
+    try {
+        if (editIdx >= 0) {
+            const cat = iqData.categories.find(c => c.id === catId);
+            if (cat) cat.questions[editIdx] = questionObj;
+            await fetch('/api/interview-questions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Session': sessionStorage.getItem('adminSessionToken') },
+                body: JSON.stringify(iqData)
+            });
+        } else {
+            await fetch(`/api/interview-questions/${catId}/question`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Session': sessionStorage.getItem('adminSessionToken') },
+                body: JSON.stringify(questionObj)
+            });
+        }
+        closeModal('iqQuestionModal');
+        await loadIqManagement();
+    } catch (err) {
+        alert('Error saving question');
+    }
+}
+
+async function deleteIqQuestion(idx) {
+    if (!confirm('Delete this question?')) return;
+    const catId = document.getElementById('iqCategorySelect').value;
+    try {
+        await fetch(`/api/interview-questions/${catId}/question/${idx}`, {
+            method: 'DELETE',
+            headers: { 'X-Admin-Session': sessionStorage.getItem('adminSessionToken') }
+        });
+        await loadIqManagement();
+    } catch (err) {
+        alert('Error deleting question');
+    }
+}
+
+// ===================== SPOKEN ENGLISH MANAGEMENT =====================
+let seData = { categories: [] };
+
+async function loadSeManagement() {
+    try {
+        const res = await fetch('/api/spoken-english');
+        seData = await res.json();
+        const sel = document.getElementById('seCategorySelect');
+        if (sel) {
+            sel.innerHTML = seData.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            loadSeLessonsTable();
+        }
+    } catch (err) {
+        console.error('Error loading spoken english:', err);
+    }
+}
+
+function loadSeLessonsTable() {
+    const catId = document.getElementById('seCategorySelect')?.value;
+    if (!catId) return;
+    const cat = seData.categories.find(c => c.id === catId);
+    if (!cat) return;
+    const tbody = document.querySelector('#seLessonsTable tbody');
+    if (!tbody) return;
+    if (!cat.lessons.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:#94a3b8;">No lessons yet. Click "Add Lesson" to create one.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = cat.lessons.map((l, i) => `
+        <tr>
+            <td>${i + 1}</td>
+            <td style="max-width:150px;">${l.title || ''}</td>
+            <td style="max-width:150px;font-size:12px;">${l.description || '-'}</td>
+            <td>${(l.dialogues || []).length}</td>
+            <td>${(l.vocabulary || []).length}</td>
+            <td>${(l.tips || []).length}</td>
+            <td>${(l.practice || []).length}</td>
+            <td style="max-width:150px;font-size:12px;">${l.translation ? 'Yes' : 'No'}</td>
+            <td>
+                <button class="btn btn-primary" style="padding:4px 10px;font-size:12px;" onclick="editSeLesson(${i})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-danger" style="padding:4px 10px;font-size:12px;" onclick="deleteSeLesson(${i})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`).join('');
+}
+
+function openSeCategoryModal() {
+    document.getElementById('seCatName').value = '';
+    document.getElementById('seCatIcon').value = 'fa-book';
+    openModal('seCategoryModal');
+}
+
+async function saveSeCategory() {
+    const name = document.getElementById('seCatName').value.trim();
+    const icon = document.getElementById('seCatIcon').value.trim() || 'fa-book';
+    if (!name) { alert('Category name required'); return; }
+    try {
+        const res = await fetch('/api/spoken-english/category', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Admin-Session': sessionStorage.getItem('adminSessionToken') },
+            body: JSON.stringify({ name, icon })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal('seCategoryModal');
+            await loadSeManagement();
+        } else {
+            alert(data.message || 'Failed to save category');
+        }
+    } catch (err) {
+        alert('Error saving category');
+    }
+}
+
+function openSeLessonModal() {
+    const sel = document.getElementById('seLessonCat');
+    if (sel) {
+        sel.innerHTML = seData.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        const currentCat = document.getElementById('seCategorySelect')?.value;
+        if (currentCat) sel.value = currentCat;
+    }
+    document.getElementById('seEditIdx').value = '-1';
+    document.getElementById('seModalTitle').textContent = 'Add Lesson';
+    document.getElementById('seLessonTitle').value = '';
+    document.getElementById('seLessonDesc').value = '';
+    document.getElementById('seDialogues').value = '';
+    document.getElementById('seVocab').value = '';
+    document.getElementById('seTips').value = '';
+    document.getElementById('sePractice').value = '';
+    document.getElementById('seTranslation').value = '';
+    openModal('seLessonModal');
+}
+
+function editSeLesson(idx) {
+    const catId = document.getElementById('seCategorySelect').value;
+    const cat = seData.categories.find(c => c.id === catId);
+    if (!cat || !cat.lessons[idx]) return;
+    const l = cat.lessons[idx];
+    const sel = document.getElementById('seLessonCat');
+    if (sel) sel.innerHTML = seData.categories.map(c => `<option value="${c.id}" ${c.id === catId ? 'selected' : ''}>${c.name}</option>`).join('');
+    document.getElementById('seEditIdx').value = idx;
+    document.getElementById('seModalTitle').textContent = 'Edit Lesson';
+    document.getElementById('seLessonTitle').value = l.title || '';
+    document.getElementById('seLessonDesc').value = l.description || '';
+    document.getElementById('seDialogues').value = (l.dialogues || []).map(d => `${d.speaker}|${d.text}`).join('\n');
+    document.getElementById('seVocab').value = (l.vocabulary || []).map(v => `${v.word}|${v.meaning}`).join('\n');
+    document.getElementById('seTips').value = (l.tips || []).join('\n');
+    document.getElementById('sePractice').value = (l.practice || []).join('\n');
+    document.getElementById('seTranslation').value = l.translation || '';
+    openModal('seLessonModal');
+}
+
+async function saveSeLesson() {
+    const catId = document.getElementById('seLessonCat').value;
+    const editIdx = parseInt(document.getElementById('seEditIdx').value);
+    const title = document.getElementById('seLessonTitle').value.trim();
+    if (!title) { alert('Lesson title required'); return; }
+    const description = document.getElementById('seLessonDesc').value.trim();
+    const dialogues = document.getElementById('seDialogues').value.split('\n').filter(l => l.trim()).map(l => {
+        const [speaker, ...rest] = l.split('|');
+        return { speaker: (speaker || '').trim(), text: rest.join('|').trim() };
+    });
+    const vocabulary = document.getElementById('seVocab').value.split('\n').filter(l => l.trim()).map(l => {
+        const [word, ...rest] = l.split('|');
+        return { word: (word || '').trim(), meaning: rest.join('|').trim() };
+    });
+    const tips = document.getElementById('seTips').value.split('\n').map(t => t.trim()).filter(t => t);
+    const practice = document.getElementById('sePractice').value.split('\n').map(p => p.trim()).filter(p => p);
+    const translation = document.getElementById('seTranslation').value.trim();
+    const lessonObj = { title, description, dialogues, vocabulary, tips, practice, translation };
+    try {
+        if (editIdx >= 0) {
+            const cat = seData.categories.find(c => c.id === catId);
+            if (cat) cat.lessons[editIdx] = lessonObj;
+            await fetch('/api/spoken-english', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Session': sessionStorage.getItem('adminSessionToken') },
+                body: JSON.stringify(seData)
+            });
+        } else {
+            await fetch(`/api/spoken-english/${catId}/lesson`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Session': sessionStorage.getItem('adminSessionToken') },
+                body: JSON.stringify(lessonObj)
+            });
+        }
+        closeModal('seLessonModal');
+        await loadSeManagement();
+    } catch (err) {
+        alert('Error saving lesson');
+    }
+}
+
+async function deleteSeLesson(idx) {
+    if (!confirm('Delete this lesson?')) return;
+    const catId = document.getElementById('seCategorySelect').value;
+    try {
+        await fetch(`/api/spoken-english/${catId}/lesson/${idx}`, {
+            method: 'DELETE',
+            headers: { 'X-Admin-Session': sessionStorage.getItem('adminSessionToken') }
+        });
+        await loadSeManagement();
+    } catch (err) {
+        alert('Error deleting lesson');
     }
 }
