@@ -5076,6 +5076,40 @@ app.post('/api/payments/:id/deny', (req, res) => {
     res.json({ success: true });
 });
 
+// Reverse an approved payment back to pending (undo accidental approval)
+app.post('/api/payments/:id/reverse', (req, res) => {
+    const payments = readData('payments.json') || [];
+    const paymentIdx = payments.findIndex(p => p._id == req.params.id || p.id == req.params.id);
+    if (paymentIdx === -1) return res.status(404).json({ success: false, message: 'Payment not found' });
+
+    const payment = payments[paymentIdx];
+    const wasApproved = payment.status === 'approved';
+
+    // Set back to pending
+    payments[paymentIdx].status = 'pending';
+    writeData('payments.json', payments);
+
+    // Reverse the fee deduction if it was approved
+    if (wasApproved) {
+        const students = readData('students.json') || [];
+        const studentIdx = students.findIndex(s => s.id == payment.studentId);
+        if (studentIdx !== -1) {
+            const student = students[studentIdx];
+            student.fees = student.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0, payments: [] };
+            student.fees.payments = (student.fees.payments || []).filter(p => p.id != payment.id);
+            student.fees.paidAmount = Math.max(0, (parseInt(student.fees.paidAmount) || 0) - (parseInt(payment.amount) || 0));
+            student.fees.dueAmount = (parseInt(student.fees.dueAmount) || 0) + (parseInt(payment.amount) || 0);
+            writeData('students.json', students);
+        }
+    }
+
+    logActivity('payment.reverse', { type: 'admin', id: payment.id, name: payment.studentName }, {
+        paymentId: payment.id, studentId: payment.studentId, amount: payment.amount, reversed: wasApproved
+    }, req);
+
+    res.json({ success: true, payment: payments[paymentIdx] });
+});
+
 // --- Personalized Notifications ---
 app.post('/api/notifications/send', (req, res) => {
     try {

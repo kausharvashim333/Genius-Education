@@ -7255,7 +7255,9 @@ async function loadPaymentsTable() {
 
                 const actions = status === 'pending'
                     ? '<button class="action-btn edit-btn" onclick="approvePayment(\'' + p.id + '\')" style="background:#16a34a;color:#fff;margin-right:5px;"><i class="fas fa-check"></i> Approve</button><button class="action-btn delete-btn" onclick="denyPayment(\'' + p.id + '\')"><i class="fas fa-times"></i> Deny</button>'
-                    : '<span style="color:#64748b;font-size:13px;">Processed</span>';
+                    : status === 'approved'
+                    ? '<button class="action-btn" onclick="reversePayment(\'' + p.id + '\')" style="background:#f59e0b;color:#fff;margin-right:5px;"><i class="fas fa-undo"></i> Reverse</button><button class="action-btn delete-btn" onclick="denyPayment(\'' + p.id + '\')"><i class="fas fa-times"></i> Deny</button>'
+                    : '<span style="color:#64748b;font-size:13px;">Denied</span>';
 
                 const txnId = p.utrNo || p.utr || p.transactionId || '—';
                 const studentReceipt = p.studentReceipt || (String(p.mode || '').toLowerCase() === 'cash' ? p.transactionId : '') || '—';
@@ -7320,6 +7322,25 @@ async function denyPayment(paymentId) {
     } catch (err) {
         console.error('Error denying payment:', err);
         alert('Error denying payment');
+    }
+}
+
+async function reversePayment(paymentId) {
+    if (!confirm('Are you sure you want to reverse this approved payment? This will deduct the amount from the student\'s paid fees and mark it as pending again.')) return;
+    try {
+        const res = await fetch('/api/payments/' + paymentId + '/reverse', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success) {
+            showNotification('Payment reversed successfully!', 'success');
+            loadPaymentsTable();
+            loadDashboard && loadDashboard();
+        } else {
+            showNotification('Error: ' + (data.message || 'Unknown error'), 'error');
+        }
+    } catch (err) {
+        console.error('Error reversing payment:', err);
+        showNotification('Error reversing payment', 'error');
     }
 }
 
