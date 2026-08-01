@@ -1278,6 +1278,18 @@
                         <tbody></tbody>
                     </table>
                 </div>
+
+                <div id="feesContent" class="faculty-content-section">
+                    <h3><i class="fas fa-money-bill-wave"></i> Fee Collection</h3>
+                    <p style="color:rgba(255,255,255,0.7);margin-bottom:15px;">Students ki fees collect karo aur payment history dekho.</p>
+                    <div style="margin-bottom:15px;">
+                        <button class="btn btn-primary" onclick="openFacultyFeeModal()"><i class="fas fa-plus"></i> Add Fee Payment</button>
+                    </div>
+                    <table class="data-table" id="facultyFeesTable">
+                        <thead><tr><th>Student</th><th>Course</th><th>Batch</th><th>Total Fees</th><th>Paid</th><th>Due</th><th>Actions</th></tr></thead>
+                        <tbody><tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;">Loading fees data...</td></tr></tbody>
+                    </table>
+                </div>
             </main>
         </div>
     </div>
@@ -1607,6 +1619,43 @@
                 <button type="button" class="btn btn-primary" onclick="downloadStudentQR()"><i class="fas fa-download"></i> Download QR</button>
                 <button type="button" class="btn" onclick="closeStudentQRModal()" style="margin-left:10px;">Close</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Faculty Fee Modal -->
+    <div id="facultyFeeModal" class="modal">
+        <div class="modal-content" style="max-width:450px;">
+            <button class="modal-close-btn" onclick="closeFacultyFeeModal()" style="float:right;border:none;background:none;font-size:24px;cursor:pointer;color:#64748b;">&times;</button>
+            <h3><i class="fas fa-money-bill-wave"></i> <span id="facultyFeeModalTitle">Add Fee Payment</span></h3>
+            <input type="hidden" id="facultyFeeStudentId">
+            <div class="form-group"><label>Student *</label>
+                <select id="facultyFeeStudentSelect" style="width:100%;padding:8px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:rgba(255,255,255,0.08);color:#fff;">
+                    <option value="">Select Student...</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Amount (₹) *</label><input type="number" id="facultyFeeAmount" required min="1" style="width:100%;padding:8px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:rgba(255,255,255,0.08);color:#fff;"></div>
+            <div class="form-group"><label>Payment Mode</label>
+                <select id="facultyFeeMode" style="width:100%;padding:8px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:rgba(255,255,255,0.08);color:#fff;">
+                    <option value="Cash">Cash</option>
+                    <option value="Online">Online</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Cheque">Cheque</option>
+                </select>
+            </div>
+            <div class="form-group"><label>UTR / Transaction ID</label><input type="text" id="facultyFeeUtr" placeholder="Enter UTR or transaction ID" style="width:100%;padding:8px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:rgba(255,255,255,0.08);color:#fff;"></div>
+            <div style="display:flex;gap:10px;margin-top:15px;">
+                <button type="button" class="btn btn-primary" onclick="saveFacultyFee()"><i class="fas fa-save"></i> Save Payment</button>
+                <button type="button" class="btn" onclick="closeFacultyFeeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Faculty Payment History Modal -->
+    <div id="facultyPaymentHistoryModal" class="modal">
+        <div class="modal-content" style="max-width:600px;max-height:85vh;overflow-y:auto;">
+            <button class="modal-close-btn" onclick="closeFacultyPaymentHistory()" style="float:right;border:none;background:none;font-size:24px;cursor:pointer;color:#64748b;">&times;</button>
+            <h3><i class="fas fa-history"></i> Payment History</h3>
+            <div id="facultyPaymentHistoryBody" style="margin-top:15px;"></div>
         </div>
     </div>
 

@@ -453,6 +453,10 @@ function loadFacultyMenu() {
         menuHTML += '<li><a href="#" onclick="showSection(\'notices\')"><i class="fas fa-bullhorn"></i> Notices</a></li>';
     }
 
+    if (hasPermission('fees')) {
+        menuHTML += '<li><a href="#" onclick="showSection(\'fees\')"><i class="fas fa-money-bill-wave"></i> Fee Collection</a></li>';
+    }
+
     // Blog Management dropdown - permission via role OR individual toggle
     if (currentFaculty.canWriteBlogs || hasPermission('blogs')) {
         menuHTML += `
@@ -541,6 +545,7 @@ function showSection(section) {
         'results': 'Exam Results',
         'enquiries': 'Enquiries',
         'notices': 'Notices',
+        'fees': 'Fee Collection',
         'blogs': 'Blog Management',
         'allBlogs': 'All My Blogs',
         'pendingBlogs': 'Pending Approval Blogs',
@@ -558,6 +563,7 @@ function showSection(section) {
     }
     if (section === 'materials') loadMaterials();
     if (section === 'notices') loadNotices();
+    if (section === 'fees') loadFacultyFees();
     if (section === 'blogs') loadBlogs();
     if (section === 'allBlogs') loadAllBlogs();
     if (section === 'pendingBlogs') loadPendingBlogs();
@@ -1701,4 +1707,205 @@ async function deleteBlog(blogId) {
         console.error('Error deleting blog:', e);
         alert('Error deleting blog');
     }
+}
+
+// ===== Fee Collection =====
+let facultyFeeStudents = [];
+
+async function loadFacultyFees() {
+    const tbody = document.getElementById('facultyFeesTable').querySelector('tbody');
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;">Loading fees data...</td></tr>';
+    try {
+        const res = await fetch('/api/students');
+        const students = await res.json();
+        facultyFeeStudents = students;
+        if (students && students.length > 0) {
+            let html = '';
+            students.forEach(s => {
+                const fees = s.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0 };
+                html += '<tr>';
+                html += '<td><strong>' + s.name + '</strong><br><small>' + (s.rollNo || s.id) + '</small></td>';
+                html += '<td>' + (s.course || '-') + '</td>';
+                html += '<td>' + (s.batch || '-') + '</td>';
+                html += '<td>₹' + (fees.totalFees || 0) + '</td>';
+                html += '<td style="color:#16a34a;">₹' + (fees.paidAmount || 0) + '</td>';
+                html += '<td style="color:' + (fees.dueAmount > 0 ? '#dc2626' : '#16a34a') + ';">₹' + (fees.dueAmount || 0) + '</td>';
+                html += '<td>';
+                html += '<button class="btn btn-primary" onclick="openFacultyFeeModal(\'' + s.id + '\')" style="padding:4px 8px;font-size:12px;">Add Payment</button>';
+                html += '<button class="btn btn-info" onclick="viewFacultyPaymentHistory(\'' + s.id + '\')" style="padding:4px 8px;font-size:12px;margin-left:5px;">History</button>';
+                html += '</td>';
+                html += '</tr>';
+            });
+            tbody.innerHTML = html;
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;">No students found</td></tr>';
+        }
+    } catch (e) {
+        console.error('Error loading fees:', e);
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#dc2626;">Error loading fees</td></tr>';
+    }
+}
+
+function openFacultyFeeModal(studentId) {
+    const modal = document.getElementById('facultyFeeModal');
+    const select = document.getElementById('facultyFeeStudentSelect');
+    document.getElementById('facultyFeeStudentId').value = studentId || '';
+    document.getElementById('facultyFeeAmount').value = '';
+    document.getElementById('facultyFeeMode').value = 'Cash';
+    document.getElementById('facultyFeeUtr').value = '';
+
+    select.innerHTML = '<option value="">Select Student...</option>';
+    facultyFeeStudents.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.name + ' (' + (s.rollNo || s.id) + ')';
+        if (String(s.id) === String(studentId)) opt.selected = true;
+        select.appendChild(opt);
+    });
+
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+}
+
+function closeFacultyFeeModal() {
+    const modal = document.getElementById('facultyFeeModal');
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+}
+
+async function saveFacultyFee() {
+    const studentId = document.getElementById('facultyFeeStudentSelect').value || document.getElementById('facultyFeeStudentId').value;
+    const amount = document.getElementById('facultyFeeAmount').value;
+    const mode = document.getElementById('facultyFeeMode').value;
+    const utr = document.getElementById('facultyFeeUtr').value;
+
+    if (!studentId || !amount) {
+        alert('Student and amount required!');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/students');
+        const students = await res.json();
+        const student = students.find(s => String(s.id) === String(studentId));
+
+        if (student) {
+            student.fees = student.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0 };
+            student.fees.paidAmount = (student.fees.paidAmount || 0) + parseInt(amount);
+            student.fees.dueAmount = Math.max(0, (student.fees.dueAmount || 0) - parseInt(amount));
+
+            const payment = {
+                id: Date.now(),
+                studentId: parseInt(studentId),
+                studentName: student.name,
+                amount: parseInt(amount),
+                mode: mode,
+                utr: utr,
+                date: new Date().toISOString(),
+                status: 'approved',
+                collectedBy: currentFaculty.name || 'Faculty'
+            };
+
+            const paymentsRes = await fetch('/api/payments');
+            const paymentsData = await paymentsRes.json();
+            const payments = paymentsData.payments || [];
+            payments.unshift(payment);
+
+            await fetch('/api/payments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payments })
+            });
+
+            await fetch('/api/students/' + studentId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(student)
+            });
+
+            closeFacultyFeeModal();
+            loadFacultyFees();
+            alert('Payment added successfully!');
+        }
+    } catch (e) {
+        console.error('Error adding payment:', e);
+        alert('Error adding payment!');
+    }
+}
+
+async function viewFacultyPaymentHistory(studentId) {
+    const modal = document.getElementById('facultyPaymentHistoryModal');
+    const body = document.getElementById('facultyPaymentHistoryBody');
+    body.innerHTML = '<p style="text-align:center;color:#94a3b8;">Loading...</p>';
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+
+    try {
+        const res = await fetch('/api/students/' + studentId);
+        const data = await res.json();
+        const student = data.student || data;
+
+        if (student && student.id) {
+            const fees = student.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0, payments: [] };
+            const studentFeePayments = fees.payments || [];
+            const payRes = await fetch('/api/payments');
+            const payData = await payRes.json();
+
+            let allPayments = [];
+            if (studentFeePayments.length > 0) {
+                allPayments = allPayments.concat(studentFeePayments.map(p => ({
+                    ...p,
+                    status: p.status || 'approved',
+                    utr: p.utr || p.utrNumber || p.transactionId || p.receipt || '-'
+                })));
+            }
+            if (payData.success && payData.payments) {
+                allPayments = allPayments.concat(payData.payments.filter(p => String(p.studentId) === String(student.id)));
+            }
+
+            const uniquePayments = [];
+            const paymentIds = new Set();
+            allPayments.forEach(p => {
+                if (p.id && !paymentIds.has(String(p.id))) {
+                    paymentIds.add(String(p.id));
+                    uniquePayments.push(p);
+                }
+            });
+
+            let html = '<div style="margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;">';
+            html += '<strong style="color:#fff;">' + student.name + '</strong><br>';
+            html += '<span style="color:#94a3b8;font-size:13px;">Total: ₹' + (fees.totalFees || 0) + ' | Paid: <span style="color:#16a34a;">₹' + (fees.paidAmount || 0) + '</span> | Due: <span style="color:' + (fees.dueAmount > 0 ? '#dc2626' : '#16a34a') + ';">₹' + (fees.dueAmount || 0) + '</span></span>';
+            html += '</div>';
+
+            if (uniquePayments.length > 0) {
+                html += '<table class="data-table"><thead><tr><th>Date</th><th>Amount</th><th>Mode</th><th>UTR/Txn ID</th><th>Status</th></tr></thead><tbody>';
+                uniquePayments.forEach(p => {
+                    const date = p.date ? new Date(p.date).toLocaleDateString('en-IN') : '-';
+                    html += '<tr>';
+                    html += '<td>' + date + '</td>';
+                    html += '<td>₹' + (p.amount || 0) + '</td>';
+                    html += '<td>' + (p.mode || '-') + '</td>';
+                    html += '<td>' + (p.utr || '-') + '</td>';
+                    html += '<td>' + (p.status || 'approved') + '</td>';
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+            } else {
+                html += '<p style="text-align:center;color:#94a3b8;">No payment records found</p>';
+            }
+
+            body.innerHTML = html;
+        } else {
+            body.innerHTML = '<p style="text-align:center;color:#94a3b8;">Student not found</p>';
+        }
+    } catch (e) {
+        console.error('Error loading payment history:', e);
+        body.innerHTML = '<p style="text-align:center;color:#dc2626;">Error loading payment history</p>';
+    }
+}
+
+function closeFacultyPaymentHistory() {
+    const modal = document.getElementById('facultyPaymentHistoryModal');
+    modal.classList.remove('active');
+    modal.style.display = 'none';
 }
