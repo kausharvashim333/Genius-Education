@@ -3468,6 +3468,113 @@ async function deleteTest(id) {
 // ===== Fees Management =====
 let revenueReportData = [];
 
+async function loadTodayCollection() {
+    const tbody = document.querySelector('#todayCollectionTable tbody');
+    const summaryEl = document.getElementById('todayCollectionSummary');
+    const dateEl = document.getElementById('todayCollectionDate');
+
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+    if (dateEl) dateEl.textContent = todayStr;
+
+    if (tbody) renderLoadingSpinner(tbody, 'Loading today\'s collection...');
+
+    try {
+        const [paymentsRes, studentsRes] = await Promise.all([
+            fetch('/api/payments'),
+            fetch('/api/students')
+        ]);
+        const paymentsData = await paymentsRes.json();
+        const studentsData = await studentsRes.json().catch(() => []);
+        const students = Array.isArray(studentsData) ? studentsData : (studentsData.data || []);
+        const studentMap = {};
+        students.forEach(s => { studentMap[s.id] = s; });
+
+        const allPayments = paymentsData.payments || [];
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+        const todayPayments = allPayments.filter(p => {
+            const pd = new Date(p.date);
+            return !isNaN(pd.getTime()) && pd >= todayStart && pd < todayEnd;
+        });
+
+        const totalAmount = todayPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        const approvedAmount = todayPayments.filter(p => p.status === 'approved').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        const pendingAmount = todayPayments.filter(p => p.status === 'pending').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        const cashAmount = todayPayments.filter(p => (p.mode || '').toLowerCase() === 'cash').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        const upiAmount = todayPayments.filter(p => (p.mode || '').toLowerCase() === 'upi').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+
+        if (summaryEl) {
+            let summaryHtml = '';
+            summaryHtml += '<div style="flex:1;min-width:180px;padding:16px 20px;border-radius:12px;background:linear-gradient(135deg,rgba(22,163,74,0.25),rgba(34,197,94,0.15));border:1px solid rgba(22,163,74,0.4);">';
+            summaryHtml += '<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;"><i class=\"fas fa-wallet\" style=\"margin-right:4px;\"></i> Total Collection</div>';
+            summaryHtml += '<div style="font-size:1.6rem;font-weight:700;color:#4ade80;">\u20B9' + totalAmount.toLocaleString('en-IN') + '</div>';
+            summaryHtml += '<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;">' + todayPayments.length + ' transaction(s)</div>';
+            summaryHtml += '</div>';
+
+            summaryHtml += '<div style="flex:1;min-width:150px;padding:14px 18px;border-radius:12px;background:linear-gradient(135deg,rgba(102,126,234,0.2),rgba(118,75,162,0.15));border:1px solid rgba(102,126,234,0.3);">';
+            summaryHtml += '<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;"><i class=\"fas fa-check-circle\" style=\"margin-right:4px;\"></i> Approved</div>';
+            summaryHtml += '<div style="font-size:1.3rem;font-weight:700;color:#a78bfa;">\u20B9' + approvedAmount.toLocaleString('en-IN') + '</div>';
+            summaryHtml += '<div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:3px;">' + todayPayments.filter(p => p.status === 'approved').length + ' payment(s)</div>';
+            summaryHtml += '</div>';
+
+            summaryHtml += '<div style="flex:1;min-width:150px;padding:14px 18px;border-radius:12px;background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(251,191,36,0.15));border:1px solid rgba(245,158,11,0.3);">';
+            summaryHtml += '<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;"><i class=\"fas fa-clock\" style=\"margin-right:4px;\"></i> Pending</div>';
+            summaryHtml += '<div style="font-size:1.3rem;font-weight:700;color:#fbbf24;">\u20B9' + pendingAmount.toLocaleString('en-IN') + '</div>';
+            summaryHtml += '<div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:3px;">' + todayPayments.filter(p => p.status === 'pending').length + ' payment(s)</div>';
+            summaryHtml += '</div>';
+
+            summaryHtml += '<div style="flex:1;min-width:150px;padding:14px 18px;border-radius:12px;background:linear-gradient(135deg,rgba(22,163,74,0.15),rgba(34,197,94,0.1));border:1px solid rgba(22,163,74,0.25);">';
+            summaryHtml += '<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;"><i class=\"fas fa-money-bill-wave\" style=\"margin-right:4px;\"></i> Cash</div>';
+            summaryHtml += '<div style="font-size:1.3rem;font-weight:700;color:#4ade80;">\u20B9' + cashAmount.toLocaleString('en-IN') + '</div>';
+            summaryHtml += '</div>';
+
+            summaryHtml += '<div style="flex:1;min-width:150px;padding:14px 18px;border-radius:12px;background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.1));border:1px solid rgba(99,102,241,0.25);">';
+            summaryHtml += '<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;"><i class=\"fas fa-mobile-alt\" style=\"margin-right:4px;\"></i> UPI</div>';
+            summaryHtml += '<div style="font-size:1.3rem;font-weight:700;color:#a78bfa;">\u20B9' + upiAmount.toLocaleString('en-IN') + '</div>';
+            summaryHtml += '</div>';
+
+            summaryEl.innerHTML = summaryHtml;
+        }
+
+        if (todayPayments.length === 0) {
+            if (tbody) renderEmptyState(tbody, 'calendar-day', 'No collections today yet');
+            return;
+        }
+
+        todayPayments.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+        if (tbody) {
+            tbody.innerHTML = todayPayments.map(p => {
+                const student = studentMap[p.studentId] || {};
+                const modeDisplay = (p.mode || '—').toString().toUpperCase();
+                const txnId = p.utrNo || p.utr || p.transactionId || '—';
+                const statusBadge = p.status === 'approved'
+                    ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Approved</span>'
+                    : p.status === 'pending'
+                    ? '<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Pending</span>'
+                    : p.status === 'denied'
+                    ? '<span style="background:#fee2e2;color:#dc2626;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Denied</span>'
+                    : '<span style="background:#e2e8f0;color:#64748b;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">' + (p.status || '—') + '</span>';
+                return '<tr>' +
+                    '<td style="white-space:nowrap;">' + (p.date ? new Date(p.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—') + '</td>' +
+                    '<td><strong>' + (p.studentName || student.name || '—') + '</strong></td>' +
+                    '<td>' + (student.course || '—') + '</td>' +
+                    '<td><strong>\u20B9' + parseFloat(p.amount || 0).toLocaleString('en-IN') + '</strong></td>' +
+                    '<td>' + modeDisplay + '</td>' +
+                    '<td><code style="font-size:12px;">' + txnId + '</code></td>' +
+                    '<td>' + (p.collectedBy || '—') + '</td>' +
+                    '<td>' + statusBadge + '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+    } catch (err) {
+        console.error('Error loading today\'s collection:', err);
+        if (tbody) renderEmptyState(tbody, 'exclamation-circle', 'Error loading today\'s collection');
+    }
+}
+
 async function loadRevenueReport() {
     const tbody = document.querySelector('#revenueTable tbody');
     const summaryEl = document.getElementById('revenueSummary');
@@ -3572,7 +3679,7 @@ async function loadRevenueReport() {
         tbody.innerHTML = payments.map(p => {
             const student = studentMap[p.studentId] || {};
             const modeDisplay = (p.mode || '—').toString().toUpperCase();
-            const txnId = p.utrNo || p.transactionId || '—';
+            const txnId = p.utrNo || p.utr || p.transactionId || '—';
             const statusBadge = (p.status || 'approved').toLowerCase() === 'approved'
                 ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Approved</span>'
                 : '<span style="background:#e2e8f0;color:#64748b;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">' + (p.status || '—') + '</span>';
@@ -3618,7 +3725,7 @@ async function exportRevenueReport() {
         '—',
         p.amount || 0,
         (p.mode || '—').toUpperCase(),
-        p.utrNo || p.transactionId || '—',
+        p.utrNo || p.utr || p.transactionId || '—',
         p.status || '—'
     ]);
     const csv = [headers, ...rows].map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
@@ -3633,6 +3740,7 @@ async function exportRevenueReport() {
 async function loadFeesTable() {
     const tbody = document.getElementById('feesTable').querySelector('tbody');
     renderLoadingSpinner(tbody, 'Loading fees...');
+    loadTodayCollection();
     try {
         const res = await fetch('/api/students');
         const students = await res.json();
