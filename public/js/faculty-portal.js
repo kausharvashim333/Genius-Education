@@ -1748,23 +1748,60 @@ async function loadFacultyFees() {
 
 function openFacultyFeeModal(studentId) {
     const modal = document.getElementById('facultyFeeModal');
-    const select = document.getElementById('facultyFeeStudentSelect');
     document.getElementById('facultyFeeStudentId').value = studentId || '';
+    document.getElementById('facultyFeeStudentSearch').value = '';
+    document.getElementById('facultyFeeStudentResults').style.display = 'none';
     document.getElementById('facultyFeeAmount').value = '';
     document.getElementById('facultyFeeMode').value = 'Cash';
     document.getElementById('facultyFeeUtr').value = '';
 
-    select.innerHTML = '<option value="">Select Student...</option>';
-    facultyFeeStudents.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s.id;
-        opt.textContent = s.name + ' (' + (s.rollNo || s.id) + ')';
-        if (String(s.id) === String(studentId)) opt.selected = true;
-        select.appendChild(opt);
-    });
+    // Pre-fill student name if studentId provided
+    if (studentId) {
+        const student = facultyFeeStudents.find(s => String(s.id) === String(studentId));
+        if (student) {
+            document.getElementById('facultyFeeStudentSearch').value = student.name + ' (' + (student.rollNo || student.id) + ')';
+        }
+    }
 
     modal.classList.add('active');
     modal.style.display = 'flex';
+}
+
+function filterFacultyFeeStudents(query) {
+    const results = document.getElementById('facultyFeeStudentResults');
+    document.getElementById('facultyFeeStudentId').value = '';
+
+    if (!query || query.trim().length < 1) {
+        results.style.display = 'none';
+        return;
+    }
+
+    const q = query.trim().toLowerCase();
+    const matches = facultyFeeStudents.filter(s => {
+        const name = (s.name || '').toLowerCase();
+        const rollNo = String(s.rollNo || s.id || '').toLowerCase();
+        const phone = String(s.phone || '').toLowerCase();
+        return name.includes(q) || rollNo.includes(q) || phone.includes(q);
+    }).slice(0, 15);
+
+    if (matches.length === 0) {
+        results.innerHTML = '<div style="padding:10px;color:#94a3b8;font-size:13px;">No students found</div>';
+        results.style.display = 'block';
+        return;
+    }
+
+    results.innerHTML = matches.map(s => {
+        const fees = s.fees || {};
+        const dueInfo = fees.dueAmount > 0 ? '<span style="color:#dc2626;font-size:11px;">Due: ₹' + fees.dueAmount + '</span>' : '<span style="color:#16a34a;font-size:11px;">No due</span>';
+        return '<div onclick="selectFacultyFeeStudent(\'' + s.id + '\', \'' + (s.name || '').replace(/'/g, "\\'") + '\', \'' + (s.rollNo || s.id) + '\')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);transition:background 0.15s;" onmouseover="this.style.background=\'rgba(102,126,234,0.15)\'" onmouseout="this.style.background=\'transparent\'"><strong style="color:#fff;font-size:13px;">' + s.name + '</strong> <span style="color:#64748b;font-size:11px;">(' + (s.rollNo || s.id) + ')</span><br>' + dueInfo + ' <span style="color:#64748b;font-size:11px;">| ' + (s.course || '-') + '</span></div>';
+    }).join('');
+    results.style.display = 'block';
+}
+
+function selectFacultyFeeStudent(id, name, rollNo) {
+    document.getElementById('facultyFeeStudentId').value = id;
+    document.getElementById('facultyFeeStudentSearch').value = name + ' (' + rollNo + ')';
+    document.getElementById('facultyFeeStudentResults').style.display = 'none';
 }
 
 function closeFacultyFeeModal() {
@@ -1774,7 +1811,7 @@ function closeFacultyFeeModal() {
 }
 
 async function saveFacultyFee() {
-    const studentId = document.getElementById('facultyFeeStudentSelect').value || document.getElementById('facultyFeeStudentId').value;
+    const studentId = document.getElementById('facultyFeeStudentId').value;
     const amount = document.getElementById('facultyFeeAmount').value;
     const mode = document.getElementById('facultyFeeMode').value;
     const utr = document.getElementById('facultyFeeUtr').value;
