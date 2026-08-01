@@ -1177,6 +1177,576 @@ function initData() {
     if (!readData('exam-results.json')) writeData('exam-results.json', []);
     if (!readData('certificates.json')) writeData('certificates.json', []);
     if (!readData('chapters.json')) writeData('chapters.json', []);
+    if (!readData('interview-questions.json')) writeData('interview-questions.json', {
+        categories: [
+            { id: 'computer-basics', name: 'Computer Basics', icon: 'fa-desktop', questions: [
+                { type:'mcq', q: 'CPU ka full form kya hai?', options: ['Central Processing Unit','Computer Personal Unit','Central Print Unit','Control Processing Unit'], answer: 0, difficulty: 'easy', explanation: 'CPU = Central Processing Unit. Ye computer ka brain hota hai.' },
+                { type:'mcq', q: 'RAM ka full form kya hai?', options: ['Read Access Memory','Random Access Memory','Read Available Memory','Random Available Memory'], answer: 1, difficulty: 'easy', explanation: 'RAM = Random Access Memory. Volatile memory - power off pe data delete.' },
+                { type:'mcq', q: '1 Byte me kitne bits hote hain?', options: ['4 bits','8 bits','16 bits','32 bits'], answer: 1, difficulty: 'easy', explanation: '1 Byte = 8 bits.' },
+                { type:'mcq', q: 'Shortcut key Ctrl+C kya karta hai?', options: ['Paste','Copy','Cut','Save'], answer: 1, difficulty: 'easy', explanation: 'Ctrl+C = Copy.' },
+                { type:'mcq', q: 'Hard disk kis type ki memory hai?', options: ['Volatile','Non-volatile','Cache','Register'], answer: 1, difficulty: 'medium', explanation: 'Hard disk non-volatile - data permanently stored.' },
+                { type:'descriptive', q: 'RAM aur ROM me kya difference hai? Explain karein.', keywords: ['ram','random access memory','volatile','temporary','rom','read only memory','non-volatile','permanent','data','power'], minKeywords: 4, modelAnswer: 'RAM (Random Access Memory) volatile memory hai jiska data power off hone par delete ho jata hai. ROM (Read Only Memory) non-volatile memory hai jisme data permanently stored rehta hai. RAM temporary data store karta hai, ROM permanent data store karta hai.', difficulty: 'medium', explanation: 'RAM=volatile/temporary, ROM=non-volatile/permanent.' },
+                { type:'descriptive', q: 'Computer ke main hardware components ke naam batayein aur unka kaam bataiye.', keywords: ['cpu','processor','ram','memory','hard disk','storage','motherboard','monitor','keyboard','mouse','input','output'], minKeywords: 5, modelAnswer: 'CPU (processor) - calculations karta hai. RAM - temporary memory. Hard Disk - permanent storage. Motherboard - sab connect karta hai. Monitor - output. Keyboard/Mouse - input devices.', difficulty: 'easy', explanation: 'Main components: CPU, RAM, Hard Disk, Motherboard, Monitor, Keyboard, Mouse.' },
+                { type:'descriptive', q: 'Operating System kya hota hai aur uske main functions kya hain?', keywords: ['operating system','software','manage','hardware','resources','interface','memory','files','system','windows','linux'], minKeywords: 4, modelAnswer: 'Operating System ek system software hai jo hardware aur software ke beech coordination karta hai. Functions: memory management, file management, device management, user interface, security. Examples: Windows, Linux, macOS.', difficulty: 'medium', explanation: 'OS manages hardware/resources. Functions: memory, file, device management + UI.' }
+            ]},
+            { id: 'ms-office', name: 'MS Office', icon: 'fa-file-word', questions: [
+                { type:'mcq', q: 'MS Word me new document ka shortcut?', options: ['Ctrl+N','Ctrl+O','Ctrl+S','Ctrl+P'], answer: 0, difficulty: 'easy', explanation: 'Ctrl+N = New document.' },
+                { type:'mcq', q: 'Excel me cell ka address kaise banta hai?', options: ['Row+Column','Column+Row','Only Row','Only Column'], answer: 1, difficulty: 'easy', explanation: 'Column letter + Row number, jaise A1, B5.' },
+                { type:'mcq', q: 'Excel me SUM function ka kaam?', options: ['Count karna','Add karna','Average','Maximum'], answer: 1, difficulty: 'easy', explanation: 'SUM numbers ko add karta hai.' },
+                { type:'mcq', q: 'Word me bold karne ka shortcut?', options: ['Ctrl+B','Ctrl+I','Ctrl+U','Ctrl+Shift+B'], answer: 0, difficulty: 'easy', explanation: 'Ctrl+B = Bold.' },
+                { type:'mcq', q: 'PowerPoint me new slide shortcut?', options: ['Ctrl+M','Ctrl+N','Ctrl+S','Ctrl+D'], answer: 0, difficulty: 'medium', explanation: 'Ctrl+M = New Slide.' },
+                { type:'descriptive', q: 'MS Excel me formula aur function ka difference batayein with example.', keywords: ['formula','function','calculation','sum','average','predefined','custom','operator','cell','reference'], minKeywords: 4, modelAnswer: 'Formula custom calculation hai jo user khud likhta hai (=A1+B1). Function predefined calculation hai (=SUM(A1:A10)). Formula me operators use hote hain, function me built-in names.', difficulty: 'medium', explanation: 'Formula=custom (=A1+B1), Function=predefined (=SUM()).' },
+                { type:'descriptive', q: 'PowerPoint me effective presentation banane ke tips batayein.', keywords: ['slides','points','bullet','font','size','color','contrast','images','simple','readable','animation','design'], minKeywords: 5, modelAnswer: 'Tips: kam text, bullet points use karein. Font size bada (24pt+). Good contrast. Relevant images. Ek slide par ek topic. Minimal animations. Clean template.', difficulty: 'easy', explanation: 'Less text, bullet points, large font, good contrast, relevant images, minimal animations.' }
+            ]},
+            { id: 'tally', name: 'Tally', icon: 'fa-calculator', questions: [
+                { type:'mcq', q: 'Tally me company banane ke liye kaunsa key?', options: ['Alt+F1','Alt+F3','Ctrl+F3','F1'], answer: 1, difficulty: 'easy', explanation: 'Alt+F3 = Company creation.' },
+                { type:'mcq', q: 'Double Entry system ka matlab?', options: ['Do baar entry','Debit aur credit dono','Do accounts','Do baar save'], answer: 1, difficulty: 'medium', explanation: 'Har transaction me debit aur credit dono hote hain.' },
+                { type:'mcq', q: 'Tally me F8 key ka use?', options: ['Payment','Sales','Purchase','Journal'], answer: 1, difficulty: 'easy', explanation: 'F8 = Sales voucher.' },
+                { type:'mcq', q: 'Balance Sheet me Liabilities ka matlab?', options: ['Income','Debts/Obligations','Assets','Profit'], answer: 1, difficulty: 'medium', explanation: 'Liabilities = company ko jo dena hai.' },
+                { type:'mcq', q: 'Tally me Ctrl+D kya karta hai?', options: ['Delete voucher','Duplicate','Download','Display'], answer: 0, difficulty: 'medium', explanation: 'Ctrl+D = Delete voucher.' },
+                { type:'descriptive', q: 'Accounting ke Golden Rules batayein with examples.', keywords: ['debit','credit','real account','personal account','nominal account','assets','expenses','income','what comes in','receiver','giver'], minKeywords: 5, modelAnswer: '3 Golden Rules: Real Account (Debit what comes in, Credit what goes out). Personal Account (Debit receiver, Credit giver). Nominal Account (Debit expenses/losses, Credit incomes/gains).', difficulty: 'hard', explanation: 'Real, Personal, Nominal - 3 golden rules of accounting.' },
+                { type:'descriptive', q: 'Balance Sheet kya hota hai aur usme main components kaun se hain?', keywords: ['balance sheet','assets','liabilities','equity','capital','financial position','company','resources','obligations','owner'], minKeywords: 4, modelAnswer: 'Balance Sheet ek financial statement hai jo company ki financial position dikhata hai. Components: Assets (resources), Liabilities (debts), Equity (owner investment). Formula: Assets = Liabilities + Equity.', difficulty: 'medium', explanation: 'Balance Sheet shows financial position. Assets = Liabilities + Equity.' }
+            ]},
+            { id: 'web-development', name: 'Web Development', icon: 'fa-code', questions: [
+                { type:'mcq', q: 'HTML ka full form?', options: ['Hyper Text Markup Language','High Text Machine Language','Hyper Tabular Markup Language','None'], answer: 0, difficulty: 'easy', explanation: 'HTML = Hyper Text Markup Language.' },
+                { type:'mcq', q: 'CSS ka full form?', options: ['Computer Style Sheets','Cascading Style Sheets','Colorful Style Sheets','Creative Style Sheets'], answer: 1, difficulty: 'easy', explanation: 'CSS = Cascading Style Sheets.' },
+                { type:'mcq', q: 'HTML me link banane ka tag?', options: ['<link>','<a>','<href>','<url>'], answer: 1, difficulty: 'easy', explanation: '<a> tag hyperlinks ke liye.' },
+                { type:'mcq', q: 'JavaScript me variable keywords?', options: ['var, let, const','int, float, string','dim, set, get','variable, declare'], answer: 0, difficulty: 'medium', explanation: 'var, let, const se variables declare hote hain.' },
+                { type:'mcq', q: 'HTTP 404 ka matlab?', options: ['Server Error','Not Found','Unauthorized','Success'], answer: 1, difficulty: 'medium', explanation: '404 = Not Found.' },
+                { type:'descriptive', q: 'HTML aur CSS ka difference batayein. Dono ka kaam kya hai?', keywords: ['html','structure','content','css','style','design','presentation','markup','layout','colors','font'], minKeywords: 4, modelAnswer: 'HTML web page ka structure aur content define karta hai (headings, paragraphs, images). CSS styling aur presentation handle karta hai (colors, fonts, layout). HTML skeleton hai, CSS decoration.', difficulty: 'easy', explanation: 'HTML=structure/content, CSS=style/design.' },
+                { type:'descriptive', q: 'JavaScript me let, const, aur var me kya difference hai?', keywords: ['var','let','const','scope','block','redeclare','reassign','hoisting','function scope','constant'], minKeywords: 4, modelAnswer: 'var: function scoped, redeclare+reassign possible, hoisting. let: block scoped, reassign possible, no redeclare. const: block scoped, no redeclare+reassign. Modern JS me let/const prefer karein.', difficulty: 'hard', explanation: 'var=function scope, let=block scope, const=block scope+no reassign.' }
+            ]},
+            { id: 'general-hr', name: 'General HR', icon: 'fa-user-tie', questions: [
+                { type:'mcq', q: 'Tell me about yourself - best answer?', options: ['Personal life details','Professional background + skills','Sirf education','Sirf hobbies'], answer: 1, difficulty: 'easy', explanation: 'Professional background, skills, aur career interest briefly.' },
+                { type:'mcq', q: 'Why do you want this job?', options: ['Money chahiye','Company positive + role interest','Koi reason nahi','Experience ke liye'], answer: 1, difficulty: 'medium', explanation: 'Company research karke positive point batao.' },
+                { type:'mcq', q: 'What are your weaknesses?', options: ['Koi weakness nahi','Real weakness + improvement effort','Badi weakness','Rona'], answer: 1, difficulty: 'medium', explanation: 'Genuine weakness + overcome karne ke steps.' },
+                { type:'mcq', q: 'Interview me dress code?', options: ['Casual','Formal/professional','Trendy','Kuch bhi'], answer: 1, difficulty: 'easy', explanation: 'Professional/formal dress pehnna chahiye.' },
+                { type:'descriptive', q: '"Tell me about yourself" ka answer likhein. Apna introduction dein.', keywords: ['name','education','experience','skills','background','career','interest','qualification','work','professional'], minKeywords: 4, modelAnswer: 'My name is [Name]. I have completed my [degree] from [institute]. I have [X] years of experience in [field]. My key skills are [skills]. I am interested in [career area] and want to grow my career.', difficulty: 'easy', explanation: 'Name, education, experience, skills, career interest - briefly cover karo.' },
+                { type:'descriptive', q: '"What are your strengths and weaknesses?" ka answer likhein.', keywords: ['strength','weakness','honest','positive','improve','hardworking','dedicated','quick learner','overcome','effort','genuine'], minKeywords: 4, modelAnswer: 'Strengths: I am hardworking, dedicated, and a quick learner. Weaknesses: I sometimes focus too much on details, but I am learning to prioritize. Always mention a real weakness with improvement effort.', difficulty: 'medium', explanation: 'Real strengths + genuine weakness with improvement effort.' },
+                { type:'descriptive', q: '"Why should we hire you?" ka answer likhein.', keywords: ['skills','experience','contribute','value','company','role','dedicated','hardworking','learn','grow','team','fit'], minKeywords: 4, modelAnswer: 'You should hire me because I have the skills and experience required for this role. I am a dedicated and hardworking person who learns quickly. I can contribute to the company growth and work well in a team.', difficulty: 'medium', explanation: 'Highlight skills, experience, dedication, and how you add value to the company.' }
+            ]}
+        ]
+    });
+    if (!readData('spoken-english.json')) writeData('spoken-english.json', {
+        categories: [
+            { id: 'basics', name: 'English Basics', icon: 'fa-book-open', lessons: [
+                { title: 'Greetings & Introductions', description: 'Basic greetings and how to introduce yourself', dialogues: [
+                    { speaker: 'A', text: 'Hello! How are you?' },
+                    { speaker: 'B', text: 'I am fine, thank you. And you?' },
+                    { speaker: 'A', text: 'I am good. My name is Rahul. What is your name?' },
+                    { speaker: 'B', text: 'Nice to meet you, Rahul. I am Priya.' }
+                ], vocabulary: [
+                    { word: 'Hello', meaning: 'Namaste / Hi' },
+                    { word: 'Fine', meaning: 'Theek / Achha' },
+                    { word: 'Nice to meet you', meaning: 'Aapse mil kar acha laga' }
+                ], tips: [
+                    'Always smile when greeting someone',
+                    'Use full sentences: "My name is..." not just "Rahul"',
+                    'Listen carefully to the other person\'s name'
+                ], practice: [
+                    'Hello, how are you today?',
+                    'My name is ___. What is your name?',
+                    'Nice to meet you!',
+                    'I am from ___. Where are you from?'
+                ], translation: 'Is lesson me hum greetings aur introduction seekhte hain. Hello bolna, apna naam batana, aur dusre ka naam puchna basic hai.' },
+                { title: 'Days, Months & Time', description: 'Talk about days, months and telling time', dialogues: [
+                    { speaker: 'A', text: 'What day is it today?' },
+                    { speaker: 'B', text: 'Today is Monday.' },
+                    { speaker: 'A', text: 'What time is it?' },
+                    { speaker: 'B', text: 'It is half past three.' }
+                ], vocabulary: [
+                    { word: 'Monday', meaning: 'Somvar' },
+                    { word: 'Half past three', meaning: '3:30 (Saade teen)' },
+                    { word: 'Today', meaning: 'Aaj' },
+                    { word: 'Time', meaning: 'Waqt / Samay' }
+                ], tips: [
+                    'Days start with capital letter: Monday, Tuesday',
+                    'Use "It is" for time: It is 5 o\'clock',
+                    '"Half past" = 30 minutes after, "Quarter to" = 15 minutes before'
+                ], practice: [
+                    'Today is ___.',
+                    'What time is it?',
+                    'It is ___ o\'clock.',
+                    'Tomorrow is ___.'
+                ], translation: 'Is lesson me din, mahina aur samay batana seekhte hain. Days ke naam capital letter se shuru hote hain.' },
+                { title: 'Family & Relationships', description: 'Talk about your family members', dialogues: [
+                    { speaker: 'A', text: 'How many people are in your family?' },
+                    { speaker: 'B', text: 'There are five people in my family. My parents, my elder brother, my sister and me.' },
+                    { speaker: 'A', text: 'What does your father do?' },
+                    { speaker: 'B', text: 'My father is a teacher. He teaches mathematics.' }
+                ], vocabulary: [
+                    { word: 'Parents', meaning: 'Maa-Baap' },
+                    { word: 'Elder brother', meaning: 'Bada bhai' },
+                    { word: 'Sister', meaning: 'Behen' },
+                    { word: 'Teacher', meaning: 'Shikshak / Adhyapak' }
+                ], tips: [
+                    'Use "my" for family members: my father, my mother',
+                    'Use "He/She" instead of names: He teaches, She works',
+                    'Say "How many" for counting: How many brothers?'
+                ], practice: [
+                    'There are ___ people in my family.',
+                    'My father is a ___.',
+                    'How many ___ do you have?',
+                    'My ___ is ___ years old.'
+                ], translation: 'Is lesson me parivar ke baare me baat karna seekhte hain. Maa, baap, bhai, behen ke naam English me kya bolte hain.' },
+                { title: 'Numbers & Counting', description: 'Learn numbers and how to count in English', dialogues: [
+                    { speaker: 'A', text: 'How many books do you have?' },
+                    { speaker: 'B', text: 'I have twenty books.' },
+                    { speaker: 'A', text: 'Can you count from 1 to 10?' },
+                    { speaker: 'B', text: 'One, two, three, four, five, six, seven, eight, nine, ten.' }
+                ], vocabulary: [
+                    { word: 'Twenty', meaning: 'Bees (20)' },
+                    { word: 'Count', meaning: 'Ginti karna' },
+                    { word: 'How many', meaning: 'Kitne' },
+                    { word: 'Hundred', meaning: 'Sau (100)' }
+                ], tips: [
+                    'Practice counting 1-100 daily',
+                    'Use "How many" for plural things: How many books?',
+                    'Numbers 13-19 end with "teen": thirteen, fourteen, fifteen'
+                ], practice: [
+                    'I have ___ books.',
+                    'Can you count from ___ to ___?',
+                    'How many ___ do you have?',
+                    'There are ___ students in my class.'
+                ], translation: 'Is lesson me numbers aur counting seekhte hain. 1 se 100 tak ginti practice karein.' }
+            ]},
+            { id: 'daily-conversation', name: 'Daily Conversation', icon: 'fa-comments', lessons: [
+                { title: 'At the Shop', description: 'Shopping related conversations', dialogues: [
+                    { speaker: 'A', text: 'Can you help me, please?' },
+                    { speaker: 'B', text: 'Sure, what do you need?' },
+                    { speaker: 'A', text: 'I am looking for a notebook.' },
+                    { speaker: 'B', text: 'They are in the second aisle.' },
+                    { speaker: 'A', text: 'Thank you very much!' }
+                ], vocabulary: [
+                    { word: 'Looking for', meaning: 'Dhoondh raha hu' },
+                    { word: 'Aisle', meaning: 'Dukaan ka rasta/section' },
+                    { word: 'Sure', meaning: 'Pakka / Haan' }
+                ], tips: [
+                    'Always say "please" when asking for help',
+                    'Say "thank you" after someone helps you',
+                    'Use "Can you" for polite requests'
+                ], practice: [
+                    'Can you help me, please?',
+                    'I am looking for a ___',
+                    'How much does this cost?',
+                    'Do you have this in a different size?'
+                ], translation: 'Is lesson me hum shop me conversation seekhte hain. Help mangna, item dhoondhna, aur polite tarike se baat karna.' },
+                { title: 'At the Bank', description: 'Banking related conversations', dialogues: [
+                    { speaker: 'A', text: 'I would like to open a savings account.' },
+                    { speaker: 'B', text: 'Sure. Do you have your ID proof and address proof?' },
+                    { speaker: 'A', text: 'Yes, I have my Aadhaar card.' },
+                    { speaker: 'B', text: 'Please fill this form and sign at the bottom.' }
+                ], vocabulary: [
+                    { word: 'Savings account', meaning: 'Bachat khata' },
+                    { word: 'ID proof', meaning: 'Pehchan ka pramaan' },
+                    { word: 'Address proof', meaning: 'Pata ka pramaan' },
+                    { word: 'Form', meaning: 'Form / Aavedan patr' }
+                ], tips: [
+                    'Always carry ID proof when visiting bank',
+                    'Use "I would like" for polite requests',
+                    'Say "Please fill this form" - fill means bhar dena'
+                ], practice: [
+                    'I would like to open a ___.',
+                    'Do you have your ___?',
+                    'Please fill this ___.',
+                    'I want to deposit ___.'
+                ], translation: 'Bank me account kholne aur paise deposit karne ke liye ye sentences use karein.' },
+                { title: 'Asking for Directions', description: 'How to ask and give directions', dialogues: [
+                    { speaker: 'A', text: 'Excuse me, how do I get to the railway station?' },
+                    { speaker: 'B', text: 'Go straight for 200 meters, then turn left.' },
+                    { speaker: 'A', text: 'Is it far from here?' },
+                    { speaker: 'B', text: 'No, it is about 5 minutes walk.' }
+                ], vocabulary: [
+                    { word: 'Straight', meaning: 'Sidhe / Seedha' },
+                    { word: 'Turn left', meaning: 'Baayein mud jaana' },
+                    { word: 'Turn right', meaning: 'Daayein mud jaana' },
+                    { word: 'Far', meaning: 'Door' }
+                ], tips: [
+                    'Start with "Excuse me" to get attention',
+                    'Use "Go straight" and "Turn left/right" for directions',
+                    'Ask "Is it far?" to know the distance'
+                ], practice: [
+                    'Excuse me, how do I get to ___?',
+                    'Go ___ for ___ meters.',
+                    'Turn ___ at the ___.',
+                    'Is it ___ from here?'
+                ], translation: 'Raasta puchne aur batane ke liye ye sentences use karein. "Excuse me" se shuru karein.' }
+            ]},
+            { id: 'job-interview', name: 'Job Interview English', icon: 'fa-briefcase', lessons: [
+                { title: 'Common Interview Questions', description: 'Answer common interview questions in English', dialogues: [
+                    { speaker: 'A', text: 'Tell me about yourself.' },
+                    { speaker: 'B', text: 'I am a computer operator with 2 years of experience. I have completed my DCA from Genius Computer Education.' },
+                    { speaker: 'A', text: 'Why do you want this job?' },
+                    { speaker: 'B', text: 'I want to grow my career and use my computer skills in a good company like yours.' },
+                    { speaker: 'A', text: 'What are your strengths?' },
+                    { speaker: 'B', text: 'I am hardworking, punctual, and I learn new things quickly.' }
+                ], vocabulary: [
+                    { word: 'Experience', meaning: 'Anubhav / Kaam ka tajurba' },
+                    { word: 'Strengths', meaning: 'Meri khusiyan / Achhi baatein' },
+                    { word: 'Hardworking', meaning: 'Mehnat karna wala' },
+                    { word: 'Punctual', meaning: 'Waqt par aane wala' }
+                ], tips: [
+                    'Speak in full sentences, not just one word',
+                    'Use positive words: hardworking, dedicated, quick learner',
+                    'Keep your answer short - 2-3 sentences',
+                    'Practice these answers at home before interview'
+                ], practice: [
+                    'I am a ___ with ___ years of experience.',
+                    'I have completed my ___ from ___.',
+                    'My strengths are ___, ___, and ___.',
+                    'I want to grow my career in this field.'
+                ], translation: 'Is lesson me interview me puche jane wale common questions aur unke answers seekhte hain. Full sentences me bolna important hai.' },
+                { title: 'Talking About Salary', description: 'How to discuss salary in an interview', dialogues: [
+                    { speaker: 'A', text: 'What are your salary expectations?' },
+                    { speaker: 'B', text: 'I am expecting around 25,000 per month, but I am open to negotiation.' },
+                    { speaker: 'A', text: 'We can offer 22,000 to start. Is that acceptable?' },
+                    { speaker: 'B', text: 'That sounds reasonable. Can we review after 6 months?' }
+                ], vocabulary: [
+                    { word: 'Expectations', meaning: 'Umeed / Aasha' },
+                    { word: 'Negotiation', meaning: 'Mol-bhav / Samjhauta' },
+                    { word: 'Acceptable', meaning: 'Manzoor / Qubool' },
+                    { word: 'Review', meaning: 'Dobara dekhna / Review karna' }
+                ], tips: [
+                    'Always give a range, not a fixed number',
+                    'Say "I am open to negotiation" to show flexibility',
+                    'Ask about review period: "Can we review after 6 months?"'
+                ], practice: [
+                    'I am expecting around ___ per month.',
+                    'I am open to ___.',
+                    'Is that ___?',
+                    'Can we review after ___ months?'
+                ], translation: 'Interview me salary discussion karne ke liye ye sentences use karein. Hamesha range batayein aur negotiation open rakhein.' },
+                { title: 'Closing the Interview', description: 'How to end an interview politely', dialogues: [
+                    { speaker: 'A', text: 'Do you have any questions for us?' },
+                    { speaker: 'B', text: 'Yes, what are the working hours and is there training provided?' },
+                    { speaker: 'A', text: 'Working hours are 9 to 5, and yes, we provide 2 weeks training.' },
+                    { speaker: 'B', text: 'Thank you. I am very interested in this position.' }
+                ], vocabulary: [
+                    { word: 'Position', meaning: 'Pad / Post' },
+                    { word: 'Training', meaning: 'Prashikshan / Training' },
+                    { word: 'Interested', meaning: 'Interested / Rakhna' },
+                    { word: 'Working hours', meaning: 'Kaam ke ghante' }
+                ], tips: [
+                    'Always ask 1-2 questions at the end',
+                    'Say "Thank you for your time" before leaving',
+                    'Express interest: "I am very interested in this position"'
+                ], practice: [
+                    'Do you have any ___?',
+                    'What are the ___?',
+                    'Thank you for your ___.',
+                    'I am very ___ in this position.'
+                ], translation: 'Interview ke end me politely questions puchhein aur interest dikhayein.' }
+            ]},
+            { id: 'grammar', name: 'Basic Grammar', icon: 'fa-spell-check', lessons: [
+                { title: 'Present Tense', description: 'Using present tense correctly', dialogues: [
+                    { speaker: 'A', text: 'What do you do every day?' },
+                    { speaker: 'B', text: 'I wake up at 6 AM. Then I go to work.' },
+                    { speaker: 'A', text: 'Do you eat breakfast?' },
+                    { speaker: 'B', text: 'Yes, I eat breakfast before going to work.' }
+                ], vocabulary: [
+                    { word: 'Wake up', meaning: 'Uthna / Jaagna' },
+                    { word: 'Every day', meaning: 'Roz / Har din' },
+                    { word: 'Before', meaning: 'Se pehle' }
+                ], tips: [
+                    'Use base form of verb for I/We/You/They: I go, I eat',
+                    'Add -s for he/she/it: He goes, She eats',
+                    'Use "do" for questions: Do you work? Does he work?'
+                ], practice: [
+                    'I ___ (go) to school every day.',
+                    'She ___ (eat) breakfast at 8 AM.',
+                    'Do you ___ (work) on Sundays?',
+                    'He ___ (play) cricket on weekends.'
+                ], translation: 'Present tense me hum daily routines batate hain. I/We/You/They ke saath base verb, he/she/it ke saath -s lagta hai.' },
+                { title: 'Past Tense', description: 'Talking about things that happened', dialogues: [
+                    { speaker: 'A', text: 'What did you do yesterday?' },
+                    { speaker: 'B', text: 'I went to the market and bought some vegetables.' },
+                    { speaker: 'A', text: 'Did you watch the match?' },
+                    { speaker: 'B', text: 'Yes, I watched it. It was very exciting!' }
+                ], vocabulary: [
+                    { word: 'Went', meaning: 'Gaya tha (Go ka past)' },
+                    { word: 'Bought', meaning: 'Kharida tha (Buy ka past)' },
+                    { word: 'Watched', meaning: 'Dekha tha' },
+                    { word: 'Exciting', meaning: 'Roshan / Khoobsurat' }
+                ], tips: [
+                    'Add -ed for regular verbs: watched, played, worked',
+                    'Some verbs are irregular: go-went, buy-bought, see-saw',
+                    'Use "did" for questions: Did you go? Did she eat?'
+                ], practice: [
+                    'Yesterday I ___ (go) to the market.',
+                    'She ___ (watch) a movie last night.',
+                    'Did you ___ (eat) dinner?',
+                    'They ___ (play) cricket yesterday.'
+                ], translation: 'Past tense me hum beete hue kal ki baatein karte hain. Regular verbs me -ed lagta hai, kuch verbs irregular hote hain.' },
+                { title: 'Future Tense', description: 'Talking about what will happen', dialogues: [
+                    { speaker: 'A', text: 'What will you do tomorrow?' },
+                    { speaker: 'B', text: 'I will visit my friend. We will go to the library.' },
+                    { speaker: 'A', text: 'Will you call me later?' },
+                    { speaker: 'B', text: 'Yes, I will call you after dinner.' }
+                ], vocabulary: [
+                    { word: 'Will', meaning: 'Karunga/ Karungi (Future)' },
+                    { word: 'Visit', meaning: 'Mulaqat karna' },
+                    { word: 'Later', meaning: 'Baad me' }
+                ], tips: [
+                    'Use "will" + base verb: I will go, She will eat',
+                    'Use "will" for promises and plans: I will help you',
+                    'Short form: I\'ll, You\'ll, They\'ll'
+                ], practice: [
+                    'I ___ (will) go to school tomorrow.',
+                    'She ___ (will) call you later.',
+                    'Will you ___ (help) me?',
+                    'They ___ (will) come next week.'
+                ], translation: 'Future tense me hum aage hone wali baatein karte hain. "Will" + base verb use hota hai.' },
+                { title: 'Articles (A, An, The)', description: 'Using articles correctly', dialogues: [
+                    { speaker: 'A', text: 'I saw a movie yesterday.' },
+                    { speaker: 'B', text: 'What was the movie about?' },
+                    { speaker: 'A', text: 'It was an action film.' },
+                    { speaker: 'B', text: 'The movie was very good!' }
+                ], vocabulary: [
+                    { word: 'A', meaning: 'Ek (consonant se pehle)' },
+                    { word: 'An', meaning: 'Ek (vowel se pehle)' },
+                    { word: 'The', meaning: 'Wahi (specific cheez)' },
+                    { word: 'Movie', meaning: 'Film' }
+                ], tips: [
+                    'Use "a" before consonant sounds: a book, a car',
+                    'Use "an" before vowel sounds: an apple, an hour',
+                    'Use "the" for specific things: the movie, the book'
+                ], practice: [
+                    'I saw ___ movie yesterday.',
+                    'She is ___ engineer.',
+                    '___ book on the table is mine.',
+                    'He ate ___ apple.' 
+                ], translation: 'Articles ka use: "a" consonant se pehle, "an" vowel se pehle, "the" specific cheez ke liye.' },
+                { title: 'Prepositions', description: 'Using in, on, at correctly', dialogues: [
+                    { speaker: 'A', text: 'Where is the book?' },
+                    { speaker: 'B', text: 'It is on the table.' },
+                    { speaker: 'A', text: 'When did you arrive?' },
+                    { speaker: 'B', text: 'I arrived at 5 PM on Monday.' }
+                ], vocabulary: [
+                    { word: 'On', meaning: 'Par (surface par)' },
+                    { word: 'In', meaning: 'Andar (enclosed space)' },
+                    { word: 'At', meaning: 'Par (specific point/time)' },
+                    { word: 'Arrive', meaning: 'Pahunchna' }
+                ], tips: [
+                    'Use "in" for months/cities: in January, in Delhi',
+                    'Use "on" for days/surfaces: on Monday, on the table',
+                    'Use "at" for specific times/places: at 5 PM, at the station'
+                ], practice: [
+                    'The book is ___ the table.',
+                    'I live ___ Delhi.',
+                    'I will meet you ___ 5 PM.',
+                    'My birthday is ___ January.' 
+                ], translation: 'Prepositions: "in" andar/city/month ke liye, "on" surface/day ke liye, "at" specific time/place ke liye.' }
+            ]},
+            { id: 'travel', name: 'Travel English', icon: 'fa-plane', lessons: [
+                { title: 'At the Airport', description: 'English for airport and travel', dialogues: [
+                    { speaker: 'A', text: 'Where is the check-in counter?' },
+                    { speaker: 'B', text: 'It is on the first floor, near gate 5.' },
+                    { speaker: 'A', text: 'What time does boarding start?' },
+                    { speaker: 'B', text: 'Boarding starts 45 minutes before departure.' }
+                ], vocabulary: [
+                    { word: 'Check-in', meaning: 'Boarding pass lene ka counter' },
+                    { word: 'Boarding', meaning: 'Plane me baithna' },
+                    { word: 'Departure', meaning: 'Udaan / Nikalna' },
+                    { word: 'Gate', meaning: 'Darwaza / Gate number' }
+                ], tips: [
+                    'Always reach airport 2 hours before flight',
+                    'Keep your ID and ticket ready',
+                    'Use "Excuse me" to ask for directions'
+                ], practice: [
+                    'Where is the ___?',
+                    'What time does ___ start?',
+                    'I have a flight to ___ at ___ o\'clock.',
+                    'Can you help me find gate number ___?'
+                ], translation: 'Airport par English mein baat karne ke liye ye words aur sentences use hote hain.' },
+                { title: 'At the Hotel', description: 'Hotel booking and check-in conversations', dialogues: [
+                    { speaker: 'A', text: 'I would like to check in. I have a reservation.' },
+                    { speaker: 'B', text: 'Welcome! May I have your name, please?' },
+                    { speaker: 'A', text: 'My name is Rahul Sharma.' },
+                    { speaker: 'B', text: 'Thank you. Here is your room key. Your room is 204.' }
+                ], vocabulary: [
+                    { word: 'Reservation', meaning: 'Booking' },
+                    { word: 'Room key', meaning: 'Kamre ki chabi' },
+                    { word: 'Welcome', meaning: 'Swagat hai' },
+                    { word: 'Check in', meaning: 'Hotel me aana / register karna' }
+                ], tips: [
+                    'Always say "I would like" for polite requests',
+                    'Keep your booking ID ready',
+                    'Say "thank you" when you receive your room key'
+                ], practice: [
+                    'I would like to check in. I have a ___.',
+                    'My name is ___.',
+                    'Do you have a room with ___?',
+                    'What time is ___ (breakfast)?'
+                ], translation: 'Hotel me check-in karne aur room lene ke liye ye sentences use karein.' },
+                { title: 'Taking a Taxi', description: 'How to talk to taxi drivers', dialogues: [
+                    { speaker: 'A', text: 'Where do you want to go?' },
+                    { speaker: 'B', text: 'I want to go to the railway station. How much will it cost?' },
+                    { speaker: 'A', text: 'It will be about 150 rupees.' },
+                    { speaker: 'B', text: 'Okay, please take me there. How long will it take?' }
+                ], vocabulary: [
+                    { word: 'Cost', meaning: 'Kharch / Daam' },
+                    { word: 'Take me', meaning: 'Mujhe le chaliye' },
+                    { word: 'How long', meaning: 'Kitna waqt' },
+                    { word: 'Rupees', meaning: 'Rupaye' }
+                ], tips: [
+                    'Always ask the fare before starting: "How much will it cost?"',
+                    'Say "Please take me to..." for destination',
+                    'Ask "How long will it take?" for time estimate'
+                ], practice: [
+                    'I want to go to ___.',
+                    'How much will it ___?',
+                    'Please take me to ___.',
+                    'How long will it ___?'
+                ], translation: 'Taxi me baat karne ke liye ye sentences use karein. Pehle fare puchhein phir chadhein.' }
+            ]},
+            { id: 'phone', name: 'Telephone English', icon: 'fa-phone', lessons: [
+                { title: 'Answering & Making Calls', description: 'How to talk on phone in English', dialogues: [
+                    { speaker: 'A', text: 'Hello, this is Rahul. Can I speak to Priya?' },
+                    { speaker: 'B', text: 'Hi Rahul, this is Priya speaking. How can I help you?' },
+                    { speaker: 'A', text: 'I am calling about the meeting tomorrow.' },
+                    { speaker: 'B', text: 'Yes, the meeting is at 10 AM in the conference room.' }
+                ], vocabulary: [
+                    { word: 'Speaking', meaning: 'Ye hi baat kar rahe hain' },
+                    { word: 'Calling about', meaning: 'Is baare me call kiya' },
+                    { word: 'Conference room', meaning: 'Meeting room' },
+                    { word: 'Hold on', meaning: 'Rukiye / Wait kijiye' }
+                ], tips: [
+                    'Always say your name: "This is Rahul"',
+                    'Ask "Can I speak to...?" politely',
+                    'Say "Could you hold on please?" to put someone on hold'
+                ], practice: [
+                    'Hello, this is ___. Can I speak to ___?',
+                    'I am calling about ___.',
+                    'Could you please hold on?',
+                    'Can I take a message?'
+                ], translation: 'Phone par English mein baat karne ke liye ye sentences aur words use karein.' },
+                { title: 'Leaving a Message', description: 'How to leave a message on phone', dialogues: [
+                    { speaker: 'A', text: 'Hello, can I speak to Mr. Sharma?' },
+                    { speaker: 'B', text: 'I am sorry, he is not available right now. Can I take a message?' },
+                    { speaker: 'A', text: 'Yes, please tell him Rahul called. I will call again at 4 PM.' },
+                    { speaker: 'B', text: 'Sure, I will give him the message. Thank you.' }
+                ], vocabulary: [
+                    { word: 'Available', meaning: 'Uplabdh / Available' },
+                    { word: 'Take a message', meaning: 'Paas kar dena' },
+                    { word: 'Call again', meaning: 'Dobara call karna' },
+                    { word: 'Sorry', meaning: 'Maaf kijiye / Sorry' }
+                ], tips: [
+                    'Say "Can I take a message?" when person is not available',
+                    'Always leave your name: "Tell him ___ called"',
+                    'Say when you will call back: "I will call again at ___"'
+                ], practice: [
+                    'Can I speak to ___?',
+                    'He is not ___ right now.',
+                    'Please tell him ___ called.',
+                    'I will call again at ___.'
+                ], translation: 'Jab vyakti available na ho to message leave karne ke liye ye sentences use karein.' }
+            ]},
+            { id: 'office', name: 'Office English', icon: 'fa-building', lessons: [
+                { title: 'Meeting Colleagues', description: 'Talk with office colleagues', dialogues: [
+                    { speaker: 'A', text: 'Good morning! How was your weekend?' },
+                    { speaker: 'B', text: 'It was great. I went to a family function. How about you?' },
+                    { speaker: 'A', text: 'I relaxed at home. Did you finish the report?' },
+                    { speaker: 'B', text: 'Yes, I will send it to you by lunch time.' }
+                ], vocabulary: [
+                    { word: 'Weekend', meaning: 'Saturday-Sunday' },
+                    { word: 'Function', meaning: 'Program / Party' },
+                    { word: 'Report', meaning: 'Report / Summary' },
+                    { word: 'By lunch time', meaning: 'Dopahar ke khane tak' }
+                ], tips: [
+                    'Start conversation with "Good morning" or "How was your weekend?"',
+                    'Use "How about you?" to ask the same question back',
+                    'Say "I will send it by..." to give a deadline'
+                ], practice: [
+                    'Good morning! How was your ___?',
+                    'I went to a ___. How about you?',
+                    'I will send it by ___.',
+                    'Can you help me with ___?'
+                ], translation: 'Office me colleagues se baat karne ke liye ye sentences use karein. Friendly aur professional tone rakhein.' },
+                { title: 'Asking for Leave', description: 'How to ask for leave in office', dialogues: [
+                    { speaker: 'A', text: 'Sir, I need to take a day off on Friday.' },
+                    { speaker: 'B', text: 'What is the reason?' },
+                    { speaker: 'A', text: 'I have a doctor\'s appointment.' },
+                    { speaker: 'B', text: 'That is fine. Please complete your pending work before Friday.' }
+                ], vocabulary: [
+                    { word: 'Day off', meaning: 'Chhutti' },
+                    { word: 'Appointment', meaning: 'Muqarrara waqt' },
+                    { word: 'Pending', meaning: 'Baaki / Adhoora' },
+                    { word: 'Reason', meaning: 'Wajah' }
+                ], tips: [
+                    'Always ask politely: "I need to take a day off"',
+                    'Give a clear reason for your leave',
+                    'Promise to complete pending work'
+                ], practice: [
+                    'I need to take a day off on ___.',
+                    'I have a ___.',
+                    'I will complete my pending work before ___.',
+                    'Can I take leave for ___ days?'
+                ], translation: 'Office me chhutti mangne ke liye politely puchhein aur reason bhi batayein.' },
+                { title: 'Email & Meeting Talk', description: 'How to discuss emails and meetings', dialogues: [
+                    { speaker: 'A', text: 'Did you receive my email about the project?' },
+                    { speaker: 'B', text: 'Yes, I got it. I will reply by this afternoon.' },
+                    { speaker: 'A', text: 'Can we schedule a meeting to discuss it?' },
+                    { speaker: 'B', text: 'Sure, how about tomorrow at 11 AM?' }
+                ], vocabulary: [
+                    { word: 'Receive', meaning: 'Milna / Prapt karna' },
+                    { word: 'Reply', meaning: 'Jawab dena' },
+                    { word: 'Schedule', meaning: 'Tay karna / Schedule karna' },
+                    { word: 'Discuss', meaning: 'Charcha karna' }
+                ], tips: [
+                    'Use "Did you receive" for past emails',
+                    'Say "Can we schedule a meeting?" to propose a meeting',
+                    'Suggest time: "How about tomorrow at ___?"'
+                ], practice: [
+                    'Did you receive my ___?',
+                    'I will reply by ___.',
+                    'Can we schedule a ___?',
+                    'How about ___ at ___?'
+                ], translation: 'Email aur meeting ke baare me baat karne ke liye ye sentences use karein.' }
+            ]},
+            { id: 'restaurant', name: 'Restaurant English', icon: 'fa-utensils', lessons: [
+                { title: 'Ordering Food', description: 'How to order food at a restaurant', dialogues: [
+                    { speaker: 'A', text: 'Welcome! Please have a seat. Here is the menu.' },
+                    { speaker: 'B', text: 'Thank you. I would like to order a paneer tikka and a cold coffee.' },
+                    { speaker: 'A', text: 'Sure. Would you like anything else?' },
+                    { speaker: 'B', text: 'No, that is all for now. Thank you.' }
+                ], vocabulary: [
+                    { word: 'Menu', meaning: 'List of food items' },
+                    { word: 'Order', meaning: 'Order karna / Maangna' },
+                    { word: 'Would you like', meaning: 'Kya aap chahenge' },
+                    { word: 'That is all', meaning: 'Bas itna kaafi hai' }
+                ], tips: [
+                    'Use "I would like" to order food politely',
+                    'Say "Please" and "Thank you" always',
+                    'Ask "What do you recommend?" if unsure what to order'
+                ], practice: [
+                    'I would like to order ___.',
+                    'What do you ___?',
+                    'Would you like anything ___?',
+                    'Can I have the ___ please?'
+                ], translation: 'Restaurant me khana order karne ke liye ye sentences use karein. "I would like" bolna polite tareeka hai.' },
+                { title: 'Paying the Bill', description: 'How to ask for and pay the bill', dialogues: [
+                    { speaker: 'A', text: 'Excuse me, can I have the bill please?' },
+                    { speaker: 'B', text: 'Sure, here is your bill. That will be 450 rupees.' },
+                    { speaker: 'A', text: 'Do you accept UPI or card?' },
+                    { speaker: 'B', text: 'Yes, we accept both. You can scan this QR code.' }
+                ], vocabulary: [
+                    { word: 'Bill', meaning: 'Bill / Hisaab' },
+                    { word: 'Accept', meaning: 'Qubool karna / Accept karna' },
+                    { word: 'UPI', meaning: 'Online payment (UPI)' },
+                    { word: 'QR code', meaning: 'QR code (scan karke pay)' }
+                ], tips: [
+                    'Say "Can I have the bill please?" to ask for bill',
+                    'Ask payment options: "Do you accept card/UPI?"',
+                    'Always say "Thank you" after paying'
+                ], practice: [
+                    'Can I have the ___ please?',
+                    'Do you accept ___?',
+                    'How much is the ___?',
+                    'I will pay by ___.'
+                ], translation: 'Bill mangne aur pay karne ke liye ye sentences use karein. Payment method bhi puchh sakte hain.' }
+            ]},
+        ]
+    });
 }
 initData();
 
@@ -4418,6 +4988,16 @@ app.get('/api/payments/pending', (req, res) => {
     const payments = readData('payments.json') || [];
     const pendingPayments = payments.filter(p => p.status === 'pending');
     res.json({ success: true, payments: pendingPayments });
+});
+
+// Save/replace all payments (used by admin & faculty fee submission)
+app.post('/api/payments', (req, res) => {
+    const payments = req.body.payments;
+    if (!Array.isArray(payments)) {
+        return res.status(400).json({ success: false, message: 'payments array required' });
+    }
+    writeData('payments.json', payments);
+    res.json({ success: true, payments });
 });
 
 app.post('/api/payments/:id/approve', (req, res) => {
@@ -13181,6 +13761,103 @@ app.use((err, req, res, next) => {
     res.status(500).json({ 
         error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message 
     });
+});
+
+// --- Interview Questions ---
+app.get('/api/interview-questions', (req, res) => {
+    const data = readData('interview-questions.json') || { categories: [] };
+    res.json(data);
+});
+
+app.post('/api/interview-questions', verifyAdminSessionMiddleware, (req, res) => {
+    const data = readData('interview-questions.json') || { categories: [] };
+    writeData('interview-questions.json', req.body);
+    res.json({ success: true });
+});
+
+app.post('/api/interview-questions/category', verifyAdminSessionMiddleware, (req, res) => {
+    const data = readData('interview-questions.json') || { categories: [] };
+    const { name, icon } = req.body;
+    if (!name) return res.status(400).json({ success: false, message: 'Category name required' });
+    const id = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
+    data.categories.push({ id, name, icon: icon || 'fa-question-circle', questions: [] });
+    writeData('interview-questions.json', data);
+    res.json({ success: true, category: data.categories[data.categories.length - 1] });
+});
+
+app.delete('/api/interview-questions/category/:id', verifyAdminSessionMiddleware, (req, res) => {
+    const data = readData('interview-questions.json') || { categories: [] };
+    data.categories = data.categories.filter(c => c.id !== req.params.id);
+    writeData('interview-questions.json', data);
+    res.json({ success: true });
+});
+
+app.post('/api/interview-questions/:catId/question', verifyAdminSessionMiddleware, (req, res) => {
+    const data = readData('interview-questions.json') || { categories: [] };
+    const cat = data.categories.find(c => c.id === req.params.catId);
+    if (!cat) return res.status(404).json({ success: false, message: 'Category not found' });
+    cat.questions.push(req.body);
+    writeData('interview-questions.json', data);
+    res.json({ success: true, question: cat.questions[cat.questions.length - 1] });
+});
+
+app.delete('/api/interview-questions/:catId/question/:idx', verifyAdminSessionMiddleware, (req, res) => {
+    const data = readData('interview-questions.json') || { categories: [] };
+    const cat = data.categories.find(c => c.id === req.params.catId);
+    if (!cat) return res.status(404).json({ success: false, message: 'Category not found' });
+    const idx = parseInt(req.params.idx);
+    if (idx < 0 || idx >= cat.questions.length) return res.status(400).json({ success: false, message: 'Invalid index' });
+    cat.questions.splice(idx, 1);
+    writeData('interview-questions.json', data);
+    res.json({ success: true });
+});
+
+// --- Spoken English ---
+app.get('/api/spoken-english', (req, res) => {
+    const data = readData('spoken-english.json') || { categories: [] };
+    res.json(data);
+});
+
+app.post('/api/spoken-english', verifyAdminSessionMiddleware, (req, res) => {
+    writeData('spoken-english.json', req.body);
+    res.json({ success: true });
+});
+
+app.post('/api/spoken-english/category', verifyAdminSessionMiddleware, (req, res) => {
+    const data = readData('spoken-english.json') || { categories: [] };
+    const { name, icon } = req.body;
+    if (!name) return res.status(400).json({ success: false, message: 'Category name required' });
+    const id = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
+    data.categories.push({ id, name, icon: icon || 'fa-book', lessons: [] });
+    writeData('spoken-english.json', data);
+    res.json({ success: true, category: data.categories[data.categories.length - 1] });
+});
+
+app.delete('/api/spoken-english/category/:id', verifyAdminSessionMiddleware, (req, res) => {
+    const data = readData('spoken-english.json') || { categories: [] };
+    data.categories = data.categories.filter(c => c.id !== req.params.id);
+    writeData('spoken-english.json', data);
+    res.json({ success: true });
+});
+
+app.post('/api/spoken-english/:catId/lesson', verifyAdminSessionMiddleware, (req, res) => {
+    const data = readData('spoken-english.json') || { categories: [] };
+    const cat = data.categories.find(c => c.id === req.params.catId);
+    if (!cat) return res.status(404).json({ success: false, message: 'Category not found' });
+    cat.lessons.push(req.body);
+    writeData('spoken-english.json', data);
+    res.json({ success: true, lesson: cat.lessons[cat.lessons.length - 1] });
+});
+
+app.delete('/api/spoken-english/:catId/lesson/:idx', verifyAdminSessionMiddleware, (req, res) => {
+    const data = readData('spoken-english.json') || { categories: [] };
+    const cat = data.categories.find(c => c.id === req.params.catId);
+    if (!cat) return res.status(404).json({ success: false, message: 'Category not found' });
+    const idx = parseInt(req.params.idx);
+    if (idx < 0 || idx >= cat.lessons.length) return res.status(400).json({ success: false, message: 'Invalid index' });
+    cat.lessons.splice(idx, 1);
+    writeData('spoken-english.json', data);
+    res.json({ success: true });
 });
 
 // 404 handler
