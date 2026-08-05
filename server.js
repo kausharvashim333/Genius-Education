@@ -5056,6 +5056,35 @@ app.post('/api/student/:id/documents', uploadStudentDoc.single('document'), (req
     res.json({ success: true, document: newDoc, documents: student.documents });
 });
 
+// Student self-service: delete own document (session-verified)
+app.delete('/api/student/:id/documents/:docType', (req, res) => {
+    const studentId = req.params.id;
+    if (!ensureStudentSession(req, res, studentId)) return;
+
+    const students = readData('students.json') || [];
+    const idx = students.findIndex(s => String(s.id) === String(studentId));
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Student not found' });
+
+    const student = students[idx];
+    student.documents = student.documents || [];
+    const docIdx = student.documents.findIndex(doc => typeof doc === 'object' && doc.type === req.params.docType);
+    if (docIdx === -1) return res.status(404).json({ success: false, message: 'Document not found' });
+
+    const doc = student.documents[docIdx];
+    if (doc.path) {
+        const fullPath = path.join(__dirname, doc.path.replace(/^\//, ''));
+        try { if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath); } catch (e) { /* ignore */ }
+    }
+    student.documents.splice(docIdx, 1);
+    writeData('students.json', students);
+
+    logActivity('student.document.delete', { type: 'student', id: student.id, name: student.name }, {
+        studentId: student.id, docType: req.params.docType, selfDelete: true
+    }, req);
+
+    res.json({ success: true, documents: student.documents });
+});
+
 // Delete a labeled document (admin only)
 app.delete('/api/students/:id/documents/:docType', verifyAdminSessionMiddleware, (req, res) => {
     const students = readData('students.json') || [];

@@ -1317,13 +1317,15 @@
 
     <!-- Faculty Student Documents Modal -->
     <div id="facultyStudentDocsModal" class="modal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
-        <div style="background:#1e293b;border-radius:16px;max-width:700px;width:90%;max-height:90vh;overflow-y:auto;padding:24px;margin:auto;position:relative;top:50%;transform:translateY(-50%);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid rgba(255,255,255,0.1);">
+        <div style="background:#1e293b;border-radius:16px;max-width:700px;width:90%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;margin:auto;position:relative;top:50%;transform:translateY(-50%);">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:2px solid rgba(255,255,255,0.1);flex-shrink:0;">
                 <h3 style="margin:0;color:#fff;"><i class="fas fa-folder-open" style="color:#f59e0b;margin-right:8px;"></i>Student Documents</h3>
                 <button type="button" onclick="closeFacultyDocsModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#94a3b8;">&times;</button>
             </div>
-            <div id="facultyDocsInfo" style="margin-bottom:16px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(255,255,255,0.1);"></div>
-            <div id="facultyDocsList"></div>
+            <div style="flex:1;overflow-y:auto;padding:20px 24px;">
+                <div id="facultyDocsInfo" style="margin-bottom:16px;padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(255,255,255,0.1);"></div>
+                <div id="facultyDocsList"></div>
+            </div>
             <input type="file" id="facultyDocFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display:none;">
         </div>
     </div>
