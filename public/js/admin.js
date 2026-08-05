@@ -1743,28 +1743,23 @@ function getCourseRequiredDocs() {
 function setCourseRequiredDocs(docs) {
     const container = document.getElementById('courseRequiredDocs');
     container.innerHTML = '';
-    const predefinedTypes = COURSE_PREDEFINED_DOCS.map(d => d.type);
-    const customItems = [];
+    const renderedTypes = new Set();
+
+    // Render all saved docs in their exact saved order (preserves custom order)
     if (docs && docs.length) {
         docs.forEach(doc => {
             const type = typeof doc === 'string' ? doc : doc.type;
             const label = typeof doc === 'string' ? doc : (doc.label || doc.type);
-            const isPredefined = predefinedTypes.includes(type);
-            if (isPredefined) {
-                renderCourseDocItem(type, label, true);
-            } else {
-                customItems.push({ type, label });
-            }
+            renderCourseDocItem(type, label, true);
+            renderedTypes.add(type);
         });
     }
+
+    // Append remaining predefined docs that weren't in the saved list (unchecked)
     COURSE_PREDEFINED_DOCS.forEach(doc => {
-        if (!container.querySelector('.course-doc-item[data-type="' + doc.type + '"]')) {
+        if (!renderedTypes.has(doc.type)) {
             renderCourseDocItem(doc.type, doc.label, false);
-        }
-    });
-    customItems.forEach(item => {
-        if (!container.querySelector('.course-doc-item[data-type="' + item.type + '"]')) {
-            renderCourseDocItem(item.type, item.label, true);
+            renderedTypes.add(doc.type);
         }
     });
 }
