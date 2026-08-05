@@ -733,6 +733,7 @@
         <ul class="portal-sidebar-menu">
             <li><a href="#" class="active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
             <li><a href="#" data-section="profile"><i class="fas fa-user"></i> Profile</a></li>
+            <li><a href="#" data-section="documents"><i class="fas fa-file-alt"></i> My Documents</a></li>
             <li class="dropdown">
                 <a href="#" class="dropdown-toggle"><i class="fas fa-graduation-cap"></i> Academics <i class="fas fa-chevron-down" style="margin-left:auto;font-size:10px;"></i></a>
                 <ul class="dropdown-menu">
@@ -870,6 +871,20 @@
                     <div class="fee-row"><span>Pending Amount</span><span class="fee-badge-due" id="pDueAmt">—</span></div>
                 </div>
             </div>
+        </div>
+
+        <!-- My Documents Section -->
+        <div class="portal-section" id="section-documents">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3><i class="fas fa-file-alt"></i> My Documents</h3>
+                <span id="docsProgressBadge" style="background:rgba(102,126,234,0.3);color:#93c5fd;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(102,126,234,0.4);"></span>
+            </div>
+            <div id="myDocsInfo" style="margin-bottom:16px;padding:14px 18px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:10px;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.6;display:none;">
+                <i class="fas fa-info-circle" style="color:#60a5fa;margin-right:6px;"></i>
+                <span id="myDocsInfoText"></span>
+            </div>
+            <div id="myDocsList"></div>
+            <input type="file" id="myDocFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display:none;">
         </div>
 
         <!-- Fees Section -->
@@ -4030,6 +4045,7 @@ function showSection(section) {
     else if (section === 'exam-registration') loadStudentExamRegistration();
     else if (section === 'my-admit-cards') loadStudentMyAdmitCards();
     else if (section === 'helpdesk') loadStudentTickets();
+    else if (section === 'documents') loadMyDocuments();
 }
 
 function toggleVideoTheme() {
@@ -4621,6 +4637,8 @@ document.querySelectorAll('.portal-sidebar-menu a[data-section]').forEach(link =
             loadAdmitCard();
         } else if (section === 'question-papers') {
             loadQuestionPapers();
+        } else if (section === 'documents') {
+            loadMyDocuments();
         }
     });
 });
@@ -5871,6 +5889,193 @@ async function submitTicketReply() {
     </div>
 </div>
 
+    <script>
+    // ===== My Documents =====
+    let myDocsStudent = null;
+    let myDocsRequired = [];
+    let myPendingDocType = null;
+    let myPendingDocLabel = null;
+    const STU_DEFAULT_DOCS = [
+        { type: 'aadhar', label: 'Aadhar Card' },
+        { type: 'photo', label: 'Photo' },
+        { type: 'signature', label: 'Signature' },
+        { type: '10th_marksheet', label: '10th Marksheet' },
+        { type: '12th_marksheet', label: '12th Marksheet' },
+        { type: 'grad_marksheet', label: 'Graduation Marksheet' }
+    ];
+
+    async function loadMyDocuments() {
+        const stored = localStorage.getItem('portalStudent');
+        if (!stored) return;
+        const student = JSON.parse(stored);
+        try {
+            const [stuRes, coursesRes] = await Promise.all([
+                fetch('/api/students/' + student.id).then(r => r.json()),
+                fetch('/api/courses').then(r => r.json())
+            ]);
+            myDocsStudent = stuRes;
+            const course = coursesRes.find(c => c.name === student.course);
+            myDocsRequired = (course && course.requiredDocuments && course.requiredDocuments.length)
+                ? course.requiredDocuments
+                : STU_DEFAULT_DOCS;
+            renderMyDocs();
+        } catch (err) {
+            console.error('Error loading documents:', err);
+            showNotification('Documents load nahi ho sake', 'error');
+        }
+    }
+
+    function renderMyDocs() {
+        if (!myDocsStudent) return;
+        const docs = myDocsStudent.documents || [];
+        const labeled = {};
+        const unlabeled = [];
+        docs.forEach(doc => {
+            if (typeof doc === 'object' && doc.type) labeled[doc.type] = doc;
+            else if (typeof doc === 'string') unlabeled.push({ path: doc, fileName: doc.split('/').pop() });
+        });
+
+        const uploaded = myDocsRequired.filter(r => labeled[r.type]).length;
+        const total = myDocsRequired.length;
+        const badge = document.getElementById('docsProgressBadge');
+        if (badge) {
+            const color = uploaded >= total ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
+            const borderC = uploaded >= total ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)';
+            const textC = uploaded >= total ? '#86efac' : '#fca5a5';
+            badge.style.background = color;
+            badge.style.borderColor = borderC;
+            badge.style.color = textC;
+            badge.textContent = uploaded + ' / ' + total + ' uploaded';
+        }
+
+        const infoEl = document.getElementById('myDocsInfo');
+        const infoText = document.getElementById('myDocsInfoText');
+        if (infoEl && infoText) {
+            if (uploaded < total) {
+                infoEl.style.display = 'block';
+                infoText.textContent = 'Aapke course ke liye ' + total + ' documents required hain. ' + (total - uploaded) + ' document(s) abhi upload nahi hue hain. Niche "Upload" button par click karke missing documents upload karein.';
+            } else {
+                infoEl.style.display = 'block';
+                infoText.textContent = 'Sabhi required documents upload ho chuke hain! Admin document verify karne ke baad approve karega.';
+            }
+        }
+
+        let html = '';
+
+        // Required documents
+        html += '<div style="margin-bottom:20px;">';
+        html += '<div style="font-weight:700;font-size:14px;color:#fff;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;gap:8px;"><i class="fas fa-clipboard-list" style="color:#f59e0b;"></i> Required Documents</div>';
+        myDocsRequired.forEach(req => {
+            const doc = labeled[req.type];
+            if (doc) {
+                html += renderMyDocItem(doc, false);
+            } else {
+                html += renderMyMissingDoc(req);
+            }
+        });
+        html += '</div>';
+
+        // Extra uploaded docs not in required list
+        const extraDocs = Object.values(labeled).filter(doc =>
+            !myDocsRequired.some(r => r.type === doc.type)
+        );
+        if (extraDocs.length > 0) {
+            html += '<div style="margin-bottom:20px;">';
+            html += '<div style="font-weight:700;font-size:14px;color:#fff;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;gap:8px;"><i class="fas fa-paperclip" style="color:#60a5fa;"></i> Additional Documents</div>';
+            extraDocs.forEach(doc => { html += renderMyDocItem(doc, false); });
+            html += '</div>';
+        }
+
+        // Unlabeled (old string-format) docs
+        if (unlabeled.length > 0) {
+            html += '<div style="margin-bottom:20px;">';
+            html += '<div style="font-weight:700;font-size:14px;color:#fff;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;gap:8px;"><i class="fas fa-folder" style="color:rgba(255,255,255,0.5);"></i> Other Documents</div>';
+            unlabeled.forEach(doc => {
+                html += '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:8px;margin-bottom:8px;">';
+                html += '<i class="fas fa-file-alt" style="font-size:1.5rem;color:rgba(255,255,255,0.5);width:24px;text-align:center;"></i>';
+                html += '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13px;color:#fff;">' + (doc.fileName || 'Document') + '</div></div>';
+                html += '<a href="' + doc.path + '" target="_blank" style="padding:6px 12px;background:#3b82f6;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap;"><i class="fas fa-eye"></i> View</a>';
+                html += '</div>';
+            });
+            html += '</div>';
+        }
+
+        document.getElementById('myDocsList').innerHTML = html;
+    }
+
+    function renderMyDocItem(doc, allowReplace) {
+        const ext = (doc.path || '').split('.').pop().toLowerCase();
+        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+        const icon = isImage ? 'fa-image' : (ext === 'pdf' ? 'fa-file-pdf' : 'fa-file-alt');
+        const iconColor = isImage ? '#60a5fa' : (ext === 'pdf' ? '#f87171' : 'rgba(255,255,255,0.6)');
+
+        let html = '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:8px;margin-bottom:8px;">';
+        html += '<i class="fas ' + icon + '" style="font-size:1.5rem;color:' + iconColor + ';width:24px;text-align:center;"></i>';
+        html += '<div style="flex:1;min-width:0;">';
+        html += '<div style="font-weight:600;font-size:13px;color:#fff;">' + (doc.label || doc.type || 'Document') + '</div>';
+        html += '<div style="font-size:11px;color:rgba(255,255,255,0.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (doc.fileName || (doc.path || '').split('/').pop()) + '</div>';
+        if (doc.uploadedAt) {
+            html += '<div style="font-size:10px;color:rgba(255,255,255,0.4);">Uploaded: ' + new Date(doc.uploadedAt).toLocaleDateString('en-IN') + '</div>';
+        }
+        html += '</div>';
+        html += '<a href="' + doc.path + '" target="_blank" style="padding:6px 12px;background:#3b82f6;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap;"><i class="fas fa-eye"></i> View</a>';
+        html += '<button onclick="triggerMyDocUpload(\'' + doc.type + '\',\'' + (doc.label || '').replace(/'/g, "\\'") + '\')" style="padding:6px 12px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-sync-alt"></i> Replace</button>';
+        html += '</div>';
+        return html;
+    }
+
+    function renderMyMissingDoc(req) {
+        let html = '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(239,68,68,0.08);border:1px dashed rgba(239,68,68,0.4);border-radius:8px;margin-bottom:8px;">';
+        html += '<i class="fas fa-exclamation-circle" style="font-size:1.5rem;color:#f87171;width:24px;text-align:center;"></i>';
+        html += '<div style="flex:1;"><div style="font-weight:600;font-size:13px;color:#fff;">' + req.label + '</div>';
+        html += '<div style="font-size:11px;color:#f87171;">Not uploaded yet</div></div>';
+        html += '<button onclick="triggerMyDocUpload(\'' + req.type + '\',\'' + (req.label || '').replace(/'/g, "\\'") + '\')" style="padding:6px 16px;background:#22c55e;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-upload"></i> Upload</button>';
+        html += '</div>';
+        return html;
+    }
+
+    function triggerMyDocUpload(docType, docLabel) {
+        myPendingDocType = docType;
+        myPendingDocLabel = docLabel;
+        const fileInput = document.getElementById('myDocFileInput');
+        fileInput.value = '';
+        fileInput.onchange = function() { uploadMyDoc(); };
+        fileInput.click();
+    }
+
+    async function uploadMyDoc() {
+        const fileInput = document.getElementById('myDocFileInput');
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            showNotification('File size 5MB se zyada nahi ho sakti', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('document', file);
+        formData.append('docType', myPendingDocType);
+        formData.append('docLabel', myPendingDocLabel || myPendingDocType);
+
+        try {
+            const res = await fetch('/api/student/' + myDocsStudent.id + '/documents', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                showNotification('Document upload ho gaya!', 'success');
+                myDocsStudent.documents = data.documents;
+                renderMyDocs();
+            } else {
+                showNotification(data.message || 'Document upload nahi hua', 'error');
+            }
+        } catch (err) {
+            showNotification('Document upload nahi hua. Try again.', 'error');
+        }
+    }
+    </script>
     <script src="/js/security.js"></script>
 </body>
 </html>
