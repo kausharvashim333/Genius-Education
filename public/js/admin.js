@@ -10500,6 +10500,18 @@ function renderStudentsTable(students) {
         html += '<td>' + s.phone + '</td>';
         html += '<td class="fee-paid">&#8377;' + s.fees.paidAmount + '</td>';
         html += '<td class="' + (s.fees.dueAmount > 0 ? 'fee-due' : 'fee-paid') + '">&#8377;' + s.fees.dueAmount + '</td>';
+        // Docs column
+        const docsRequired = getRequiredDocsForStudent(s);
+        const { labeled: docsLabeled } = normalizeStudentDocs(s);
+        const docsUploaded = docsRequired.filter(r => docsLabeled[r.type]).length;
+        const docsTotal = docsRequired.length;
+        const docsPct = docsTotal > 0 ? Math.round((docsUploaded / docsTotal) * 100) : 100;
+        const docsComplete = docsUploaded >= docsTotal;
+        const docsColor = docsComplete ? '#16a34a' : '#f59e0b';
+        html += '<td style="min-width:100px;"><div style="display:flex;align-items:center;gap:6px;cursor:pointer;" onclick="openStudentDocsModal(' + s.id + ')" title="Click to manage documents">';
+        html += '<div style="width:40px;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="width:' + docsPct + '%;height:100%;background:' + docsColor + ';border-radius:3px;"></div></div>';
+        html += '<span style="font-size:11px;font-weight:600;color:' + docsColor + ';">' + docsUploaded + '/' + docsTotal + '</span>';
+        html += '</div></td>';
         html += '<td><span class="badge-' + (s.status === 'Active' ? 'active' : 'inactive') + '"' + (s.status === 'Dropped' ? ' style="background:rgba(220,38,38,0.2);color:#f87171;border:1px solid rgba(220,38,38,0.4);" title="' + ((s.dropReason || '') + (s.dropDate ? ' (' + s.dropDate + ')' : '')).replace(/"/g, '&quot;') + '"' : '') + '>' + s.status + '</span></td>';
         html += '<td class="action-cell" style="position:relative;">';
         html += '<button class="action-btn options-btn" onclick="toggleRowActions(this, event)" title="Options"><i class="fas fa-ellipsis-v"></i></button>';
@@ -17145,31 +17157,39 @@ function renderDocItem(doc, allowDelete) {
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
     const icon = isImage ? 'fa-image' : (ext === 'pdf' ? 'fa-file-pdf' : 'fa-file-alt');
     const iconColor = isImage ? '#0284c7' : (ext === 'pdf' ? '#dc2626' : '#64748b');
+    const iconBg = isImage ? 'rgba(2,132,199,0.1)' : (ext === 'pdf' ? 'rgba(220,38,38,0.1)' : 'rgba(100,116,139,0.1)');
     
-    let html = '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px;">';
-    html += '<i class="fas ' + icon + '" style="font-size:1.5rem;color:' + iconColor + ';width:24px;text-align:center;"></i>';
+    let html = '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);border:1px solid #e2e8f0;border-radius:10px;margin-bottom:10px;transition:box-shadow 0.2s;">';
+    html += '<div style="width:42px;height:42px;border-radius:10px;background:' + iconBg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
+    html += '<i class="fas ' + icon + '" style="font-size:1.3rem;color:' + iconColor + ';"></i>';
+    html += '</div>';
     html += '<div style="flex:1;min-width:0;">';
-    html += '<div style="font-weight:600;font-size:13px;color:#1e293b;">' + (doc.label || doc.type || 'Document') + '</div>';
-    html += '<div style="font-size:11px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (doc.fileName || (doc.path || '').split('/').pop()) + '</div>';
+    html += '<div style="font-weight:600;font-size:13px;color:#1e293b;display:flex;align-items:center;gap:6px;">' + (doc.label || doc.type || 'Document');
+    html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#16a34a;flex-shrink:0;" title="Uploaded"></span></div>';
+    html += '<div style="font-size:11px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;">' + (doc.fileName || (doc.path || '').split('/').pop()) + '</div>';
     if (doc.uploadedAt) {
-        html += '<div style="font-size:10px;color:#94a3b8;">Uploaded: ' + new Date(doc.uploadedAt).toLocaleDateString('en-IN') + (doc.uploadedBy ? ' by ' + doc.uploadedBy : '') + '</div>';
+        html += '<div style="font-size:10px;color:#94a3b8;margin-top:2px;"><i class="fas fa-clock" style="font-size:9px;margin-right:3px;"></i>' + new Date(doc.uploadedAt).toLocaleDateString('en-IN') + (doc.uploadedBy ? ' &bull; ' + doc.uploadedBy : '') + '</div>';
     }
     html += '</div>';
-    html += '<a href="' + doc.path + '" target="_blank" style="padding:6px 12px;background:#0284c7;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap;"><i class="fas fa-eye"></i> View</a>';
-    html += '<button onclick="triggerDocReplace(\'' + doc.type + '\')" style="padding:6px 12px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-sync-alt"></i> Replace</button>';
+    html += '<div style="display:flex;gap:6px;flex-shrink:0;">';
+    html += '<a href="' + doc.path + '" target="_blank" style="padding:7px 14px;background:#0284c7;color:#fff;border-radius:8px;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-eye"></i> View</a>';
+    html += '<button onclick="triggerDocReplace(\'' + doc.type + '\')" style="padding:7px 14px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-sync-alt"></i> Replace</button>';
     if (allowDelete) {
-        html += '<button onclick="deleteStudentDoc(\'' + doc.type + '\')" style="padding:6px 12px;background:#dc2626;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-trash"></i> Delete</button>';
+        html += '<button onclick="deleteStudentDoc(\'' + doc.type + '\')" style="padding:7px 14px;background:#fee2e2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;" onmouseover="this.style.background=\'#dc2626\';this.style.color=\'#fff\';" onmouseout="this.style.background=\'#fee2e2\';this.style.color=\'#dc2626\';"><i class="fas fa-trash"></i> Remove</button>';
     }
+    html += '</div>';
     html += '</div>';
     return html;
 }
 
 function renderMissingDoc(req) {
-    let html = '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:#fef2f2;border:1px dashed #fca5a5;border-radius:8px;margin-bottom:8px;">';
-    html += '<i class="fas fa-exclamation-circle" style="font-size:1.5rem;color:#dc2626;width:24px;text-align:center;"></i>';
+    let html = '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(254,242,242,0.6);border:1px dashed #fca5a5;border-radius:10px;margin-bottom:10px;">';
+    html += '<div style="width:42px;height:42px;border-radius:10px;background:rgba(220,38,38,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
+    html += '<i class="fas fa-exclamation-circle" style="font-size:1.3rem;color:#dc2626;"></i>';
+    html += '</div>';
     html += '<div style="flex:1;"><div style="font-weight:600;font-size:13px;color:#1e293b;">' + req.label + '</div>';
-    html += '<div style="font-size:11px;color:#dc2626;">Not uploaded yet</div></div>';
-    html += '<button onclick="triggerDocUpload(\'' + req.type + '\',\'' + (req.label || '').replace(/'/g, "\\'") + '\')" style="padding:6px 16px;background:#16a34a;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-upload"></i> Upload</button>';
+    html += '<div style="font-size:11px;color:#dc2626;margin-top:2px;"><i class="fas fa-times-circle" style="font-size:10px;margin-right:3px;"></i>Not uploaded yet</div></div>';
+    html += '<button onclick="triggerDocUpload(\'' + req.type + '\',\'' + (req.label || '').replace(/'/g, "\\'") + '\')" style="padding:7px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-upload"></i> Upload</button>';
     html += '</div>';
     return html;
 }

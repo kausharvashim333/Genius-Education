@@ -5009,8 +5009,8 @@ app.post('/api/students/:id/documents', uploadStudentDoc.single('document'), (re
     res.json({ success: true, document: newDoc, documents: student.documents });
 });
 
-// Delete a labeled document (admin only)
-app.delete('/api/students/:id/documents/:docType', verifyAdminSessionMiddleware, (req, res) => {
+// Delete a labeled document (admin or faculty)
+app.delete('/api/students/:id/documents/:docType', (req, res) => {
     const students = readData('students.json') || [];
     const idx = students.findIndex(s => s.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Student not found' });

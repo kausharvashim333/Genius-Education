@@ -2062,16 +2062,20 @@ async function loadFacultyDocuments() {
             const { labeled } = normalizeStudentDocsFP(s);
             const uploaded = required.filter(r => labeled[r.type]).length;
             const total = required.length;
-            const color = uploaded >= total ? '#16a34a' : '#dc2626';
-            const badge = '<span style="background:' + color + ';color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;">' + uploaded + '/' + total + '</span>';
+            const pct = total > 0 ? Math.round((uploaded / total) * 100) : 0;
+            const isComplete = uploaded >= total;
+            const progressBarColor = isComplete ? '#22c55e' : '#f59e0b';
+            const statusBadge = isComplete
+                ? '<span style="background:rgba(34,197,94,0.2);color:#86efac;border:1px solid rgba(34,197,94,0.3);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">Complete</span>'
+                : '<span style="background:rgba(245,158,11,0.2);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">Pending</span>';
 
-            return '<tr>' +
-                '<td>' + (s.photo ? '<img src="' + s.photo + '" style="width:36px;height:36px;object-fit:cover;border-radius:50%;border:2px solid rgba(255,255,255,0.2);">' : '<i class="fas fa-user-circle" style="font-size:1.5rem;color:#94a3b8;"></i>') + '</td>' +
-                '<td>' + s.name + '</td>' +
-                '<td>' + (s.course || '-') + '</td>' +
-                '<td>' + (s.phone || '-') + '</td>' +
-                '<td>' + badge + '</td>' +
-                '<td><button class="btn btn-primary" style="padding:4px 12px;font-size:12px;" onclick="openFacultyDocsModal(' + s.id + ')"><i class="fas fa-folder-open"></i> Manage</button></td>' +
+            return '<tr style="border-bottom:1px solid rgba(255,255,255,0.06);">' +
+                '<td style="padding:10px;">' + (s.photo ? '<img src="' + s.photo + '" style="width:38px;height:38px;object-fit:cover;border-radius:50%;border:2px solid rgba(255,255,255,0.15);">' : '<div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="color:#94a3b8;font-size:16px;"></i></div>') + '</td>' +
+                '<td style="padding:10px;"><div style="font-weight:600;color:#fff;font-size:13px;">' + s.name + '</div><div style="font-size:11px;color:#64748b;">' + (s.rollNo || 'No ID') + '</div></td>' +
+                '<td style="padding:10px;color:rgba(255,255,255,0.8);font-size:13px;">' + (s.course || '-') + '</td>' +
+                '<td style="padding:10px;color:rgba(255,255,255,0.6);font-size:12px;">' + (s.phone || '-') + '</td>' +
+                '<td style="padding:10px;"><div style="display:flex;align-items:center;gap:8px;"><div style="width:60px;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;"><div style="width:' + pct + '%;height:100%;background:' + progressBarColor + ';border-radius:3px;"></div></div><span style="font-size:11px;color:#94a3b8;font-weight:600;min-width:30px;">' + uploaded + '/' + total + '</span>' + statusBadge + '</div></td>' +
+                '<td style="padding:10px;"><button onclick="openFacultyDocsModal(' + s.id + ')" style="padding:7px 16px;background:rgba(99,102,241,0.2);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3);border-radius:8px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;"><i class="fas fa-folder-open"></i> Manage</button></td>' +
                 '</tr>';
         }).join('');
     } catch (err) {
@@ -2160,28 +2164,37 @@ function renderFacultyDocItem(doc) {
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
     const icon = isImage ? 'fa-image' : (ext === 'pdf' ? 'fa-file-pdf' : 'fa-file-alt');
     const iconColor = isImage ? '#0284c7' : (ext === 'pdf' ? '#dc2626' : '#94a3b8');
+    const iconBg = isImage ? 'rgba(2,132,199,0.15)' : (ext === 'pdf' ? 'rgba(220,38,38,0.15)' : 'rgba(148,163,184,0.15)');
 
-    let html = '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;margin-bottom:8px;">';
-    html += '<i class="fas ' + icon + '" style="font-size:1.5rem;color:' + iconColor + ';width:24px;text-align:center;"></i>';
+    let html = '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:10px;margin-bottom:10px;">';
+    html += '<div style="width:42px;height:42px;border-radius:10px;background:' + iconBg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
+    html += '<i class="fas ' + icon + '" style="font-size:1.3rem;color:' + iconColor + ';"></i>';
+    html += '</div>';
     html += '<div style="flex:1;min-width:0;">';
-    html += '<div style="font-weight:600;font-size:13px;color:#fff;">' + (doc.label || doc.type || 'Document') + '</div>';
-    html += '<div style="font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (doc.fileName || (doc.path || '').split('/').pop()) + '</div>';
+    html += '<div style="font-weight:600;font-size:13px;color:#fff;display:flex;align-items:center;gap:6px;">' + (doc.label || doc.type || 'Document');
+    html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;" title="Uploaded"></span></div>';
+    html += '<div style="font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;">' + (doc.fileName || (doc.path || '').split('/').pop()) + '</div>';
     if (doc.uploadedAt) {
-        html += '<div style="font-size:10px;color:#64748b;">Uploaded: ' + new Date(doc.uploadedAt).toLocaleDateString('en-IN') + (doc.uploadedBy ? ' by ' + doc.uploadedBy : '') + '</div>';
+        html += '<div style="font-size:10px;color:#64748b;margin-top:2px;"><i class="fas fa-clock" style="font-size:9px;margin-right:3px;"></i>' + new Date(doc.uploadedAt).toLocaleDateString('en-IN') + (doc.uploadedBy ? ' &bull; ' + doc.uploadedBy : '') + '</div>';
     }
     html += '</div>';
-    html += '<a href="' + doc.path + '" target="_blank" style="padding:6px 12px;background:#0284c7;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap;"><i class="fas fa-eye"></i> View</a>';
-    html += '<button onclick="triggerFacultyDocReplace(\'' + doc.type + '\')" style="padding:6px 12px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-sync-alt"></i> Replace</button>';
+    html += '<div style="display:flex;gap:6px;flex-shrink:0;">';
+    html += '<a href="' + doc.path + '" target="_blank" style="padding:7px 14px;background:#0284c7;color:#fff;border-radius:8px;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-eye"></i> View</a>';
+    html += '<button onclick="triggerFacultyDocReplace(\'' + doc.type + '\')" style="padding:7px 14px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-sync-alt"></i> Replace</button>';
+    html += '<button onclick="deleteFacultyStudentDoc(\'' + doc.type + '\')" style="padding:7px 14px;background:rgba(220,38,38,0.15);color:#f87171;border:1px solid rgba(220,38,38,0.3);border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;" onmouseover="this.style.background=\'#dc2626\';this.style.color=\'#fff\';" onmouseout="this.style.background=\'rgba(220,38,38,0.15)\';this.style.color=\'#f87171\';"><i class="fas fa-trash"></i> Remove</button>';
+    html += '</div>';
     html += '</div>';
     return html;
 }
 
 function renderFacultyMissingDoc(req) {
-    let html = '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(220,38,38,0.1);border:1px dashed rgba(252,165,165,0.4);border-radius:8px;margin-bottom:8px;">';
-    html += '<i class="fas fa-exclamation-circle" style="font-size:1.5rem;color:#dc2626;width:24px;text-align:center;"></i>';
+    let html = '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(220,38,38,0.08);border:1px dashed rgba(252,165,165,0.3);border-radius:10px;margin-bottom:10px;">';
+    html += '<div style="width:42px;height:42px;border-radius:10px;background:rgba(220,38,38,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
+    html += '<i class="fas fa-exclamation-circle" style="font-size:1.3rem;color:#dc2626;"></i>';
+    html += '</div>';
     html += '<div style="flex:1;"><div style="font-weight:600;font-size:13px;color:#fff;">' + req.label + '</div>';
-    html += '<div style="font-size:11px;color:#dc2626;">Not uploaded yet</div></div>';
-    html += '<button onclick="triggerFacultyDocUpload(\'' + req.type + '\',\'' + (req.label || '').replace(/'/g, "\\'") + '\')" style="padding:6px 16px;background:#16a34a;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-upload"></i> Upload</button>';
+    html += '<div style="font-size:11px;color:#dc2626;margin-top:2px;"><i class="fas fa-times-circle" style="font-size:10px;margin-right:3px;"></i>Not uploaded yet</div></div>';
+    html += '<button onclick="triggerFacultyDocUpload(\'' + req.type + '\',\'' + (req.label || '').replace(/'/g, "\\'") + '\')" style="padding:7px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-upload"></i> Upload</button>';
     html += '</div>';
     return html;
 }
@@ -2237,5 +2250,25 @@ async function uploadFacultyStudentDoc() {
         }
     } catch (err) {
         alert('Error uploading document');
+    }
+}
+
+async function deleteFacultyStudentDoc(docType) {
+    if (!confirm('Are you sure you want to remove this document? This cannot be undone.')) return;
+    try {
+        const res = await fetch('/api/students/' + facultyDocsStudentId + '/documents/' + encodeURIComponent(docType), {
+            method: 'DELETE'
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('Document removed successfully!');
+            facultyDocsStudent.documents = data.documents;
+            renderFacultyDocsList();
+            loadFacultyDocuments();
+        } else {
+            alert(data.message || 'Error removing document');
+        }
+    } catch (err) {
+        alert('Error removing document');
     }
 }
