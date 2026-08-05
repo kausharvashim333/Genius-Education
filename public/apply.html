@@ -1639,20 +1639,20 @@ function applyCalcGradPct() {
 }
 
 const APPLY_DEFAULT_DOCS = [
-    { type: 'photo', label: 'Student Photo' },
-    { type: 'signature', label: 'Signature' },
-    { type: 'aadhar', label: 'Aadhar Card' },
-    { type: '10th_marksheet', label: '10th Marksheet' },
-    { type: '12th_marksheet', label: '12th Marksheet' }
+    { type: 'photo', label: 'Student Photo', docType: 'image' },
+    { type: 'signature', label: 'Signature', docType: 'image' },
+    { type: 'aadhar', label: 'Aadhar Card', docType: 'file' },
+    { type: '10th_marksheet', label: '10th Marksheet', docType: 'file' },
+    { type: '12th_marksheet', label: '12th Marksheet', docType: 'file' }
 ];
 
 const APPLY_DOC_ICONS = {
-    photo: { icon: 'fa-camera', color: '#0284c7', isImage: true, maxSize: 2 },
-    signature: { icon: 'fa-signature', color: '#7c3aed', isImage: true, maxSize: 1 },
-    aadhar: { icon: 'fa-id-card', color: '#7c3aed', isImage: false, maxSize: 5 },
-    '10th_marksheet': { icon: 'fa-file-alt', color: '#16a34a', isImage: false, maxSize: 5 },
-    '12th_marksheet': { icon: 'fa-file-alt', color: '#0284c7', isImage: false, maxSize: 5 },
-    'grad_marksheet': { icon: 'fa-university', color: '#7c3aed', isImage: false, maxSize: 5 }
+    photo: { icon: 'fa-camera', color: '#0284c7', maxSize: 2 },
+    signature: { icon: 'fa-signature', color: '#7c3aed', maxSize: 1 },
+    aadhar: { icon: 'fa-id-card', color: '#7c3aed', maxSize: 5 },
+    '10th_marksheet': { icon: 'fa-file-alt', color: '#16a34a', maxSize: 5 },
+    '12th_marksheet': { icon: 'fa-file-alt', color: '#0284c7', maxSize: 5 },
+    'grad_marksheet': { icon: 'fa-university', color: '#7c3aed', maxSize: 5 }
 };
 
 function renderApplyDocs(courseName) {
@@ -1674,7 +1674,8 @@ function renderApplyDocs(courseName) {
 
     let html = '';
     requiredDocs.forEach(doc => {
-        const cfg = APPLY_DOC_ICONS[doc.type] || { icon: 'fa-file-alt', color: '#64748b', isImage: false, maxSize: 5 };
+        const cfg = APPLY_DOC_ICONS[doc.type] || { icon: 'fa-file-alt', color: '#64748b', maxSize: 5 };
+        const isImage = doc.docType === 'image';
         const inputId = 'applyDoc_' + doc.type;
         const labelId = 'applyDocLabel_' + doc.type;
         const previewId = 'applyDocPreview_' + doc.type;
@@ -1685,18 +1686,18 @@ function renderApplyDocs(courseName) {
         html += '<div class="form-group" data-doc-type="' + doc.type + '">';
         html += '<label id="' + labelId + '">' + (doc.label || doc.type) + ' *</label>';
 
-        if (cfg.isImage) {
+        if (isImage) {
             html += '<div class="doc-upload-area" onclick="document.getElementById(\'' + inputId + '\').click()">';
             html += '<img id="' + previewId + '" style="display:none;max-height:110px;border-radius:6px;">';
             html += '<div id="' + placeholderId + '" class="doc-placeholder"><i class="fas ' + cfg.icon + ' fa-2x"></i><br>Click to upload<br><small>JPG/PNG, max ' + cfg.maxSize + 'MB</small></div>';
             html += '</div>';
-            html += '<input type="file" id="' + inputId + '" accept="image/*" style="display:none;" onchange="applyPreview(this,\'' + previewId + '\',\'' + placeholderId + '\')" data-doc-type="' + doc.type + '" data-doc-label="' + safeLabel + '">';
+            html += '<input type="file" id="' + inputId + '" accept="image/*" style="display:none;" onchange="applyPreview(this,\'' + previewId + '\',\'' + placeholderId + '\',' + cfg.maxSize + ')" data-doc-type="' + doc.type + '" data-doc-label="' + safeLabel + '">';
         } else {
             html += '<div class="doc-upload-area" onclick="document.getElementById(\'' + inputId + '\').click()">';
-            html += '<i class="fas ' + cfg.icon + ' fa-2x" style="color:' + cfg.color + ';"></i>';
-            html += '<div id="' + nameId + '" style="margin-top:8px;font-size:.82rem;color:#64748b;">Click to upload</div>';
+            html += '<div id="' + placeholderId + '" class="doc-placeholder"><i class="fas ' + cfg.icon + ' fa-2x" style="color:' + cfg.color + ';"></i><br>Click to upload<br><small>PDF/JPG/PNG, max ' + cfg.maxSize + 'MB</small></div>';
+            html += '<div id="' + nameId + '" style="display:none;margin-top:8px;font-size:.82rem;color:#64748b;"></div>';
             html += '</div>';
-            html += '<input type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="applySingleDoc(this,\'' + nameId + '\')" data-doc-type="' + doc.type + '" data-doc-label="' + safeLabel + '">';
+            html += '<input type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="applyFilePreview(this,\'' + nameId + '\',\'' + placeholderId + '\',\'' + previewId + '\',' + cfg.maxSize + ')" data-doc-type="' + doc.type + '" data-doc-label="' + safeLabel + '">';
         }
         html += '</div>';
     });
@@ -1716,15 +1717,13 @@ function applyCalcCGPA() {
     document.getElementById('aGradCGPADiv').value = cgpa > 0 ? applyGetDiv(cgpa*10).text : '';
 }
 
-function applyPreview(input, imgId, phId) {
+function applyPreview(input, imgId, phId, maxSizeMB) {
     const f = input.files[0]; if (!f) return;
 
-    // File size validation (2MB for photo, 1MB for signature)
-    const maxSize = imgId === 'aPhotoPreview' ? 2 * 1024 * 1024 : 1 * 1024 * 1024;
-    const maxSizeMB = imgId === 'aPhotoPreview' ? 2 : 1;
+    const maxSize = (maxSizeMB || 2) * 1024 * 1024;
 
     if (f.size > maxSize) {
-        alert(`File size exceeds ${maxSizeMB}MB limit. Please choose a smaller file.`);
+        alert(`File size exceeds ${maxSizeMB || 2}MB limit. Please choose a smaller file.`);
         input.value = '';
         return;
     }
@@ -1756,6 +1755,35 @@ function applySingleDoc(input, labelId) {
     }
 
     document.getElementById(labelId).textContent = f ? '📎 '+f.name : 'Click to upload';
+}
+
+function applyFilePreview(input, nameId, phId, previewId, maxSizeMB) {
+    const f = input.files[0];
+    if (!f) return;
+
+    const maxSize = (maxSizeMB || 5) * 1024 * 1024;
+    if (f.size > maxSize) {
+        alert(`File size exceeds ${maxSizeMB || 5}MB limit. Please choose a smaller file.`);
+        input.value = '';
+        return;
+    }
+
+    const nameEl = document.getElementById(nameId);
+    const phEl = document.getElementById(phId);
+    const isImage = f.type.startsWith('image/');
+
+    if (isImage) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            phEl.innerHTML = '<img src="' + e.target.result + '" style="max-height:110px;border-radius:6px;display:block;margin:0 auto;">';
+        };
+        reader.readAsDataURL(f);
+        if (nameEl) { nameEl.style.display = 'block'; nameEl.textContent = '📎 ' + f.name; }
+    } else {
+        const ext = f.name.split('.').pop().toUpperCase();
+        phEl.innerHTML = '<i class="fas fa-file-pdf fa-2x" style="color:#ef4444;"></i><br><span style="font-size:.82rem;color:#64748b;">' + f.name + '</span><br><small style="color:#94a3b8;">' + ext + ' • ' + (f.size / 1024 / 1024).toFixed(1) + ' MB</small>';
+        if (nameEl) { nameEl.style.display = 'block'; nameEl.textContent = '📎 ' + f.name; }
+    }
 }
 
 async function loadApplyCourses() {
