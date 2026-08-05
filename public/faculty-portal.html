@@ -1682,8 +1682,10 @@
     <!-- Faculty Payment History Modal -->
     <div id="facultyPaymentHistoryModal" class="modal">
         <div class="modal-content" style="max-width:600px;max-height:85vh;overflow-y:auto;">
-            <button class="modal-close-btn" onclick="closeFacultyPaymentHistory()" style="float:right;border:none;background:none;font-size:24px;cursor:pointer;color:#64748b;">&times;</button>
-            <h3><i class="fas fa-history"></i> Payment History</h3>
+            <div class="modal-header">
+                <h3><i class="fas fa-history"></i> Payment History</h3>
+                <button class="close-btn" onclick="closeFacultyPaymentHistory()">&times;</button>
+            </div>
             <div id="facultyPaymentHistoryBody" style="margin-top:15px;"></div>
         </div>
     </div>

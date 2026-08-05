@@ -4492,7 +4492,7 @@ tbody tr:nth-child(even) td {
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 30px;
+    padding: 0;
     border-radius: 16px;
     width: 100%;
     max-width: 500px;
@@ -4519,15 +4519,15 @@ tbody tr:nth-child(even) td {
     background: rgba(255, 255, 255, 0.5);
 }
 
-.modal-content h3 {
+.modal-content > h3 {
     position: sticky;
-    top: -30px;
-    margin: -30px -30px 24px -30px;
-    padding: 20px 30px 16px 30px;
+    top: 0;
+    margin: 0 0 20px 0;
+    padding: 18px 30px 14px 30px;
     font-size: 1.5rem;
     font-weight: 700;
     color: #fff;
-    background: rgba(15, 23, 42, 0.98);
+    background: #0f172a;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     z-index: 10;
@@ -4554,8 +4554,8 @@ tbody tr:nth-child(even) td {
     top: 0;
     z-index: 10;
     background: #0f172a;
-    margin: -30px -30px 0 -30px;
-    padding: 20px 30px;
+    margin: 0;
+    padding: 18px 30px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 16px 16px 0 0;
     display: flex;
@@ -4564,16 +4564,27 @@ tbody tr:nth-child(even) td {
 }
 
 .modal-content > .modal-body {
-    padding: 24px 0;
+    padding: 20px 30px;
 }
 
 .modal-content > .modal-footer {
-    padding: 16px 0;
-    margin-top: 8px;
+    padding: 16px 30px;
+    margin: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+}
+
+/* Padding for direct children in unstructured modals (no modal-header/modal-body) */
+.modal-content > *:not(h3):not(.modal-header):not(.modal-body):not(.modal-footer):not(.modal-close-btn) {
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+/* Bottom padding for last child in unstructured modals */
+.modal-content > *:last-child:not(.modal-footer):not(.modal-header):not(h3) {
+    padding-bottom: 30px;
 }
 
 /* Modal content inputs - override inline styles */
@@ -5350,7 +5361,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 /* Student Profile Modal */
 .modal-close-btn {
     position: absolute;
-    top: 14px;
+    top: 12px;
     right: 18px;
     background: none;
     border: none;
@@ -5358,6 +5369,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     cursor: pointer;
     color: #fff;
     line-height: 1;
+    z-index: 20;
 }
 
 .modal-close-btn:hover { color: #dc2626; }

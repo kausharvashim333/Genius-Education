@@ -192,8 +192,26 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
     overflow-y: auto;
     background: #fff;
     border-radius: 14px;
-    padding: 32px;
+    padding: 0;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal-box > .modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fff;
+    padding: 24px 32px;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 14px 14px 0 0;
+}
+.modal-box > .modal-body { padding: 24px 32px; }
+.modal-box > .modal-footer {
+    padding: 16px 32px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    border-radius: 0 0 14px 14px;
 }
 .modal-box h2 { color: var(--primary-dark); }
 .instructions-list { padding-left: 20px; line-height: 1.8; color: var(--text); }
@@ -398,7 +416,7 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
 <!-- Instructions Modal -->
 <div class="modal-overlay" id="instructionsModal">
     <div class="modal-box" style="max-width:750px;">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+        <div class="modal-header" style="display:flex;align-items:center;gap:12px;">
             <div style="width:56px;height:56px;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);border-radius:14px;display:flex;align-items:center;justify-content:center;">
                 <i class="fas fa-exclamation-triangle" style="color:#fff;font-size:24px;"></i>
             </div>
@@ -407,6 +425,7 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
                 <p style="margin:4px 0 0;opacity:0.7;font-size:14px;">Please read all instructions carefully before starting</p>
             </div>
         </div>
+        <div class="modal-body">
         
         <div id="instructionsText" style="margin-bottom:20px;padding:16px;background:rgba(59,130,246,0.08);border-radius:10px;border-left:4px solid #3b82f6;line-height:1.7;font-size:14px;"></div>
         
@@ -483,7 +502,8 @@ label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text)
             </label>
         </div>
         
-        <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:16px;border-top:1px solid #e2e8f0;">
+        </div>
+        <div class="modal-footer" style="display:flex;gap:12px;justify-content:flex-end;">
             <button class="btn btn-light" onclick="closeInstructions()" style="padding:12px 28px;">Cancel</button>
             <button class="btn btn-primary" id="acceptBtn" disabled onclick="acceptAndStart()" style="padding:12px 28px;">
                 <i class="fas fa-play"></i> Start Exam

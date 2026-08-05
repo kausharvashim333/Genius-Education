@@ -360,11 +360,11 @@
         /* Password Change Modal */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 10000; align-items: center; justify-content: center; }
         .modal-overlay.active { display: flex; }
-        .modal-box { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 30px; border-radius: 16px; width: 500px; max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); }
+        .modal-box { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 0; border-radius: 16px; width: 500px; max-width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); }
         .modal-box::-webkit-scrollbar { width: 6px; }
         .modal-box::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px; }
         .modal-box::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 3px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin: 0; padding: 18px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.15); position: sticky; top: 0; z-index: 10; background: #0f172a; border-radius: 16px 16px 0 0; }
         .modal-header h3 { margin: 0; color: #fff; font-size: 1.2rem; }
         .modal-header .close-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 32px; height: 32px; border-radius: 8px; font-size: 18px; cursor: pointer; color: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
         .modal-header .close-btn:hover { background: rgba(255, 255, 255, 0.2); color: #fff; }
@@ -372,11 +372,11 @@
         .modal-body label { display: block; margin-bottom: 5px; color: rgba(255, 255, 255, 0.8); font-weight: 500; font-size: 14px; }
         .modal-body input { width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 6px; font-size: 14px; color: #fff; }
         .modal-body input:focus { outline: none; border-color: #667eea; background: rgba(0, 0, 0, 0.4); }
-        .modal-body { max-height: calc(85vh - 180px); overflow-y: auto; padding-right: 5px; }
+        .modal-body { padding: 20px 30px; }
         .modal-body::-webkit-scrollbar { width: 6px; }
         .modal-body::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px; }
         .modal-body::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 3px; }
-        .modal-footer { margin-top: 20px; text-align: right; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.15); padding: 16px 24px; border-radius: 0 0 16px 16px; -webkit-margin-before: auto; }
+        .modal-footer { margin: 0; text-align: right; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.15); padding: 16px 30px; border-radius: 0 0 16px 16px; }
         .modal-footer .btn { margin-left: 10px; }
         .alert-box { background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; color: #fbbf24; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 
@@ -1139,9 +1139,9 @@
 <!-- Edit Profile Modal -->
 <div id="editProfileModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:10000;align-items:center;justify-content:center;">
     <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.2);padding:30px;border-radius:16px;width:100%;max-width:500px;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-height:90vh;overflow-y:auto;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-            <h2>Edit Profile</h2>
-            <button onclick="closeEditProfileModal()" style="background:none;border:none;font-size:24px;cursor:pointer;">&times;</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:-30px -30px 20px -30px;padding:18px 30px 14px;position:sticky;top:0;z-index:10;background:#0f172a;border-bottom:1px solid rgba(255,255,255,0.15);border-radius:16px 16px 0 0;">
+            <h2 style="margin:0;font-size:1.3rem;color:#fff;">Edit Profile</h2>
+            <button onclick="closeEditProfileModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#fff;opacity:0.6;">&times;</button>
         </div>
         
         <form id="editProfileForm" onsubmit="submitEditProfile(event)">

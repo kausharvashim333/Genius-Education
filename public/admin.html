@@ -3717,8 +3717,10 @@
             <!-- Entrance Exam Modal -->
             <div id="entranceExamModal" class="modal">
                 <div class="modal-content" style="max-width:900px;max-height:90vh;overflow-y:auto;position:relative;">
-                    <button class="modal-close-btn" onclick="closeModal('entranceExamModal')">&times;</button>
-                    <h3 id="entranceExamModalTitle" style="margin-bottom:25px;color:#fff;"><i class="fas fa-clipboard-list" style="color:#667eea;margin-right:8px;"></i> Create Entrance Exam</h3>
+                    <div class="modal-header">
+                        <h3 id="entranceExamModalTitle"><i class="fas fa-clipboard-list" style="color:#667eea;margin-right:8px;"></i> Create Entrance Exam</h3>
+                        <button class="close-btn" onclick="closeModal('entranceExamModal')">&times;</button>
+                    </div>
                     <input type="hidden" id="entExamId">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
                         <div>
@@ -3865,8 +3867,10 @@
             <!-- Registration Modal -->
             <div id="entranceRegModal" class="modal">
                 <div class="modal-content" style="max-width:600px;max-height:90vh;overflow-y:auto;position:relative;">
-                    <button class="modal-close-btn" onclick="closeModal('entranceRegModal')">&times;</button>
-                    <h3 style="margin-bottom:20px;color:#fff;"><i class="fas fa-user-plus" style="color:#667eea;"></i> Register Student for Entrance Exam</h3>
+                    <div class="modal-header">
+                        <h3><i class="fas fa-user-plus" style="color:#667eea;"></i> Register Student for Entrance Exam</h3>
+                        <button class="close-btn" onclick="closeModal('entranceRegModal')">&times;</button>
+                    </div>
                     <input type="hidden" id="entRegId">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">
                         <div><label style="font-weight:600;color:#fff;margin-bottom:8px;display:block;">Registration ID *</label><input type="text" id="entRegIdNo" placeholder="e.g. ENT001" style="width:100%;height:42px;padding:0 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;"></div>
@@ -4650,8 +4654,8 @@
                 <h3 id="courseModalTitle"><i class="fas fa-graduation-cap"></i> Add Course</h3>
                 <button class="close-btn" onclick="closeModal('courseModal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <form id="courseForm">
+            <form id="courseForm">
+                <div class="modal-body">
                     <input type="hidden" id="courseId">
                     <!-- Section: Basic Info -->
                     <div style="margin-bottom:20px;">
@@ -4708,7 +4712,7 @@
                         </div>
                     </div>
                     <!-- Section: Description -->
-                    <div style="margin-bottom:20px;">
+                    <div style="margin-bottom:0;">
                         <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.5);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><i class="fas fa-align-left" style="color:#4ade80;"></i> Description</div>
                         <div style="position:relative;">
                             <textarea id="courseDesc" rows="4" placeholder="Course description yahan likhein ya AI se likhwayein..." style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);resize:vertical;font-size:14px;line-height:1.6;"></textarea>
@@ -4718,22 +4722,21 @@
                         </div>
                         <small style="color:rgba(255,255,255,0.4);font-size:11px;margin-top:6px;display:block;">AI se generate hone ke baad aap manually edit bhi kar sakte hain.</small>
                     </div>
-                    <!-- Footer Buttons -->
-                    <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('courseModal')" style="padding:10px 20px;border-radius:8px;font-size:14px;">Cancel</button>
-                        <button type="submit" class="btn btn-primary" style="padding:10px 24px;border-radius:8px;font-size:14px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;font-weight:600;"><i class="fas fa-save"></i> Save Course</button>
-                    </div>
-                </form>
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('courseModal')" style="padding:10px 20px;border-radius:8px;font-size:14px;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding:10px 24px;border-radius:8px;font-size:14px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;font-weight:600;"><i class="fas fa-save"></i> Save Course</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- Student Documents Modal -->
     <div id="studentDocsModal" class="modal">
         <div class="modal-content" style="max-width:700px;max-height:90vh;overflow-y:auto;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #e2e8f0;">
-                <h3 style="margin:0;"><i class="fas fa-folder-open" style="color:#f59e0b;margin-right:8px;"></i>Student Documents</h3>
-                <button type="button" onclick="closeModal('studentDocsModal')" style="background:none;border:none;font-size:24px;cursor:pointer;color:#64748b;">&times;</button>
+            <div class="modal-header">
+                <h3><i class="fas fa-folder-open" style="color:#f59e0b;margin-right:8px;"></i>Student Documents</h3>
+                <button class="close-btn" onclick="closeModal('studentDocsModal')">&times;</button>
             </div>
             <div id="studentDocsInfo" style="margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;"></div>
             <div id="studentDocsList"></div>
@@ -4744,9 +4747,9 @@
     <!-- Faculty Modal -->
     <div id="facultyModal" class="modal">
         <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0;">
-                <h3 id="facultyModalTitle" style="margin: 0; font-size: 24px; font-weight: 600; color: #1e293b;">Add Faculty</h3>
-                <button type="button" onclick="closeModal('facultyModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; padding: 4px 8px;">&times;</button>
+            <div class="modal-header">
+                <h3 id="facultyModalTitle">Add Faculty</h3>
+                <button class="close-btn" onclick="closeModal('facultyModal')">&times;</button>
             </div>
             <form id="facultyForm">
                 <input type="hidden" id="facultyId">
@@ -5059,8 +5062,10 @@
     <!-- Update Student Modal -->
     <div id="updateStudentModal" class="modal modal-wide">
         <div class="modal-content" style="max-width:1100px;width:96vw;max-height:90vh;overflow-y:auto;">
-            <button class="modal-close-btn" onclick="closeModal('updateStudentModal')">&times;</button>
-            <h3><i class="fas fa-user-edit"></i> Update Student Profile</h3>
+            <div class="modal-header">
+                <h3><i class="fas fa-user-edit"></i> Update Student Profile</h3>
+                <button class="close-btn" onclick="closeModal('updateStudentModal')">&times;</button>
+            </div>
             <input type="hidden" id="updateStudentId">
             
             <!-- Personal Information -->
@@ -5259,8 +5264,10 @@
     <!-- Test Modal -->
     <div id="testModal" class="modal">
         <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto; position: relative;">
-            <button class="modal-close-btn" onclick="closeModal('testModal')">&times;</button>
-            <h3 id="testModalTitle" style="margin-bottom: 25px; color: #fff;"><i class="fas fa-clipboard-list" style="color: #667eea; margin-right: 8px;"></i> Add Test</h3>
+            <div class="modal-header">
+                <h3 id="testModalTitle"><i class="fas fa-clipboard-list" style="color: #667eea; margin-right: 8px;"></i> Add Test</h3>
+                <button class="close-btn" onclick="closeModal('testModal')">&times;</button>
+            </div>
             <input type="hidden" id="testId">
             
             <div style="display: flex; flex-direction: column; gap: 18px;">
@@ -5471,7 +5478,10 @@
     <!-- Quiz Manager Modal -->
     <div id="quizManagerModal" class="modal">
         <div class="modal-content" style="max-width: 750px; max-height: 85vh; overflow-y: auto;">
-            <h3><i class="fas fa-question-circle"></i> Manage Quiz</h3>
+            <div class="modal-header">
+                <h3><i class="fas fa-question-circle"></i> Manage Quiz</h3>
+                <button class="close-btn" onclick="closeModal('quizManagerModal')">&times;</button>
+            </div>
             <p style="color:#64748b;margin-bottom:15px;">Video: <strong id="quizVideoTitle"></strong></p>
             <div class="form-group" style="display:flex;align-items:center;gap:10px;">
                 <label style="margin:0;">Passing Score (%)</label>
@@ -5489,7 +5499,10 @@
     <!-- Resources Manager Modal -->
     <div id="resourcesManagerModal" class="modal">
         <div class="modal-content" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
-            <h3><i class="fas fa-paperclip"></i> Manage Attached Resources</h3>
+            <div class="modal-header">
+                <h3><i class="fas fa-paperclip"></i> Manage Attached Resources</h3>
+                <button class="close-btn" onclick="closeModal('resourcesManagerModal')">&times;</button>
+            </div>
             <p style="color:#64748b;margin-bottom:15px;">Video: <strong id="resourceVideoTitle"></strong></p>
             <div style="border:1px dashed #cbd5e1;border-radius:8px;padding:15px;margin-bottom:20px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);">
                 <h4 style="margin-top:0;">Upload New Resource</h4>
@@ -5508,7 +5521,10 @@
     <!-- Hotspot Manager Modal -->
     <div id="hotspotManagerModal" class="modal">
         <div class="modal-content" style="max-width: 760px; max-height: 85vh; overflow-y: auto;">
-            <h3><i class="fas fa-map-pin"></i> Manage Video Hotspots</h3>
+            <div class="modal-header">
+                <h3><i class="fas fa-map-pin"></i> Manage Video Hotspots</h3>
+                <button class="close-btn" onclick="closeModal('hotspotManagerModal')">&times;</button>
+            </div>
             <p style="color:#64748b;margin-bottom:15px;">Video: <strong id="hotspotVideoTitle"></strong></p>
             <div id="hotspotList" style="margin: 15px 0;"></div>
             <button type="button" class="btn btn-primary" onclick="addHotspotRow()"><i class="fas fa-plus"></i> Add Hotspot</button>
@@ -5607,8 +5623,10 @@
     <!-- Role Modal -->
     <div id="roleModal" class="modal">
         <div class="modal-content" style="max-width: 700px;max-height:90vh;overflow-y:auto;background:linear-gradient(135deg,rgba(30,64,175,0.15),rgba(99,102,241,0.15));backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.2);box-shadow:0 8px 32px rgba(0,0,0,0.2);">
-            <button class="modal-close-btn" onclick="closeModal('roleModal')" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);">&times;</button>
-            <h3 id="roleModalTitle" style="margin-bottom:20px;color:#fff;background:linear-gradient(135deg,rgba(30,64,175,0.3),rgba(99,102,241,0.3));padding:15px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);box-shadow:0 4px 15px rgba(0,0,0,0.1);"><i class="fas fa-user-shield" style="margin-right:8px;"></i> <span id="roleModalTitleText">Add Role</span></h3>
+            <div class="modal-header">
+                <h3 id="roleModalTitle"><i class="fas fa-user-shield" style="margin-right:8px;"></i> <span id="roleModalTitleText">Add Role</span></h3>
+                <button class="close-btn" onclick="closeModal('roleModal')">&times;</button>
+            </div>
             <input type="hidden" id="roleId">
             
             <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);padding:20px;border-radius:12px;margin-bottom:20px;border:1px solid rgba(255,255,255,0.15);box-shadow:0 4px 15px rgba(0,0,0,0.1);">
