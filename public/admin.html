@@ -4680,6 +4680,23 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label>Required Documents <small style="color:#64748b;">(student admission ke liye)</small></label>
+                    <div id="courseRequiredDocs" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;max-height:180px;overflow-y:auto;">
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;"><input type="checkbox" class="course-doc-cb" value="aadhar" data-label="Aadhar Card"> Aadhar Card</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;"><input type="checkbox" class="course-doc-cb" value="photo" data-label="Photo"> Photo</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;"><input type="checkbox" class="course-doc-cb" value="signature" data-label="Signature"> Signature</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;"><input type="checkbox" class="course-doc-cb" value="10th_marksheet" data-label="10th Marksheet"> 10th Marksheet</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;"><input type="checkbox" class="course-doc-cb" value="12th_marksheet" data-label="12th Marksheet"> 12th Marksheet</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;"><input type="checkbox" class="course-doc-cb" value="grad_marksheet" data-label="Graduation Marksheet"> Graduation Marksheet</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;"><input type="checkbox" class="course-doc-cb" value="caste_certificate" data-label="Caste Certificate"> Caste Certificate</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;"><input type="checkbox" class="course-doc-cb" value="income_certificate" data-label="Income Certificate"> Income Certificate</label>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        <input type="text" id="courseCustomDocInput" placeholder="Custom document name (e.g. Transfer Certificate)" style="flex:1;padding:8px;border:1px solid #e2e8f0;border-radius:6px;">
+                        <button type="button" class="btn btn-secondary" onclick="addCustomCourseDoc()" style="padding:8px 14px;"><i class="fas fa-plus"></i> Add</button>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label>Description
                         <button type="button" class="ai-write-btn" onclick="aiWriteCourseDesc()" id="aiWriteBtn" title="AI se description likhwao">
                             <i class="fas fa-magic"></i> Write with AI
@@ -4691,6 +4708,19 @@
                 <button type="submit" class="btn btn-primary">Save Course</button>
                 <button type="button" class="btn" onclick="closeModal('courseModal')" style="margin-left: 10px;">Cancel</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Student Documents Modal -->
+    <div id="studentDocsModal" class="modal">
+        <div class="modal-content" style="max-width:700px;max-height:90vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #e2e8f0;">
+                <h3 style="margin:0;"><i class="fas fa-folder-open" style="color:#f59e0b;margin-right:8px;"></i>Student Documents</h3>
+                <button type="button" onclick="closeModal('studentDocsModal')" style="background:none;border:none;font-size:24px;cursor:pointer;color:#64748b;">&times;</button>
+            </div>
+            <div id="studentDocsInfo" style="margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;"></div>
+            <div id="studentDocsList"></div>
+            <input type="file" id="studentDocFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display:none;">
         </div>
     </div>
 
@@ -4777,6 +4807,9 @@
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)';" onmouseout="this.style.background='transparent';">
                                     <input type="checkbox" class="faculty-permission" value="payments" style="width: 16px; height: 16px; cursor: pointer; accent-color: #f5576c;"> Payments
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)';" onmouseout="this.style.background='transparent';">
+                                    <input type="checkbox" class="faculty-permission" value="documents" style="width: 16px; height: 16px; cursor: pointer; accent-color: #f5576c;"> Student Documents
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)';" onmouseout="this.style.background='transparent';">
                                     <input type="checkbox" class="faculty-permission" value="certificates" style="width: 16px; height: 16px; cursor: pointer; accent-color: #f5576c;"> Certificates

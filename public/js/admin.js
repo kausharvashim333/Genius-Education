@@ -1623,7 +1623,58 @@ function openCourseModal() {
     document.getElementById('courseForm').reset();
     document.getElementById('courseId').value = '';
     document.getElementById('courseModalTitle').textContent = 'Add Course';
+    // Reset required docs checkboxes
+    document.querySelectorAll('#courseRequiredDocs .course-doc-cb').forEach(cb => { cb.checked = false; cb.parentElement.style.display = ''; });
     document.getElementById('courseModal').classList.add('active');
+}
+
+function addCustomCourseDoc() {
+    const input = document.getElementById('courseCustomDocInput');
+    const name = input.value.trim();
+    if (!name) return;
+    const type = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    const container = document.getElementById('courseRequiredDocs');
+    // Check if already exists
+    if (container.querySelector('.course-doc-cb[value="' + type + '"]')) {
+        showNotification('This document already exists in the list', 'warning');
+        return;
+    }
+    const label = document.createElement('label');
+    label.style.cssText = 'display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;';
+    label.innerHTML = '<input type="checkbox" class="course-doc-cb" value="' + type + '" data-label="' + name + '" checked> ' + name;
+    container.appendChild(label);
+    input.value = '';
+}
+
+function getCourseRequiredDocs() {
+    const docs = [];
+    document.querySelectorAll('#courseRequiredDocs .course-doc-cb:checked').forEach(cb => {
+        docs.push({ type: cb.value, label: cb.getAttribute('data-label') || cb.value });
+    });
+    return docs;
+}
+
+function setCourseRequiredDocs(docs) {
+    document.querySelectorAll('#courseRequiredDocs .course-doc-cb').forEach(cb => {
+        cb.checked = false;
+        cb.parentElement.style.display = '';
+    });
+    if (!docs || !docs.length) return;
+    docs.forEach(doc => {
+        const type = typeof doc === 'string' ? doc : doc.type;
+        const label = typeof doc === 'string' ? doc : (doc.label || doc.type);
+        let cb = document.querySelector('#courseRequiredDocs .course-doc-cb[value="' + type + '"]');
+        if (!cb) {
+            // Add as custom if not in predefined list
+            const container = document.getElementById('courseRequiredDocs');
+            const lbl = document.createElement('label');
+            lbl.style.cssText = 'display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;';
+            lbl.innerHTML = '<input type="checkbox" class="course-doc-cb" value="' + type + '" data-label="' + label + '" checked> ' + label;
+            container.appendChild(lbl);
+        } else {
+            cb.checked = true;
+        }
+    });
 }
 
 async function editCourse(id) {
@@ -1638,6 +1689,7 @@ async function editCourse(id) {
             document.getElementById('courseFeeType').value = course.feeType || 'Per Program';
             document.getElementById('courseDesc').value = course.description || '';
             document.getElementById('courseEligibility').value = course.eligibility || '';
+            setCourseRequiredDocs(course.requiredDocuments || []);
             document.getElementById('courseModalTitle').textContent = 'Edit Course';
             document.getElementById('courseModal').classList.add('active');
         }
@@ -1653,7 +1705,8 @@ document.getElementById('courseForm').addEventListener('submit', async function(
         fee: parseInt(document.getElementById('courseFee').value),
         feeType: document.getElementById('courseFeeType').value,
         eligibility: document.getElementById('courseEligibility').value,
-        description: document.getElementById('courseDesc').value
+        description: document.getElementById('courseDesc').value,
+        requiredDocuments: getCourseRequiredDocs()
     };
     try {
         if (id) {
@@ -10331,6 +10384,7 @@ function renderStudentsTable(students) {
         html += '<div class="row-actions-menu" style="display:none;">';
         html += '<button onclick="openStudentProfile(' + s.id + ')"><i class="fas fa-eye"></i> View Profile</button>';
         html += '<button onclick="openUpdateStudentModal(' + s.id + ')"><i class="fas fa-edit"></i> Edit</button>';
+        html += '<button onclick="openStudentDocsModal(' + s.id + ')"><i class="fas fa-folder-open"></i> Documents' + getStudentDocsBadge(s) + '</button>';
         html += '<button onclick="openUpdateStudentIdModal(' + s.id + ')"><i class="fas fa-hashtag"></i> Update Student ID</button>';
         html += '<button onclick="showStudentQR(' + s.id + ')"><i class="fas fa-qrcode"></i> QR Code</button>';
         html += '<button onclick="printStudentForm(' + s.id + ')"><i class="fas fa-print"></i> Print Form</button>';
@@ -16819,5 +16873,257 @@ async function deleteSeLesson(idx) {
         await loadSeManagement();
     } catch (err) {
         alert('Error deleting lesson');
+    }
+}
+
+// ===== Student Documents Modal =====
+const DEFAULT_REQUIRED_DOCS = [
+    { type: 'aadhar', label: 'Aadhar Card' },
+    { type: 'photo', label: 'Photo' },
+    { type: 'signature', label: 'Signature' },
+    { type: '10th_marksheet', label: '10th Marksheet' }
+];
+
+let currentDocsStudentId = null;
+let currentDocsCourse = null;
+let currentDocsRequired = [];
+let currentDocsStudent = null;
+let pendingDocType = null;
+let pendingDocLabel = null;
+
+function normalizeStudentDocs(student) {
+    const docs = student.documents || [];
+    const labeled = {};
+    const unlabeled = [];
+    docs.forEach(doc => {
+        if (typeof doc === 'object' && doc.type) {
+            labeled[doc.type] = doc;
+        } else if (typeof doc === 'string') {
+            unlabeled.push({ type: 'other_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5), label: 'Other Document', path: doc, fileName: doc.split('/').pop() });
+        }
+    });
+    return { labeled, unlabeled };
+}
+
+function getStudentDocsBadge(student) {
+    const required = getRequiredDocsForStudent(student);
+    if (!required.length) return '';
+    const { labeled } = normalizeStudentDocs(student);
+    const uploaded = required.filter(r => labeled[r.type]).length;
+    const total = required.length;
+    const color = uploaded >= total ? '#16a34a' : '#dc2626';
+    return ' <span style="background:' + color + ';color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;">' + uploaded + '/' + total + '</span>';
+}
+
+function getRequiredDocsForStudent(student) {
+    if (!student || !student.course) return [];
+    // Try to find course in allStudents or fetch
+    // We use a cached courses list
+    if (!window._cachedCourses) return DEFAULT_REQUIRED_DOCS;
+    const course = window._cachedCourses.find(c => c.name === student.course);
+    if (course && course.requiredDocuments && course.requiredDocuments.length) {
+        return course.requiredDocuments;
+    }
+    return DEFAULT_REQUIRED_DOCS;
+}
+
+// Cache courses for doc badge calculation
+async function cacheCoursesForDocs() {
+    try {
+        window._cachedCourses = await fetch('/api/courses').then(r => r.json());
+    } catch (e) { window._cachedCourses = []; }
+}
+
+// Update loadStudentsTable to cache courses first
+const _originalLoadStudentsTable = loadStudentsTable;
+loadStudentsTable = async function() {
+    await cacheCoursesForDocs();
+    return _originalLoadStudentsTable();
+};
+
+async function openStudentDocsModal(studentId) {
+    currentDocsStudentId = studentId;
+    document.getElementById('studentDocsModal').classList.add('active');
+    
+    // Fetch student data
+    try {
+        const students = await fetch('/api/students').then(r => r.json());
+        const student = students.find(s => s.id == studentId);
+        if (!student) { showNotification('Student not found', 'error'); return; }
+        currentDocsStudent = student;
+        currentDocsCourse = student.course;
+        
+        // Fetch courses to get required docs
+        if (!window._cachedCourses) await cacheCoursesForDocs();
+        const course = window._cachedCourses.find(c => c.name === student.course);
+        currentDocsRequired = (course && course.requiredDocuments && course.requiredDocuments.length) 
+            ? course.requiredDocuments 
+            : DEFAULT_REQUIRED_DOCS;
+        
+        // Render info
+        const infoEl = document.getElementById('studentDocsInfo');
+        infoEl.innerHTML = '<div style="display:flex;align-items:center;gap:12px;">' +
+            (student.photo ? '<img src="' + student.photo + '" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0;">' : '<i class="fas fa-user-circle" style="font-size:2rem;color:#94a3b8;"></i>') +
+            '<div><div style="font-weight:600;font-size:16px;color:#1e293b;">' + student.name + '</div>' +
+            '<div style="font-size:13px;color:#64748b;">' + (student.rollNo || 'No ID') + ' &bull; ' + (student.course || 'No Course') + '</div></div></div>';
+        
+        renderStudentDocsList();
+    } catch (err) {
+        console.error('Error opening docs modal:', err);
+        showNotification('Error loading student data', 'error');
+    }
+}
+
+function renderStudentDocsList() {
+    const listEl = document.getElementById('studentDocsList');
+    if (!currentDocsStudent) return;
+    
+    const { labeled, unlabeled } = normalizeStudentDocs(currentDocsStudent);
+    let html = '';
+    
+    // Required documents section
+    html += '<div style="margin-bottom:16px;"><div style="font-weight:600;font-size:14px;color:#1e293b;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #e2e8f0;"><i class="fas fa-clipboard-list" style="color:#f59e0b;margin-right:6px;"></i>Required Documents</div>';
+    
+    currentDocsRequired.forEach(req => {
+        const doc = labeled[req.type];
+        if (doc) {
+            html += renderDocItem(doc, true);
+        } else {
+            html += renderMissingDoc(req);
+        }
+    });
+    html += '</div>';
+    
+    // Other/unlabeled documents
+    if (unlabeled.length > 0) {
+        html += '<div style="margin-bottom:16px;"><div style="font-weight:600;font-size:14px;color:#1e293b;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #e2e8f0;"><i class="fas fa-folder" style="color:#64748b;margin-right:6px;"></i>Other Documents</div>';
+        unlabeled.forEach(doc => {
+            html += renderDocItem(doc, true);
+        });
+        html += '</div>';
+    }
+    
+    // Extra labeled docs not in required list
+    const extraDocs = Object.values(labeled).filter(doc => 
+        !currentDocsRequired.some(r => r.type === doc.type)
+    );
+    if (extraDocs.length > 0) {
+        html += '<div style="margin-bottom:16px;"><div style="font-weight:600;font-size:14px;color:#1e293b;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #e2e8f0;"><i class="fas fa-paperclip" style="color:#0284c7;margin-right:6px;"></i>Additional Uploaded Documents</div>';
+        extraDocs.forEach(doc => {
+            html += renderDocItem(doc, true);
+        });
+        html += '</div>';
+    }
+    
+    listEl.innerHTML = html;
+}
+
+function renderDocItem(doc, allowDelete) {
+    const ext = (doc.path || '').split('.').pop().toLowerCase();
+    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+    const icon = isImage ? 'fa-image' : (ext === 'pdf' ? 'fa-file-pdf' : 'fa-file-alt');
+    const iconColor = isImage ? '#0284c7' : (ext === 'pdf' ? '#dc2626' : '#64748b');
+    
+    let html = '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px;">';
+    html += '<i class="fas ' + icon + '" style="font-size:1.5rem;color:' + iconColor + ';width:24px;text-align:center;"></i>';
+    html += '<div style="flex:1;min-width:0;">';
+    html += '<div style="font-weight:600;font-size:13px;color:#1e293b;">' + (doc.label || doc.type || 'Document') + '</div>';
+    html += '<div style="font-size:11px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (doc.fileName || (doc.path || '').split('/').pop()) + '</div>';
+    if (doc.uploadedAt) {
+        html += '<div style="font-size:10px;color:#94a3b8;">Uploaded: ' + new Date(doc.uploadedAt).toLocaleDateString('en-IN') + (doc.uploadedBy ? ' by ' + doc.uploadedBy : '') + '</div>';
+    }
+    html += '</div>';
+    html += '<a href="' + doc.path + '" target="_blank" style="padding:6px 12px;background:#0284c7;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap;"><i class="fas fa-eye"></i> View</a>';
+    html += '<button onclick="triggerDocReplace(\'' + doc.type + '\')" style="padding:6px 12px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-sync-alt"></i> Replace</button>';
+    if (allowDelete) {
+        html += '<button onclick="deleteStudentDoc(\'' + doc.type + '\')" style="padding:6px 12px;background:#dc2626;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-trash"></i> Delete</button>';
+    }
+    html += '</div>';
+    return html;
+}
+
+function renderMissingDoc(req) {
+    let html = '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:#fef2f2;border:1px dashed #fca5a5;border-radius:8px;margin-bottom:8px;">';
+    html += '<i class="fas fa-exclamation-circle" style="font-size:1.5rem;color:#dc2626;width:24px;text-align:center;"></i>';
+    html += '<div style="flex:1;"><div style="font-weight:600;font-size:13px;color:#1e293b;">' + req.label + '</div>';
+    html += '<div style="font-size:11px;color:#dc2626;">Not uploaded yet</div></div>';
+    html += '<button onclick="triggerDocUpload(\'' + req.type + '\',\'' + (req.label || '').replace(/'/g, "\\'") + '\')" style="padding:6px 16px;background:#16a34a;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-upload"></i> Upload</button>';
+    html += '</div>';
+    return html;
+}
+
+function triggerDocUpload(docType, docLabel) {
+    pendingDocType = docType;
+    pendingDocLabel = docLabel;
+    const fileInput = document.getElementById('studentDocFileInput');
+    fileInput.value = '';
+    fileInput.onchange = function() { uploadStudentDoc(); };
+    fileInput.click();
+}
+
+function triggerDocReplace(docType) {
+    const req = currentDocsRequired.find(r => r.type === docType);
+    pendingDocType = docType;
+    pendingDocLabel = req ? req.label : docType;
+    const fileInput = document.getElementById('studentDocFileInput');
+    fileInput.value = '';
+    fileInput.onchange = function() { uploadStudentDoc(); };
+    fileInput.click();
+}
+
+async function uploadStudentDoc() {
+    const fileInput = document.getElementById('studentDocFileInput');
+    const file = fileInput.files[0];
+    if (!file) return;
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('File size exceeds 5MB limit', 'error');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('docType', pendingDocType);
+    formData.append('docLabel', pendingDocLabel || pendingDocType);
+    formData.append('uploadedBy', 'Admin');
+    
+    try {
+        const res = await fetch('/api/students/' + currentDocsStudentId + '/documents', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Document uploaded successfully!', 'success');
+            currentDocsStudent.documents = data.documents;
+            renderStudentDocsList();
+            loadStudentsTable();
+        } else {
+            showNotification(data.message || 'Error uploading document', 'error');
+        }
+    } catch (err) {
+        showNotification('Error uploading document', 'error');
+    }
+}
+
+async function deleteStudentDoc(docType) {
+    if (!confirm('Are you sure you want to delete this document? This cannot be undone.')) return;
+    try {
+        const res = await fetch('/api/students/' + currentDocsStudentId + '/documents/' + docType, {
+            method: 'DELETE',
+            headers: { 'X-Admin-Session': sessionStorage.getItem('adminSessionToken') }
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Document deleted', 'success');
+            currentDocsStudent.documents = data.documents;
+            renderStudentDocsList();
+            loadStudentsTable();
+        } else {
+            showNotification(data.message || 'Error deleting document', 'error');
+        }
+    } catch (err) {
+        showNotification('Error deleting document', 'error');
     }
 }

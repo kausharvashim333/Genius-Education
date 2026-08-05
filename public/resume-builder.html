@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume Builder - Genius Computer Education</title>
+<link rel="stylesheet" href="css/style.css?v=20260719">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+.rb-page{min-height:100vh;padding:100px 20px 40px}
+.rb-header{text-align:center;margin-bottom:30px}
+.rb-header h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.rb-header p{color:rgba(255,255,255,.6);font-size:.95rem}
+.rb-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1200px;margin:0 auto}
+@media(max-width:900px){.rb-layout{grid-template-columns:1fr}}
+.rb-form-panel,.rb-preview-panel{background:rgba(255,255,255,.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:24px;max-height:calc(100vh - 180px);overflow-y:auto}
+.rb-form-panel::-webkit-scrollbar,.rb-preview-panel::-webkit-scrollbar{width:6px}
+.rb-form-panel::-webkit-scrollbar-thumb,.rb-preview-panel::-webkit-scrollbar-thumb{background:rgba(102,126,234,.4);border-radius:3px}
+.rb-section-title{font-size:1rem;font-weight:600;color:#a5b4fc;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(102,126,234,.2);display:flex;align-items:center;gap:8px}
+.rb-section-title:first-child{margin-top:0}
+.rb-field{margin-bottom:12px}
+.rb-field label{display:block;font-size:.8rem;color:rgba(255,255,255,.6);margin-bottom:4px}
+.rb-field input,.rb-field textarea,.rb-field select{width:100%;padding:10px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:.85rem;font-family:inherit;box-sizing:border-box}
+.rb-field input,.rb-field select{height:40px}
+.rb-field input:focus,.rb-field textarea:focus,.rb-field select:focus{outline:none;border-color:#667eea}
+.rb-field select{cursor:pointer;-webkit-appearance:auto;appearance:auto}
+.rb-field textarea{resize:vertical;min-height:60px}
+.rb-two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rb-add-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(102,126,234,.2);border:1px solid rgba(102,126,234,.4);border-radius:8px;color:#a5b4fc;font-size:.8rem;cursor:pointer;margin-top:4px}
+.rb-add-btn:hover{background:rgba(102,126,234,.35)}
+.rb-hint{font-size:.72rem;color:rgba(255,255,255,.4);margin:-4px 0 8px 1px;line-height:1.4;display:flex;align-items:flex-start;gap:5px}
+.rb-hint i{color:#f59e0b;margin-top:2px;flex-shrink:0}
+.rb-ai-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:8px;color:#fff;font-size:.78rem;cursor:pointer;margin-bottom:10px}
+.rb-ai-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(102,126,234,.4)}
+.rb-ai-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.rb-ai-modal.active{display:flex}
+.rb-ai-modal-box{background:#1a1a2e;border:1px solid rgba(102,126,234,.3);border-radius:16px;padding:28px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto}
+.rb-ai-modal-title{font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.rb-ai-modal-sub{font-size:.8rem;color:rgba(255,255,255,.5);margin-bottom:18px}
+.rb-ai-q{margin-bottom:14px}
+.rb-ai-q label{display:block;font-size:.82rem;color:#a5b4fc;margin-bottom:5px;font-weight:500}
+.rb-ai-q input,.rb-ai-q textarea,.rb-ai-q select{width:100%;padding:10px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:.85rem;font-family:inherit}
+.rb-ai-q input:focus,.rb-ai-q textarea:focus,.rb-ai-q select:focus{outline:none;border-color:#667eea}
+.rb-ai-q select{-webkit-appearance:auto;appearance:auto;cursor:pointer}
+.rb-ai-actions{display:flex;gap:10px;margin-top:18px}
+.rb-ai-actions button{flex:1;padding:10px;border-radius:8px;font-size:.85rem;cursor:pointer;border:none;font-weight:600}
+.rb-ai-generate{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+.rb-ai-cancel{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.15)!important}
+.rb-remove-btn{color:#f87171;cursor:pointer;font-size:.85rem;background:none;border:none;position:absolute;top:10px;right:10px}
+.rb-entry-block{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;margin-bottom:12px;position:relative}
+.rb-template-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.rb-template-btn{padding:6px 14px;border-radius:8px;font-size:.8rem;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.7)}
+.rb-template-btn.active{background:rgba(102,126,234,.3);border-color:rgba(102,126,234,.5);color:#fff}
+.rb-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.rb-btn{padding:12px 24px;border-radius:10px;font-size:.9rem;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:8px}
+.rb-btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+.rb-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(102,126,234,.4)}
+.rb-btn-secondary{background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15)}
+#resumePreview{background:#fff;color:#333;border-radius:8px;overflow:hidden;font-family:'Segoe UI',sans-serif;transition:transform .2s}
+.rt{padding:20px 24px;min-height:400px;color:var(--rb-text,#333)}
+.rt .r-section{margin-bottom:10px;break-inside:avoid;page-break-inside:avoid}
+.rt .r-item{margin-bottom:6px;break-inside:avoid;page-break-inside:avoid}
+.rt .r-name{font-size:1.35rem;font-weight:700;margin-bottom:1px;color:var(--rb-text,#333)}
+.rt .r-title{font-size:.82rem;color:var(--rb-accent,var(--rb-color,#667eea));margin-bottom:6px}
+.rt .r-contact{font-size:.7rem;color:#666;display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.rt .r-section-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--rb-text,#333);border-bottom:2px solid var(--rb-color-border,var(--rb-color,#667eea));padding-bottom:3px;margin-bottom:5px}
+.rt .r-summary{font-size:.74rem;line-height:1.4;color:var(--rb-text,#555)}
+.rt .r-item-header{display:flex;justify-content:space-between;align-items:baseline}
+.rt .r-item-title{font-size:.78rem;font-weight:600;color:var(--rb-text,#333)}
+.rt .r-item-subtitle{font-size:.72rem;color:var(--rb-accent,var(--rb-color,#667eea))}
+.rt .r-item-date{font-size:.68rem;color:#999}
+.rt .r-item-desc{font-size:.72rem;color:var(--rb-text,#555);margin-top:1px;line-height:1.35}
+.rt .r-skills{display:flex;flex-wrap:wrap;gap:6px}
+.rt .r-skill-tag{font-size:.72rem;padding:3px 10px;background:var(--rb-color-light,rgba(102,126,234,.1));border:1px solid var(--rb-color-border,rgba(102,126,234,.2));border-radius:12px;color:#555}
+.rt .r-skill-cat{margin-bottom:3px;font-size:.72rem;line-height:1.3}
+.rt .r-skill-cat-label{font-weight:700;color:#777;margin-right:4px}
+.rt .r-skill-cat-label i{font-size:.6rem;color:var(--rb-color,#667eea);margin-right:3px}
+.rt .r-skill-list{color:#555}
+.rt-sidebar .r-sidebar .r-skill-cat-label{color:rgba(255,255,255,.7)}
+.rt-sidebar .r-sidebar .r-skill-cat-label i{color:#a5b4fc}
+.rt-sidebar .r-sidebar .r-skill-list{color:rgba(255,255,255,.85)}
+.rt-classic .r-section-title{border-bottom:2px solid #333;color:#333}
+.rt-classic .r-title{color:#333}
+.rt-sidebar{display:grid;grid-template-columns:180px 1fr;padding:0}
+.rt-sidebar .r-sidebar{background:var(--rb-sidebar-bg,#1a1a2e);color:#fff;padding:18px 14px}
+.rt-sidebar .r-sidebar .r-name{color:#fff;font-size:1.2rem}
+.rt-sidebar .r-sidebar .r-title{color:#a5b4fc}
+.rt-sidebar .r-sidebar .r-contact{color:rgba(255,255,255,.7);flex-direction:column;gap:6px}
+.rt-sidebar .r-sidebar .r-section-title{color:#a5b4fc;border-bottom-color:rgba(255,255,255,.2)}
+.rt-sidebar .r-sidebar .r-skill-tag{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}
+.rt-sidebar .r-main{padding:18px 16px}
+.rt-sidebar .r-main .r-section-title{color:#1a1a2e;border-bottom-color:var(--rb-color,#667eea)}
+
+/* Photo upload */
+.rb-photo-upload{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.rb-photo-preview{width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.08);border:2px dashed rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;flex-shrink:0}
+.rb-photo-preview img{width:100%;height:100%;object-fit:cover}
+.rb-photo-preview i{color:rgba(255,255,255,.4);font-size:1.5rem}
+.rb-photo-btns{display:flex;flex-direction:column;gap:6px}
+.rb-photo-btn{font-size:.75rem;padding:5px 10px;border-radius:6px;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.7)}
+.rb-photo-btn:hover{background:rgba(255,255,255,.1)}
+
+/* Color picker */
+.rb-color-bar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.rb-color-label{font-size:.78rem;color:rgba(255,255,255,.5);margin-right:4px}
+.rb-color-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.rb-color-dot.active{border-color:#fff;transform:scale(1.15)}
+
+/* Progress bar */
+.rb-progress{margin-bottom:16px}
+.rb-progress-label{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:6px;display:flex;justify-content:space-between}
+.rb-progress-bar{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.rb-progress-fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:3px;transition:width .4s}
+
+/* Section toggle */
+.rb-section-title .rb-toggle{margin-left:auto;font-size:.72rem;color:rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;gap:4px}
+.rb-toggle-switch{width:32px;height:18px;border-radius:9px;background:rgba(255,255,255,.1);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.rb-toggle-switch.on{background:rgba(102,126,234,.5)}
+.rb-toggle-switch::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .2s}
+.rb-toggle-switch.on::after{transform:translateX(14px)}
+
+/* Font bar */
+.rb-font-bar{display:flex;gap:6px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.rb-font-btn{padding:4px 12px;border-radius:6px;font-size:.75rem;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.7)}
+.rb-font-btn.active{background:rgba(102,126,234,.3);border-color:rgba(102,126,234,.5);color:#fff}
+
+/* Tabs */
+.rb-tabs{display:flex;gap:4px;margin-bottom:16px;background:rgba(255,255,255,.04);border-radius:10px;padding:4px}
+.rb-tab{flex:1;padding:8px 4px;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s}
+.rb-tab i{font-size:.8rem}
+.rb-tab.active{background:rgba(102,126,234,.3);color:#fff}
+.rb-tab:hover:not(.active){background:rgba(255,255,255,.06);color:rgba(255,255,255,.7)}
+.rb-tab-content{display:none}
+.rb-tab-content.active{display:block}
+
+/* Resume bar */
+.rb-resume-bar{display:flex;gap:6px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.rb-resume-bar select{padding:6px 10px;border-radius:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:.8rem;cursor:pointer;flex:1;min-width:120px}
+.rb-resume-btn{width:30px;height:30px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
+.rb-resume-btn:hover{background:rgba(255,255,255,.1)}
+
+/* Score box */
+.rb-score-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;margin-bottom:16px}
+.rb-score-header{font-size:.85rem;font-weight:600;color:#a5b4fc;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rb-score-circle{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;margin:0 auto 10px;border:3px solid}
+.rb-score-circle.good{border-color:#4ade80;color:#4ade80}
+.rb-score-circle.ok{border-color:#f59e0b;color:#f59e0b}
+.rb-score-circle.low{border-color:#f87171;color:#f87171}
+.rb-score-tips{font-size:.72rem;color:rgba(255,255,255,.5);line-height:1.5}
+.rb-score-tip{margin-bottom:4px;display:flex;align-items:flex-start;gap:5px}
+.rb-score-tip i{color:#f59e0b;margin-top:2px;flex-shrink:0;font-size:.6rem}
+.rb-score-tip.good i{color:#4ade80}
+
+/* Section order list */
+.rb-order-list{margin-bottom:14px}
+.rb-order-item{display:flex;align-items:center;gap:6px;padding:6px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;margin-bottom:4px;font-size:.78rem;color:rgba(255,255,255,.7);cursor:grab}
+.rb-order-item:hover{background:rgba(255,255,255,.08)}
+.rb-order-item:active{cursor:grabbing}
+.rb-order-item .fa-grip-vertical{color:rgba(255,255,255,.3);font-size:.7rem}
+.rb-order-up,.rb-order-down{margin-left:auto;width:24px;height:24px;border-radius:4px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.65rem}
+.rb-order-up:hover,.rb-order-down:hover{background:rgba(102,126,234,.2);color:#fff}
+.rb-order-up:disabled,.rb-order-down:disabled{opacity:.3;cursor:not-allowed}
+
+/* Zoom controls */
+.rb-zoom-bar{display:flex;gap:6px;align-items:center;margin-bottom:10px;justify-content:flex-end}
+.rb-zoom-btn{width:30px;height:30px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem}
+.rb-zoom-btn:hover{background:rgba(255,255,255,.1)}
+.rb-zoom-label{font-size:.75rem;color:rgba(255,255,255,.4);min-width:36px;text-align:center}
+
+/* Additional social links */
+.rb-three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:600px){.rb-three-col{grid-template-columns:1fr}}
+
+/* Resume photo in preview */
+.rt .r-photo{width:75px;height:75px;border-radius:50%;object-fit:cover;margin-bottom:8px;border:3px solid var(--rb-color,#667eea)}
+.rt-sidebar .r-photo{width:70px;height:70px;border-color:#a5b4fc;margin:0 auto 8px;display:block}
+.rt-minimal .r-photo{border-color:#333}
+.rt-classic .r-photo{border-color:#333}
+
+/* Languages section */
+.rt .r-lang-list{font-size:.72rem;line-height:1.3;color:#555}
+
+/* Hobbies */
+.rt .r-hobby-list{font-size:.72rem;line-height:1.3;color:#555}
+
+/* Achievements */
+.rt .r-achieve{margin-bottom:5px;padding-left:14px;position:relative}
+.rt .r-achieve::before{content:'\f005';font-family:'Font Awesome 6 Free';font-weight:900;position:absolute;left:0;top:0;font-size:.6rem;color:#f59e0b}
+
+/* Declaration */
+.rt .r-declaration{font-size:.72rem;line-height:1.4;color:#555;font-style:italic;margin-bottom:6px}
+.rt .r-decl-meta{display:flex;justify-content:space-between;align-items:flex-end;font-size:.7rem;color:#666;margin-top:5px}
+.rt .r-decl-left{display:flex;flex-direction:column;gap:2px}
+.rt .r-decl-right{text-align:right}
+.rt .r-decl-sign{font-weight:600;font-style:italic;color:#333;font-size:.78rem;border-top:1px solid #999;padding-top:2px;min-width:100px}
+.rt-sidebar .r-sidebar .r-declaration{color:rgba(255,255,255,.7)}
+.rt-sidebar .r-sidebar .r-decl-meta{color:rgba(255,255,255,.6)}
+.rt-sidebar .r-sidebar .r-decl-sign{color:#fff;border-top-color:rgba(255,255,255,.3)}
+
+/* Minimal template */
+.rt-minimal .r-name{font-size:1.3rem;font-weight:600;letter-spacing:.5px}
+.rt-minimal .r-section-title{border-bottom:1px solid #ddd;text-transform:none;font-size:.78rem}
+.rt-minimal .r-title{color:#555;font-weight:400}
+
+/* Professional template */
+.rt-professional{padding:0}
+.rt-professional .r-header{background:var(--rb-sidebar-bg,#1a1a2e);color:#fff;padding:20px 24px 14px}
+.rt-professional .r-header .r-name{color:#fff;font-size:1.4rem}
+.rt-professional .r-header .r-title{color:#a5b4fc}
+.rt-professional .r-header .r-contact{color:rgba(255,255,255,.7)}
+.rt-professional .r-body{padding:14px 24px 18px}
+.rt-professional .r-section-title{color:#1a1a2e;border-bottom-color:#1a1a2e}
+
+/* Creative template - redesigned */
+.rt-creative{padding:0;overflow:hidden}
+.rt-creative .r-creative-header{background:linear-gradient(135deg,var(--rb-color,#667eea),var(--rb-color-dark,#764ba2));padding:22px 24px 18px;color:#fff;position:relative}
+.rt-creative .r-creative-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent)}
+.rt-creative .r-creative-photo{float:right;margin-left:16px}
+.rt-creative .r-creative-photo .r-photo{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.6);margin-bottom:0}
+.rt-creative .r-creative-info{overflow:hidden}
+.rt-creative .r-creative-info .r-name{font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:2px;letter-spacing:.5px}
+.rt-creative .r-creative-info .r-title{font-size:.85rem;color:rgba(255,255,255,.85);margin-bottom:8px;font-weight:500}
+.rt-creative .r-creative-info .r-contact{font-size:.7rem;color:rgba(255,255,255,.8);margin-bottom:0}
+.rt-creative .r-creative-info .r-contact i{color:rgba(255,255,255,.9)}
+.rt-creative .r-creative-body{display:grid;grid-template-columns:35% 1fr;min-height:300px}
+.rt-creative .r-creative-left{background:rgba(102,126,234,.06);padding:16px 14px;border-right:2px solid rgba(102,126,234,.12)}
+.rt-creative .r-creative-right{padding:16px 18px}
+.rt-creative .r-creative-left .r-section{margin-bottom:12px}
+.rt-creative .r-creative-right .r-section{margin-bottom:10px}
+.rt-creative .r-section-title{background:linear-gradient(135deg,var(--rb-color,#667eea),var(--rb-color-dark,#764ba2));color:#fff;padding:5px 12px;border-radius:20px;display:inline-block;font-size:.72rem;font-weight:700;border:none;margin-bottom:6px}
+.rt-creative .r-creative-left .r-section-title{font-size:.68rem;padding:4px 10px}
+.rt-creative .r-creative-left .r-skill-cat{font-size:.7rem;line-height:1.5}
+.rt-creative .r-creative-left .r-skill-cat-label{color:var(--rb-color,#667eea);font-weight:700}
+.rt-creative .r-creative-left .r-skill-list{color:#555}
+.rt-creative .r-creative-left .r-lang-list{font-size:.7rem;color:#555;line-height:1.5}
+.rt-creative .r-creative-left .r-hobby-list{font-size:.7rem;color:#555;line-height:1.5}
+.rt-creative .r-creative-left .r-item{margin-bottom:5px}
+.rt-creative .r-creative-left .r-item-title{font-size:.72rem}
+.rt-creative .r-creative-left .r-item-subtitle{font-size:.68rem}
+.rt-creative .r-creative-left .r-item-date{font-size:.65rem}
+.rt-creative .r-creative-right .r-summary{font-size:.74rem;line-height:1.45;color:#555}
+.rt-creative .r-creative-right .r-item{margin-bottom:6px;padding-left:12px;border-left:2px solid var(--rb-color,#667eea)}
+.rt-creative .r-creative-right .r-item-title{font-size:.78rem;font-weight:700;color:#333}
+.rt-creative .r-creative-right .r-item-subtitle{font-size:.72rem;color:var(--rb-color,#667eea);font-weight:500}
+.rt-creative .r-creative-right .r-item-date{font-size:.66rem;color:#999}
+.rt-creative .r-creative-right .r-item-desc{font-size:.72rem;color:#555;line-height:1.35}
+.rt-creative .r-creative-right .r-declaration{font-size:.7rem;color:#555;font-style:italic}
+.rt-creative .r-creative-right .r-decl-meta{font-size:.68rem}
+.rt-creative .r-creative-right .r-decl-sign{color:#333}
+.rt-creative .r-achieve{padding-left:14px}
+.rt-creative .r-achieve::before{color:var(--rb-color,#667eea)}
+
+/* Compact levels for PDF - progressive space reduction */
+.compact-1 .rt{padding:14px 18px}
+.compact-1 .rt .r-section{margin-bottom:7px}
+.compact-1 .rt .r-item{margin-bottom:4px}
+.compact-1 .rt .r-name{font-size:1.2rem}
+.compact-1 .rt .r-title{font-size:.76rem;margin-bottom:4px}
+.compact-1 .rt .r-contact{font-size:.66rem;gap:8px;margin-bottom:7px}
+.compact-1 .rt .r-section-title{font-size:.73rem;margin-bottom:4px;padding-bottom:2px}
+.compact-1 .rt .r-summary{font-size:.7rem;line-height:1.3}
+.compact-1 .rt .r-item-title{font-size:.73rem}
+.compact-1 .rt .r-item-subtitle{font-size:.68rem}
+.compact-1 .rt .r-item-desc{font-size:.68rem;line-height:1.3}
+.compact-1 .rt .r-skill-cat{font-size:.68rem;margin-bottom:2px}
+.compact-1 .rt .r-photo{width:65px;height:65px;margin-bottom:6px}
+.compact-1 .rt .r-declaration{font-size:.68rem;line-height:1.3;margin-bottom:4px}
+.compact-1 .rt .r-decl-meta{font-size:.66rem;margin-top:3px}
+.compact-1 .rt .r-hobby-list{font-size:.68rem}
+.compact-1 .rt .r-lang-list{font-size:.68rem}
+.compact-1 .rt-sidebar .r-sidebar{padding:14px 10px}
+.compact-1 .rt-sidebar .r-main{padding:14px 12px}
+.compact-1 .rt-creative .r-creative-header{padding:16px 18px 12px}
+.compact-1 .rt-creative .r-creative-body{grid-template-columns:38% 1fr}
+.compact-1 .rt-creative .r-creative-left{padding:12px 10px}
+.compact-1 .rt-creative .r-creative-right{padding:12px 14px}
+.compact-1 .rt-creative .r-creative-photo .r-photo{width:65px;height:65px}
+
+.compact-2 .rt{padding:10px 14px}
+.compact-2 .rt .r-section{margin-bottom:5px}
+.compact-2 .rt .r-item{margin-bottom:3px}
+.compact-2 .rt .r-name{font-size:1.1rem}
+.compact-2 .rt .r-title{font-size:.7rem;margin-bottom:3px}
+.compact-2 .rt .r-contact{font-size:.62rem;gap:6px;margin-bottom:5px}
+.compact-2 .rt .r-section-title{font-size:.68rem;margin-bottom:3px;padding-bottom:2px}
+.compact-2 .rt .r-summary{font-size:.65rem;line-height:1.25}
+.compact-2 .rt .r-item-title{font-size:.68rem}
+.compact-2 .rt .r-item-subtitle{font-size:.63rem}
+.compact-2 .rt .r-item-desc{font-size:.63rem;line-height:1.25;margin-top:1px}
+.compact-2 .rt .r-skill-cat{font-size:.63rem;margin-bottom:1px}
+.compact-2 .rt .r-photo{width:55px;height:55px;margin-bottom:4px}
+.compact-2 .rt .r-declaration{font-size:.63rem;line-height:1.25;margin-bottom:3px}
+.compact-2 .rt .r-decl-meta{font-size:.62rem;margin-top:2px}
+.compact-2 .rt .r-lang-list{font-size:.63rem}
+.compact-2 .rt .r-hobby-list{font-size:.63rem}
+.compact-2 .rt-sidebar .r-sidebar{padding:10px 8px}
+.compact-2 .rt-sidebar .r-main{padding:10px 10px}
+.compact-2 .rt-creative .r-creative-header{padding:12px 14px 10px}
+.compact-2 .rt-creative .r-creative-body{grid-template-columns:40% 1fr}
+.compact-2 .rt-creative .r-creative-left{padding:10px 8px}
+.compact-2 .rt-creative .r-creative-right{padding:10px 12px}
+.compact-2 .rt-creative .r-creative-photo .r-photo{width:55px;height:55px}
+
+.compact-3 .rt{padding:8px 12px}
+.compact-3 .rt .r-section{margin-bottom:3px}
+.compact-3 .rt .r-item{margin-bottom:2px}
+.compact-3 .rt .r-name{font-size:1rem}
+.compact-3 .rt .r-title{font-size:.65rem;margin-bottom:2px}
+.compact-3 .rt .r-contact{font-size:.58rem;gap:5px;margin-bottom:4px}
+.compact-3 .rt .r-section-title{font-size:.63rem;margin-bottom:2px;padding-bottom:1px}
+.compact-3 .rt .r-summary{font-size:.6rem;line-height:1.2}
+.compact-3 .rt .r-item-title{font-size:.63rem}
+.compact-3 .rt .r-item-subtitle{font-size:.58rem}
+.compact-3 .rt .r-item-desc{font-size:.58rem;line-height:1.2;margin-top:0}
+.compact-3 .rt .r-skill-cat{font-size:.58rem;margin-bottom:1px}
+.compact-3 .rt .r-photo{width:48px;height:48px;margin-bottom:3px}
+.compact-3 .rt .r-declaration{font-size:.58rem;line-height:1.2;margin-bottom:2px}
+.compact-3 .rt .r-decl-meta{font-size:.56rem;margin-top:2px}
+.compact-3 .rt .r-lang-list{font-size:.58rem}
+.compact-3 .rt .r-hobby-list{font-size:.58rem}
+.compact-3 .rt-sidebar .r-sidebar{padding:8px 6px}
+.compact-3 .rt-sidebar .r-main{padding:8px 8px}
+.compact-3 .rt-creative .r-creative-header{padding:10px 12px 8px}
+.compact-3 .rt-creative .r-creative-body{grid-template-columns:42% 1fr}
+.compact-3 .rt-creative .r-creative-left{padding:8px 6px}
+.compact-3 .rt-creative .r-creative-right{padding:8px 10px}
+.compact-3 .rt-creative .r-creative-photo .r-photo{width:48px;height:48px}
+
+/* Expand levels - when content is small, increase font sizes and spacing */
+.expand-1 .rt{padding:28px 32px}
+.expand-1 .rt .r-section{margin-bottom:14px}
+.expand-1 .rt .r-item{margin-bottom:9px}
+.expand-1 .rt .r-name{font-size:1.6rem}
+.expand-1 .rt .r-title{font-size:.95rem;margin-bottom:10px}
+.expand-1 .rt .r-contact{font-size:.82rem;gap:14px;margin-bottom:14px}
+.expand-1 .rt .r-section-title{font-size:.92rem;margin-bottom:8px;padding-bottom:4px}
+.expand-1 .rt .r-summary{font-size:.88rem;line-height:1.5}
+.expand-1 .rt .r-item-title{font-size:.92rem}
+.expand-1 .rt .r-item-subtitle{font-size:.85rem}
+.expand-1 .rt .r-item-desc{font-size:.85rem;line-height:1.5;margin-top:2px}
+.expand-1 .rt .r-skill-cat{font-size:.85rem;margin-bottom:5px}
+.expand-1 .rt .r-photo{width:90px;height:90px;margin-bottom:10px}
+.expand-1 .rt .r-declaration{font-size:.85rem;line-height:1.5;margin-bottom:8px}
+.expand-1 .rt .r-decl-meta{font-size:.82rem;margin-top:8px}
+.expand-1 .rt .r-lang-list{font-size:.85rem}
+.expand-1 .rt .r-hobby-list{font-size:.85rem}
+.expand-1 .rt-sidebar .r-sidebar{padding:24px 18px}
+.expand-1 .rt-sidebar .r-main{padding:24px 20px}
+
+.expand-2 .rt{padding:36px 40px}
+.expand-2 .rt .r-section{margin-bottom:18px}
+.expand-2 .rt .r-item{margin-bottom:12px}
+.expand-2 .rt .r-name{font-size:1.9rem}
+.expand-2 .rt .r-title{font-size:1.1rem;margin-bottom:12px}
+.expand-2 .rt .r-contact{font-size:.95rem;gap:18px;margin-bottom:18px}
+.expand-2 .rt .r-section-title{font-size:1.05rem;margin-bottom:10px;padding-bottom:5px}
+.expand-2 .rt .r-summary{font-size:1rem;line-height:1.6}
+.expand-2 .rt .r-item-title{font-size:1.05rem}
+.expand-2 .rt .r-item-subtitle{font-size:.95rem}
+.expand-2 .rt .r-item-desc{font-size:.95rem;line-height:1.6;margin-top:3px}
+.expand-2 .rt .r-skill-cat{font-size:.95rem;margin-bottom:7px}
+.expand-2 .rt .r-photo{width:105px;height:105px;margin-bottom:14px}
+.expand-2 .rt .r-declaration{font-size:.95rem;line-height:1.6;margin-bottom:12px}
+.expand-2 .rt .r-decl-meta{font-size:.92rem;margin-top:12px}
+.expand-2 .rt .r-lang-list{font-size:.95rem}
+.expand-2 .rt .r-hobby-list{font-size:.95rem}
+.expand-2 .rt-sidebar .r-sidebar{padding:30px 22px}
+.expand-2 .rt-sidebar .r-main{padding:30px 26px}
+
+/* Print */
+@media print{
+    @page{margin:0;size:A4}
+    html,body{margin:0!important;padding:0!important;background:#fff!important;overflow:hidden!important;width:210mm;height:297mm}
+    body > *:not(#printContainer){display:none!important}
+    #printContainer{display:block!important;width:210mm;height:297mm;overflow:hidden;background:#fff}
+    #printContainer .rt{min-height:auto!important}
+}
+
+@media(max-width:600px){.rt-sidebar{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="container">
+        <div class="nav-brand">
+            <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22%3EG%3C/text%3E%3C/svg%3E" alt="Logo" class="nav-logo" style="display:block;max-height:45px;max-width:45px;height:auto;width:auto;border-radius:10px;">
+            <a href="index.html">Genius Computer Education</a>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="courses.html">Courses</a></li>
+            <li><a href="index.html#about">About Us</a></li>
+            <li><a href="index.html#blog">Blog</a></li>
+            <li><a href="index.html#contact">Contact</a></li>
+            <li class="nav-tools-link"><a href="tools.html"><i class="fas fa-tools"></i> Tools</a></li>
+            <li class="nav-portals-dropdown">
+                <a href="#" class="nav-cta nav-portals-toggle" onclick="togglePortalsDropdown(event)">
+                    <i class="fas fa-th-large icon-3d"></i> Portals <i class="fas fa-chevron-down portals-chevron"></i>
+                </a>
+                <div class="portals-dropdown-menu" id="portalsDropdownMenu">
+                    <a href="typing-practice.html?guide=true&selectLang=true&app=1" onclick="openTypingFullscreen(event); closePortalsDropdown();">
+                        <i class="fas fa-keyboard"></i><span>Typing Practice</span>
+                    </a>
+                    <a href="resume-builder.html" onclick="closePortalsDropdown()">
+                        <i class="fas fa-file-alt"></i><span>Resume Builder</span>
+                    </a>
+                    <a href="interview-practice.html" onclick="closePortalsDropdown()">
+                        <i class="fas fa-comments"></i><span>Interview Practice</span>
+                    </a>
+                    <a href="spoken-english.html" onclick="closePortalsDropdown()">
+                        <i class="fas fa-language"></i><span>Spoken English</span>
+                    </a>
+                    <a href="entrance-portal.html" id="navEntranceExamLink" style="display:none;" onclick="closePortalsDropdown()">
+                        <i class="fas fa-graduation-cap"></i><span>Entrance Exam</span>
+                    </a>
+                    <a href="student-portal.html" onclick="closePortalsDropdown()">
+                        <i class="fas fa-user-graduate"></i><span>Student Portal</span>
+                    </a>
+                    <a href="faculty-portal.html" onclick="closePortalsDropdown()">
+                        <i class="fas fa-chalkboard-teacher"></i><span>Faculty Portal</span>
+                    </a>
+                </div>
+            </li>
+        </ul>
+        <div class="hamburger">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+</nav>
+<div class="rb-page">
+<div class="rb-header"><h1><i class="fas fa-file-alt"></i> Resume Builder</h1><p>Apna professional resume banao aur PDF download karo</p></div>
+<div class="rb-layout">
+<div class="rb-form-panel" id="formPanel"></div>
+<div class="rb-preview-panel">
+<div class="rb-zoom-bar">
+    <button class="rb-zoom-btn" onclick="zoomOut()"><i class="fas fa-minus"></i></button>
+    <span class="rb-zoom-label" id="zoomLabel">100%</span>
+    <button class="rb-zoom-btn" onclick="zoomIn()"><i class="fas fa-plus"></i></button>
+    <button class="rb-zoom-btn" onclick="zoomReset()"><i class="fas fa-expand"></i></button>
+</div>
+<div id="resumePreview"><div class="rt rt-modern" id="resumeTemplate"></div></div>
+</div>
+</div>
+</div>
+
+<!-- Print Container (hidden, used only for print) -->
+<div id="printContainer" style="display:none"></div>
+
+<!-- AI Summary Modal -->
+<div class="rb-ai-modal" id="aiSummaryModal">
+    <div class="rb-ai-modal-box">
+        <div class="rb-ai-modal-title"><i class="fas fa-magic" style="color:#a5b4fc"></i> Summary likhne ke liye kuch sawaal</div>
+        <div class="rb-ai-modal-sub">Niche ke sawaalon ke jawab do, AI apke liye ek professional summary bana dega!</div>
+        <div class="rb-ai-q">
+            <label>Aapka kaunsa role/job hai? <span style="color:rgba(255,255,255,.3)">(e.g: Computer Operator, Data Entry)</span></label>
+            <input type="text" id="aiRole" placeholder="Computer Operator">
+        </div>
+        <div class="rb-ai-q">
+            <label>Kitne saal ka experience hai? <span style="color:rgba(255,255,255,.3)">(e.g: 2 years, Fresher)</span></label>
+            <input type="text" id="aiExperience" placeholder="2 years">
+        </div>
+        <div class="rb-ai-q">
+            <label>Aapki key skills kya hain? <span style="color:rgba(255,255,255,.3)">(e.g: MS Office, Tally, Data Entry)</span></label>
+            <input type="text" id="aiSkills" placeholder="MS Office, Tally Prime, Data Entry">
+        </div>
+        <div class="rb-ai-q">
+            <label>Aapki highest qualification kya hai? <span style="color:rgba(255,255,255,.3)">(e.g: DCA, B.Com, 12th Pass)</span></label>
+            <input type="text" id="aiQualification" placeholder="DCA from Genius Computer Education">
+        </div>
+        <div class="rb-ai-q">
+            <label>Aap kya type ka role chahte hain?</label>
+            <select id="aiGoal">
+                <option value="">Select karo...</option>
+                <option value="seeking a challenging role to utilize my skills">Challenging role (skills use karne ke liye)</option>
+                <option value="looking for an opportunity to grow and learn new skills">Growth & learning opportunity</option>
+                <option value="seeking a stable position with growth potential">Stable position with growth</option>
+                <option value="eager to start my career and contribute to the organization">Fresher - career start karna chahta hoon</option>
+            </select>
+        </div>
+        <div class="rb-ai-actions">
+            <button class="rb-ai-cancel" onclick="closeAISummaryModal()">Cancel</button>
+            <button class="rb-ai-generate" onclick="generateAISummary()"><i class="fas fa-magic"></i> Generate Summary</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/resume-builder.js"></script>
+<script>
+(function(){
+    // Hamburger menu toggle
+    var hb=document.querySelector('.hamburger'),nm=document.querySelector('.nav-menu');
+    if(hb&&nm)hb.addEventListener('click',function(){nm.classList.toggle('active')});
+    // Portals Dropdown
+    window.togglePortalsDropdown=function(e){e.preventDefault();e.stopPropagation();var m=document.getElementById('portalsDropdownMenu');if(m)m.classList.toggle('open');var t=document.querySelector('.nav-portals-toggle');if(t)t.classList.toggle('active')};
+    window.closePortalsDropdown=function(){var m=document.getElementById('portalsDropdownMenu');var t=document.querySelector('.nav-portals-toggle');if(m)m.classList.remove('open');if(t)t.classList.remove('active')};
+    // Open typing practice as separate window
+    window.openTypingFullscreen=function(ev){ev.preventDefault();var a=ev.target.closest('a');var url=a?a.getAttribute('href'):null;if(!url)return;var w=Math.min(window.screen.availWidth,1200),h=window.screen.availHeight;var f='popup=yes,width='+w+',height='+h+',left=0,top=0,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';var win=null;try{win=window.open(url,'geniusTypingPractice',f)}catch(e){win=null}if(win){win.focus();try{var p=win.document.documentElement;var r=p.requestFullscreen||p.webkitRequestFullscreen;if(r)Promise.resolve(r.call(p)).catch(function(){})}catch(e){}}else{window.location.href=url}};
+    // Entrance exam link
+    fetch('/api/settings').then(function(r){return r.json()}).then(function(s){if(s&&s.entranceExamEnabled){var l=document.getElementById('navEntranceExamLink');if(l)l.style.display=''}}).catch(function(){});
+    // Load logo
+    fetch('/api/settings').then(function(r){return r.json()}).then(function(s){if(s&&s.logo){var img=document.querySelector('.nav-logo');if(img){img.src=s.logo;img.style.display='block'}}}).catch(function(){});
+})();
+</script>
+</body>
+</html>

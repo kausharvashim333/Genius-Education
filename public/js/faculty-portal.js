@@ -457,6 +457,10 @@ function loadFacultyMenu() {
         menuHTML += '<li><a href="#" onclick="showSection(\'fees\')"><i class="fas fa-money-bill-wave"></i> Fee Collection</a></li>';
     }
 
+    if (hasPermission('documents')) {
+        menuHTML += '<li><a href="#" onclick="showSection(\'documents\')"><i class="fas fa-folder-open"></i> Student Documents</a></li>';
+    }
+
     // Blog Management dropdown - permission via role OR individual toggle
     if (currentFaculty.canWriteBlogs || hasPermission('blogs')) {
         menuHTML += `
@@ -546,6 +550,7 @@ function showSection(section) {
         'enquiries': 'Enquiries',
         'notices': 'Notices',
         'fees': 'Fee Collection',
+        'documents': 'Student Documents',
         'blogs': 'Blog Management',
         'allBlogs': 'All My Blogs',
         'pendingBlogs': 'Pending Approval Blogs',
@@ -564,6 +569,7 @@ function showSection(section) {
     if (section === 'materials') loadMaterials();
     if (section === 'notices') loadNotices();
     if (section === 'fees') loadFacultyFees();
+    if (section === 'documents') loadFacultyDocuments();
     if (section === 'blogs') loadBlogs();
     if (section === 'allBlogs') loadAllBlogs();
     if (section === 'pendingBlogs') loadPendingBlogs();
@@ -1995,4 +2001,241 @@ function closeFacultyPaymentHistory() {
     const modal = document.getElementById('facultyPaymentHistoryModal');
     modal.classList.remove('active');
     modal.style.display = 'none';
+}
+
+// ===== Faculty Student Documents =====
+const FACULTY_DEFAULT_DOCS = [
+    { type: 'aadhar', label: 'Aadhar Card' },
+    { type: 'photo', label: 'Photo' },
+    { type: 'signature', label: 'Signature' },
+    { type: '10th_marksheet', label: '10th Marksheet' }
+];
+
+let facultyDocsStudentId = null;
+let facultyDocsRequired = [];
+let facultyDocsStudent = null;
+let facultyPendingDocType = null;
+let facultyPendingDocLabel = null;
+let facultyCachedCourses = [];
+
+function normalizeStudentDocsFP(student) {
+    const docs = student.documents || [];
+    const labeled = {};
+    const unlabeled = [];
+    docs.forEach(doc => {
+        if (typeof doc === 'object' && doc.type) {
+            labeled[doc.type] = doc;
+        } else if (typeof doc === 'string') {
+            unlabeled.push({ type: 'other_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5), label: 'Other Document', path: doc, fileName: doc.split('/').pop() });
+        }
+    });
+    return { labeled, unlabeled };
+}
+
+async function loadFacultyDocuments() {
+    const tbody = document.querySelector('#facultyDocsTable tbody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#94a3b8;">Loading students...</td></tr>';
+    try {
+        const [students, courses] = await Promise.all([
+            fetch('/api/students').then(r => r.json()),
+            fetch('/api/courses').then(r => r.json())
+        ]);
+        facultyCachedCourses = courses;
+        
+        // Filter students assigned to this faculty
+        const myStudents = students.filter(s => {
+            return s.facultyId == currentFaculty.id || 
+                   (s.batchId && currentFaculty.batches && currentFaculty.batches.includes(s.batchId)) ||
+                   !s.facultyId; // Show unassigned too
+        });
+
+        if (myStudents.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#94a3b8;">No students found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = myStudents.map(s => {
+            const course = courses.find(c => c.name === s.course);
+            const required = (course && course.requiredDocuments && course.requiredDocuments.length) 
+                ? course.requiredDocuments 
+                : FACULTY_DEFAULT_DOCS;
+            const { labeled } = normalizeStudentDocsFP(s);
+            const uploaded = required.filter(r => labeled[r.type]).length;
+            const total = required.length;
+            const color = uploaded >= total ? '#16a34a' : '#dc2626';
+            const badge = '<span style="background:' + color + ';color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;">' + uploaded + '/' + total + '</span>';
+
+            return '<tr>' +
+                '<td>' + (s.photo ? '<img src="' + s.photo + '" style="width:36px;height:36px;object-fit:cover;border-radius:50%;border:2px solid rgba(255,255,255,0.2);">' : '<i class="fas fa-user-circle" style="font-size:1.5rem;color:#94a3b8;"></i>') + '</td>' +
+                '<td>' + s.name + '</td>' +
+                '<td>' + (s.course || '-') + '</td>' +
+                '<td>' + (s.phone || '-') + '</td>' +
+                '<td>' + badge + '</td>' +
+                '<td><button class="btn btn-primary" style="padding:4px 12px;font-size:12px;" onclick="openFacultyDocsModal(' + s.id + ')"><i class="fas fa-folder-open"></i> Manage</button></td>' +
+                '</tr>';
+        }).join('');
+    } catch (err) {
+        console.error('Error loading faculty documents:', err);
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#dc2626;">Error loading students</td></tr>';
+    }
+}
+
+async function openFacultyDocsModal(studentId) {
+    facultyDocsStudentId = studentId;
+    const modal = document.getElementById('facultyStudentDocsModal');
+    modal.style.display = 'flex';
+
+    try {
+        const students = await fetch('/api/students').then(r => r.json());
+        const student = students.find(s => s.id == studentId);
+        if (!student) return;
+        facultyDocsStudent = student;
+
+        if (!facultyCachedCourses.length) {
+            facultyCachedCourses = await fetch('/api/courses').then(r => r.json());
+        }
+        const course = facultyCachedCourses.find(c => c.name === student.course);
+        facultyDocsRequired = (course && course.requiredDocuments && course.requiredDocuments.length)
+            ? course.requiredDocuments
+            : FACULTY_DEFAULT_DOCS;
+
+        // Render info
+        const infoEl = document.getElementById('facultyDocsInfo');
+        infoEl.innerHTML = '<div style="display:flex;align-items:center;gap:12px;">' +
+            (student.photo ? '<img src="' + student.photo + '" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.2);">' : '<i class="fas fa-user-circle" style="font-size:2rem;color:#94a3b8;"></i>') +
+            '<div><div style="font-weight:600;font-size:16px;color:#fff;">' + student.name + '</div>' +
+            '<div style="font-size:13px;color:#94a3b8;">' + (student.rollNo || 'No ID') + ' &bull; ' + (student.course || 'No Course') + '</div></div></div>';
+
+        renderFacultyDocsList();
+    } catch (err) {
+        console.error('Error opening faculty docs modal:', err);
+    }
+}
+
+function closeFacultyDocsModal() {
+    document.getElementById('facultyStudentDocsModal').style.display = 'none';
+}
+
+function renderFacultyDocsList() {
+    const listEl = document.getElementById('facultyDocsList');
+    if (!facultyDocsStudent) return;
+
+    const { labeled, unlabeled } = normalizeStudentDocsFP(facultyDocsStudent);
+    let html = '';
+
+    // Required documents
+    html += '<div style="margin-bottom:16px;"><div style="font-weight:600;font-size:14px;color:#fff;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.1);"><i class="fas fa-clipboard-list" style="color:#f59e0b;margin-right:6px;"></i>Required Documents</div>';
+    facultyDocsRequired.forEach(req => {
+        const doc = labeled[req.type];
+        if (doc) {
+            html += renderFacultyDocItem(doc);
+        } else {
+            html += renderFacultyMissingDoc(req);
+        }
+    });
+    html += '</div>';
+
+    // Other/unlabeled documents
+    if (unlabeled.length > 0) {
+        html += '<div style="margin-bottom:16px;"><div style="font-weight:600;font-size:14px;color:#fff;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.1);"><i class="fas fa-folder" style="color:#94a3b8;margin-right:6px;"></i>Other Documents</div>';
+        unlabeled.forEach(doc => { html += renderFacultyDocItem(doc); });
+        html += '</div>';
+    }
+
+    // Extra labeled docs
+    const extraDocs = Object.values(labeled).filter(doc =>
+        !facultyDocsRequired.some(r => r.type === doc.type)
+    );
+    if (extraDocs.length > 0) {
+        html += '<div style="margin-bottom:16px;"><div style="font-weight:600;font-size:14px;color:#fff;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.1);"><i class="fas fa-paperclip" style="color:#0284c7;margin-right:6px;"></i>Additional Uploaded Documents</div>';
+        extraDocs.forEach(doc => { html += renderFacultyDocItem(doc); });
+        html += '</div>';
+    }
+
+    listEl.innerHTML = html;
+}
+
+function renderFacultyDocItem(doc) {
+    const ext = (doc.path || '').split('.').pop().toLowerCase();
+    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+    const icon = isImage ? 'fa-image' : (ext === 'pdf' ? 'fa-file-pdf' : 'fa-file-alt');
+    const iconColor = isImage ? '#0284c7' : (ext === 'pdf' ? '#dc2626' : '#94a3b8');
+
+    let html = '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;margin-bottom:8px;">';
+    html += '<i class="fas ' + icon + '" style="font-size:1.5rem;color:' + iconColor + ';width:24px;text-align:center;"></i>';
+    html += '<div style="flex:1;min-width:0;">';
+    html += '<div style="font-weight:600;font-size:13px;color:#fff;">' + (doc.label || doc.type || 'Document') + '</div>';
+    html += '<div style="font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (doc.fileName || (doc.path || '').split('/').pop()) + '</div>';
+    if (doc.uploadedAt) {
+        html += '<div style="font-size:10px;color:#64748b;">Uploaded: ' + new Date(doc.uploadedAt).toLocaleDateString('en-IN') + (doc.uploadedBy ? ' by ' + doc.uploadedBy : '') + '</div>';
+    }
+    html += '</div>';
+    html += '<a href="' + doc.path + '" target="_blank" style="padding:6px 12px;background:#0284c7;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap;"><i class="fas fa-eye"></i> View</a>';
+    html += '<button onclick="triggerFacultyDocReplace(\'' + doc.type + '\')" style="padding:6px 12px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-sync-alt"></i> Replace</button>';
+    html += '</div>';
+    return html;
+}
+
+function renderFacultyMissingDoc(req) {
+    let html = '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(220,38,38,0.1);border:1px dashed rgba(252,165,165,0.4);border-radius:8px;margin-bottom:8px;">';
+    html += '<i class="fas fa-exclamation-circle" style="font-size:1.5rem;color:#dc2626;width:24px;text-align:center;"></i>';
+    html += '<div style="flex:1;"><div style="font-weight:600;font-size:13px;color:#fff;">' + req.label + '</div>';
+    html += '<div style="font-size:11px;color:#dc2626;">Not uploaded yet</div></div>';
+    html += '<button onclick="triggerFacultyDocUpload(\'' + req.type + '\',\'' + (req.label || '').replace(/'/g, "\\'") + '\')" style="padding:6px 16px;background:#16a34a;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-upload"></i> Upload</button>';
+    html += '</div>';
+    return html;
+}
+
+function triggerFacultyDocUpload(docType, docLabel) {
+    facultyPendingDocType = docType;
+    facultyPendingDocLabel = docLabel;
+    const fileInput = document.getElementById('facultyDocFileInput');
+    fileInput.value = '';
+    fileInput.onchange = function() { uploadFacultyStudentDoc(); };
+    fileInput.click();
+}
+
+function triggerFacultyDocReplace(docType) {
+    const req = facultyDocsRequired.find(r => r.type === docType);
+    facultyPendingDocType = docType;
+    facultyPendingDocLabel = req ? req.label : docType;
+    const fileInput = document.getElementById('facultyDocFileInput');
+    fileInput.value = '';
+    fileInput.onchange = function() { uploadFacultyStudentDoc(); };
+    fileInput.click();
+}
+
+async function uploadFacultyStudentDoc() {
+    const fileInput = document.getElementById('facultyDocFileInput');
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File size exceeds 5MB limit');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('docType', facultyPendingDocType);
+    formData.append('docLabel', facultyPendingDocLabel || facultyPendingDocType);
+    formData.append('uploadedBy', currentFaculty.name || 'Faculty');
+
+    try {
+        const res = await fetch('/api/students/' + facultyDocsStudentId + '/documents', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('Document uploaded successfully!');
+            facultyDocsStudent.documents = data.documents;
+            renderFacultyDocsList();
+            loadFacultyDocuments();
+        } else {
+            alert(data.message || 'Error uploading document');
+        }
+    } catch (err) {
+        alert('Error uploading document');
+    }
 }

@@ -78,6 +78,9 @@
             const settings = await res.json();
             if (settings.rightClickPrevention) applyRightClickBlock();
             if (settings.devToolsPrevention) applyDevToolsBlock();
+            if (settings.toolsMenuEnabled === false) {
+                document.querySelectorAll('.nav-tools-link').forEach(el => el.style.display = 'none');
+            }
         } catch (err) {
             // Silent fail
         }

@@ -4938,6 +4938,91 @@ app.put('/api/students/:id', verifyAdminSessionMiddleware, (req, res) => {
     res.json({ success: true, student: students[idx] });
 });
 
+// --- Student Documents (labeled, course-wise required docs) ---
+// Upload/replace a document for a student (admin + faculty both allowed)
+const uploadStudentDoc = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => cb(null, 'uploads/students/documents'),
+        filename: (req, file, cb) => cb(null, Date.now() + '-' + (req.body.docType || 'doc').replace(/[^a-z0-9_-]/gi, '') + path.extname(file.originalname))
+    }),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const types = /pdf|jpg|jpeg|png/;
+        const ext = types.test(path.extname(file.originalname).toLowerCase());
+        const mime = types.test(file.mimetype) || file.mimetype === 'application/pdf';
+        if (ext && mime) cb(null, true);
+        else cb(new Error('Only PDF, JPG, and PNG files allowed!'));
+    }
+});
+
+app.post('/api/students/:id/documents', uploadStudentDoc.single('document'), (req, res) => {
+    const students = readData('students.json') || [];
+    const idx = students.findIndex(s => s.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Student not found' });
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+
+    const docType = (req.body.docType || '').trim();
+    const docLabel = (req.body.docLabel || docType || 'Document').trim();
+    if (!docType) return res.status(400).json({ success: false, message: 'docType is required' });
+
+    const student = students[idx];
+    student.documents = student.documents || [];
+
+    // Replace: remove existing labeled doc of same type (delete old file)
+    const existingIdx = student.documents.findIndex(doc => typeof doc === 'object' && doc.type === docType);
+    if (existingIdx !== -1) {
+        const oldPath = student.documents[existingIdx].path;
+        if (oldPath) {
+            const fullPath = path.join(__dirname, oldPath.replace(/^\//, ''));
+            try { if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath); } catch (e) { /* ignore */ }
+        }
+        student.documents.splice(existingIdx, 1);
+    }
+
+    const newDoc = {
+        type: docType,
+        label: docLabel,
+        path: '/uploads/students/documents/' + req.file.filename,
+        fileName: req.file.originalname,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: (req.body.uploadedBy || 'Admin').trim()
+    };
+    student.documents.push(newDoc);
+    writeData('students.json', students);
+
+    logActivity('student.document.upload', { type: 'admin', id: student.id, name: student.name }, {
+        studentId: student.id, docType, docLabel, uploadedBy: newDoc.uploadedBy
+    }, req);
+
+    res.json({ success: true, document: newDoc, documents: student.documents });
+});
+
+// Delete a labeled document (admin only)
+app.delete('/api/students/:id/documents/:docType', verifyAdminSessionMiddleware, (req, res) => {
+    const students = readData('students.json') || [];
+    const idx = students.findIndex(s => s.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Student not found' });
+
+    const student = students[idx];
+    student.documents = student.documents || [];
+    const docIdx = student.documents.findIndex(doc => typeof doc === 'object' && doc.type === req.params.docType);
+    if (docIdx === -1) return res.status(404).json({ success: false, message: 'Document not found' });
+
+    const doc = student.documents[docIdx];
+    if (doc.path) {
+        const fullPath = path.join(__dirname, doc.path.replace(/^\//, ''));
+        try { if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath); } catch (e) { /* ignore */ }
+    }
+    student.documents.splice(docIdx, 1);
+    writeData('students.json', students);
+
+    logActivity('student.document.delete', { type: 'admin', id: student.id, name: student.name }, {
+        studentId: student.id, docType: req.params.docType
+    }, req);
+
+    res.json({ success: true, documents: student.documents });
+});
+
 // Update student ID (rollNo) with duplicate check
 app.put('/api/students/:id/update-id', verifyAdminSessionMiddleware, (req, res) => {
     const students = readData('students.json') || [];

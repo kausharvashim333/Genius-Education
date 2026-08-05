@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools Hub - Genius Computer Education</title>
+    <link rel="stylesheet" href="css/style.css?v=20260719">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #fff;
+        }
+
+        /* Hero Section */
+        .tools-hero {
+            text-align: center;
+            padding: 120px 20px 50px;
+            position: relative;
+            overflow: hidden;
+        }
+        .tools-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(102,126,234,0.08) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .tools-hero a.back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 20px;
+            transition: color 0.3s;
+            position: relative;
+            z-index: 1;
+        }
+        .tools-hero a.back-link:hover { color: #764ba2; }
+        .tools-hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 1;
+        }
+        .tools-hero p {
+            color: #94a3b8;
+            font-size: 1.15rem;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        .tools-hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        .hero-stat { text-align: center; }
+        .hero-stat-num {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-stat-label { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Category Tabs */
+        .tools-categories {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 auto 40px;
+            padding: 0 20px;
+            flex-wrap: wrap;
+            max-width: 1100px;
+        }
+        .tools-cat-btn {
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.05);
+            color: #94a3b8;
+            transition: all 0.3s;
+        }
+        .tools-cat-btn:hover { color: #fff; border-color: rgba(102,126,234,0.4); }
+        .tools-cat-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        /* Section Title */
+        .tools-section-title {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 40px 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .tools-section-title i { color: #667eea; }
+        .tools-section-title .badge {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(102,126,234,0.2);
+            color: #a5b4fc;
+            font-weight: 600;
+        }
+
+        /* Tools Grid */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Tool Card */
+        .tool-card {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 18px;
+            padding: 28px 24px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--card-gradient, linear-gradient(90deg, #667eea, #764ba2));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tool-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(102,126,234,0.4);
+            box-shadow: 0 16px 40px rgba(102,126,234,0.2);
+            background: rgba(102,126,234,0.08);
+        }
+        .tool-card:hover::before { opacity: 1; }
+
+        .tool-card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .tool-card-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .tool-card-info h3 {
+            color: #fff;
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        .tool-card-tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+        .tag-live { background: rgba(16,185,129,0.2); color: #34d399; }
+        .tag-new { background: rgba(245,158,11,0.2); color: #fbbf24; }
+        .tag-soon { background: rgba(99,102,241,0.2); color: #a5b4fc; }
+        .tag-beta { background: rgba(236,72,153,0.2); color: #f472b6; }
+
+        .tool-card p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin: 0;
+        }
+        .tool-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+        .tool-card-btn {
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+        .btn-live {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+        .tool-card:hover .btn-live { box-shadow: 0 4px 16px rgba(102,126,234,0.4); }
+        .btn-soon {
+            background: rgba(255,255,255,0.08);
+            color: #64748b;
+            cursor: not-allowed;
+        }
+        .tool-card-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .tool-feature {
+            font-size: 0.68rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.06);
+            color: #94a3b8;
+        }
+
+        /* Coming Soon Card */
+        .tool-card.coming-soon {
+            opacity: 0.7;
+            cursor: default;
+        }
+        .tool-card.coming-soon:hover {
+            transform: translateY(-3px);
+            border-color: rgba(99,102,241,0.3);
+            box-shadow: 0 10px 30px rgba(99,102,241,0.1);
+        }
+        .coming-soon-overlay {
+            position: absolute;
+            top: 12px; right: 12px;
+            font-size: 0.6rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: rgba(99,102,241,0.2);
+            color: #a5b4fc;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* CTA Section */
+        .tools-cta {
+            text-align: center;
+            padding: 50px 20px 60px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .tools-cta h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .tools-cta p { color: #94a3b8; font-size: 0.95rem; margin-bottom: 20px; }
+        .tools-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .tools-cta-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(102,126,234,0.4); }
+
+        /* Footer */
+        .tools-footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #475569;
+            font-size: 0.8rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        @media (max-width: 640px) {
+            .tools-hero h1 { font-size: 2rem; }
+            .tools-hero p { font-size: 0.95rem; }
+            .tools-hero-stats { gap: 24px; }
+            .hero-stat-num { font-size: 1.5rem; }
+            .tools-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22%3EG%3C/text%3E%3C/svg%3E" alt="Logo" class="nav-logo" style="display:block;max-height:45px;max-width:45px;height:auto;width:auto;border-radius:10px;">
+                <a href="index.html">Genius Computer Education</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="courses.html">Courses</a></li>
+                <li><a href="index.html#about">About Us</a></li>
+                <li><a href="index.html#blog">Blog</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+                <li class="nav-tools-link"><a href="tools.html"><i class="fas fa-tools"></i> Tools</a></li>
+                <li class="nav-portals-dropdown">
+                    <a href="#" class="nav-cta nav-portals-toggle" onclick="togglePortalsDropdown(event)">
+                        <i class="fas fa-th-large icon-3d"></i> Portals <i class="fas fa-chevron-down portals-chevron"></i>
+                    </a>
+                    <div class="portals-dropdown-menu" id="portalsDropdownMenu">
+                        <a href="typing-practice.html?guide=true&selectLang=true&app=1" onclick="openTypingFullscreen(event); closePortalsDropdown();">
+                            <i class="fas fa-keyboard"></i><span>Typing Practice</span>
+                        </a>
+                        <a href="resume-builder.html" onclick="closePortalsDropdown()">
+                            <i class="fas fa-file-alt"></i><span>Resume Builder</span>
+                        </a>
+                        <a href="interview-practice.html" onclick="closePortalsDropdown()">
+                            <i class="fas fa-comments"></i><span>Interview Practice</span>
+                        </a>
+                        <a href="spoken-english.html" onclick="closePortalsDropdown()">
+                            <i class="fas fa-language"></i><span>Spoken English</span>
+                        </a>
+                        <a href="entrance-portal.html" id="navEntranceExamLink" style="display:none;" onclick="closePortalsDropdown()">
+                            <i class="fas fa-graduation-cap"></i><span>Entrance Exam</span>
+                        </a>
+                        <a href="student-portal.html" onclick="closePortalsDropdown()">
+                            <i class="fas fa-user-graduate"></i><span>Student Portal</span>
+                        </a>
+                        <a href="faculty-portal.html" onclick="closePortalsDropdown()">
+                            <i class="fas fa-chalkboard-teacher"></i><span>Faculty Portal</span>
+                        </a>
+                    </div>
+                </li>
+            </ul>
+            <div class="hamburger">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Tools Hero -->
+    <div class="tools-hero">
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a>
+        <h1>Tools Hub</h1>
+        <p>Apne learning journey ko speed up karo! Resume banao, typing practice karo, interviews ke liye prepare ho — sab kuch ek jagah.</p>
+        <div class="tools-hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-num">4</div>
+                <div class="hero-stat-label">Live Tools</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">6</div>
+                <div class="hero-stat-label">Coming Soon</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">10+</div>
+                <div class="hero-stat-label">Total Tools</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="tools-categories">
+        <button class="tools-cat-btn active" onclick="filterTools('all')">All Tools</button>
+        <button class="tools-cat-btn" onclick="filterTools('career')">Career</button>
+        <button class="tools-cat-btn" onclick="filterTools('practice')">Practice</button>
+        <button class="tools-cat-btn" onclick="filterTools('learning')">Learning</button>
+        <button class="tools-cat-btn" onclick="filterTools('utility')">Utility</button>
+    </div>
+
+    <!-- Live Tools Section -->
+    <div class="tools-section-title">
+        <i class="fas fa-rocket"></i> Live Tools <span class="badge">Available Now</span>
+    </div>
+    <div class="tools-grid" id="liveTools">
+        <!-- Resume Builder -->
+        <a href="resume-builder.html" class="tool-card" data-cat="career">
+            <div class="tool-card-header">
+                <div class="tool-card-icon" style="background:linear-gradient(135deg,#667eea,#764ba2)"><i class="fas fa-file-alt"></i></div>
+                <div class="tool-card-info">
+                    <h3>Resume Builder</h3>
+                    <span class="tool-card-tag tag-live"><i class="fas fa-circle" style="font-size:5px"></i> Live</span>
+                </div>
+            </div>
+            <p>Professional resume bina kisi design knowledge ke. Multiple templates, PDF download, live preview.</p>
+            <div class="tool-card-features">
+                <span class="tool-feature">6 Templates</span>
+                <span class="tool-feature">PDF Export</span>
+                <span class="tool-feature">AI Summary</span>
+            </div>
+            <div class="tool-card-footer">
+                <span class="tool-card-btn btn-live"><i class="fas fa-arrow-right"></i> Open Tool</span>
+            </div>
+        </a>
+
+        <!-- Typing Practice -->
+        <a href="typing-practice.html?guide=true&selectLang=true&app=1" class="tool-card" data-cat="practice" onclick="openTypingFullscreen(event)">
+            <div class="tool-card-header">
+                <div class="tool-card-icon" style="background:linear-gradient(135deg,#f59e0b,#ef4444)"><i class="fas fa-keyboard"></i></div>
+                <div class="tool-card-info">
+                    <h3>Typing Practice</h3>
+                    <span class="tool-card-tag tag-live"><i class="fas fa-circle" style="font-size:5px"></i> Live</span>
+                </div>
+            </div>
+            <p>Typing speed badhao! Hindi, English aur Marathi me typing practice with real-time WPM tracking.</p>
+            <div class="tool-card-features">
+                <span class="tool-feature">3 Languages</span>
+                <span class="tool-feature">WPM Tracker</span>
+                <span class="tool-feature">Guided Mode</span>
+            </div>
+            <div class="tool-card-footer">
+                <span class="tool-card-btn btn-live"><i class="fas fa-arrow-right"></i> Open Tool</span>
+            </div>
+        </a>
+
+        <!-- Interview Practice -->
+        <a href="interview-practice.html" class="tool-card" data-cat="career">
+            <div class="tool-card-header">
+                <div class="tool-card-icon" style="background:linear-gradient(135deg,#10b981,#06b6d4)"><i class="fas fa-comments"></i></div>
+                <div class="tool-card-info">
+                    <h3>Interview Practice</h3>
+                    <span class="tool-card-tag tag-live"><i class="fas fa-circle" style="font-size:5px"></i> Live</span>
+                </div>
+            </div>
+            <p>Interview ke liye prepare karo. Computer Basics, MS Office, Tally, Web Dev aur HR questions.</p>
+            <div class="tool-card-features">
+                <span class="tool-feature">5 Categories</span>
+                <span class="tool-feature">MCQ Quiz</span>
+                <span class="tool-feature">Score Card</span>
+            </div>
+            <div class="tool-card-footer">
+                <span class="tool-card-btn btn-live"><i class="fas fa-arrow-right"></i> Open Tool</span>
+            </div>
+        </a>
+
+        <!-- Spoken English -->
+        <a href="spoken-english.html" class="tool-card" data-cat="learning">
+            <div class="tool-card-header">
+                <div class="tool-card-icon" style="background:linear-gradient(135deg,#ec4899,#8b5cf6)"><i class="fas fa-language"></i></div>
+                <div class="tool-card-info">
+                    <h3>Spoken English</h3>
+                    <span class="tool-card-tag tag-live"><i class="fas fa-circle" style="font-size:5px"></i> Live</span>
+                </div>
+            </div>
+            <p>English speaking seekho — dialogues, vocabulary, tips, practice exercises aur audio playback.</p>
+            <div class="tool-card-features">
+                <span class="tool-feature">Dialogues</span>
+                <span class="tool-feature">Audio Play</span>
+                <span class="tool-feature">Vocabulary</span>
+            </div>
+            <div class="tool-card-footer">
+                <span class="tool-card-btn btn-live"><i class="fas fa-arrow-right"></i> Open Tool</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Coming Soon Section -->
+    <div class="tools-section-title">
+        <i class="fas fa-hourglass-half"></i> Coming Soon <span class="badge">In Development</span>
+    </div>
+    <div class="tools-grid" id="comingSoonTools">
+        <!-- Code Playground -->
+        <div class="tool-card coming-soon" data-cat="learning">
+            <div class="coming-soon-overlay">Coming Soon</div>
+            <div class="tool-card-header">
+                <div class="tool-card-icon" style="background:linear-gradient(135deg,#0d9488,#0891b2)"><i class="fas fa-code"></i></div>
+                <div class="tool-card-info">
+                    <h3>Code Playground</h3>
+                    <span class="tool-card-tag tag-soon">In Development</span>
+                </div>
+            </div>
+            <p>HTML, CSS aur JavaScript ka code likho aur live result dekho. Beginners ke liye perfect coding practice tool.</p>
+            <div class="tool-card-features">
+                <span class="tool-feature">Live Preview</span>
+                <span class="tool-feature">HTML/CSS/JS</span>
+                <span class="tool-feature">Save Code</span>
+            </div>
+            <div class="tool-card-footer">
+                <span class="tool-card-btn btn-soon"><i class="fas fa-lock"></i> Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- Aptitude Test -->
+        <div class="tool-card coming-soon" data-cat="practice">
+            <div class="coming-soon-overlay">Coming Soon</div>
+            <div class="tool-card-header">
+                <div class="tool-card-icon" style="background:linear-gradient(135deg,#7c3aed,#db2777)"><i class="fas fa-calculator"></i></div>
+                <div class="tool-card-info">
+                    <h3>Aptitude Test</h3>
+                    <span class="tool-card-tag tag-soon">In Development</span>
+                </div>
+            </div>
+            <p>Quantitative aptitude, logical reasoning aur verbal ability practice. Competitive exams ke liye useful.</p>
+            <div class="tool-card-features">
+                <span class="tool-feature">Quant</span>
+                <span class="tool-feature">Reasoning</span>
+                <span class="tool-feature">Verbal</span>
+            </div>
+            <div class="tool-card-footer">
+                <span class="tool-card-btn btn-soon"><i class="fas fa-lock"></i> Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- Certificate Generator -->
+        <div class="tool-card coming-soon" data-cat="utility">
+            <div class="coming-soon-overlay">Coming Soon</div>
+            <div class="tool-card-header">
+                <div class="tool-card-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fas fa-certificate"></i></div>
+                <div class="tool-card-info">
+                    <h3>Certificate Generator</h3>
+                    <span class="tool-card-tag tag-soon">In Development</span>
+                </div>
+            </div>
+            <p>Course completion certificates banao custom names, course details aur logo ke saath. PDF download.</p>
+            <div class="tool-card-features">
+                <span class="tool-feature">Custom Design</span>
+                <span class="tool-feature">PDF Export</span>
+                <span class="tool-feature">Logo Upload</span>
+            </div>
+            <div class="tool-card-footer">
+                <span class="tool-card-btn btn-soon"><i class="fas fa-lock"></i> Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- MCQ Quiz Maker -->
+        <div class="tool-card coming-soon" data-cat="utility">
+            <div class="coming-soon-overlay">Coming Soon</div>
+            <div class="tool-card-header">
+                <div class="tool-card-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)"><i class="fas fa-question-circle"></i></div>
+                <div class="tool-card-info">
+                    <h3>MCQ Quiz Maker</h3>
+                    <span class="tool-card-tag tag-soon">In Development</span>
+                </div>
+            </div>
+            <p>Apne khud ke MCQ quiz banao. Questions add karo, quiz share karo, aur results track karo.</p>
+            <div class="tool-card-features">
+                <span class="tool-feature">Custom Quiz</span>
+                <span class="tool-feature">Share Link</span>
+                <span class="tool-feature">Results</span>
+            </div>
+            <div class="tool-card-footer">
+                <span class="tool-card-btn btn-soon"><i class="fas fa-lock"></i> Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- GST Calculator -->
+        <div class="tool-card coming-soon" data-cat="utility">
+            <div class="coming-soon-overlay">Coming Soon</div>
+            <div class="tool-card-header">
+                <div class="tool-card-icon" style="background:linear-gradient(135deg,#059669,#047857)"><i class="fas fa-percentage"></i></div>
+                <div class="tool-card-info">
+                    <h3>GST Calculator</h3>
+                    <span class="tool-card-tag tag-soon">In Development</span>
+                </div>
+            </div>
+            <p>GST calculate karo easily. CGST, SGST, IGST breakdown with inclusive/exclusive tax options.</p>
+            <div class="tool-card-features">
+                <span class="tool-feature">CGST/SGST/IGST</span>
+                <span class="tool-feature">Inclusive/Exclusive</span>
+                <span class="tool-feature">Quick Calc</span>
+            </div>
+            <div class="tool-card-footer">
+                <span class="tool-card-btn btn-soon"><i class="fas fa-lock"></i> Coming Soon</span>
+            </div>
+        </div>
+
+        <!-- File Converter -->
+        <div class="tool-card coming-soon" data-cat="utility">
+            <div class="coming-soon-overlay">Coming Soon</div>
+            <div class="tool-card-header">
+                <div class="tool-card-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)"><i class="fas fa-exchange-alt"></i></div>
+                <div class="tool-card-info">
+                    <h3>File Converter</h3>
+                    <span class="tool-card-tag tag-soon">In Development</span>
+                </div>
+            </div>
+            <p>Image, document aur text files ko convert karo. JPG to PNG, Word to PDF, aur more.</p>
+            <div class="tool-card-features">
+                <span class="tool-feature">Image Convert</span>
+                <span class="tool-feature">Doc to PDF</span>
+                <span class="tool-feature">Batch Process</span>
+            </div>
+            <div class="tool-card-footer">
+                <span class="tool-card-btn btn-soon"><i class="fas fa-lock"></i> Coming Soon</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="tools-cta">
+        <h2>Naaye Tools Ke Baare Me Jaane</h2>
+        <p>Jab bhi koi naya tool launch hoga, aapko sabse pehle pata chalega. Courses explore karein aur apne skills ko badhayein.</p>
+        <a href="courses.html" class="tools-cta-btn"><i class="fas fa-graduation-cap"></i> Explore Courses</a>
+    </div>
+
+    <!-- Footer -->
+    <div class="tools-footer">
+        <p>&copy; 2026 Genius Computer Education, Vashim. All Tools Hub.</p>
+    </div>
+
+    <script>
+        // Filter tools by category
+        function filterTools(cat) {
+            document.querySelectorAll('.tools-cat-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.tool-card').forEach(card => {
+                if (cat === 'all' || card.dataset.cat === cat) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            // Hide section titles if no visible cards
+            const liveVisible = [...document.querySelectorAll('#liveTools .tool-card')].some(c => c.style.display !== 'none');
+            const soonVisible = [...document.querySelectorAll('#comingSoonTools .tool-card')].some(c => c.style.display !== 'none');
+            const titles = document.querySelectorAll('.tools-section-title');
+            if (titles[0]) titles[0].style.display = liveVisible ? '' : 'none';
+            if (titles[1]) titles[1].style.display = soonVisible ? '' : 'none';
+        }
+
+        // Show entrance exam link only when feature is enabled
+        (async function () {
+            try {
+                const res = await fetch('/api/settings');
+                const settings = await res.json();
+                if (settings && settings.entranceExamEnabled) {
+                    const link = document.getElementById('navEntranceExamLink');
+                    if (link) link.style.display = '';
+                }
+                if (settings && settings.logo) {
+                    const navLogo = document.querySelector('.nav-logo');
+                    if (navLogo) { navLogo.src = settings.logo; navLogo.style.display = 'block'; }
+                }
+            } catch (e) {}
+        })();
+
+        // Hamburger menu toggle
+        const hamburgerBtn = document.querySelector('.hamburger');
+        const navMenuEl = document.querySelector('.nav-menu');
+        if (hamburgerBtn && navMenuEl) {
+            hamburgerBtn.addEventListener('click', () => navMenuEl.classList.toggle('active'));
+        }
+
+        // Portals Dropdown
+        function togglePortalsDropdown(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const menu = document.getElementById('portalsDropdownMenu');
+            if (menu) menu.classList.toggle('open');
+            const toggle = document.querySelector('.nav-portals-toggle');
+            if (toggle) toggle.classList.toggle('active');
+        }
+
+        function closePortalsDropdown() {
+            const menu = document.getElementById('portalsDropdownMenu');
+            const toggle = document.querySelector('.nav-portals-toggle');
+            if (menu) menu.classList.remove('open');
+            if (toggle) toggle.classList.remove('active');
+        }
+
+        // Open typing practice as a separate app window
+        function openTypingFullscreen(event) {
+            event.preventDefault();
+            const anchor = event.target.closest('a');
+            const url = anchor ? anchor.getAttribute('href') : null;
+            if (!url) return;
+            const w = Math.min(window.screen.availWidth, 1200);
+            const h = window.screen.availHeight;
+            const features = 'popup=yes,width=' + w + ',height=' + h + ',left=0,top=0,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
+            let win = null;
+            try { win = window.open(url, 'geniusTypingPractice', features); } catch (e) { win = null; }
+            if (win) {
+                win.focus();
+                try {
+                    const popupEl = win.document.documentElement;
+                    const req = popupEl.requestFullscreen || popupEl.webkitRequestFullscreen;
+                    if (req) Promise.resolve(req.call(popupEl)).catch(() => {});
+                } catch (e) {}
+            } else { window.location.href = url; }
+        }
+    </script>
+    <script src="/js/security.js"></script>
+</body>
+</html>
