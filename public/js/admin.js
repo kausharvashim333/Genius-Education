@@ -1623,9 +1623,50 @@ function openCourseModal() {
     document.getElementById('courseForm').reset();
     document.getElementById('courseId').value = '';
     document.getElementById('courseModalTitle').innerHTML = '<i class="fas fa-graduation-cap"></i> Add Course';
-    // Reset required docs checkboxes
-    document.querySelectorAll('#courseRequiredDocs .course-doc-cb').forEach(cb => { cb.checked = false; cb.parentElement.style.display = ''; });
+    initCourseDocs();
     document.getElementById('courseModal').classList.add('active');
+}
+
+const COURSE_PREDEFINED_DOCS = [
+    { type: 'aadhar', label: 'Aadhar Card' },
+    { type: 'photo', label: 'Photo' },
+    { type: 'signature', label: 'Signature' },
+    { type: '10th_marksheet', label: '10th Marksheet' },
+    { type: '12th_marksheet', label: '12th Marksheet' },
+    { type: 'grad_marksheet', label: 'Graduation Marksheet' },
+    { type: 'caste_certificate', label: 'Caste Certificate' },
+    { type: 'income_certificate', label: 'Income Certificate' }
+];
+
+function renderCourseDocItem(type, label, checked) {
+    const container = document.getElementById('courseRequiredDocs');
+    const div = document.createElement('div');
+    div.className = 'course-doc-item';
+    div.setAttribute('data-type', type);
+    div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:rgba(255,255,255,0.03);transition:background 0.2s;font-size:13px;';
+    div.innerHTML = '<button type="button" onclick="moveCourseDoc(\'' + type + '\',-1)" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:2px 4px;font-size:11px;" title="Move up"><i class="fas fa-chevron-up"></i></button>' +
+        '<button type="button" onclick="moveCourseDoc(\'' + type + '\',1)" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:2px 4px;font-size:11px;" title="Move down"><i class="fas fa-chevron-down"></i></button>' +
+        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;font-weight:400;font-size:13px;">' +
+        '<input type="checkbox" class="course-doc-cb" value="' + type + '" data-label="' + label + '"' + (checked ? ' checked' : '') + ' style="width:16px;height:16px;accent-color:#667eea;cursor:pointer;"> ' + label +
+        '</label>';
+    container.appendChild(div);
+}
+
+function initCourseDocs() {
+    const container = document.getElementById('courseRequiredDocs');
+    container.innerHTML = '';
+    COURSE_PREDEFINED_DOCS.forEach(doc => renderCourseDocItem(doc.type, doc.label, false));
+}
+
+function moveCourseDoc(type, dir) {
+    const container = document.getElementById('courseRequiredDocs');
+    const items = Array.from(container.querySelectorAll('.course-doc-item'));
+    const idx = items.findIndex(item => item.getAttribute('data-type') === type);
+    if (idx === -1) return;
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= items.length) return;
+    if (dir === -1) container.insertBefore(items[idx], items[newIdx]);
+    else container.insertBefore(items[newIdx], items[idx]);
 }
 
 function addCustomCourseDoc() {
@@ -1634,15 +1675,11 @@ function addCustomCourseDoc() {
     if (!name) return;
     const type = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
     const container = document.getElementById('courseRequiredDocs');
-    // Check if already exists
     if (container.querySelector('.course-doc-cb[value="' + type + '"]')) {
         showNotification('This document already exists in the list', 'warning');
         return;
     }
-    const label = document.createElement('label');
-    label.style.cssText = 'display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;';
-    label.innerHTML = '<input type="checkbox" class="course-doc-cb" value="' + type + '" data-label="' + name + '" checked> ' + name;
-    container.appendChild(label);
+    renderCourseDocItem(type, name, true);
     input.value = '';
 }
 
@@ -1655,24 +1692,30 @@ function getCourseRequiredDocs() {
 }
 
 function setCourseRequiredDocs(docs) {
-    document.querySelectorAll('#courseRequiredDocs .course-doc-cb').forEach(cb => {
-        cb.checked = false;
-        cb.parentElement.style.display = '';
+    const container = document.getElementById('courseRequiredDocs');
+    container.innerHTML = '';
+    const predefinedTypes = COURSE_PREDEFINED_DOCS.map(d => d.type);
+    const customItems = [];
+    if (docs && docs.length) {
+        docs.forEach(doc => {
+            const type = typeof doc === 'string' ? doc : doc.type;
+            const label = typeof doc === 'string' ? doc : (doc.label || doc.type);
+            const isPredefined = predefinedTypes.includes(type);
+            if (isPredefined) {
+                renderCourseDocItem(type, label, true);
+            } else {
+                customItems.push({ type, label });
+            }
+        });
+    }
+    COURSE_PREDEFINED_DOCS.forEach(doc => {
+        if (!container.querySelector('.course-doc-item[data-type="' + doc.type + '"]')) {
+            renderCourseDocItem(doc.type, doc.label, false);
+        }
     });
-    if (!docs || !docs.length) return;
-    docs.forEach(doc => {
-        const type = typeof doc === 'string' ? doc : doc.type;
-        const label = typeof doc === 'string' ? doc : (doc.label || doc.type);
-        let cb = document.querySelector('#courseRequiredDocs .course-doc-cb[value="' + type + '"]');
-        if (!cb) {
-            // Add as custom if not in predefined list
-            const container = document.getElementById('courseRequiredDocs');
-            const lbl = document.createElement('label');
-            lbl.style.cssText = 'display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;';
-            lbl.innerHTML = '<input type="checkbox" class="course-doc-cb" value="' + type + '" data-label="' + label + '" checked> ' + label;
-            container.appendChild(lbl);
-        } else {
-            cb.checked = true;
+    customItems.forEach(item => {
+        if (!container.querySelector('.course-doc-item[data-type="' + item.type + '"]')) {
+            renderCourseDocItem(item.type, item.label, true);
         }
     });
 }
