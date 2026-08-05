@@ -1638,27 +1638,41 @@ const COURSE_PREDEFINED_DOCS = [
     { type: 'income_certificate', label: 'Income Certificate' }
 ];
 
-function renderCourseDocItem(type, label, checked) {
+function renderCourseDocItem(type, label, showInForm) {
     const container = document.getElementById('courseRequiredDocs');
     const div = document.createElement('div');
     div.className = 'course-doc-item';
     div.setAttribute('data-type', type);
     div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:rgba(255,255,255,0.03);transition:background 0.2s;font-size:13px;';
+    const visible = showInForm !== false;
     div.innerHTML = '<button type="button" onclick="moveCourseDoc(\'' + type + '\',-1)" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:2px 4px;font-size:11px;" title="Move up"><i class="fas fa-chevron-up"></i></button>' +
         '<button type="button" onclick="moveCourseDoc(\'' + type + '\',1)" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:2px 4px;font-size:11px;" title="Move down"><i class="fas fa-chevron-down"></i></button>' +
-        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;font-weight:400;font-size:13px;">' +
-        '<input type="checkbox" class="course-doc-cb" value="' + type + '" data-label="' + label + '"' + (checked ? ' checked' : '') + ' style="width:16px;height:16px;accent-color:#667eea;cursor:pointer;"> ' +
-        '<span class="course-doc-label" data-type="' + type + '" style="flex:1;">' + label + '</span>' +
-        '</label>' +
+        '<span class="course-doc-label" data-type="' + type + '" style="flex:1;font-size:13px;">' + label + '</span>' +
+        '<button type="button" class="course-doc-toggle' + (visible ? ' visible' : '') + '" onclick="toggleCourseDocForm(\'' + type + '\')" style="background:none;border:1px solid ' + (visible ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.15)') + ';color:' + (visible ? '#4ade80' : 'rgba(255,255,255,0.35)') + ';cursor:pointer;padding:3px 10px;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:4px;white-space:nowrap;" title="Toggle visibility in admission form">' +
+        '<i class="fas ' + (visible ? 'fa-eye' : 'fa-eye-slash') + '"></i> ' + (visible ? 'In Form' : 'Hidden') +
+        '</button>' +
         '<button type="button" onclick="renameCourseDoc(\'' + type + '\')" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;padding:2px 6px;font-size:11px;" title="Rename"><i class="fas fa-pen"></i></button>' +
         '<button type="button" onclick="deleteCourseDoc(\'' + type + '\')" style="background:none;border:none;color:rgba(239,68,68,0.5);cursor:pointer;padding:2px 6px;font-size:11px;" title="Delete"><i class="fas fa-trash"></i></button>';
     container.appendChild(div);
 }
 
+function toggleCourseDocForm(type) {
+    const item = document.querySelector('#courseRequiredDocs .course-doc-item[data-type="' + type + '"]');
+    if (!item) return;
+    const btn = item.querySelector('.course-doc-toggle');
+    const isCurrentlyVisible = btn.classList.contains('visible');
+    const visible = !isCurrentlyVisible;
+
+    btn.classList.toggle('visible', visible);
+    btn.style.borderColor = visible ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.15)';
+    btn.style.color = visible ? '#4ade80' : 'rgba(255,255,255,0.35)';
+    btn.innerHTML = '<i class="fas ' + (visible ? 'fa-eye' : 'fa-eye-slash') + '"></i> ' + (visible ? 'In Form' : 'Hidden');
+}
+
 function initCourseDocs() {
     const container = document.getElementById('courseRequiredDocs');
     container.innerHTML = '';
-    COURSE_PREDEFINED_DOCS.forEach(doc => renderCourseDocItem(doc.type, doc.label, false));
+    COURSE_PREDEFINED_DOCS.forEach(doc => renderCourseDocItem(doc.type, doc.label, true));
 }
 
 function moveCourseDoc(type, dir) {
@@ -1676,7 +1690,6 @@ function renameCourseDoc(type) {
     const item = document.querySelector('#courseRequiredDocs .course-doc-item[data-type="' + type + '"]');
     if (!item) return;
     const span = item.querySelector('.course-doc-label');
-    const cb = item.querySelector('.course-doc-cb');
     const oldLabel = span.textContent;
 
     const input = document.createElement('input');
@@ -1695,8 +1708,8 @@ function renameCourseDoc(type) {
         newSpan.className = 'course-doc-label';
         newSpan.setAttribute('data-type', type);
         newSpan.style.flex = '1';
+        newSpan.style.fontSize = '13px';
         newSpan.textContent = newLabel;
-        if (cb) cb.setAttribute('data-label', newLabel);
         input.replaceWith(newSpan);
     }
 
@@ -1721,7 +1734,7 @@ function addCustomCourseDoc() {
     if (!name) return;
     const type = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
     const container = document.getElementById('courseRequiredDocs');
-    if (container.querySelector('.course-doc-cb[value="' + type + '"]')) {
+    if (container.querySelector('.course-doc-item[data-type="' + type + '"]')) {
         showNotification('This document already exists in the list', 'warning');
         return;
     }
@@ -1731,11 +1744,13 @@ function addCustomCourseDoc() {
 
 function getCourseRequiredDocs() {
     const docs = [];
-    document.querySelectorAll('#courseRequiredDocs .course-doc-cb:checked').forEach(cb => {
-        const item = cb.closest('.course-doc-item');
-        const labelSpan = item?.querySelector('.course-doc-label');
-        const label = labelSpan?.textContent?.trim() || cb.getAttribute('data-label') || cb.value;
-        docs.push({ type: cb.value, label: label });
+    document.querySelectorAll('#courseRequiredDocs .course-doc-item').forEach(item => {
+        const type = item.getAttribute('data-type');
+        const labelSpan = item.querySelector('.course-doc-label');
+        const label = labelSpan?.textContent?.trim() || type;
+        const toggle = item.querySelector('.course-doc-toggle');
+        const showInForm = toggle ? toggle.classList.contains('visible') : true;
+        docs.push({ type, label, showInForm });
     });
     return docs;
 }
@@ -1750,12 +1765,13 @@ function setCourseRequiredDocs(docs) {
         docs.forEach(doc => {
             const type = typeof doc === 'string' ? doc : doc.type;
             const label = typeof doc === 'string' ? doc : (doc.label || doc.type);
-            renderCourseDocItem(type, label, true);
+            const showInForm = typeof doc === 'string' ? true : (doc.showInForm !== false);
+            renderCourseDocItem(type, label, showInForm);
             renderedTypes.add(type);
         });
     }
 
-    // Append remaining predefined docs that weren't in the saved list (unchecked)
+    // Append remaining predefined docs that weren't in the saved list (hidden by default)
     COURSE_PREDEFINED_DOCS.forEach(doc => {
         if (!renderedTypes.has(doc.type)) {
             renderCourseDocItem(doc.type, doc.label, false);

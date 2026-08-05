@@ -1668,7 +1668,7 @@ function renderApplyDocs(courseName) {
     if (window.allCourses) {
         const course = window.allCourses.find(c => c.name === courseName);
         if (course && course.requiredDocuments && course.requiredDocuments.length) {
-            requiredDocs = course.requiredDocuments;
+            requiredDocs = course.requiredDocuments.filter(d => d.showInForm !== false);
         }
     }
 
