@@ -1647,8 +1647,11 @@ function renderCourseDocItem(type, label, checked) {
     div.innerHTML = '<button type="button" onclick="moveCourseDoc(\'' + type + '\',-1)" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:2px 4px;font-size:11px;" title="Move up"><i class="fas fa-chevron-up"></i></button>' +
         '<button type="button" onclick="moveCourseDoc(\'' + type + '\',1)" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:2px 4px;font-size:11px;" title="Move down"><i class="fas fa-chevron-down"></i></button>' +
         '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;font-weight:400;font-size:13px;">' +
-        '<input type="checkbox" class="course-doc-cb" value="' + type + '" data-label="' + label + '"' + (checked ? ' checked' : '') + ' style="width:16px;height:16px;accent-color:#667eea;cursor:pointer;"> ' + label +
-        '</label>';
+        '<input type="checkbox" class="course-doc-cb" value="' + type + '" data-label="' + label + '"' + (checked ? ' checked' : '') + ' style="width:16px;height:16px;accent-color:#667eea;cursor:pointer;"> ' +
+        '<span class="course-doc-label" data-type="' + type + '" style="flex:1;">' + label + '</span>' +
+        '</label>' +
+        '<button type="button" onclick="renameCourseDoc(\'' + type + '\')" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;padding:2px 6px;font-size:11px;" title="Rename"><i class="fas fa-pen"></i></button>' +
+        '<button type="button" onclick="deleteCourseDoc(\'' + type + '\')" style="background:none;border:none;color:rgba(239,68,68,0.5);cursor:pointer;padding:2px 6px;font-size:11px;" title="Delete"><i class="fas fa-trash"></i></button>';
     container.appendChild(div);
 }
 
@@ -1669,6 +1672,49 @@ function moveCourseDoc(type, dir) {
     else container.insertBefore(items[newIdx], items[idx]);
 }
 
+function renameCourseDoc(type) {
+    const item = document.querySelector('#courseRequiredDocs .course-doc-item[data-type="' + type + '"]');
+    if (!item) return;
+    const span = item.querySelector('.course-doc-label');
+    const cb = item.querySelector('.course-doc-cb');
+    const oldLabel = span.textContent;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = oldLabel;
+    input.style.cssText = 'flex:1;padding:3px 8px;border-radius:4px;border:1px solid rgba(102,126,234,0.5);background:rgba(102,126,234,0.1);color:#fff;font-size:13px;height:28px;';
+    input.setAttribute('data-type', type);
+
+    span.replaceWith(input);
+    input.focus();
+    input.select();
+
+    function saveRename() {
+        const newLabel = input.value.trim() || oldLabel;
+        const newSpan = document.createElement('span');
+        newSpan.className = 'course-doc-label';
+        newSpan.setAttribute('data-type', type);
+        newSpan.style.flex = '1';
+        newSpan.textContent = newLabel;
+        if (cb) cb.setAttribute('data-label', newLabel);
+        input.replaceWith(newSpan);
+    }
+
+    input.addEventListener('blur', saveRename);
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        if (e.key === 'Escape') { input.value = oldLabel; input.blur(); }
+    });
+}
+
+function deleteCourseDoc(type) {
+    const item = document.querySelector('#courseRequiredDocs .course-doc-item[data-type="' + type + '"]');
+    if (!item) return;
+    const label = item.querySelector('.course-doc-label')?.textContent || type;
+    if (!confirm('Remove "' + label + '" from the document list?')) return;
+    item.remove();
+}
+
 function addCustomCourseDoc() {
     const input = document.getElementById('courseCustomDocInput');
     const name = input.value.trim();
@@ -1686,7 +1732,10 @@ function addCustomCourseDoc() {
 function getCourseRequiredDocs() {
     const docs = [];
     document.querySelectorAll('#courseRequiredDocs .course-doc-cb:checked').forEach(cb => {
-        docs.push({ type: cb.value, label: cb.getAttribute('data-label') || cb.value });
+        const item = cb.closest('.course-doc-item');
+        const labelSpan = item?.querySelector('.course-doc-label');
+        const label = labelSpan?.textContent?.trim() || cb.getAttribute('data-label') || cb.value;
+        docs.push({ type: cb.value, label: label });
     });
     return docs;
 }
