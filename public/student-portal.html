@@ -884,7 +884,6 @@
                 <span id="myDocsInfoText"></span>
             </div>
             <div id="myDocsList"></div>
-            <input type="file" id="myDocFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display:none;">
         </div>
 
         <!-- Fees Section -->
@@ -5893,8 +5892,6 @@ async function submitTicketReply() {
     // ===== My Documents =====
     let myDocsStudent = null;
     let myDocsRequired = [];
-    let myPendingDocType = null;
-    let myPendingDocLabel = null;
     const STU_DEFAULT_DOCS = [
         { type: 'aadhar', label: 'Aadhar Card' },
         { type: 'photo', label: 'Photo' },
@@ -5953,7 +5950,7 @@ async function submitTicketReply() {
         if (infoEl && infoText) {
             if (uploaded < total) {
                 infoEl.style.display = 'block';
-                infoText.textContent = 'Aapke course ke liye ' + total + ' documents required hain. ' + (total - uploaded) + ' document(s) abhi upload nahi hue hain. Niche "Upload" button par click karke missing documents upload karein.';
+                infoText.textContent = 'Aapke course ke liye ' + total + ' documents required hain. ' + (total - uploaded) + ' document(s) abhi upload nahi hue hain. Document upload karne ke liye admin ya faculty se sampark karein.';
             } else {
                 infoEl.style.display = 'block';
                 infoText.textContent = 'Sabhi required documents upload ho chuke hain! Admin document verify karne ke baad approve karega.';
@@ -6003,7 +6000,7 @@ async function submitTicketReply() {
         document.getElementById('myDocsList').innerHTML = html;
     }
 
-    function renderMyDocItem(doc, allowReplace) {
+    function renderMyDocItem(doc) {
         const ext = (doc.path || '').split('.').pop().toLowerCase();
         const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
         const icon = isImage ? 'fa-image' : (ext === 'pdf' ? 'fa-file-pdf' : 'fa-file-alt');
@@ -6019,8 +6016,6 @@ async function submitTicketReply() {
         }
         html += '</div>';
         html += '<a href="' + doc.path + '" target="_blank" style="padding:6px 12px;background:#3b82f6;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap;"><i class="fas fa-eye"></i> View</a>';
-        html += '<button onclick="triggerMyDocUpload(\'' + doc.type + '\',\'' + (doc.label || '').replace(/'/g, "\\'") + '\')" style="padding:6px 12px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-sync-alt"></i> Replace</button>';
-        html += '<button onclick="deleteMyDoc(\'' + doc.type + '\')" style="padding:6px 12px;background:#dc2626;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-trash"></i> Remove</button>';
         html += '</div>';
         return html;
     }
@@ -6030,73 +6025,8 @@ async function submitTicketReply() {
         html += '<i class="fas fa-exclamation-circle" style="font-size:1.5rem;color:#f87171;width:24px;text-align:center;"></i>';
         html += '<div style="flex:1;"><div style="font-weight:600;font-size:13px;color:#fff;">' + req.label + '</div>';
         html += '<div style="font-size:11px;color:#f87171;">Not uploaded yet</div></div>';
-        html += '<button onclick="triggerMyDocUpload(\'' + req.type + '\',\'' + (req.label || '').replace(/'/g, "\\'") + '\')" style="padding:6px 16px;background:#22c55e;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;"><i class="fas fa-upload"></i> Upload</button>';
         html += '</div>';
         return html;
-    }
-
-    function triggerMyDocUpload(docType, docLabel) {
-        myPendingDocType = docType;
-        myPendingDocLabel = docLabel;
-        const fileInput = document.getElementById('myDocFileInput');
-        fileInput.value = '';
-        fileInput.onchange = function() { uploadMyDoc(); };
-        fileInput.click();
-    }
-
-    async function uploadMyDoc() {
-        const fileInput = document.getElementById('myDocFileInput');
-        const file = fileInput.files[0];
-        if (!file) return;
-
-        if (file.size > 5 * 1024 * 1024) {
-            showNotification('File size 5MB se zyada nahi ho sakti', 'error');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('document', file);
-        formData.append('docType', myPendingDocType);
-        formData.append('docLabel', myPendingDocLabel || myPendingDocType);
-
-        try {
-            const res = await fetch('/api/student/' + myDocsStudent.id + '/documents', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
-            if (data.success) {
-                showNotification('Document upload ho gaya!', 'success');
-                myDocsStudent.documents = data.documents;
-                renderMyDocs();
-            } else {
-                showNotification(data.message || 'Document upload nahi hua', 'error');
-            }
-        } catch (err) {
-            showNotification('Document upload nahi hua. Try again.', 'error');
-        }
-    }
-
-    async function deleteMyDoc(docType) {
-        if (!confirm('Are you sure you want to remove this document? This cannot be undone.')) return;
-        try {
-            const res = await fetch('/api/student/' + myDocsStudent.id + '/documents/' + encodeURIComponent(docType), {
-                method: 'DELETE'
-            });
-            const data = await res.json();
-            if (data.success) {
-                showNotification('Document removed successfully!', 'success');
-                myDocsStudent.documents = data.documents;
-                const stored = JSON.parse(localStorage.getItem('portalStudent'));
-                stored.documents = data.documents;
-                localStorage.setItem('portalStudent', JSON.stringify(stored));
-                renderMyDocs();
-            } else {
-                showNotification(data.message || 'Document remove nahi hua', 'error');
-            }
-        } catch (err) {
-            showNotification('Document remove nahi hua. Try again.', 'error');
-        }
     }
     </script>
     <script src="/js/security.js"></script>
