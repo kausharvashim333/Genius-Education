@@ -1622,7 +1622,7 @@ async function moveCourseDown(id) {
 function openCourseModal() {
     document.getElementById('courseForm').reset();
     document.getElementById('courseId').value = '';
-    document.getElementById('courseModalTitle').textContent = 'Add Course';
+    document.getElementById('courseModalTitle').innerHTML = '<i class="fas fa-graduation-cap"></i> Add Course';
     // Reset required docs checkboxes
     document.querySelectorAll('#courseRequiredDocs .course-doc-cb').forEach(cb => { cb.checked = false; cb.parentElement.style.display = ''; });
     document.getElementById('courseModal').classList.add('active');
@@ -1690,7 +1690,7 @@ async function editCourse(id) {
             document.getElementById('courseDesc').value = course.description || '';
             document.getElementById('courseEligibility').value = course.eligibility || '';
             setCourseRequiredDocs(course.requiredDocuments || []);
-            document.getElementById('courseModalTitle').textContent = 'Edit Course';
+            document.getElementById('courseModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Course';
             document.getElementById('courseModal').classList.add('active');
         }
     } catch (err) { console.error(err); }
