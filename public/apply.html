@@ -865,54 +865,10 @@
             <!-- 6. Documents -->
             <div class="form-section-card step-content" id="step6" style="display:none;">
                 <div class="form-section-title"><i class="fas fa-file-upload"></i> Documents Upload</div>
-                <div class="form-grid-3">
-                    <div class="form-group">
-                        <label id="aPhotoLabel">Student Photo *</label>
-                        <div class="doc-upload-area" onclick="document.getElementById('aPhoto').click()">
-                            <img id="aPhotoPreview" style="display:none;max-height:110px;border-radius:6px;">
-                            <div id="aPhotoPlaceholder" class="doc-placeholder"><i class="fas fa-camera fa-2x"></i><br>Click to upload<br><small>JPG/PNG, max 2MB</small></div>
-                        </div>
-                        <input type="file" id="aPhoto" accept="image/*" style="display:none;" onchange="applyPreview(this,'aPhotoPreview','aPhotoPlaceholder')">
-                    </div>
-                    <div class="form-group">
-                        <label id="aSignatureLabel">Signature *</label>
-                        <div class="doc-upload-area" onclick="document.getElementById('aSignature').click()">
-                            <img id="aSignaturePreview" style="display:none;max-height:110px;border-radius:6px;">
-                            <div id="aSignaturePlaceholder" class="doc-placeholder"><i class="fas fa-signature fa-2x"></i><br>Click to upload<br><small>JPG/PNG, max 1MB</small></div>
-                        </div>
-                        <input type="file" id="aSignature" accept="image/*" style="display:none;" onchange="applyPreview(this,'aSignaturePreview','aSignaturePlaceholder')">
-                    </div>
-                    <div class="form-group">
-                        <label id="aAadharLabel">Aadhar Card</label>
-                        <div class="doc-upload-area" onclick="document.getElementById('aAadharDoc').click()">
-                            <i class="fas fa-id-card fa-2x" style="color:#7c3aed;"></i>
-                            <div id="aAadharDocName" style="margin-top:8px;font-size:.82rem;color:#64748b;">Click to upload</div>
-                        </div>
-                        <input type="file" id="aAadharDoc" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="applySingleDoc(this,'aAadharDocName')">
-                    </div>
-                    <div class="form-group" id="a10thDocGroup">
-                        <label id="a10thLabel">10th Marksheet</label>
-                        <div class="doc-upload-area" onclick="document.getElementById('a10thMarksheet').click()">
-                            <i class="fas fa-file-alt fa-2x" style="color:#16a34a;"></i>
-                            <div id="a10thMarksheetName" style="margin-top:8px;font-size:.82rem;color:#64748b;">Click to upload</div>
-                        </div>
-                        <input type="file" id="a10thMarksheet" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="applySingleDoc(this,'a10thMarksheetName')">
-                    </div>
-                    <div class="form-group" id="a12thDocGroup">
-                        <label id="a12thLabel">12th Marksheet</label>
-                        <div class="doc-upload-area" onclick="document.getElementById('a12thMarksheet').click()">
-                            <i class="fas fa-file-alt fa-2x" style="color:#0284c7;"></i>
-                            <div id="a12thMarksheetName" style="margin-top:8px;font-size:.82rem;color:#64748b;">Click to upload</div>
-                        </div>
-                        <input type="file" id="a12thMarksheet" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="applySingleDoc(this,'a12thMarksheetName')">
-                    </div>
-                    <div class="form-group" id="aGradMarksheetGroup" style="display:none;">
-                        <label>Graduation Marksheet</label>
-                        <div class="doc-upload-area" onclick="document.getElementById('aGradMarksheet').click()">
-                            <i class="fas fa-university fa-2x" style="color:#7c3aed;"></i>
-                            <div id="aGradMarksheetName" style="margin-top:8px;font-size:.82rem;color:#64748b;">Click to upload</div>
-                        </div>
-                        <input type="file" id="aGradMarksheet" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="applySingleDoc(this,'aGradMarksheetName')">
+                <div id="applyDocsContainer" class="form-grid-3">
+                    <div style="grid-column:1/-1;text-align:center;padding:30px;color:#64748b;font-size:.9rem;">
+                        <i class="fas fa-info-circle" style="font-size:1.5rem;margin-bottom:8px;display:block;"></i>
+                        Please select a course first to see required documents.
                     </div>
                 </div>
                 <div class="step-nav-buttons">
@@ -1555,7 +1511,6 @@ async function applyOnCourseChange() {
     const isPGDCA = val.includes('PGDCA');
     const isTyping = val.includes('TYPING') || val.includes('HINDI TYPING') || val.includes('ENGLISH TYPING');
     const gradSec = document.getElementById('applyGradSection');
-    const gradDocGroup = document.getElementById('aGradMarksheetGroup');
     const sec10 = document.getElementById('apply10Section');
     const sec12 = document.getElementById('apply12Section');
     const msg = document.getElementById('applyEligMsg');
@@ -1599,9 +1554,6 @@ async function applyOnCourseChange() {
         });
     }
 
-    // Handle graduation marksheet upload - show only for PGDCA
-    if (gradDocGroup) gradDocGroup.style.display = isPGDCA ? 'block' : 'none';
-    
     // Update eligibility message
     if (isPGDCA) {
         msg.style.display='block'; msg.className='eligibility-msg';
@@ -1618,7 +1570,7 @@ async function applyOnCourseChange() {
     loadApplyBatches(val);
     
     // Update document requirements based on course
-    applyUpdateDocRequirements(isTyping);
+    renderApplyDocs(courseName);
 }
 
 async function loadApplyBatches(courseName) {
@@ -1686,32 +1638,70 @@ function applyCalcGradPct() {
     }
 }
 
-function applyUpdateDocRequirements(isTyping) {
-    // Update document labels and requirements based on course type
-    const photoLabel = document.getElementById('aPhotoLabel');
-    const signLabel = document.getElementById('aSignatureLabel');
-    const aadharLabel = document.getElementById('aAadharLabel');
-    const tenthLabel = document.getElementById('a10thLabel');
-    const twelfthLabel = document.getElementById('a12thLabel');
-    const twelfthDocGroup = document.getElementById('a12thDocGroup');
-    
-    // 10th Marksheet is mandatory for all courses
-    if (tenthLabel) tenthLabel.textContent = '10th Marksheet *';
-    
-    // For typing courses: only 10th mandatory, others optional
-    if (isTyping) {
-        if (photoLabel) photoLabel.textContent = 'Student Photo';
-        if (signLabel) signLabel.textContent = 'Signature';
-        if (aadharLabel) aadharLabel.textContent = 'Aadhar Card';
-        if (twelfthDocGroup) twelfthDocGroup.style.display = 'none';
-    } else {
-        // For other courses: Aadhar, Photo, Signature, 10th, 12th mandatory
-        if (photoLabel) photoLabel.textContent = 'Student Photo *';
-        if (signLabel) signLabel.textContent = 'Signature *';
-        if (aadharLabel) aadharLabel.textContent = 'Aadhar Card *';
-        if (twelfthLabel) twelfthLabel.textContent = '12th Marksheet *';
-        if (twelfthDocGroup) twelfthDocGroup.style.display = 'block';
+const APPLY_DEFAULT_DOCS = [
+    { type: 'photo', label: 'Student Photo' },
+    { type: 'signature', label: 'Signature' },
+    { type: 'aadhar', label: 'Aadhar Card' },
+    { type: '10th_marksheet', label: '10th Marksheet' },
+    { type: '12th_marksheet', label: '12th Marksheet' }
+];
+
+const APPLY_DOC_ICONS = {
+    photo: { icon: 'fa-camera', color: '#0284c7', isImage: true, maxSize: 2 },
+    signature: { icon: 'fa-signature', color: '#7c3aed', isImage: true, maxSize: 1 },
+    aadhar: { icon: 'fa-id-card', color: '#7c3aed', isImage: false, maxSize: 5 },
+    '10th_marksheet': { icon: 'fa-file-alt', color: '#16a34a', isImage: false, maxSize: 5 },
+    '12th_marksheet': { icon: 'fa-file-alt', color: '#0284c7', isImage: false, maxSize: 5 },
+    'grad_marksheet': { icon: 'fa-university', color: '#7c3aed', isImage: false, maxSize: 5 }
+};
+
+function renderApplyDocs(courseName) {
+    const container = document.getElementById('applyDocsContainer');
+    if (!container) return;
+
+    if (!courseName) {
+        container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:#64748b;font-size:.9rem;"><i class="fas fa-info-circle" style="font-size:1.5rem;margin-bottom:8px;display:block;"></i>Please select a course first to see required documents.</div>';
+        return;
     }
+
+    let requiredDocs = APPLY_DEFAULT_DOCS;
+    if (window.allCourses) {
+        const course = window.allCourses.find(c => c.name === courseName);
+        if (course && course.requiredDocuments && course.requiredDocuments.length) {
+            requiredDocs = course.requiredDocuments;
+        }
+    }
+
+    let html = '';
+    requiredDocs.forEach(doc => {
+        const cfg = APPLY_DOC_ICONS[doc.type] || { icon: 'fa-file-alt', color: '#64748b', isImage: false, maxSize: 5 };
+        const inputId = 'applyDoc_' + doc.type;
+        const labelId = 'applyDocLabel_' + doc.type;
+        const previewId = 'applyDocPreview_' + doc.type;
+        const placeholderId = 'applyDocPlaceholder_' + doc.type;
+        const nameId = 'applyDocName_' + doc.type;
+        const safeLabel = (doc.label || doc.type).replace(/'/g, "\\'");
+
+        html += '<div class="form-group" data-doc-type="' + doc.type + '">';
+        html += '<label id="' + labelId + '">' + (doc.label || doc.type) + ' *</label>';
+
+        if (cfg.isImage) {
+            html += '<div class="doc-upload-area" onclick="document.getElementById(\'' + inputId + '\').click()">';
+            html += '<img id="' + previewId + '" style="display:none;max-height:110px;border-radius:6px;">';
+            html += '<div id="' + placeholderId + '" class="doc-placeholder"><i class="fas ' + cfg.icon + ' fa-2x"></i><br>Click to upload<br><small>JPG/PNG, max ' + cfg.maxSize + 'MB</small></div>';
+            html += '</div>';
+            html += '<input type="file" id="' + inputId + '" accept="image/*" style="display:none;" onchange="applyPreview(this,\'' + previewId + '\',\'' + placeholderId + '\')" data-doc-type="' + doc.type + '" data-doc-label="' + safeLabel + '">';
+        } else {
+            html += '<div class="doc-upload-area" onclick="document.getElementById(\'' + inputId + '\').click()">';
+            html += '<i class="fas ' + cfg.icon + ' fa-2x" style="color:' + cfg.color + ';"></i>';
+            html += '<div id="' + nameId + '" style="margin-top:8px;font-size:.82rem;color:#64748b;">Click to upload</div>';
+            html += '</div>';
+            html += '<input type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="applySingleDoc(this,\'' + nameId + '\')" data-doc-type="' + doc.type + '" data-doc-label="' + safeLabel + '">';
+        }
+        html += '</div>';
+    });
+
+    container.innerHTML = html;
 }
 
 function applyToggleGradType() {
@@ -1794,6 +1784,7 @@ async function loadApplyCourses() {
     }
     // Store batches and settings globally for later use (e.g., print preview)
     window.allBatches = batches;
+    window.allCourses = courses;
     window.instituteSettings = settings || {};
 }
 
@@ -2387,13 +2378,22 @@ async function submitApplication(paymentMode, paymentType, amountPaid, upiId = '
     // Applicant email OTP verification token (optional, for non-Cash/UPI flows)
     if (emailVerifyToken) fd.append('verifyToken', emailVerifyToken);
     
-    const photo = document.getElementById('aPhoto').files[0];
-    const sig   = document.getElementById('aSignature').files[0];
-    if (photo) fd.append('photo', photo);
-    if (sig)   fd.append('signature', sig);
-    ['aAadharDoc','a10thMarksheet','a12thMarksheet','aGradMarksheet'].forEach(id => {
-        const f = document.getElementById(id)?.files[0];
-        if (f) fd.append('documents', f);
+    // Collect documents from dynamic container
+    const docInputs = document.querySelectorAll('#applyDocsContainer input[type="file"]');
+    docInputs.forEach(input => {
+        const file = input.files[0];
+        if (!file) return;
+        const docType = input.dataset.docType || '';
+        const docLabel = input.dataset.docLabel || docType || 'Document';
+        if (docType === 'photo') {
+            fd.append('photo', file);
+        } else if (docType === 'signature') {
+            fd.append('signature', file);
+        } else {
+            fd.append('documents', file);
+            fd.append('documentTypes', docType);
+            fd.append('documentLabels', docLabel);
+        }
     });
     
     try {

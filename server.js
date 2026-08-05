@@ -4623,7 +4623,19 @@ app.post('/api/students', uploadStudent.fields([{name:'photo',maxCount:1},{name:
         passwordChanged: false,
         photo: req.files?.photo ? '/uploads/students/photos/' + req.files.photo[0].filename : '',
         signature: req.files?.signature ? '/uploads/students/signatures/' + req.files.signature[0].filename : '',
-        documents: req.files?.documents ? req.files.documents.map(f => '/uploads/students/documents/' + f.filename) : [],
+        documents: (() => {
+            if (!req.files?.documents) return [];
+            const types = Array.isArray(req.body.documentTypes) ? req.body.documentTypes : (req.body.documentTypes ? [req.body.documentTypes] : []);
+            const labels = Array.isArray(req.body.documentLabels) ? req.body.documentLabels : (req.body.documentLabels ? [req.body.documentLabels] : []);
+            return req.files.documents.map((f, i) => ({
+                type: types[i] || 'doc_' + i,
+                label: labels[i] || types[i] || 'Document',
+                path: '/uploads/students/documents/' + f.filename,
+                fileName: f.originalname,
+                uploadedAt: new Date().toISOString(),
+                uploadedBy: 'Admission Form'
+            }));
+        })(),
         fees: {
             totalFees: total, paidAmount: paid, dueAmount: due,
             payments: [{ id: Date.now(), date: formatDate(new Date()), amount: paid,
