@@ -10603,25 +10603,26 @@ function toggleRowActions(btn, event) {
         const vh = window.innerHeight;
         const vw = window.innerWidth;
 
-        // Try opening to the left of the button, with a small gap
-        let top = rect.top;
-        let left = rect.left - menuWidth - gap;
+        // Open right-aligned below the button by default
+        let top = rect.bottom + gap;
+        let left = rect.right - menuWidth;
 
-        // Not enough space on the left -> open to the right
-        if (left < gap) {
-            left = rect.right + gap;
-        }
-
-        // Keep vertical within viewport
+        // Flip above if there's no room below
         if (top + menuHeight > vh - gap) {
-            top = Math.max(gap, rect.bottom - menuHeight);
+            top = Math.max(gap, rect.top - menuHeight - gap);
         }
-        if (top < gap) top = gap;
 
-        // Keep horizontal within viewport
+        // If it overflows the left side, align with the left of the button
+        if (left < gap) {
+            left = rect.left;
+        }
+
+        // Keep within viewport edges
         if (left + menuWidth > vw - gap) {
             left = Math.max(gap, vw - menuWidth - gap);
         }
+        if (left < gap) left = gap;
+        if (top < gap) top = gap;
 
         menu.style.top = top + 'px';
         menu.style.left = left + 'px';
