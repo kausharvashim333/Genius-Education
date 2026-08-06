@@ -17252,7 +17252,7 @@ async function uploadStudentDoc() {
 async function deleteStudentDoc(docType) {
     if (!confirm('Are you sure you want to delete this document? This cannot be undone.')) return;
     try {
-        const res = await fetch('/api/students/' + currentDocsStudentId + '/documents/' + docType, {
+        const res = await fetch('/api/students/' + currentDocsStudentId + '/documents/' + encodeURIComponent(docType), {
             method: 'DELETE',
             headers: { 'X-Admin-Session': sessionStorage.getItem('adminSessionToken') }
         });

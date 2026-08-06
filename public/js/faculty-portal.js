@@ -2043,11 +2043,23 @@ async function loadFacultyDocuments() {
         facultyCachedCourses = courses;
         
         // Filter students assigned to this faculty
-        const myStudents = students.filter(s => {
+        let myStudents = students.filter(s => {
             return s.facultyId == currentFaculty.id || 
                    (s.batchId && currentFaculty.batches && currentFaculty.batches.includes(s.batchId)) ||
                    !s.facultyId; // Show unassigned too
         });
+
+        // Apply search filter
+        const searchInput = document.getElementById('facultyDocsSearch');
+        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        if (query) {
+            myStudents = myStudents.filter(s => {
+                const text = [
+                    s.name, s.rollNo, s.course, s.phone, s.email, s.batch
+                ].filter(Boolean).join(' ').toLowerCase();
+                return text.includes(query);
+            });
+        }
 
         if (myStudents.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#94a3b8;">No students found</td></tr>';

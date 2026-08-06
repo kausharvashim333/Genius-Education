@@ -1306,6 +1306,13 @@
                 <div id="documentsContent" class="faculty-content-section">
                     <h3><i class="fas fa-folder-open"></i> Student Documents</h3>
                     <p style="color:rgba(255,255,255,0.7);margin-bottom:15px;">Students ke documents upload, replace aur remove karo.</p>
+                    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:15px;">
+                        <div style="position:relative;flex:1;min-width:220px;">
+                            <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:14px;"></i>
+                            <input type="text" id="facultyDocsSearch" placeholder="Search by name, ID, course, phone..." style="width:100%;padding:10px 12px 10px 36px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#fff;font-size:14px;outline:none;" onkeyup="loadFacultyDocuments()">
+                        </div>
+                        <button onclick="document.getElementById('facultyDocsSearch').value='';loadFacultyDocuments()" style="padding:10px 16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#fff;cursor:pointer;font-size:13px;"><i class="fas fa-undo"></i> Reset</button>
+                    </div>
                     <div class="data-table docs-glass-table">
                         <div class="table-scroll-wrapper">
                             <table id="facultyDocsTable">
