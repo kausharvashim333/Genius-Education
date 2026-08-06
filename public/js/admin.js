@@ -10530,16 +10530,16 @@ function renderStudentsTable(students) {
         const actionsRow = '<tr class="student-actions-row" data-student-id="' + s.id + '" style="display:none;">' +
             '<td colspan="11" class="student-actions-cell">' +
             '<div class="row-actions-menu">' +
-            '<button onclick="openStudentProfile(' + s.id + ')"><i class="fas fa-eye"></i> View Profile</button>' +
-            '<button onclick="openUpdateStudentModal(' + s.id + ')"><i class="fas fa-edit"></i> Edit</button>' +
-            '<button onclick="openStudentDocsModal(' + s.id + ')"><i class="fas fa-folder-open"></i> Documents' + getStudentDocsBadge(s) + '</button>' +
-            '<button onclick="openUpdateStudentIdModal(' + s.id + ')"><i class="fas fa-hashtag"></i> Update Student ID</button>' +
-            '<button onclick="showStudentQR(' + s.id + ')"><i class="fas fa-qrcode"></i> QR Code</button>' +
-            '<button onclick="printStudentForm(' + s.id + ')"><i class="fas fa-print"></i> Print Form</button>' +
-            '<button onclick="generateICard(' + s.id + ')"><i class="fas fa-id-card"></i> Generate I-Card</button>' +
-            '<button onclick="openNotificationModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell"></i> Send Notification</button>' +
-            '<button onclick="openStudentNotificationsModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell-slash"></i> Notification Settings</button>' +
-            '<button class="delete-action" onclick="deleteStudent(' + s.id + ')"><i class="fas fa-trash"></i> Delete</button>' +
+            '<button data-label="View Profile" onclick="openStudentProfile(' + s.id + ')"><i class="fas fa-eye"></i></button>' +
+            '<button data-label="Edit" onclick="openUpdateStudentModal(' + s.id + ')"><i class="fas fa-edit"></i></button>' +
+            '<button data-label="Documents" onclick="openStudentDocsModal(' + s.id + ')"><i class="fas fa-folder-open"></i>' + getStudentDocsBadge(s) + '</button>' +
+            '<button data-label="Update Student ID" onclick="openUpdateStudentIdModal(' + s.id + ')"><i class="fas fa-hashtag"></i></button>' +
+            '<button data-label="QR Code" onclick="showStudentQR(' + s.id + ')"><i class="fas fa-qrcode"></i></button>' +
+            '<button data-label="Print Form" onclick="printStudentForm(' + s.id + ')"><i class="fas fa-print"></i></button>' +
+            '<button data-label="Generate I-Card" onclick="generateICard(' + s.id + ')"><i class="fas fa-id-card"></i></button>' +
+            '<button data-label="Send Notification" onclick="openNotificationModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell"></i></button>' +
+            '<button data-label="Notification Settings" onclick="openStudentNotificationsModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell-slash"></i></button>' +
+            '<button class="delete-action" data-label="Delete" onclick="deleteStudent(' + s.id + ')"><i class="fas fa-trash"></i></button>' +
             '</div></td></tr>';
         return [html, actionsRow];
     }).flat().join('');
@@ -17061,7 +17061,7 @@ function getStudentDocsBadge(student) {
     const uploaded = required.filter(r => labeled[r.type]).length;
     const total = required.length;
     const color = uploaded >= total ? '#16a34a' : '#dc2626';
-    return ' <span style="background:' + color + ';color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;">' + uploaded + '/' + total + '</span>';
+    return ' <span class="docs-badge" style="background:' + color + ';color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;font-weight:700;">' + uploaded + '/' + total + '</span>';
 }
 
 function getRequiredDocsForStudent(student) {

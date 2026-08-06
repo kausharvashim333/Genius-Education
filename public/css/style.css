@@ -4381,18 +4381,11 @@ tbody tr:nth-child(even) td {
 }
 
 .row-actions-menu {
-    position: static;
-    min-width: 220px;
-    max-width: 280px;
-    background: rgba(15,23,42,0.9);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    z-index: auto;
-    padding: 6px;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 0;
 }
 
 .student-actions-row {
@@ -4407,25 +4400,27 @@ tbody tr:nth-child(even) td {
 }
 
 .row-actions-menu button {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border: none;
-    background: transparent;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(30,41,59,0.8);
     color: #e2e8f0;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 13px;
-    text-align: left;
-    width: 100%;
-    white-space: nowrap;
+    font-size: 14px;
     transition: all 0.15s ease;
+    position: relative;
 }
 
 .row-actions-menu button:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(99,102,241,0.3);
+    border-color: rgba(99,102,241,0.5);
     color: #fff;
+    transform: translateY(-2px);
 }
 
 .row-actions-menu button.delete-action {
@@ -4438,9 +4433,38 @@ tbody tr:nth-child(even) td {
 }
 
 .row-actions-menu button i {
-    width: 16px;
-    text-align: center;
-    font-size: 13px;
+    font-size: 15px;
+}
+
+.row-actions-menu button::after {
+    content: attr(data-label);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    border: 1px solid rgba(255,255,255,0.15);
+    z-index: 10;
+}
+
+.row-actions-menu button:hover::after {
+    opacity: 1;
+}
+
+.row-actions-menu button .docs-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 9px;
+    font-weight: 700;
 }
 
 /* Pagination */
