@@ -10501,7 +10501,7 @@ function renderStudentsTable(students) {
     const pageStudents = students.slice(startIdx, startIdx + studentsPerPage);
     tbody.innerHTML = pageStudents.map(s => {
         let html = '';
-        html += '<tr>';
+        html += '<tr data-student-id="' + s.id + '">';
         html += '<td><input type="checkbox" class="student-checkbox" data-id="' + s.id + '"></td>';
         html += '<td><strong>' + s.rollNo + '</strong></td>';
         html += '<td>' + (s.photo ? '<img src="' + s.photo + '" style="width:36px;height:36px;object-fit:cover;border-radius:50%;border:2px solid #ddd;">' : '<i class="fas fa-user-circle" style="font-size:2rem;color:#94a3b8;"></i>') + '</td>';
@@ -10523,24 +10523,26 @@ function renderStudentsTable(students) {
         html += '<span style="font-size:11px;font-weight:600;color:' + docsColor + ';">' + docsUploaded + '/' + docsTotal + '</span>';
         html += '</div></td>';
         html += '<td><span class="badge-' + (s.status === 'Active' ? 'active' : 'inactive') + '"' + (s.status === 'Dropped' ? ' style="background:rgba(220,38,38,0.2);color:#f87171;border:1px solid rgba(220,38,38,0.4);" title="' + ((s.dropReason || '') + (s.dropDate ? ' (' + s.dropDate + ')' : '')).replace(/"/g, '&quot;') + '"' : '') + '>' + s.status + '</span></td>';
-        html += '<td class="action-cell" style="position:relative;">';
+        html += '<td class="action-cell">';
         html += '<button class="action-btn options-btn" onclick="toggleRowActions(this, event)" title="Options"><i class="fas fa-ellipsis-v"></i></button>';
-        html += '<div class="row-actions-menu" style="display:none;">';
-        html += '<button onclick="openStudentProfile(' + s.id + ')"><i class="fas fa-eye"></i> View Profile</button>';
-        html += '<button onclick="openUpdateStudentModal(' + s.id + ')"><i class="fas fa-edit"></i> Edit</button>';
-        html += '<button onclick="openStudentDocsModal(' + s.id + ')"><i class="fas fa-folder-open"></i> Documents' + getStudentDocsBadge(s) + '</button>';
-        html += '<button onclick="openUpdateStudentIdModal(' + s.id + ')"><i class="fas fa-hashtag"></i> Update Student ID</button>';
-        html += '<button onclick="showStudentQR(' + s.id + ')"><i class="fas fa-qrcode"></i> QR Code</button>';
-        html += '<button onclick="printStudentForm(' + s.id + ')"><i class="fas fa-print"></i> Print Form</button>';
-        html += '<button onclick="generateICard(' + s.id + ')"><i class="fas fa-id-card"></i> Generate I-Card</button>';
-        html += '<button onclick="openNotificationModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell"></i> Send Notification</button>';
-        html += '<button onclick="openStudentNotificationsModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell-slash"></i> Notification Settings</button>';
-        html += '<button class="delete-action" onclick="deleteStudent(' + s.id + ')"><i class="fas fa-trash"></i> Delete</button>';
-        html += '</div>';
         html += '</td>';
         html += '</tr>';
-        return html;
-    }).join('');
+        const actionsRow = '<tr class="student-actions-row" data-student-id="' + s.id + '" style="display:none;">' +
+            '<td colspan="11" class="student-actions-cell">' +
+            '<div class="row-actions-menu">' +
+            '<button onclick="openStudentProfile(' + s.id + ')"><i class="fas fa-eye"></i> View Profile</button>' +
+            '<button onclick="openUpdateStudentModal(' + s.id + ')"><i class="fas fa-edit"></i> Edit</button>' +
+            '<button onclick="openStudentDocsModal(' + s.id + ')"><i class="fas fa-folder-open"></i> Documents' + getStudentDocsBadge(s) + '</button>' +
+            '<button onclick="openUpdateStudentIdModal(' + s.id + ')"><i class="fas fa-hashtag"></i> Update Student ID</button>' +
+            '<button onclick="showStudentQR(' + s.id + ')"><i class="fas fa-qrcode"></i> QR Code</button>' +
+            '<button onclick="printStudentForm(' + s.id + ')"><i class="fas fa-print"></i> Print Form</button>' +
+            '<button onclick="generateICard(' + s.id + ')"><i class="fas fa-id-card"></i> Generate I-Card</button>' +
+            '<button onclick="openNotificationModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell"></i> Send Notification</button>' +
+            '<button onclick="openStudentNotificationsModal(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><i class="fas fa-bell-slash"></i> Notification Settings</button>' +
+            '<button class="delete-action" onclick="deleteStudent(' + s.id + ')"><i class="fas fa-trash"></i> Delete</button>' +
+            '</div></td></tr>';
+        return [html, actionsRow];
+    }).flat().join('');
     renderStudentsPagination(totalPages);
 }
 
@@ -10586,57 +10588,20 @@ function filterStudents() {
 
 function toggleRowActions(btn, event) {
     event.stopPropagation();
-    const menu = btn.nextElementSibling;
-    const isOpen = menu.style.display === 'flex';
-    document.querySelectorAll('.row-actions-menu').forEach(m => m.style.display = 'none');
+    const tr = btn.closest('tr[data-student-id]');
+    if (!tr) return;
+    const actionsRow = tr.nextElementSibling;
+    if (!actionsRow || !actionsRow.classList.contains('student-actions-row')) return;
+    const isOpen = actionsRow.style.display === 'table-row';
+    document.querySelectorAll('.student-actions-row').forEach(r => r.style.display = 'none');
     if (!isOpen) {
-        menu.style.position = 'fixed';
-        menu.style.display = 'flex';
-        menu.style.top = '-9999px';
-        menu.style.left = '0';
-        menu.style.right = 'auto';
-        menu.style.bottom = 'auto';
-        const menuWidth = menu.offsetWidth;
-        const menuHeight = menu.offsetHeight;
-        const rect = btn.getBoundingClientRect();
-        const gap = 4;
-        const vh = window.innerHeight;
-        const vw = window.innerWidth;
-
-        // Open right-aligned below the button by default
-        let top = rect.bottom + gap;
-        let left = rect.right - menuWidth;
-
-        // Flip above if there's no room below
-        if (top + menuHeight > vh - gap) {
-            top = Math.max(gap, rect.top - menuHeight - gap);
-        }
-
-        // If it overflows the left side, align with the left of the button
-        if (left < gap) {
-            left = rect.left;
-        }
-
-        // Keep within viewport edges
-        if (left + menuWidth > vw - gap) {
-            left = Math.max(gap, vw - menuWidth - gap);
-        }
-        if (left < gap) left = gap;
-        if (top < gap) top = gap;
-
-        // Make sure the menu never extends below the screen
-        const availableHeight = vh - top - gap;
-        menu.style.maxHeight = availableHeight + 'px';
-        menu.style.overflowY = availableHeight < menuHeight ? 'auto' : 'hidden';
-
-        menu.style.top = top + 'px';
-        menu.style.left = left + 'px';
+        actionsRow.style.display = 'table-row';
     }
 }
 
 document.addEventListener('click', function(e) {
-    if (!e.target.closest('.action-cell')) {
-        document.querySelectorAll('.row-actions-menu').forEach(m => m.style.display = 'none');
+    if (!e.target.closest('.student-actions-row') && !e.target.closest('.options-btn')) {
+        document.querySelectorAll('.student-actions-row').forEach(r => r.style.display = 'none');
     }
 });
 

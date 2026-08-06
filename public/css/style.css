@@ -4381,17 +4381,29 @@ tbody tr:nth-child(even) td {
 }
 
 .row-actions-menu {
-    position: fixed;
-    min-width: 200px;
-    background: #1e293b;
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 8px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-    z-index: 1000;
+    position: static;
+    min-width: auto;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    z-index: auto;
     padding: 6px;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.student-actions-row {
+    display: none;
+}
+
+.student-actions-cell {
+    background: rgba(30,41,59,0.6);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 8px 12px;
 }
 
 .row-actions-menu button {
