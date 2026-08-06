@@ -4382,17 +4382,17 @@ tbody tr:nth-child(even) td {
 
 .row-actions-menu {
     position: static;
-    min-width: auto;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
+    min-width: 220px;
+    max-width: 280px;
+    background: rgba(15,23,42,0.9);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     z-index: auto;
     padding: 6px;
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 6px;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .student-actions-row {
@@ -4418,6 +4418,7 @@ tbody tr:nth-child(even) td {
     cursor: pointer;
     font-size: 13px;
     text-align: left;
+    width: 100%;
     white-space: nowrap;
     transition: all 0.15s ease;
 }
