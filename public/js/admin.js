@@ -1638,7 +1638,7 @@ const COURSE_PREDEFINED_DOCS = [
     { type: 'income_certificate', label: 'Income Certificate', docType: 'file' }
 ];
 
-function renderCourseDocItem(type, label, showInForm, docType) {
+function renderCourseDocItem(type, label, showInForm, docType, compulsory) {
     const container = document.getElementById('courseRequiredDocs');
     const div = document.createElement('div');
     div.className = 'course-doc-item';
@@ -1647,11 +1647,15 @@ function renderCourseDocItem(type, label, showInForm, docType) {
     div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:rgba(255,255,255,0.03);transition:background 0.2s;font-size:13px;';
     const visible = showInForm !== false;
     const isImage = (docType || 'file') === 'image';
+    const isCompulsory = compulsory !== false;
     div.innerHTML = '<button type="button" onclick="moveCourseDoc(\'' + type + '\',-1)" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:2px 4px;font-size:11px;" title="Move up"><i class="fas fa-chevron-up"></i></button>' +
         '<button type="button" onclick="moveCourseDoc(\'' + type + '\',1)" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:2px 4px;font-size:11px;" title="Move down"><i class="fas fa-chevron-down"></i></button>' +
         '<span class="course-doc-label" data-type="' + type + '" style="flex:1;font-size:13px;">' + label + '</span>' +
         '<button type="button" class="course-doc-type-btn" onclick="toggleCourseDocType(\'' + type + '\')" style="background:none;border:1px solid ' + (isImage ? 'rgba(2,132,199,0.4)' : 'rgba(255,255,255,0.15)') + ';color:' + (isImage ? '#0ea5e9' : 'rgba(255,255,255,0.4)') + ';cursor:pointer;padding:3px 8px;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:4px;white-space:nowrap;" title="Toggle document type (Image/File)">' +
         '<i class="fas ' + (isImage ? 'fa-image' : 'fa-file-pdf') + '"></i> ' + (isImage ? 'Image' : 'File') +
+        '</button>' +
+        '<button type="button" class="course-doc-compulsory' + (isCompulsory ? ' compulsory' : '') + '" onclick="toggleCourseDocCompulsory(\'' + type + '\')" style="background:none;border:1px solid ' + (isCompulsory ? 'rgba(248,113,113,0.4)' : 'rgba(255,255,255,0.15)') + ';color:' + (isCompulsory ? '#f87171' : 'rgba(255,255,255,0.35)') + ';cursor:pointer;padding:3px 8px;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:4px;white-space:nowrap;" title="Toggle compulsory/optional for student documents">' +
+        '<i class="fas ' + (isCompulsory ? 'fa-lock' : 'fa-unlock') + '"></i> ' + (isCompulsory ? 'Required' : 'Optional') +
         '</button>' +
         '<button type="button" class="course-doc-toggle' + (visible ? ' visible' : '') + '" onclick="toggleCourseDocForm(\'' + type + '\')" style="background:none;border:1px solid ' + (visible ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.15)') + ';color:' + (visible ? '#4ade80' : 'rgba(255,255,255,0.35)') + ';cursor:pointer;padding:3px 10px;border-radius:6px;font-size:11px;display:flex;align-items:center;gap:4px;white-space:nowrap;" title="Toggle visibility in admission form">' +
         '<i class="fas ' + (visible ? 'fa-eye' : 'fa-eye-slash') + '"></i> ' + (visible ? 'In Form' : 'Hidden') +
@@ -1674,6 +1678,19 @@ function toggleCourseDocForm(type) {
     btn.innerHTML = '<i class="fas ' + (visible ? 'fa-eye' : 'fa-eye-slash') + '"></i> ' + (visible ? 'In Form' : 'Hidden');
 }
 
+function toggleCourseDocCompulsory(type) {
+    const item = document.querySelector('#courseRequiredDocs .course-doc-item[data-type="' + type + '"]');
+    if (!item) return;
+    const btn = item.querySelector('.course-doc-compulsory');
+    const isCurrentlyCompulsory = btn.classList.contains('compulsory');
+    const compulsory = !isCurrentlyCompulsory;
+
+    btn.classList.toggle('compulsory', compulsory);
+    btn.style.borderColor = compulsory ? 'rgba(248,113,113,0.4)' : 'rgba(255,255,255,0.15)';
+    btn.style.color = compulsory ? '#f87171' : 'rgba(255,255,255,0.35)';
+    btn.innerHTML = '<i class="fas ' + (compulsory ? 'fa-lock' : 'fa-unlock') + '"></i> ' + (compulsory ? 'Required' : 'Optional');
+}
+
 function toggleCourseDocType(type) {
     const item = document.querySelector('#courseRequiredDocs .course-doc-item[data-type="' + type + '"]');
     if (!item) return;
@@ -1689,7 +1706,7 @@ function toggleCourseDocType(type) {
 function initCourseDocs() {
     const container = document.getElementById('courseRequiredDocs');
     container.innerHTML = '';
-    COURSE_PREDEFINED_DOCS.forEach(doc => renderCourseDocItem(doc.type, doc.label, true, doc.docType));
+    COURSE_PREDEFINED_DOCS.forEach(doc => renderCourseDocItem(doc.type, doc.label, true, doc.docType, true));
 }
 
 function moveCourseDoc(type, dir) {
@@ -1755,7 +1772,7 @@ function addCustomCourseDoc() {
         showNotification('This document already exists in the list', 'warning');
         return;
     }
-    renderCourseDocItem(type, name, true, 'file');
+    renderCourseDocItem(type, name, true, 'file', true);
     input.value = '';
 }
 
@@ -1767,8 +1784,10 @@ function getCourseRequiredDocs() {
         const label = labelSpan?.textContent?.trim() || type;
         const toggle = item.querySelector('.course-doc-toggle');
         const showInForm = toggle ? toggle.classList.contains('visible') : true;
+        const compBtn = item.querySelector('.course-doc-compulsory');
+        const compulsory = compBtn ? compBtn.classList.contains('compulsory') : true;
         const docType = item.getAttribute('data-doc-type') || 'file';
-        docs.push({ type, label, showInForm, docType });
+        docs.push({ type, label, showInForm, compulsory, docType });
     });
     return docs;
 }
@@ -1776,27 +1795,18 @@ function getCourseRequiredDocs() {
 function setCourseRequiredDocs(docs) {
     const container = document.getElementById('courseRequiredDocs');
     container.innerHTML = '';
-    const renderedTypes = new Set();
 
-    // Render all saved docs in their exact saved order (preserves custom order)
+    // Render only the saved documents (deleted docs are not re-added)
     if (docs && docs.length) {
         docs.forEach(doc => {
             const type = typeof doc === 'string' ? doc : doc.type;
             const label = typeof doc === 'string' ? doc : (doc.label || doc.type);
             const showInForm = typeof doc === 'string' ? true : (doc.showInForm !== false);
             const docType = typeof doc === 'string' ? 'file' : (doc.docType || 'file');
-            renderCourseDocItem(type, label, showInForm, docType);
-            renderedTypes.add(type);
+            const compulsory = typeof doc === 'string' ? true : (doc.compulsory !== false);
+            renderCourseDocItem(type, label, showInForm, docType, compulsory);
         });
     }
-
-    // Append remaining predefined docs that weren't in the saved list (hidden by default)
-    COURSE_PREDEFINED_DOCS.forEach(doc => {
-        if (!renderedTypes.has(doc.type)) {
-            renderCourseDocItem(doc.type, doc.label, false, doc.docType);
-            renderedTypes.add(doc.type);
-        }
-    });
 }
 
 async function editCourse(id) {
@@ -17049,16 +17059,18 @@ function getStudentDocsBadge(student) {
     return ' <span style="background:' + color + ';color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;">' + uploaded + '/' + total + '</span>';
 }
 
+function filterCompulsoryDocs(docs) {
+    return docs.filter(d => typeof d === 'string' || d.compulsory !== false);
+}
+
 function getRequiredDocsForStudent(student) {
     if (!student || !student.course) return [];
-    // Try to find course in allStudents or fetch
-    // We use a cached courses list
-    if (!window._cachedCourses) return DEFAULT_REQUIRED_DOCS;
+    if (!window._cachedCourses) return filterCompulsoryDocs(DEFAULT_REQUIRED_DOCS);
     const course = window._cachedCourses.find(c => c.name === student.course);
     if (course && course.requiredDocuments && course.requiredDocuments.length) {
-        return course.requiredDocuments;
+        return filterCompulsoryDocs(course.requiredDocuments);
     }
-    return DEFAULT_REQUIRED_DOCS;
+    return filterCompulsoryDocs(DEFAULT_REQUIRED_DOCS);
 }
 
 // Cache courses for doc badge calculation
@@ -17090,9 +17102,10 @@ async function openStudentDocsModal(studentId) {
         // Fetch courses to get required docs
         if (!window._cachedCourses) await cacheCoursesForDocs();
         const course = window._cachedCourses.find(c => c.name === student.course);
-        currentDocsRequired = (course && course.requiredDocuments && course.requiredDocuments.length) 
+        const rawDocs = (course && course.requiredDocuments && course.requiredDocuments.length) 
             ? course.requiredDocuments 
             : DEFAULT_REQUIRED_DOCS;
+        currentDocsRequired = rawDocs.filter(d => typeof d === 'string' || d.compulsory !== false);
         
         // Render info
         const infoEl = document.getElementById('studentDocsInfo');
