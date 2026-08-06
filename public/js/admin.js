@@ -10587,10 +10587,26 @@ function filterStudents() {
 function toggleRowActions(btn, event) {
     event.stopPropagation();
     const menu = btn.nextElementSibling;
-    const isOpen = menu.style.display === 'block';
+    const isOpen = menu.style.display === 'flex';
     document.querySelectorAll('.row-actions-menu').forEach(m => m.style.display = 'none');
     if (!isOpen) {
-        menu.style.display = 'block';
+        menu.style.display = 'flex';
+        menu.style.position = 'fixed';
+        menu.style.right = 'auto';
+        menu.style.bottom = 'auto';
+        menu.style.visibility = 'hidden';
+        const menuWidth = menu.offsetWidth || 200;
+        const menuHeight = menu.offsetHeight;
+        const rect = btn.getBoundingClientRect();
+        let top = rect.top;
+        let left = rect.left - menuWidth;
+        if (left < 4) left = rect.right + 4;
+        if (top + menuHeight > window.innerHeight - 4) {
+            top = Math.max(4, window.innerHeight - menuHeight - 4);
+        }
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+        menu.style.visibility = 'visible';
     }
 }
 

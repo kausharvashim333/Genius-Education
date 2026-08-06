@@ -4381,9 +4381,7 @@ tbody tr:nth-child(even) td {
 }
 
 .row-actions-menu {
-    position: absolute;
-    right: 100%;
-    top: 0;
+    position: fixed;
     min-width: 200px;
     background: #1e293b;
     border: 1px solid rgba(255,255,255,0.15);
