@@ -10590,23 +10590,41 @@ function toggleRowActions(btn, event) {
     const isOpen = menu.style.display === 'flex';
     document.querySelectorAll('.row-actions-menu').forEach(m => m.style.display = 'none');
     if (!isOpen) {
-        menu.style.display = 'flex';
         menu.style.position = 'fixed';
+        menu.style.display = 'flex';
+        menu.style.top = '-9999px';
+        menu.style.left = '0';
         menu.style.right = 'auto';
         menu.style.bottom = 'auto';
-        menu.style.visibility = 'hidden';
-        const menuWidth = menu.offsetWidth || 200;
+        const menuWidth = menu.offsetWidth;
         const menuHeight = menu.offsetHeight;
         const rect = btn.getBoundingClientRect();
+        const gap = 4;
+        const vh = window.innerHeight;
+        const vw = window.innerWidth;
+
+        // Try opening to the left of the button, with a small gap
         let top = rect.top;
-        let left = rect.left - menuWidth;
-        if (left < 4) left = rect.right + 4;
-        if (top + menuHeight > window.innerHeight - 4) {
-            top = Math.max(4, window.innerHeight - menuHeight - 4);
+        let left = rect.left - menuWidth - gap;
+
+        // Not enough space on the left -> open to the right
+        if (left < gap) {
+            left = rect.right + gap;
         }
+
+        // Keep vertical within viewport
+        if (top + menuHeight > vh - gap) {
+            top = Math.max(gap, rect.bottom - menuHeight);
+        }
+        if (top < gap) top = gap;
+
+        // Keep horizontal within viewport
+        if (left + menuWidth > vw - gap) {
+            left = Math.max(gap, vw - menuWidth - gap);
+        }
+
         menu.style.top = top + 'px';
         menu.style.left = left + 'px';
-        menu.style.visibility = 'visible';
     }
 }
 
