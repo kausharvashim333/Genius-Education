@@ -10624,6 +10624,11 @@ function toggleRowActions(btn, event) {
         if (left < gap) left = gap;
         if (top < gap) top = gap;
 
+        // Make sure the menu never extends below the screen
+        const availableHeight = vh - top - gap;
+        menu.style.maxHeight = availableHeight + 'px';
+        menu.style.overflowY = availableHeight < menuHeight ? 'auto' : 'hidden';
+
         menu.style.top = top + 'px';
         menu.style.left = left + 'px';
     }
