@@ -2068,10 +2068,9 @@ async function loadFacultyDocuments() {
 
         tbody.innerHTML = myStudents.map(s => {
             const course = courses.find(c => c.name === s.course);
-            const raw = (course && course.requiredDocuments && course.requiredDocuments.length) 
+            const required = (course && course.requiredDocuments && course.requiredDocuments.length) 
                 ? course.requiredDocuments 
                 : FACULTY_DEFAULT_DOCS;
-            const required = raw.filter(d => typeof d === 'string' || d.compulsory !== false);
             const { labeled } = normalizeStudentDocsFP(s);
             const uploaded = required.filter(r => labeled[r.type]).length;
             const total = required.length;
@@ -2112,10 +2111,9 @@ async function openFacultyDocsModal(studentId) {
             facultyCachedCourses = await fetch('/api/courses').then(r => r.json());
         }
         const course = facultyCachedCourses.find(c => c.name === student.course);
-        const raw = (course && course.requiredDocuments && course.requiredDocuments.length)
+        facultyDocsRequired = (course && course.requiredDocuments && course.requiredDocuments.length)
             ? course.requiredDocuments
             : FACULTY_DEFAULT_DOCS;
-        facultyDocsRequired = raw.filter(d => typeof d === 'string' || d.compulsory !== false);
 
         // Render info
         const infoEl = document.getElementById('facultyDocsInfo');

@@ -17059,18 +17059,14 @@ function getStudentDocsBadge(student) {
     return ' <span style="background:' + color + ';color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;">' + uploaded + '/' + total + '</span>';
 }
 
-function filterCompulsoryDocs(docs) {
-    return docs.filter(d => typeof d === 'string' || d.compulsory !== false);
-}
-
 function getRequiredDocsForStudent(student) {
     if (!student || !student.course) return [];
-    if (!window._cachedCourses) return filterCompulsoryDocs(DEFAULT_REQUIRED_DOCS);
+    if (!window._cachedCourses) return DEFAULT_REQUIRED_DOCS;
     const course = window._cachedCourses.find(c => c.name === student.course);
     if (course && course.requiredDocuments && course.requiredDocuments.length) {
-        return filterCompulsoryDocs(course.requiredDocuments);
+        return course.requiredDocuments;
     }
-    return filterCompulsoryDocs(DEFAULT_REQUIRED_DOCS);
+    return DEFAULT_REQUIRED_DOCS;
 }
 
 // Cache courses for doc badge calculation
@@ -17102,10 +17098,9 @@ async function openStudentDocsModal(studentId) {
         // Fetch courses to get required docs
         if (!window._cachedCourses) await cacheCoursesForDocs();
         const course = window._cachedCourses.find(c => c.name === student.course);
-        const rawDocs = (course && course.requiredDocuments && course.requiredDocuments.length) 
+        currentDocsRequired = (course && course.requiredDocuments && course.requiredDocuments.length) 
             ? course.requiredDocuments 
             : DEFAULT_REQUIRED_DOCS;
-        currentDocsRequired = rawDocs.filter(d => typeof d === 'string' || d.compulsory !== false);
         
         // Render info
         const infoEl = document.getElementById('studentDocsInfo');
