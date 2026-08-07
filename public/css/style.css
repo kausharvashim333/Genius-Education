@@ -8465,3 +8465,133 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         font-size: 20px;
     }
 }
+
+/* ===== Mobile Homepage — Dark Glassmorphism Polish ===== */
+@media (max-width: 769px) {
+    /* Consistent section rhythm */
+    section {
+        padding-top: 44px;
+        padding-bottom: 44px;
+    }
+
+    /* Section titles — gradient text + accent bar */
+    .section-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        background: linear-gradient(135deg, #fff 30%, #a5b4fc);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        position: relative;
+        padding-bottom: 14px;
+        margin-bottom: 22px;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 48px;
+        height: 3px;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #667eea, #a78bfa);
+        box-shadow: 0 0 12px rgba(102,126,234,0.7);
+    }
+
+    /* Hero — bottom scrim for readability */
+    .carousel-hero .hero-overlay {
+        background: linear-gradient(180deg, rgba(15,23,42,0) 40%, rgba(15,23,42,0.55) 100%);
+    }
+
+    /* Course cards — deeper glass + glow edge */
+    .course-card {
+        background: linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+        backdrop-filter: blur(22px) saturate(160%);
+        -webkit-backdrop-filter: blur(22px) saturate(160%);
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 18px;
+        box-shadow: 0 8px 28px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .course-card-header h3 { font-size: 1rem; }
+
+    /* Notice cards — glass */
+    .notice-card {
+        background: linear-gradient(160deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 16px;
+    }
+
+    /* Blog cards — glass polish */
+    .blog-card {
+        background: linear-gradient(160deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    /* About stats — glass tiles */
+    .about-stats > div,
+    .stat-box {
+        background: linear-gradient(160deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 16px;
+    }
+
+    /* Gallery — rounded glass frames */
+    .gallery-grid img,
+    .gallery-item {
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    /* Contact — glass form */
+    .contact-form-wrapper,
+    .contact-info {
+        background: linear-gradient(160deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 18px;
+        padding: 20px 16px;
+    }
+    .contact-form input,
+    .contact-form textarea,
+    .contact-form select {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 12px;
+        color: #fff;
+    }
+
+    /* Buttons — pill + glow */
+    .btn-primary,
+    .btn-view,
+    .btn-enroll {
+        border-radius: 50px;
+        box-shadow: 0 4px 16px rgba(102,126,234,0.35);
+    }
+
+    /* Footer — glass panel */
+    .footer {
+        background: linear-gradient(180deg, rgba(15,23,42,0.6), rgba(15,23,42,0.95));
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .footer-section {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 14px;
+        padding: 4px 14px;
+        margin-bottom: 10px;
+    }
+}
