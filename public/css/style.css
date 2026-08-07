@@ -975,6 +975,7 @@ body {
     .admissions-badge {
         font-size: 11px;
         padding: 6px 14px;
+        top: 72px;
     }
 }
 
@@ -1105,19 +1106,20 @@ body {
     .hero-badge { font-size: 11px; padding: 4px 12px; margin-bottom: 10px; }
     .scroll-indicator { display: none; }
 
-    /* Hero buttons — full-width stack */
+    /* Hero buttons — compact centered row */
     .hero-buttons {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
         width: 100%;
     }
     .hero-buttons .btn {
-        width: 100%;
-        max-width: 260px;
+        width: auto;
+        max-width: none;
         text-align: center;
-        padding: 12px 20px;
-        font-size: 0.9rem;
+        padding: 8px 16px;
+        font-size: 0.8rem;
     }
 
     /* Gallery filters — horizontal scrollable chip row */
@@ -1159,8 +1161,8 @@ body {
     .carousel-hero .carousel-slide img { height: 260px; }
     .hero-stats { gap: 10px; }
     .hero-stats .stat-divider { height: 24px; }
-    .hero-buttons { flex-direction: column; gap: 10px; }
-    .hero-buttons .btn { width: 100%; max-width: 240px; text-align: center; }
+    .hero-buttons { flex-direction: row; justify-content: center; gap: 8px; }
+    .hero-buttons .btn { width: auto; max-width: none; padding: 8px 14px; font-size: 0.78rem; text-align: center; }
 }
 
 /* Respect users with motion sensitivity */
@@ -2832,10 +2834,10 @@ body {
 /* Sticky Bottom Bar (Mobile) */
 .mobile-social-toggle {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
+    bottom: 90px;
+    right: 24px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     display: none;
     align-items: center;
