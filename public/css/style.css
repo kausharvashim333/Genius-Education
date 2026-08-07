@@ -1094,8 +1094,9 @@ body {
         width: auto;
         max-width: 100%;
         border: none;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow: visible;
+        text-overflow: unset;
+        line-height: 1.35;
     }
     .hero-overlay p { font-size: 1rem; }
     .hero-stats { gap: 12px; margin-top: 18px; }
@@ -1103,6 +1104,55 @@ body {
     .hero-stats .stat span { font-size: 0.7rem; }
     .hero-badge { font-size: 11px; padding: 4px 12px; margin-bottom: 10px; }
     .scroll-indicator { display: none; }
+
+    /* Hero buttons — full-width stack */
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+    }
+    .hero-buttons .btn {
+        width: 100%;
+        max-width: 260px;
+        text-align: center;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+
+    /* Gallery filters — horizontal scrollable chip row */
+    .gallery-filters {
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        justify-content: flex-start !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 6px;
+    }
+    .gallery-filters::-webkit-scrollbar { display: none; }
+    .gallery-filter-btn {
+        flex-shrink: 0;
+        font-size: 13px;
+        padding: 7px 16px !important;
+    }
+
+    /* Compact tickers */
+    .announcement-ticker { padding: 8px 0; }
+    .announcement-ticker .ticker-content span { font-size: 0.8rem; }
+    .notice-ticker-bar { height: 36px; }
+    .notice-ticker-label { padding: 0 12px; font-size: 0.75rem; }
+    .notice-ticker-track { font-size: 0.8rem; }
+
+    /* Contact map — smaller height */
+    #contactMapIframe { height: 250px !important; }
+
+    /* Carousel dots — bigger touch targets */
+    .carousel-hero .carousel-dot {
+        width: 14px;
+        height: 14px;
+        padding: 2px;
+    }
+    .carousel-hero .carousel-dots { gap: 14px; }
 }
 
 @media (max-width: 480px) {
@@ -6045,11 +6095,13 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     }
     
     .hero h1 {
-        font-size: 1.2rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 1.3rem;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
         max-width: 100%;
+        line-height: 1.4;
+        word-wrap: break-word;
     }
     
     .hero p {

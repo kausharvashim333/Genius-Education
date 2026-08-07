@@ -878,6 +878,15 @@
             if (e.target === enquiryModalOverlay) closeEnquiryModal();
         });
 
+        // Auto-hide callout after user scrolls (avoids overlap on mobile)
+        let _calloutHidden = false;
+        window.addEventListener('scroll', function() {
+            if (!_calloutHidden && window.scrollY > 300) {
+                _calloutHidden = true;
+                enquiryCallout.classList.add('dismissed');
+            }
+        }, { passive: true });
+
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && enquiryModalOverlay.classList.contains('active')) {
                 closeEnquiryModal();
