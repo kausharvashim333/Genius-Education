@@ -3922,6 +3922,8 @@ async function exportRevenueReport() {
     showNotification('Revenue report exported!', 'success');
 }
 
+let _allFeesStudents = [];
+
 async function loadFeesTable() {
     const tbody = document.getElementById('feesTable').querySelector('tbody');
     renderLoadingSpinner(tbody, 'Loading fees...');
@@ -3929,29 +3931,64 @@ async function loadFeesTable() {
     try {
         const res = await fetch('/api/students');
         const students = await res.json();
-        
-        if (students && students.length > 0) {
-            let html = '';
-            students.forEach(s => {
-                const fees = s.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0 };
-                html += '<tr>';
-                html += '<td><strong>' + s.name + '</strong><br><small>' + s.rollNo + '</small></td>';
-                html += '<td>' + s.course + '</td>';
-                html += '<td>' + (s.batch || '-') + '</td>';
-                html += '<td>₹' + (fees.totalFees || 0) + '</td>';
-                html += '<td style="color:#16a34a;">₹' + (fees.paidAmount || 0) + '</td>';
-                html += '<td style="color:' + (fees.dueAmount > 0 ? '#dc2626' : '#16a34a') + ';">₹' + (fees.dueAmount || 0) + '</td>';
-                html += '<td>';
-                html += '<button class="btn btn-primary" onclick="openFeeModal(\'' + s.id + '\')" style="padding:4px 8px;font-size:12px;">Add Payment</button>';
-                html += '<button class="btn btn-info" onclick="viewStudentPaymentHistory(\'' + s.id + '\')" style="padding:4px 8px;font-size:12px;margin-left:5px;">View History</button>';
-                html += '</td>';
-                html += '</tr>';
-            });
-            tbody.innerHTML = html;
-        }
+        _allFeesStudents = students || [];
+        renderFeesRows(_allFeesStudents);
+        document.getElementById('feeFilterSummary').textContent = '';
     } catch (e) {
         console.error('Error loading fees:', e);
     }
+}
+
+function renderFeesRows(students) {
+    const tbody = document.getElementById('feesTable').querySelector('tbody');
+    if (!students || students.length > 0) {
+        let html = '';
+        students.forEach(s => {
+            const fees = s.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0 };
+            html += '<tr>';
+            html += '<td><strong>' + s.name + '</strong><br><small>' + s.rollNo + '</small></td>';
+            html += '<td>' + s.course + '</td>';
+            html += '<td>' + (s.batch || '-') + '</td>';
+            html += '<td>₹' + (fees.totalFees || 0) + '</td>';
+            html += '<td style="color:#16a34a;">₹' + (fees.paidAmount || 0) + '</td>';
+            html += '<td style="color:' + (fees.dueAmount > 0 ? '#dc2626' : '#16a34a') + ';">₹' + (fees.dueAmount || 0) + '</td>';
+            html += '<td>';
+            html += '<button class="btn btn-primary" onclick="openFeeModal(\'' + s.id + '\')" style="padding:4px 8px;font-size:12px;">Add Payment</button>';
+            html += '<button class="btn btn-info" onclick="viewStudentPaymentHistory(\'' + s.id + '\')" style="padding:4px 8px;font-size:12px;margin-left:5px;">View History</button>';
+            html += '</td>';
+            html += '</tr>';
+        });
+        tbody.innerHTML = html;
+    } else {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;">No fee records found in this range.</td></tr>';
+    }
+}
+
+function filterFeesTable() {
+    const minVal = parseFloat(document.getElementById('feeFilterMin').value) || 0;
+    const maxVal = parseFloat(document.getElementById('feeFilterMax').value) || Infinity;
+    const field = document.getElementById('feeFilterField').value;
+
+    const filtered = _allFeesStudents.filter(s => {
+        const fees = s.fees || { totalFees: 0, paidAmount: 0, dueAmount: 0 };
+        const val = parseFloat(fees[field]) || 0;
+        return val >= minVal && val <= maxVal;
+    });
+
+    renderFeesRows(filtered);
+
+    const summary = document.getElementById('feeFilterSummary');
+    const fieldLabel = document.getElementById('feeFilterField').options[document.getElementById('feeFilterField').selectedIndex].text;
+    const maxDisplay = maxVal === Infinity ? '∞' : maxVal;
+    summary.textContent = 'Showing ' + filtered.length + ' of ' + _allFeesStudents.length + ' records — ' + fieldLabel + ' between ₹' + minVal + ' and ₹' + maxDisplay;
+}
+
+function clearFeeFilter() {
+    document.getElementById('feeFilterMin').value = '';
+    document.getElementById('feeFilterMax').value = '';
+    document.getElementById('feeFilterField').value = 'totalFees';
+    document.getElementById('feeFilterSummary').textContent = '';
+    renderFeesRows(_allFeesStudents);
 }
 
 function openFeeModal(studentId = '') {

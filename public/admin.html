@@ -4584,6 +4584,23 @@
                 </div>
 
                 <div class="data-table">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                        <h3 style="margin:0;font-size:1.1rem;"><i class="fas fa-rupee-sign" style="margin-right:6px;color:#f59e0b;"></i> Fee Records</h3>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <label style="font-size:13px;color:rgba(255,255,255,0.6);">Min ₹:</label>
+                            <input type="number" id="feeFilterMin" placeholder="0" min="0" style="padding:8px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;height:38px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;box-sizing:border-box;width:90px;">
+                            <label style="font-size:13px;color:rgba(255,255,255,0.6);">Max ₹:</label>
+                            <input type="number" id="feeFilterMax" placeholder="Max" min="0" style="padding:8px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;height:38px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;box-sizing:border-box;width:90px;">
+                            <select id="feeFilterField" style="padding:8px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;height:38px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;box-sizing:border-box;">
+                                <option value="totalFees">Total Fees</option>
+                                <option value="paidAmount">Paid Amount</option>
+                                <option value="dueAmount">Due Amount</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="filterFeesTable()" style="padding:8px 16px;"><i class="fas fa-filter"></i> Filter</button>
+                            <button class="btn btn-secondary" onclick="clearFeeFilter()" style="padding:8px 16px;"><i class="fas fa-times"></i> Clear</button>
+                        </div>
+                    </div>
+                    <div id="feeFilterSummary" style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:10px;"></div>
                     <table id="feesTable">
                         <thead><tr><th>Student</th><th>Course</th><th>Batch</th><th>Total Fees</th><th>Paid</th><th>Due</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
