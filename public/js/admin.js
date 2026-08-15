@@ -6264,7 +6264,8 @@ async function loadChaptersTable() {
 }
 
 function openChapterModal() {
-    document.getElementById('chapterModalTitle').textContent = 'Add Chapter';
+    const title = document.getElementById('chapterModalTitle');
+    title.innerHTML = '<i class="fas fa-folder-plus" style="margin-right:8px;color:#667eea;"></i> Add Chapter';
     document.getElementById('chapterId').value = '';
     document.getElementById('chapterName').value = '';
     document.getElementById('chapterOrder').value = '1';
@@ -6272,39 +6273,70 @@ function openChapterModal() {
     document.getElementById('chapterModal').classList.add('active');
 }
 
-async function loadCoursesForChapterModal() {
+async function loadCoursesForChapterModal(selectedCourseIds = []) {
     const res = await fetch('/api/courses');
     const courses = await res.json();
-    const select = document.getElementById('chapterCourse');
-    select.innerHTML = '<option value="">Select Course</option>' + courses.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
+    const container = document.getElementById('chapterCourseList');
+    if (courses.length === 0) {
+        container.innerHTML = '<span style="color:rgba(255,255,255,0.4);font-size:13px;padding:8px;">No courses available. Pehle course add karein.</span>';
+        return;
+    }
+    container.innerHTML = courses.map(c => {
+        const checked = selectedCourseIds.includes(String(c.id)) ? 'checked' : '';
+        return '<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.08)\'" onmouseout="this.style.background=\'transparent\'">' +
+            '<input type="checkbox" value="' + c.id + '" ' + checked + ' style="width:16px;height:16px;accent-color:#667eea;cursor:pointer;">' +
+            '<span style="font-size:14px;">' + c.name + '</span>' +
+            '</label>';
+    }).join('');
 }
 
 async function saveChapter() {
     const chapterId = document.getElementById('chapterId').value;
-    const body = {
-        courseId: document.getElementById('chapterCourse').value,
-        name: document.getElementById('chapterName').value,
-        order: parseInt(document.getElementById('chapterOrder').value) || 1
-    };
-    if (!body.courseId || !body.name) {
-        showNotification('Course and name are required', 'error');
+    const name = document.getElementById('chapterName').value;
+    const order = parseInt(document.getElementById('chapterOrder').value) || 1;
+    const selectedCheckboxes = document.querySelectorAll('#chapterCourseList input[type=checkbox]:checked');
+    const selectedCourseIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+    if (!name) {
+        showNotification('Chapter name is required', 'error');
         return;
     }
+    if (selectedCourseIds.length === 0) {
+        showNotification('At least one course select karein', 'error');
+        return;
+    }
+
     try {
-        const url = chapterId ? '/api/chapters/' + chapterId : '/api/chapters';
-        const method = chapterId ? 'PUT' : 'POST';
-        const res = await fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-        const data = await res.json();
-        if (data.success) {
+        if (chapterId) {
+            // Edit mode: single course update
+            const res = await fetch('/api/chapters/' + chapterId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, order })
+            });
+            const data = await res.json();
+            if (data.success) {
+                closeModal('chapterModal');
+                loadChaptersTable();
+                showNotification('Chapter updated!', 'success');
+            } else {
+                showNotification('Error saving chapter', 'error');
+            }
+        } else {
+            // Add mode: create chapter for each selected course
+            let successCount = 0;
+            for (const courseId of selectedCourseIds) {
+                const res = await fetch('/api/chapters', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ courseId, name, order })
+                });
+                const data = await res.json();
+                if (data.success) successCount++;
+            }
             closeModal('chapterModal');
             loadChaptersTable();
-            showNotification(chapterId ? 'Chapter updated!' : 'Chapter added!', 'success');
-        } else {
-            showNotification('Error saving chapter', 'error');
+            showNotification(successCount + ' course' + (successCount > 1 ? 's' : '') + ' me chapter add hua!', 'success');
         }
     } catch (e) {
         console.error('Error saving chapter:', e);
@@ -6318,13 +6350,12 @@ async function editChapter(id) {
         const chapters = await res.json();
         const chapter = chapters.find(c => c.id == id);
         if (!chapter) return;
-        document.getElementById('chapterModalTitle').textContent = 'Edit Chapter';
+        const title = document.getElementById('chapterModalTitle');
+        title.innerHTML = '<i class="fas fa-folder-plus" style="margin-right:8px;color:#667eea;"></i> Edit Chapter';
         document.getElementById('chapterId').value = chapter.id;
         document.getElementById('chapterName').value = chapter.name;
         document.getElementById('chapterOrder').value = chapter.order;
-        loadCoursesForChapterModal().then(() => {
-            document.getElementById('chapterCourse').value = chapter.courseId || '';
-        });
+        loadCoursesForChapterModal([String(chapter.courseId)]);
         document.getElementById('chapterModal').classList.add('active');
     } catch (e) {
         console.error('Error loading chapter:', e);
