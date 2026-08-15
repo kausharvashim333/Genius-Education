@@ -1947,6 +1947,9 @@
                     <!-- 7. Declaration -->
                     <div class="form-section-card">
                         <div class="form-section-title"><i class="fas fa-file-signature"></i> Declaration</div>
+                        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+                            <button type="button" onclick="selectAllDeclarations('decl')" style="padding:6px 16px;border:1px solid rgba(102,126,234,0.5);border-radius:8px;background:rgba(102,126,234,0.15);color:#667eea;font-size:13px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(102,126,234,0.3)'" onmouseout="this.style.background='rgba(102,126,234,0.15)'"><i class="fas fa-check-double" style="margin-right:5px;"></i> Select All</button>
+                        </div>
                         <div style="display:flex;flex-direction:column;gap:12px;">
                             <label class="checkbox-label"><input type="checkbox" id="decl1" required> <span>Maine jo bhi jaankari di hai wo bilkul sahi aur sacchi hai.</span></label>
                             <label class="checkbox-label"><input type="checkbox" id="decl2" required> <span>Main institute ke sabhi niyam aur kanoon manne ko taiyaar hun.</span></label>
@@ -6737,6 +6740,12 @@
     <script src="js/admin.js?v=20260721k"></script>
     <script src="js/entrance-admin.js"></script>
     <script>
+    // Select all declaration checkboxes (toggle)
+    function selectAllDeclarations(prefix) {
+        const boxes = document.querySelectorAll('input[type=checkbox][id^="' + prefix + '"]');
+        const allChecked = Array.from(boxes).every(cb => cb.checked);
+        boxes.forEach(cb => cb.checked = !allChecked);
+    }
     // ============ FACULTY EMBED MODE ============
     // When admin.html is loaded inside the faculty portal iframe:
     //   ?mode=embed&page=<data-page>  — show only that specific page, no sidebar/topbar
