@@ -3934,6 +3934,7 @@ async function loadFeesTable() {
         _allFeesStudents = students || [];
         renderFeesRows(_allFeesStudents);
         document.getElementById('feeFilterSummary').textContent = '';
+        renderPaidDistribution(_allFeesStudents);
     } catch (e) {
         console.error('Error loading fees:', e);
     }
@@ -3989,6 +3990,37 @@ function clearFeeFilter() {
     document.getElementById('feeFilterField').value = 'totalFees';
     document.getElementById('feeFilterSummary').textContent = '';
     renderFeesRows(_allFeesStudents);
+    renderPaidDistribution(_allFeesStudents);
+}
+
+function renderPaidDistribution(students) {
+    const container = document.getElementById('paidDistribution');
+    if (!container) return;
+    const groups = {};
+    students.forEach(s => {
+        const paid = (s.fees && s.fees.paidAmount) ? parseInt(s.fees.paidAmount) : 0;
+        if (paid <= 0) return;
+        if (!groups[paid]) groups[paid] = [];
+        groups[paid].push(s);
+    });
+    const amounts = Object.keys(groups).map(Number).sort((a, b) => a - b);
+    if (amounts.length === 0) {
+        container.innerHTML = '<span style="font-size:13px;color:rgba(255,255,255,0.4);">No paid fees recorded yet.</span>';
+        return;
+    }
+    let html = '<span style="font-size:13px;color:rgba(255,255,255,0.6);align-self:center;margin-right:4px;"><i class="fas fa-chart-bar" style="margin-right:4px;"></i>Paid Distribution:</span>';
+    amounts.forEach(amt => {
+        const count = groups[amt].length;
+        html += '<button onclick="filterByPaidAmount(' + amt + ')" style="padding:6px 14px;border:1px solid rgba(245,158,11,0.4);border-radius:20px;background:rgba(245,158,11,0.15);color:#fbbf24;font-size:13px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(245,158,11,0.3)\'" onmouseout="this.style.background=\'rgba(245,158,11,0.15)\'">₹' + amt + ' <span style="background:rgba(245,158,11,0.3);padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px;">' + count + '</span></button>';
+    });
+    container.innerHTML = html;
+}
+
+function filterByPaidAmount(amount) {
+    document.getElementById('feeFilterField').value = 'paidAmount';
+    document.getElementById('feeFilterMin').value = amount;
+    document.getElementById('feeFilterMax').value = amount;
+    filterFeesTable();
 }
 
 function openFeeModal(studentId = '') {
