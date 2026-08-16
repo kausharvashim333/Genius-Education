@@ -1612,7 +1612,7 @@ window.addEventListener('load', () => {
     
     const googleError = urlParams.get('error');
     if (googleError === 'google_auth_failed') {
-        document.getElementById('step1GoogleError').textContent = 'Google login failed. Try email login.';
+        document.getElementById('step1GoogleError').innerHTML = 'Is email se koi student registered nahi hai. <a href="https://geniuscomputereducation.com/apply.html" target="_blank" style="color:#667eea;font-weight:600;">Admission form bharne ke liye yahan click karein</a>.';
         document.getElementById('step1GoogleError').style.display = 'block';
         // Clear the URL parameter
         window.history.replaceState({}, document.title, window.location.pathname);

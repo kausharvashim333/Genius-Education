@@ -425,27 +425,13 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
     },
     async (accessToken, refreshToken, profile, done) => {
         const students = readData('students.json') || [];
-        let student = students.find(s => s.email === profile.emails[0].value);
+        const student = students.find(s => s.email === profile.emails[0].value);
 
         if (!student) {
-            const plainPassword = Math.random().toString(36).substring(2, 10).toUpperCase();
-            const hashedPassword = await bcrypt.hash(plainPassword, 10);
-            student = {
-                id: Date.now(),
-                name: profile.displayName,
-                email: profile.emails[0].value,
-                phone: '',
-                googleId: profile.id,
-                course: '',
-                batch: '',
-                status: 'Pending',
-                fees: { totalFees: 0, paidAmount: 0, dueAmount: 0, payments: [] },
-                loginPassword: hashedPassword,
-                passwordChanged: false
-            };
-            students.push(student);
-            writeData('students.json', students);
-        } else if (!student.googleId) {
+            return done(new Error('Is email se koi student registered nahi hai.'), null);
+        }
+
+        if (!student.googleId) {
             student.googleId = profile.id;
             writeData('students.json', students);
         }
