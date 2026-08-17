@@ -262,6 +262,16 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Android App APK download
+app.get('/download/android-app', (req, res) => {
+    const apkPath = path.join(__dirname, 'downloads', 'genius-education.apk');
+    if (fs.existsSync(apkPath)) {
+        res.download(apkPath, 'Genius-Education-App.apk');
+    } else {
+        res.status(404).send('Android app abhi available nahi hai. Jald hi aayega!');
+    }
+});
+
 // Session configuration
 app.use(session({
     secret: SESSION_SECRET,

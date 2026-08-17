@@ -3064,6 +3064,52 @@ body {
     color: #e2e8f0;
 }
 
+/* Android App Download Button */
+.footer-app-download {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.footer-app-download .app-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.footer-app-download .app-download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.footer-app-download .app-download-btn i {
+    font-size: 20px;
+}
+
+.footer-app-download .app-download-btn .app-btn-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.footer-app-download .app-download-btn .app-btn-text small {
+    font-size: 11px;
+    opacity: 0.8;
+    font-weight: 400;
+}
+
 /* Legal Pages */
 .legal-page {
     padding: 80px 20px;
