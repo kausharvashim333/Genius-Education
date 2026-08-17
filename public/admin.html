@@ -3094,6 +3094,7 @@
                         <button class="settings-tab" data-tab="payment"><i class="fas fa-credit-card"></i> Payment</button>
                         <button class="settings-tab" data-tab="security"><i class="fas fa-shield-alt"></i> Security</button>
                         <button class="settings-tab" data-tab="login-panels"><i class="fas fa-palette"></i> Login Panels</button>
+                        <button class="settings-tab" data-tab="android-app"><i class="fab fa-android"></i> Android App</button>
                     </div>
                     
                     <!-- Institute Settings Tab -->
@@ -3437,10 +3438,58 @@
                             </form>
                         </div>
                     </div>
+                    
+                    <!-- Android App Settings Tab -->
+                    <div id="tab-android-app" class="settings-tab-content">
+                        <div class="data-table" style="max-width: 600px;">
+                            <h4 style="margin-bottom: 20px; color: #3b82f6;"><i class="fab fa-android"></i> Android App Management</h4>
+                            
+                            <div id="androidAppStatus" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                                <div id="androidAppNotUploaded">
+                                    <p style="color: rgba(255,255,255,0.7); margin-bottom: 15px;"><i class="fas fa-info-circle"></i> Koi APK file upload nahi hai. Footer me download button display nahi hoga.</p>
+                                </div>
+                                <div id="androidAppUploaded" style="display: none;">
+                                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                                        <i class="fas fa-check-circle" style="color:#22c55e; font-size:20px;"></i>
+                                        <span style="color:#22c55e; font-weight:600;">APK Uploaded</span>
+                                    </div>
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px; font-size:13px;">
+                                        <div><strong>File:</strong> <span id="apkFileName">-</span></div>
+                                        <div><strong>Size:</strong> <span id="apkFileSize">-</span></div>
+                                        <div><strong>Uploaded:</strong> <span id="apkUploadDate">-</span></div>
+                                        <div><strong>Download:</strong> <a href="/download/android-app" target="_blank" style="color:#60a5fa;">/download/android-app</a></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Upload APK File <small style="color:#888;">(Max 100MB)</small></label>
+                                <input type="file" id="apkFile" accept=".apk,application/vnd.android.package-archive" style="display: none;">
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-primary" onclick="document.getElementById('apkFile').click()" id="apkUploadBtn">
+                                        <i class="fas fa-upload"></i> Upload APK
+                                    </button>
+                                    <button type="button" class="btn btn-danger" onclick="deleteApk()" id="apkDeleteBtn" style="display: none;">
+                                        <i class="fas fa-trash"></i> Delete APK
+                                    </button>
+                                </div>
+                                <div id="apkUploadProgress" style="display:none; margin-top:15px;">
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <i class="fas fa-spinner fa-spin" style="color:#3b82f6;"></i>
+                                        <span style="color:rgba(255,255,255,0.8);">Uploading... Please wait</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 15px; margin-top: 20px;">
+                                <p style="margin:0; color:rgba(255,255,255,0.7); font-size:13px;">
+                                    <i class="fas fa-info-circle"></i> APK upload karne ke baad, website ke footer me automatically "Download App" button display hoga. User us button se direct APK download kar sakega.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <!-- Announcements Page -->
             <div id="page-announcements" class="page-content hidden">
                 <div class="page-toolbar" style="display:flex;gap:10px;">
                         <button class="btn btn-primary" onclick="openAnnouncementModal()"><i class="fas fa-plus"></i> Add Announcement</button>

@@ -1012,6 +1012,32 @@ document.addEventListener('DOMContentLoaded', async function() {
         } catch (err) { showNotification('Popup image upload failed!', 'error'); }
     });
 
+    // APK file upload
+    document.getElementById('apkFile').addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('apk', file);
+        document.getElementById('apkUploadProgress').style.display = 'block';
+        document.getElementById('apkUploadBtn').disabled = true;
+        try {
+            const res = await fetch('/api/android-app/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                loadApkStatus();
+                showNotification('APK uploaded successfully!', 'success');
+            } else {
+                showNotification(data.message || 'APK upload failed!', 'error');
+            }
+        } catch (err) {
+            showNotification('APK upload failed!', 'error');
+        } finally {
+            document.getElementById('apkUploadProgress').style.display = 'none';
+            document.getElementById('apkUploadBtn').disabled = false;
+            e.target.value = '';
+        }
+    });
+
     // Check if already logged in (session is tied to current tab)
     if (sessionStorage.getItem('adminSession') === 'active') {
         showDashboard();
@@ -1040,6 +1066,47 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     loadFavicon();
+
+    // Load APK status from settings
+    async function loadApkStatus() {
+        try {
+            const response = await fetch('/api/settings');
+            const settings = await response.json();
+            const app = settings.androidApp;
+            if (app && app.uploaded) {
+                document.getElementById('androidAppNotUploaded').style.display = 'none';
+                document.getElementById('androidAppUploaded').style.display = 'block';
+                document.getElementById('apkDeleteBtn').style.display = 'inline-flex';
+                document.getElementById('apkFileName').textContent = app.fileName || '-';
+                document.getElementById('apkFileSize').textContent = app.fileSize ? (app.fileSize / 1024 / 1024).toFixed(2) + ' MB' : '-';
+                document.getElementById('apkUploadDate').textContent = app.uploadDate ? new Date(app.uploadDate).toLocaleString('en-IN') : '-';
+            } else {
+                document.getElementById('androidAppNotUploaded').style.display = 'block';
+                document.getElementById('androidAppUploaded').style.display = 'none';
+                document.getElementById('apkDeleteBtn').style.display = 'none';
+            }
+        } catch (err) {
+            console.error('Failed to load APK status:', err);
+        }
+    }
+    loadApkStatus();
+
+    // Delete APK
+    window.deleteApk = async function() {
+        if (!confirm('Kya aap really is APK ko delete karna chahte hain?')) return;
+        try {
+            const res = await fetch('/api/android-app', { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                loadApkStatus();
+                showNotification('APK deleted successfully!', 'success');
+            } else {
+                showNotification(data.message || 'APK delete failed!', 'error');
+            }
+        } catch (err) {
+            showNotification('APK delete failed!', 'error');
+        }
+    };
 
     // Add event listeners for admin admission form validation
     const phoneInput = document.getElementById('sPhone');

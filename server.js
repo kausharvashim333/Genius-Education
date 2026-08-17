@@ -264,6 +264,10 @@ app.get('/', (req, res) => {
 
 // Android App APK download
 app.get('/download/android-app', (req, res) => {
+    const settings = readData('settings.json') || {};
+    if (!settings.androidApp || !settings.androidApp.uploaded) {
+        return res.status(404).send('Android app abhi available nahi hai. Jald hi aayega!');
+    }
     const apkPath = path.join(__dirname, 'downloads', 'genius-education.apk');
     if (fs.existsSync(apkPath)) {
         res.download(apkPath, 'Genius-Education-App.apk');
@@ -1967,6 +1971,11 @@ const logoStorage = multer.diskStorage({
     filename: (req, file, cb) => cb(null, 'logo' + path.extname(file.originalname))
 });
 
+const apkStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'downloads'),
+    filename: (req, file, cb) => cb(null, 'genius-education.apk')
+});
+
 const uploadGallery = multer({
     storage: galleryStorage,
     limits: { fileSize: 10 * 1024 * 1024 },
@@ -2000,6 +2009,17 @@ const uploadLogo = multer({
         const mime = types.test(file.mimetype);
         if (ext && mime) cb(null, true);
         else cb(new Error('Only image files allowed!'));
+    }
+});
+
+const uploadApk = multer({
+    storage: apkStorage,
+    limits: { fileSize: 100 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const ext = /\.apk$/i.test(file.originalname);
+        const mime = file.mimetype === 'application/vnd.android.package-archive' || file.mimetype === 'application/octet-stream';
+        if (ext || mime) cb(null, true);
+        else cb(new Error('Only APK files allowed!'));
     }
 });
 
@@ -11953,6 +11973,30 @@ app.delete('/api/logo', (req, res) => {
         if (fs.existsSync(logoPath)) fs.unlinkSync(logoPath);
     }
     settings.logo = '';
+    writeData('settings.json', settings);
+    res.json({ success: true });
+});
+
+// --- Android App APK Upload ---
+app.post('/api/android-app/upload', uploadApk.single('apk'), (req, res) => {
+    if (!req.file) return res.status(400).json({ success: false, message: 'No APK file uploaded' });
+    const settings = readData('settings.json') || {};
+    const stats = fs.statSync(req.file.path);
+    settings.androidApp = {
+        uploaded: true,
+        fileName: req.file.originalname,
+        fileSize: stats.size,
+        uploadDate: new Date().toISOString()
+    };
+    writeData('settings.json', settings);
+    res.json({ success: true, androidApp: settings.androidApp });
+});
+
+app.delete('/api/android-app', (req, res) => {
+    const settings = readData('settings.json') || {};
+    const apkPath = path.join(__dirname, 'downloads', 'genius-education.apk');
+    if (fs.existsSync(apkPath)) fs.unlinkSync(apkPath);
+    settings.androidApp = { uploaded: false, fileName: '', fileSize: 0, uploadDate: '' };
     writeData('settings.json', settings);
     res.json({ success: true });
 });
