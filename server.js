@@ -11992,6 +11992,51 @@ app.post('/api/android-app/upload', uploadApk.single('apk'), (req, res) => {
     res.json({ success: true, androidApp: settings.androidApp });
 });
 
+// Chunked APK upload - bypasses proxy body-size limits (chunks are < 1MB each)
+const apkChunkUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 1 * 1024 * 1024 } });
+app.post('/api/android-app/upload-chunk', apkChunkUpload.single('chunk'), (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ success: false, message: 'No chunk received' });
+        const chunkIndex = parseInt(req.body.chunkIndex, 10);
+        const totalChunks = parseInt(req.body.totalChunks, 10);
+        const fileName = (req.body.fileName || 'app.apk').replace(/[^a-zA-Z0-9._-]/g, '_');
+        if (isNaN(chunkIndex) || isNaN(totalChunks) || totalChunks < 1) {
+            return res.status(400).json({ success: false, message: 'Invalid chunk info' });
+        }
+        if (!/\.apk$/i.test(fileName)) {
+            return res.status(400).json({ success: false, message: 'Only APK files allowed!' });
+        }
+        const downloadsDir = path.join(__dirname, 'downloads');
+        if (!fs.existsSync(downloadsDir)) fs.mkdirSync(downloadsDir, { recursive: true });
+        const tempPath = path.join(downloadsDir, 'genius-education.apk.uploading');
+        const finalPath = path.join(downloadsDir, 'genius-education.apk');
+
+        // First chunk: start fresh temp file
+        if (chunkIndex === 0 && fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+        fs.appendFileSync(tempPath, req.file.buffer);
+
+        // Last chunk: finalize
+        if (chunkIndex === totalChunks - 1) {
+            if (fs.existsSync(finalPath)) fs.unlinkSync(finalPath);
+            fs.renameSync(tempPath, finalPath);
+            const stats = fs.statSync(finalPath);
+            const settings = readData('settings.json') || {};
+            settings.androidApp = {
+                uploaded: true,
+                fileName: fileName,
+                fileSize: stats.size,
+                uploadDate: new Date().toISOString()
+            };
+            writeData('settings.json', settings);
+            return res.json({ success: true, completed: true, androidApp: settings.androidApp });
+        }
+        res.json({ success: true, completed: false, chunkIndex });
+    } catch (err) {
+        console.error('Chunk upload error:', err);
+        res.status(500).json({ success: false, message: 'Chunk upload failed' });
+    }
+});
+
 app.delete('/api/android-app', (req, res) => {
     const settings = readData('settings.json') || {};
     const apkPath = path.join(__dirname, 'downloads', 'genius-education.apk');

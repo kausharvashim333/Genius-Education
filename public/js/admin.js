@@ -1012,27 +1012,44 @@ document.addEventListener('DOMContentLoaded', async function() {
         } catch (err) { showNotification('Popup image upload failed!', 'error'); }
     });
 
-    // APK file upload
+    // APK file upload (chunked - bypasses server body-size limits)
     document.getElementById('apkFile').addEventListener('change', async function(e) {
         const file = e.target.files[0];
         if (!file) return;
-        const formData = new FormData();
-        formData.append('apk', file);
-        document.getElementById('apkUploadProgress').style.display = 'block';
+        if (!/\.apk$/i.test(file.name)) {
+            showNotification('Sirf APK file allowed hai!', 'error');
+            e.target.value = '';
+            return;
+        }
+        const CHUNK_SIZE = 700 * 1024; // 700KB - safely under 1MB proxy limits
+        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+        const progressEl = document.getElementById('apkUploadProgress');
+        progressEl.style.display = 'block';
         document.getElementById('apkUploadBtn').disabled = true;
         try {
-            const res = await fetch('/api/android-app/upload', { method: 'POST', body: formData });
-            const data = await res.json();
-            if (data.success) {
-                loadApkStatus();
-                showNotification('APK uploaded successfully!', 'success');
-            } else {
-                showNotification(data.message || 'APK upload failed!', 'error');
+            for (let i = 0; i < totalChunks; i++) {
+                const start = i * CHUNK_SIZE;
+                const chunk = file.slice(start, start + CHUNK_SIZE);
+                const formData = new FormData();
+                formData.append('chunkIndex', i);
+                formData.append('totalChunks', totalChunks);
+                formData.append('fileName', file.name);
+                formData.append('chunk', chunk, file.name);
+                const res = await fetch('/api/android-app/upload-chunk', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.message || 'Chunk upload failed');
+                }
+                const percent = Math.round(((i + 1) / totalChunks) * 100);
+                progressEl.textContent = 'Uploading... ' + percent + '%';
             }
+            loadApkStatus();
+            showNotification('APK uploaded successfully!', 'success');
         } catch (err) {
-            showNotification('APK upload failed!', 'error');
+            showNotification(err.message || 'APK upload failed!', 'error');
         } finally {
-            document.getElementById('apkUploadProgress').style.display = 'none';
+            progressEl.style.display = 'none';
+            progressEl.textContent = 'Uploading...';
             document.getElementById('apkUploadBtn').disabled = false;
             e.target.value = '';
         }
