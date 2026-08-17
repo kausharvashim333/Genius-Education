@@ -2014,7 +2014,7 @@ const uploadLogo = multer({
 
 const uploadApk = multer({
     storage: apkStorage,
-    limits: { fileSize: 100 * 1024 * 1024 },
+    limits: { fileSize: 200 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         const ext = /\.apk$/i.test(file.originalname);
         const mime = file.mimetype === 'application/vnd.android.package-archive' || file.mimetype === 'application/octet-stream';
