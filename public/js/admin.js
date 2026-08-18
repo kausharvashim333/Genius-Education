@@ -5973,6 +5973,7 @@ async function saveStudyMaterial() {
                 body: JSON.stringify({
                     title: title,
                     courses: selectedCourses,
+                    course: selectedCourses.join(', '),
                     type: type,
                     description: document.getElementById('materialDescription').value,
                     author: document.getElementById('materialAuthor').value,
@@ -6002,6 +6003,7 @@ async function saveStudyMaterial() {
         formData.append('file', file);
         formData.append('title', title);
         formData.append('courses', JSON.stringify(selectedCourses));
+        formData.append('course', selectedCourses.join(', '));
         formData.append('type', type);
         formData.append('description', document.getElementById('materialDescription').value);
         formData.append('author', document.getElementById('materialAuthor').value);
