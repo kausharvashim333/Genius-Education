@@ -5836,7 +5836,7 @@ async function deleteSelectedStudyMaterials() {
 }
 
 function openStudyMaterialModal() {
-    document.getElementById('studyMaterialModalTitle').textContent = 'Add Study Material';
+    document.getElementById('studyMaterialModalTitle').innerHTML = '<i class="fas fa-file-alt"></i> Add Study Material';
     document.getElementById('materialId').value = '';
     document.getElementById('materialTitle').value = '';
     document.getElementById('materialFile').value = '';
@@ -5856,8 +5856,26 @@ function openStudyMaterialModal() {
 async function loadCoursesForMaterialModal() {
     const res = await fetch('/api/courses');
     const courses = await res.json();
-    const select = document.getElementById('materialCourse');
-    select.innerHTML = '<option value="">Select Course</option>' + courses.map(c => '<option>' + c.name + '</option>').join('');
+    const container = document.getElementById('materialCoursesList');
+    if (!courses || courses.length === 0) {
+        container.innerHTML = '<span style="color:#94a3b8;font-size:13px;">No courses available</span>';
+        return;
+    }
+    container.innerHTML = courses.map(c =>
+        '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:5px 8px;border-radius:6px;transition:background 0.2s;" onmouseover="this.style.background=\'rgba(102,126,234,0.1)\'" onmouseout="this.style.background=\'transparent\'">' +
+        '<input type="checkbox" class="material-course-checkbox" value="' + c.name.replace(/"/g, '&quot;') + '" style="width:15px;height:15px;cursor:pointer;accent-color:#667eea;">' +
+        '<span>' + c.name + '</span></label>'
+    ).join('');
+}
+
+function getSelectedMaterialCourses() {
+    return Array.from(document.querySelectorAll('.material-course-checkbox:checked')).map(cb => cb.value);
+}
+
+function toggleAllMaterialCourses() {
+    const boxes = document.querySelectorAll('.material-course-checkbox');
+    const allChecked = Array.from(boxes).every(cb => cb.checked);
+    boxes.forEach(cb => cb.checked = !allChecked);
 }
 
 // View study material file in new tab
@@ -5883,7 +5901,7 @@ async function editStudyMaterial(id) {
         const materials = data.materials || data || [];
         const m = materials.find(x => x.id == id);
         if (!m) { showNotification('Material not found!', 'error'); return; }
-        document.getElementById('studyMaterialModalTitle').textContent = 'Edit Study Material';
+        document.getElementById('studyMaterialModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Study Material';
         document.getElementById('materialId').value = m.id;
         document.getElementById('materialTitle').value = m.title || '';
         document.getElementById('materialFile').value = '';
@@ -5896,7 +5914,10 @@ async function editStudyMaterial(id) {
         document.getElementById('materialType').value = m.type || '';
         await loadCoursesForMaterialModal();
         await loadBatchesForMaterialModal();
-        document.getElementById('materialCourse').value = m.course || '';
+        const materialCourses = Array.isArray(m.courses) && m.courses.length > 0 ? m.courses : (m.course ? m.course.split(',').map(c => c.trim()) : []);
+        document.querySelectorAll('.material-course-checkbox').forEach(cb => {
+            cb.checked = materialCourses.includes(cb.value);
+        });
         document.getElementById('materialBatch').value = m.batch || '';
         document.getElementById('studyMaterialModal').classList.add('active');
     } catch (e) { showNotification('Error loading material!', 'error'); }
@@ -5935,11 +5956,11 @@ async function saveStudyMaterial() {
         const file = fileInput.files[0];
         
         const title = document.getElementById('materialTitle').value;
-        const course = document.getElementById('materialCourse').value;
+        const selectedCourses = getSelectedMaterialCourses();
         const type = document.getElementById('materialType').value;
         
-        if (!title || !course || !type) {
-            showNotification('Please fill in all required fields', 'error');
+        if (!title || selectedCourses.length === 0 || !type) {
+            showNotification('Please fill in all required fields (kam se kam ek course select karein)', 'error');
             return;
         }
         
@@ -5950,7 +5971,7 @@ async function saveStudyMaterial() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     title: title,
-                    course: course,
+                    courses: selectedCourses,
                     type: type,
                     description: document.getElementById('materialDescription').value,
                     author: document.getElementById('materialAuthor').value,
@@ -5979,7 +6000,7 @@ async function saveStudyMaterial() {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('title', title);
-        formData.append('course', course);
+        formData.append('courses', JSON.stringify(selectedCourses));
         formData.append('type', type);
         formData.append('description', document.getElementById('materialDescription').value);
         formData.append('author', document.getElementById('materialAuthor').value);

@@ -6691,7 +6691,8 @@ app.delete('/api/attendance/:id', (req, res) => {
 app.get('/api/study-materials', (req, res) => {
     const materials = readData('study-materials.json') || [];
     if (req.query.course) {
-        const filtered = materials.filter(m => m.course === req.query.course);
+        const q = req.query.course;
+        const filtered = materials.filter(m => m.course === q || (Array.isArray(m.courses) && m.courses.includes(q)));
         res.json({ success: true, materials: filtered });
     } else {
         res.json({ success: true, materials });
@@ -6699,15 +6700,22 @@ app.get('/api/study-materials', (req, res) => {
 });
 
 app.post('/api/study-materials', uploadStudyMaterial.single('file'), (req, res) => {
-    const { title, course, type, description, author, category, difficulty, tags, batch, status, submittedBy, submittedById } = req.body;
-    if (!title || !course || !type) return res.status(400).json({ success: false, message: 'Title, course, and type required' });
+    const { title, course, courses, type, description, author, category, difficulty, tags, batch, status, submittedBy, submittedById } = req.body;
+    let coursesArr = [];
+    if (courses) {
+        try { coursesArr = typeof courses === 'string' ? JSON.parse(courses) : courses; } catch (e) { coursesArr = String(courses).split(',').map(c => c.trim()).filter(c => c); }
+    }
+    if (!Array.isArray(coursesArr)) coursesArr = [];
+    if (coursesArr.length === 0 && course) coursesArr = [course];
+    if (!title || coursesArr.length === 0 || !type) return res.status(400).json({ success: false, message: 'Title, course, and type required' });
     if (!req.file) return res.status(400).json({ success: false, message: 'File required' });
     
     const materials = readData('study-materials.json') || [];
     const material = {
         id: Date.now(),
         title: title,
-        course: course,
+        course: coursesArr.join(', '),
+        courses: coursesArr,
         type: type,
         url: '/uploads/study-materials/' + req.file.filename,
         size: (req.file.size / (1024 * 1024)).toFixed(2) + ' MB',
@@ -6736,9 +6744,15 @@ app.put('/api/study-materials/:id', (req, res) => {
     const idx = materials.findIndex(m => m.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Material not found' });
     
-    const { title, course, type, url, size, description, author, category, difficulty, tags, batch, status } = req.body;
+    const { title, course, courses, type, url, size, description, author, category, difficulty, tags, batch, status } = req.body;
     if (title) materials[idx].title = title;
-    if (course) materials[idx].course = course;
+    if (Array.isArray(courses) && courses.length > 0) {
+        materials[idx].courses = courses;
+        materials[idx].course = courses.join(', ');
+    } else if (course) {
+        materials[idx].course = course;
+        materials[idx].courses = [course];
+    }
     if (type) materials[idx].type = type;
     if (url) materials[idx].url = url;
     if (size) materials[idx].size = size;
