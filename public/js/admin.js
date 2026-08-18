@@ -5783,6 +5783,8 @@ async function loadStudyMaterialsTable() {
                     html += '<button class="btn btn-success" onclick="approveStudyMaterial(\'' + m.id + '\')" title="Approve" style="padding:5px 8px;font-size:12px;background:#16a34a;"><i class="fas fa-check"></i></button> ';
                     html += '<button class="btn btn-danger" onclick="rejectStudyMaterial(\'' + m.id + '\')" title="Reject" style="padding:5px 8px;font-size:12px;"><i class="fas fa-times"></i></button> ';
                 }
+                html += '<button class="btn" onclick="viewStudyMaterial(\'' + m.id + '\')" title="View" style="padding:5px 8px;font-size:12px;background:#0ea5e9;color:#fff;"><i class="fas fa-eye"></i></button> ';
+                html += '<button class="btn" onclick="editStudyMaterial(\'' + m.id + '\')" title="Edit" style="padding:5px 8px;font-size:12px;background:#f59e0b;color:#fff;"><i class="fas fa-edit"></i></button> ';
                 html += '<button class="btn" onclick="deleteStudyMaterial(\'' + m.id + '\')" title="Delete" style="padding:5px 8px;font-size:12px;"><i class="fas fa-trash"></i></button>';
                 html += '</td>';
                 html += '</tr>';
@@ -5838,6 +5840,7 @@ function openStudyMaterialModal() {
     document.getElementById('materialId').value = '';
     document.getElementById('materialTitle').value = '';
     document.getElementById('materialFile').value = '';
+    document.getElementById('materialFile').setAttribute('required', '');
     document.getElementById('materialDescription').value = '';
     document.getElementById('materialAuthor').value = '';
     document.getElementById('materialCategory').value = 'General';
@@ -5855,6 +5858,48 @@ async function loadCoursesForMaterialModal() {
     const courses = await res.json();
     const select = document.getElementById('materialCourse');
     select.innerHTML = '<option value="">Select Course</option>' + courses.map(c => '<option>' + c.name + '</option>').join('');
+}
+
+// View study material file in new tab
+async function viewStudyMaterial(id) {
+    try {
+        const res = await fetch('/api/study-materials');
+        const data = await res.json();
+        const materials = data.materials || data || [];
+        const m = materials.find(x => x.id == id);
+        if (m && m.url) {
+            window.open(m.url, '_blank');
+        } else {
+            showNotification('File not found!', 'error');
+        }
+    } catch (e) { showNotification('Error opening file!', 'error'); }
+}
+
+// Edit study material (metadata)
+async function editStudyMaterial(id) {
+    try {
+        const res = await fetch('/api/study-materials');
+        const data = await res.json();
+        const materials = data.materials || data || [];
+        const m = materials.find(x => x.id == id);
+        if (!m) { showNotification('Material not found!', 'error'); return; }
+        document.getElementById('studyMaterialModalTitle').textContent = 'Edit Study Material';
+        document.getElementById('materialId').value = m.id;
+        document.getElementById('materialTitle').value = m.title || '';
+        document.getElementById('materialFile').value = '';
+        document.getElementById('materialFile').removeAttribute('required');
+        document.getElementById('materialDescription').value = m.description || '';
+        document.getElementById('materialAuthor').value = m.author || '';
+        document.getElementById('materialCategory').value = m.category || 'General';
+        document.getElementById('materialDifficulty').value = m.difficulty || 'Beginner';
+        document.getElementById('materialTags').value = Array.isArray(m.tags) ? m.tags.join(', ') : (m.tags || '');
+        document.getElementById('materialType').value = m.type || '';
+        await loadCoursesForMaterialModal();
+        await loadBatchesForMaterialModal();
+        document.getElementById('materialCourse').value = m.course || '';
+        document.getElementById('materialBatch').value = m.batch || '';
+        document.getElementById('studyMaterialModal').classList.add('active');
+    } catch (e) { showNotification('Error loading material!', 'error'); }
 }
 
 async function loadBatchesForMaterialModal() {
@@ -5885,13 +5930,9 @@ function updateMaterialFileInput() {
 
 async function saveStudyMaterial() {
     try {
+        const materialId = document.getElementById('materialId').value;
         const fileInput = document.getElementById('materialFile');
         const file = fileInput.files[0];
-        
-        if (!file) {
-            showNotification('Please select a file', 'error');
-            return;
-        }
         
         const title = document.getElementById('materialTitle').value;
         const course = document.getElementById('materialCourse').value;
@@ -5899,6 +5940,39 @@ async function saveStudyMaterial() {
         
         if (!title || !course || !type) {
             showNotification('Please fill in all required fields', 'error');
+            return;
+        }
+        
+        // Edit mode - update metadata via PUT (file stays the same)
+        if (materialId) {
+            const res = await fetch('/api/study-materials/' + materialId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: title,
+                    course: course,
+                    type: type,
+                    description: document.getElementById('materialDescription').value,
+                    author: document.getElementById('materialAuthor').value,
+                    category: document.getElementById('materialCategory').value,
+                    difficulty: document.getElementById('materialDifficulty').value,
+                    tags: document.getElementById('materialTags').value.split(',').map(t => t.trim()).filter(t => t),
+                    batch: document.getElementById('materialBatch').value
+                })
+            });
+            const result = await res.json();
+            if (result.success) {
+                closeModal('studyMaterialModal');
+                loadStudyMaterialsTable();
+                showNotification('Material updated!', 'success');
+            } else {
+                showNotification('Error updating material: ' + (result.message || 'Unknown error'), 'error');
+            }
+            return;
+        }
+        
+        if (!file) {
+            showNotification('Please select a file', 'error');
             return;
         }
         
