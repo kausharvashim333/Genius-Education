@@ -5862,7 +5862,7 @@ async function loadCoursesForMaterialModal() {
         return;
     }
     container.innerHTML = courses.map(c =>
-        '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:5px 8px;border-radius:6px;transition:background 0.2s;" onmouseover="this.style.background=\'rgba(102,126,234,0.1)\'" onmouseout="this.style.background=\'transparent\'">' +
+        '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:5px 8px;border-radius:6px;transition:background 0.2s;color:rgba(255,255,255,0.85);" onmouseover="this.style.background=\'rgba(255,255,255,0.08)\'" onmouseout="this.style.background=\'transparent\'">' +
         '<input type="checkbox" class="material-course-checkbox" value="' + c.name.replace(/"/g, '&quot;') + '" style="width:15px;height:15px;cursor:pointer;accent-color:#667eea;">' +
         '<span>' + c.name + '</span></label>'
     ).join('');
