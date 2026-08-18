@@ -5762,7 +5762,8 @@ async function loadStudyMaterialsTable() {
                 html += '<td><strong>' + m.title + '</strong>';
                 if (m.submittedBy) html += '<br><small style="color:#64748b;">by ' + m.submittedBy + '</small>';
                 html += '</td>';
-                html += '<td>' + m.course + '</td>';
+                const courseList = Array.isArray(m.courses) && m.courses.length > 0 ? m.courses : (m.course ? m.course.split(',').map(c => c.trim()) : []);
+                html += '<td>' + courseList.map(c => '<span style="display:inline-block;background:rgba(102,126,234,0.2);color:#a5b4fc;padding:2px 8px;border-radius:10px;font-size:11px;margin:2px;">' + c + '</span>').join('') + '</td>';
                 html += '<td>' + (m.category || 'General') + '</td>';
                 html += '<td>' + m.type.toUpperCase() + '</td>';
                 html += '<td>' + (m.author || 'Admin') + '</td>';
