@@ -973,6 +973,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="display:flex;gap:10px;">
                 <button type="button" class="payment-mode-btn" data-mode="cash" onclick="selectPaymentMode('cash')" style="flex:1;padding:12px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;cursor:pointer;transition:all 0.3s ease;">Cash</button>
                 <button type="button" class="payment-mode-btn" data-mode="upi" onclick="selectPaymentMode('upi')" style="flex:1;padding:12px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;cursor:pointer;transition:all 0.3s ease;">UPI</button>
+                <button type="button" class="payment-mode-btn" data-mode="online" onclick="selectPaymentMode('online')" style="flex:1;padding:12px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;cursor:pointer;transition:all 0.3s ease;">Online</button>
             </div>
         </div>
 
@@ -988,6 +989,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <input type="number" id="cashAmount" placeholder="Enter amount" oninput="validatePaymentAmount()" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;margin-bottom:15px;">
             <label style="display:block;margin-bottom:8px;font-weight:600;color:#fff;">Receipt Number:</label>
             <input type="text" id="cashReceiptNo" placeholder="Enter receipt number" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;">
+        </div>
+
+        <div id="onlineSection" style="display:none;margin-bottom:20px;">
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#fff;">Amount to Pay (₹):</label>
+            <input type="number" id="onlineAmount" placeholder="Enter amount" oninput="validateOnlineAmount()" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;margin-bottom:10px;">
+            <p style="font-size:13px;color:rgba(255,255,255,0.7);margin:0;">You will be redirected to Razorpay secure payment gateway. Cards, UPI, Net Banking, Wallets - all supported.</p>
         </div>
 
         <div id="paymentAmountDisplay" style="display:none;background:rgba(102,126,234,0.2);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(102,126,234,0.3);padding:15px;border-radius:8px;margin-bottom:20px;">
@@ -2146,6 +2153,7 @@ function closePaymentModal() {
     });
     document.getElementById('upiSection').style.display = 'none';
     document.getElementById('cashSection').style.display = 'none';
+    document.getElementById('onlineSection').style.display = 'none';
     document.getElementById('paymentAmountDisplay').style.display = 'none';
     document.getElementById('paymentPercentageDisplay').style.display = 'none';
     document.getElementById('upiSection').style.display = 'none';
@@ -2185,6 +2193,16 @@ function selectPaymentMode(mode) {
 
     document.getElementById('upiSection').style.display = mode === 'upi' ? 'block' : 'none';
     document.getElementById('cashSection').style.display = mode === 'cash' ? 'block' : 'none';
+    document.getElementById('onlineSection').style.display = mode === 'online' ? 'block' : 'none';
+
+    // For online mode, enable proceed button immediately (amount is entered later)
+    if (mode === 'online') {
+        document.getElementById('proceedPaymentBtn').disabled = false;
+        document.getElementById('proceedPaymentBtn').style.opacity = '1';
+    } else {
+        document.getElementById('proceedPaymentBtn').disabled = true;
+        document.getElementById('proceedPaymentBtn').style.opacity = '0.5';
+    }
 }
 
 function selectPaymentType(type) {
@@ -2292,8 +2310,158 @@ async function proceedPayment() {
         return;
     }
 
-    // Future: Online payment (Razorpay) - no staff OTP needed
+    // Online payment via Razorpay - no staff OTP needed
+    if (selectedPaymentMode === 'online') {
+        const onlineAmount = parseInt(document.getElementById('onlineAmount').value) || 0;
+        if (!onlineAmount || onlineAmount <= 0) {
+            alert('Amount enter karein!');
+            return;
+        }
+        startRazorpayAdmissionPayment(onlineAmount);
+        return;
+    }
+
     finalizeSubmission();
+}
+
+function validateOnlineAmount() {
+    const amount = parseInt(document.getElementById('onlineAmount').value) || 0;
+    const displayAmountEl = document.getElementById('displayAmount');
+    const percentageDisplay = document.getElementById('paymentPercentageDisplay');
+
+    if (amount > 0) {
+        if (displayAmountEl) displayAmountEl.textContent = amount;
+        document.getElementById('paymentAmountDisplay').style.display = 'block';
+
+        if (courseFee > 0) {
+            const percentage = Math.round((amount / courseFee) * 100);
+            percentageDisplay.style.display = 'block';
+            document.getElementById('paymentPercentage').textContent = percentage + '%';
+        }
+
+        document.getElementById('proceedPaymentBtn').disabled = false;
+        document.getElementById('proceedPaymentBtn').style.opacity = '1';
+    } else {
+        document.getElementById('paymentAmountDisplay').style.display = 'none';
+        percentageDisplay.style.display = 'none';
+        document.getElementById('proceedPaymentBtn').disabled = true;
+        document.getElementById('proceedPaymentBtn').style.opacity = '0.5';
+    }
+}
+
+let razorpayPaymentDetails = null;
+
+async function startRazorpayAdmissionPayment(amount) {
+    const btn = document.getElementById('proceedPaymentBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+    try {
+        const studentName = document.getElementById('aName').value || 'Applicant';
+        const studentEmail = document.getElementById('aEmail').value || '';
+        const studentPhone = document.getElementById('aPhone').value || '';
+
+        const orderRes = await fetch('/api/razorpay/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: amount,
+                purpose: 'admission',
+                studentName: studentName,
+                studentEmail: studentEmail,
+                studentPhone: studentPhone
+            })
+        });
+        const orderData = await orderRes.json();
+
+        if (!orderData.success) {
+            alert('Payment order creation failed: ' + (orderData.message || 'Unknown error'));
+            btn.disabled = false;
+            btn.innerHTML = 'Proceed';
+            return;
+        }
+
+        const options = {
+            key: orderData.keyId,
+            amount: amount * 100,
+            currency: 'INR',
+            name: 'Genius Computer Education',
+            description: 'Admission Fee Payment',
+            order_id: orderData.order.id,
+            prefill: {
+                name: studentName,
+                email: studentEmail,
+                contact: studentPhone
+            },
+            theme: { color: '#3b82f6' },
+            handler: function(response) {
+                razorpayPaymentDetails = {
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                    amount: amount
+                };
+                // Verify payment on server
+                verifyRazorpayAdmissionPayment(razorpayPaymentDetails);
+            },
+            modal: {
+                ondismiss: function() {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Proceed';
+                    alert('Payment cancelled. Aap payment bina complete kiye form submit nahi kar sakte.');
+                }
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function(resp) {
+            btn.disabled = false;
+            btn.innerHTML = 'Proceed';
+            alert('Payment failed: ' + (resp.error.description || 'Unknown error'));
+        });
+        rzp.open();
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = 'Proceed';
+        alert('Payment error: ' + err.message);
+    }
+}
+
+async function verifyRazorpayAdmissionPayment(details) {
+    const btn = document.getElementById('proceedPaymentBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+
+    try {
+        const studentName = document.getElementById('aName').value || 'Applicant';
+        const studentEmail = document.getElementById('aEmail').value || '';
+        const studentPhone = document.getElementById('aPhone').value || '';
+
+        const verifyRes = await fetch('/api/razorpay/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ...details,
+                purpose: 'admission',
+                studentName: studentName,
+                studentEmail: studentEmail,
+                studentPhone: studentPhone
+            })
+        });
+        const verifyData = await verifyRes.json();
+
+        if (verifyData.success) {
+            // Payment verified - now submit the application with payment details
+            submitApplication('Online', 'custom', details.amount, '', '', details.razorpay_payment_id);
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = 'Proceed';
+            alert('Payment verification failed: ' + (verifyData.message || 'Unknown error'));
+        }
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = 'Proceed';
+        alert('Verification error: ' + err.message);
+    }
 }
 
 function finalizeSubmission() {
@@ -2675,6 +2843,7 @@ loadApplyCourses().then(() => {
     }
 });
 </script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="/js/security.js"></script>
 </body>
 </html>

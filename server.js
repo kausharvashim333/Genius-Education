@@ -22,9 +22,16 @@ const { body, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const { OAuth2Client } = require('google-auth-library');
+const Razorpay = require('razorpay');
 
 // Google ID token verifier (used for student Google Sign-In)
 const googleAuthClient = new OAuth2Client();
+
+// Razorpay instance
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+    key_secret: process.env.RAZORPAY_KEY_SECRET || 'placeholder'
+});
 
 // XSS sanitization helper
 function sanitizeHTML(str) {
@@ -6685,6 +6692,148 @@ app.delete('/api/attendance/:id', (req, res) => {
     attendance.splice(idx, 1);
     writeData('attendance.json', attendance);
     res.json({ success: true });
+});
+
+// --- Razorpay Payment Gateway ---
+
+// Create Razorpay Order
+app.post('/api/razorpay/create-order', async (req, res) => {
+    try {
+        const { amount, purpose, studentId, studentName, studentEmail, studentPhone } = req.body;
+        const amt = parseInt(amount);
+        if (!Number.isFinite(amt) || amt < 1) {
+            return res.status(400).json({ success: false, message: 'Valid amount required' });
+        }
+
+        const options = {
+            amount: amt * 100, // Razorpay expects paise
+            currency: 'INR',
+            receipt: 'rcp_' + Date.now(),
+            notes: {
+                purpose: purpose || 'fee_payment',
+                studentId: studentId ? String(studentId) : '',
+                studentName: studentName || '',
+                studentEmail: studentEmail || '',
+                studentPhone: studentPhone || ''
+            }
+        };
+
+        const order = await razorpay.orders.create(options);
+        res.json({ success: true, order: order, keyId: process.env.RAZORPAY_KEY_ID });
+    } catch (err) {
+        console.error('Razorpay create-order error:', err);
+        res.status(500).json({ success: false, message: 'Failed to create order: ' + err.message });
+    }
+});
+
+// Verify Razorpay Payment Signature & Record Payment
+app.post('/api/razorpay/verify-payment', async (req, res) => {
+    try {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, studentId, amount, purpose, studentName, studentEmail, studentPhone } = req.body;
+
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            return res.status(400).json({ success: false, message: 'Missing payment details' });
+        }
+
+        // Verify signature
+        const expectedSignature = crypto
+            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '')
+            .update(razorpay_order_id + '|' + razorpay_payment_id)
+            .digest('hex');
+
+        if (expectedSignature !== razorpay_signature) {
+            return res.status(400).json({ success: false, message: 'Invalid payment signature' });
+        }
+
+        const amt = parseInt(amount);
+        const payment = {
+            id: Date.now(),
+            razorpay_order_id: razorpay_order_id,
+            razorpay_payment_id: razorpay_payment_id,
+            razorpay_signature: razorpay_signature,
+            studentId: studentId ? parseInt(studentId) : null,
+            studentName: studentName || '',
+            studentEmail: studentEmail || '',
+            studentPhone: studentPhone || '',
+            amount: amt,
+            purpose: purpose || 'fee_payment',
+            date: formatDate(new Date()),
+            timestamp: new Date().toISOString(),
+            status: 'verified'
+        };
+
+        // If studentId provided, record against student's fees
+        if (studentId) {
+            const students = readData('students.json') || [];
+            const idx = students.findIndex(s => s.id == studentId);
+            if (idx !== -1) {
+                const feePayment = {
+                    id: Date.now(),
+                    studentId: parseInt(studentId),
+                    studentName: students[idx].name,
+                    date: formatDate(new Date()),
+                    amount: amt,
+                    type: 'Fee Payment (Online)',
+                    mode: 'Online (Razorpay)',
+                    transactionId: razorpay_payment_id,
+                    utrNo: razorpay_payment_id,
+                    studentReceipt: '',
+                    receipt: generateReceiptNo(),
+                    status: 'approved',
+                    razorpay_order_id: razorpay_order_id,
+                    razorpay_payment_id: razorpay_payment_id
+                };
+
+                // Add to payments.json
+                const payments = readData('payments.json') || [];
+                payments.push(feePayment);
+                writeData('payments.json', payments);
+
+                // Update student fees
+                if (students[idx].fees) {
+                    students[idx].fees.payments.push(feePayment);
+                    students[idx].fees.paidAmount += amt;
+                    students[idx].fees.dueAmount = Math.max(0, students[idx].fees.dueAmount - amt);
+                    writeData('students.json', students);
+                }
+
+                // Send slip email
+                if (students[idx].email) {
+                    sendSlipEmail(students[idx], feePayment, 'payment').catch(console.error);
+                }
+
+                logActivity('payment.razorpay', { type: 'student', id: studentId, name: students[idx].name }, {
+                    amount: amt, mode: 'Online (Razorpay)', razorpay_payment_id, receipt: feePayment.receipt
+                }, req);
+
+                return res.json({ success: true, student: students[idx], payment: feePayment });
+            }
+        }
+
+        // For admission payments (no student record yet)
+        const payments = readData('payments.json') || [];
+        payments.push({
+            id: Date.now(),
+            ...payment,
+            receipt: generateReceiptNo(),
+            status: 'approved'
+        });
+        writeData('payments.json', payments);
+
+        logActivity('payment.razorpay', { type: 'admission', name: studentName || 'Applicant' }, {
+            amount: amt, mode: 'Online (Razorpay)', razorpay_payment_id, purpose: purpose || 'admission'
+        }, req);
+
+        res.json({ success: true, payment: payment });
+    } catch (err) {
+        console.error('Razorpay verify error:', err);
+        res.status(500).json({ success: false, message: 'Verification failed: ' + err.message });
+    }
+});
+
+// Get Razorpay Key ID (for frontend checkout)
+app.get('/api/razorpay/key', (req, res) => {
+    res.json({ success: true, keyId: process.env.RAZORPAY_KEY_ID || '' });
 });
 
 // --- Study Materials ---

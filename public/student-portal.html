@@ -907,6 +907,7 @@
                         <label style="display:block;margin-bottom:5px;font-size:14px;color:rgba(255,255,255,0.8);">Payment Mode</label>
                         <select id="paymentMode" onchange="handlePaymentModeChange()" style="width:100%;height:40px;padding:8px;background:rgba(0,0,0,0.3);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;">
                             <option value="">Select Mode</option>
+                            <option value="online">Online (Razorpay)</option>
                             <option value="cash">Cash</option>
                             <option value="upi">UPI</option>
                             <option value="cheque">Cheque</option>
@@ -3925,6 +3926,102 @@ function handlePaymentModeChange() {
     }
 }
 
+async function startRazorpayFeePayment(student, amount) {
+    showNotification('Creating payment order...', 'info');
+
+    try {
+        const orderRes = await fetch('/api/razorpay/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: amount,
+                purpose: 'fee_payment',
+                studentId: student.id,
+                studentName: student.name,
+                studentEmail: student.email || '',
+                studentPhone: student.phone || ''
+            })
+        });
+        const orderData = await orderRes.json();
+
+        if (!orderData.success) {
+            showNotification('Payment order creation failed: ' + (orderData.message || 'Unknown error'), 'error');
+            return;
+        }
+
+        const options = {
+            key: orderData.keyId,
+            amount: amount * 100,
+            currency: 'INR',
+            name: 'Genius Computer Education',
+            description: 'Fee Payment',
+            order_id: orderData.order.id,
+            prefill: {
+                name: student.name || '',
+                email: student.email || '',
+                contact: student.phone || ''
+            },
+            theme: { color: '#3b82f6' },
+            handler: function(response) {
+                verifyRazorpayFeePayment(student, amount, response);
+            },
+            modal: {
+                ondismiss: function() {
+                    showNotification('Payment cancelled.', 'warning');
+                }
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function(resp) {
+            showNotification('Payment failed: ' + (resp.error.description || 'Unknown error'), 'error');
+        });
+        rzp.open();
+    } catch (err) {
+        showNotification('Payment error: ' + err.message, 'error');
+    }
+}
+
+async function verifyRazorpayFeePayment(student, amount, response) {
+    showNotification('Verifying payment...', 'info');
+
+    try {
+        const verifyRes = await fetch('/api/razorpay/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                studentId: student.id,
+                amount: amount,
+                purpose: 'fee_payment',
+                studentName: student.name,
+                studentEmail: student.email || '',
+                studentPhone: student.phone || ''
+            })
+        });
+        const verifyData = await verifyRes.json();
+
+        if (verifyData.success) {
+            showNotification('Payment successful!', 'success');
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentMode').value = '';
+            document.getElementById('utrInputContainer').style.display = 'none';
+            document.getElementById('receiptInputContainer').style.display = 'none';
+
+            // Reload student data to update fee details
+            const updatedStudent = verifyData.student || student;
+            localStorage.setItem('portalStudent', JSON.stringify(updatedStudent));
+            showDashboard(updatedStudent);
+        } else {
+            showNotification('Payment verification failed: ' + (verifyData.message || 'Unknown error'), 'error');
+        }
+    } catch (err) {
+        showNotification('Verification error: ' + err.message, 'error');
+    }
+}
+
 async function makePayment() {
     try {
         const stored = localStorage.getItem('portalStudent');
@@ -3955,8 +4052,12 @@ async function makePayment() {
             }
         }
         
-        // Razorpay removed
-        
+        // Handle Online (Razorpay) payment
+        if (mode === 'online') {
+            startRazorpayFeePayment(student, parseFloat(amount));
+            return;
+        }
+
         // For cash, require receipt number
         if (mode === 'cash') {
             const receiptNo = document.getElementById('receiptNo').value.trim();
@@ -6029,6 +6130,7 @@ async function submitTicketReply() {
         return html;
     }
     </script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="/js/security.js"></script>
 </body>
 </html>
