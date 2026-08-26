@@ -1155,6 +1155,7 @@ function initData() {
     }
     if (!readData('gallery.json')) writeData('gallery.json', []);
     if (!readData('enquiries.json')) writeData('enquiries.json', []);
+    if (!readData('leads.json')) writeData('leads.json', []);
     if (!readData('settings.json')) {
         writeData('settings.json', {
             name: 'Genius Computer Education',
@@ -4007,6 +4008,207 @@ app.post('/api/enquiries/:id/reply', async (req, res) => {
         console.error('Enquiry reply error:', err);
         res.status(500).json({ success: false, error: err.message });
     }
+});
+
+// --- Leads Management ---
+app.get('/api/leads', verifyAdminSessionMiddleware, (req, res) => {
+    res.json(readData('leads.json') || []);
+});
+
+app.post('/api/leads', verifyAdminSessionMiddleware, (req, res) => {
+    const leads = readData('leads.json') || [];
+    const lead = {
+        id: Date.now(),
+        createdAt: formatDate(new Date()),
+        createdAtTime: new Date().toISOString(),
+        name: req.body.name || '',
+        phone: req.body.phone || '',
+        email: req.body.email || '',
+        whatsapp: req.body.whatsapp || '',
+        interestedCourses: req.body.interestedCourses || [],
+        source: req.body.source || 'Website',
+        status: req.body.status || 'New',
+        priority: req.body.priority || 'Warm',
+        assignedTo: req.body.assignedTo || '',
+        followUpDate: req.body.followUpDate || '',
+        followUpTime: req.body.followUpTime || '',
+        notes: req.body.notes || [],
+        lostReason: req.body.lostReason || '',
+        convertedStudentId: req.body.convertedStudentId || null,
+        activities: [{
+            action: 'Lead Created',
+            timestamp: new Date().toISOString(),
+            by: req.body.createdBy || 'Admin',
+            note: 'Lead created'
+        }]
+    };
+    leads.unshift(lead);
+    writeData('leads.json', leads);
+    res.json({ success: true, lead });
+});
+
+app.put('/api/leads/:id', verifyAdminSessionMiddleware, (req, res) => {
+    const leads = readData('leads.json') || [];
+    const idx = leads.findIndex(l => l.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, error: 'Lead not found' });
+    
+    const allowedFields = ['name', 'phone', 'email', 'whatsapp', 'interestedCourses', 'source', 'status', 'priority', 'assignedTo', 'followUpDate', 'followUpTime', 'lostReason', 'convertedStudentId'];
+    allowedFields.forEach(field => {
+        if (req.body[field] !== undefined) {
+            leads[idx][field] = req.body[field];
+        }
+    });
+    
+    if (req.body.status && req.body.status !== leads[idx].status) {
+        leads[idx].activities = leads[idx].activities || [];
+        leads[idx].activities.push({
+            action: 'Status Changed',
+            from: leads[idx].status,
+            to: req.body.status,
+            timestamp: new Date().toISOString(),
+            by: req.body.updatedBy || 'Admin',
+            note: ''
+        });
+    }
+    
+    writeData('leads.json', leads);
+    res.json({ success: true, lead: leads[idx] });
+});
+
+app.delete('/api/leads/:id', verifyAdminSessionMiddleware, (req, res) => {
+    let leads = readData('leads.json') || [];
+    leads = leads.filter(l => l.id != req.params.id);
+    writeData('leads.json', leads);
+    res.json({ success: true });
+});
+
+app.post('/api/leads/:id/notes', verifyAdminSessionMiddleware, (req, res) => {
+    const leads = readData('leads.json') || [];
+    const idx = leads.findIndex(l => l.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, error: 'Lead not found' });
+    
+    leads[idx].notes = leads[idx].notes || [];
+    leads[idx].notes.push({
+        id: Date.now(),
+        text: req.body.note || '',
+        by: req.body.by || 'Admin',
+        timestamp: new Date().toISOString()
+    });
+    
+    leads[idx].activities = leads[idx].activities || [];
+    leads[idx].activities.push({
+        action: 'Note Added',
+        timestamp: new Date().toISOString(),
+        by: req.body.by || 'Admin',
+        note: req.body.note || ''
+    });
+    
+    writeData('leads.json', leads);
+    res.json({ success: true, lead: leads[idx] });
+});
+
+app.post('/api/leads/:id/follow-up', verifyAdminSessionMiddleware, (req, res) => {
+    const leads = readData('leads.json') || [];
+    const idx = leads.findIndex(l => l.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, error: 'Lead not found' });
+    
+    leads[idx].followUpDate = req.body.followUpDate || '';
+    leads[idx].followUpTime = req.body.followUpTime || '';
+    
+    leads[idx].activities = leads[idx].activities || [];
+    leads[idx].activities.push({
+        action: 'Follow-up Scheduled',
+        timestamp: new Date().toISOString(),
+        by: req.body.by || 'Admin',
+        note: 'Follow-up scheduled for ' + (req.body.followUpDate || '') + ' ' + (req.body.followUpTime || '')
+    });
+    
+    writeData('leads.json', leads);
+    res.json({ success: true, lead: leads[idx] });
+});
+
+app.post('/api/leads/:id/convert', verifyAdminSessionMiddleware, (req, res) => {
+    const leads = readData('leads.json') || [];
+    const idx = leads.findIndex(l => l.id == req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, error: 'Lead not found' });
+    
+    leads[idx].status = 'Admitted';
+    leads[idx].convertedStudentId = req.body.studentId || null;
+    
+    leads[idx].activities = leads[idx].activities || [];
+    leads[idx].activities.push({
+        action: 'Lead Converted',
+        timestamp: new Date().toISOString(),
+        by: req.body.by || 'Admin',
+        note: 'Lead converted to student'
+    });
+    
+    writeData('leads.json', leads);
+    res.json({ success: true, lead: leads[idx] });
+});
+
+app.post('/api/leads/bulk-action', verifyAdminSessionMiddleware, (req, res) => {
+    const leads = readData('leads.json') || [];
+    const { ids, action, value } = req.body;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ success: false, error: 'No leads selected' });
+    }
+    
+    leads.forEach(l => {
+        if (ids.includes(l.id) || ids.includes(String(l.id))) {
+            if (action === 'delete') {
+                // handled below
+            } else if (action === 'status') {
+                l.status = value;
+            } else if (action === 'priority') {
+                l.priority = value;
+            } else if (action === 'assign') {
+                l.assignedTo = value;
+            }
+        }
+    });
+    
+    if (action === 'delete') {
+        const filtered = leads.filter(l => !ids.includes(l.id) && !ids.includes(String(l.id)));
+        writeData('leads.json', filtered);
+    } else {
+        writeData('leads.json', leads);
+    }
+    
+    res.json({ success: true });
+});
+
+// Public endpoint for creating leads from website (no admin auth required)
+app.post('/api/leads/public', (req, res) => {
+    const leads = readData('leads.json') || [];
+    const lead = {
+        id: Date.now(),
+        createdAt: formatDate(new Date()),
+        createdAtTime: new Date().toISOString(),
+        name: req.body.name || '',
+        phone: req.body.phone || '',
+        email: req.body.email || '',
+        whatsapp: req.body.whatsapp || req.body.phone || '',
+        interestedCourses: req.body.interestedCourses || [],
+        source: req.body.source || 'Website',
+        status: 'New',
+        priority: 'Warm',
+        assignedTo: '',
+        followUpDate: '',
+        followUpTime: '',
+        notes: [],
+        lostReason: '',
+        convertedStudentId: null,
+        activities: [{
+            action: 'Lead Created',
+            timestamp: new Date().toISOString(),
+            by: 'Website',
+            note: 'Lead from ' + (req.body.source || 'website')
+        }]
+    };
+    leads.unshift(lead);
+    writeData('leads.json', leads);
+    res.json({ success: true, lead });
 });
 
 // --- Notices ---
@@ -8539,7 +8741,7 @@ app.get('/api/backup/create', async (req, res) => {
         archive.pipe(output);
         
         // Backup data files
-        const dataFiles = ['students.json', 'courses.json', 'faculty.json', 'batches.json', 'enquiries.json', 'notices.json', 'announcements.json', 'tests.json', 'gallery.json', 'holidays.json', 'blogs.json', 'notifications.json', 'study-materials.json', 'exam-results.json', 'certificates.json', 'questions.json', 'exam-schedules.json', 'exam-registrations.json', 'online-exams.json', 'videos.json', 'assignments.json', 'alumni.json', 'tickets.json', 'carousel.json', 'settings.json'];
+        const dataFiles = ['students.json', 'courses.json', 'faculty.json', 'batches.json', 'enquiries.json', 'leads.json', 'notices.json', 'announcements.json', 'tests.json', 'gallery.json', 'holidays.json', 'blogs.json', 'notifications.json', 'study-materials.json', 'exam-results.json', 'certificates.json', 'questions.json', 'exam-schedules.json', 'exam-registrations.json', 'online-exams.json', 'videos.json', 'assignments.json', 'alumni.json', 'tickets.json', 'carousel.json', 'settings.json'];
         
         dataFiles.forEach(file => {
             const filePath = path.join(__dirname, 'data', file);
@@ -8672,7 +8874,7 @@ async function createAutomatedBackup() {
         archive.pipe(output);
         
         // Backup data files
-        const dataFiles = ['students.json', 'courses.json', 'faculty.json', 'batches.json', 'enquiries.json', 'notices.json', 'announcements.json', 'tests.json', 'gallery.json', 'holidays.json', 'blogs.json', 'notifications.json', 'study-materials.json', 'exam-results.json', 'certificates.json', 'questions.json', 'exam-schedules.json', 'exam-registrations.json', 'online-exams.json', 'videos.json', 'assignments.json', 'alumni.json', 'tickets.json', 'carousel.json', 'settings.json'];
+        const dataFiles = ['students.json', 'courses.json', 'faculty.json', 'batches.json', 'enquiries.json', 'leads.json', 'notices.json', 'announcements.json', 'tests.json', 'gallery.json', 'holidays.json', 'blogs.json', 'notifications.json', 'study-materials.json', 'exam-results.json', 'certificates.json', 'questions.json', 'exam-schedules.json', 'exam-registrations.json', 'online-exams.json', 'videos.json', 'assignments.json', 'alumni.json', 'tickets.json', 'carousel.json', 'settings.json'];
         
         dataFiles.forEach(file => {
             const filePath = path.join(__dirname, 'data', file);

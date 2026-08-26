@@ -1380,6 +1380,7 @@
             <ul class="sidebar-menu">
                 <li><a href="#" class="active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                 <li><a href="#" data-page="enquiries"><i class="fas fa-envelope-open-text"></i> Enquiries <span id="sidebarEnqBadge" style="background:#f5576c;color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:auto;display:none;">0</span></a></li>
+                <li><a href="#" data-page="leads"><i class="fas fa-user-tag"></i> Leads <span id="sidebarLeadsBadge" style="background:#f59e0b;color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:auto;display:none;">0</span></a></li>
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle"><i class="fas fa-graduation-cap"></i> Academic <i class="fas fa-chevron-down" style="margin-left:auto;font-size:10px;"></i></a>
                     <ul class="dropdown-menu">
@@ -2332,6 +2333,108 @@
                 </div>
             </div>
 
+            <!-- Leads Page -->
+            <div id="page-leads" class="page-content hidden">
+                <!-- Leads Dashboard Stats -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
+                    <div class="dash-stat-card" style="--card-gradient:linear-gradient(135deg,#667eea,#764ba2);padding:16px;border-radius:12px;cursor:pointer;" onclick="filterLeadsByStatus('')">
+                        <div style="font-size:28px;font-weight:800;color:#fff;" id="leadsTotalCount">0</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:600;text-transform:uppercase;">Total Leads</div>
+                    </div>
+                    <div class="dash-stat-card" style="--card-gradient:linear-gradient(135deg,#f093fb,#f5576c);padding:16px;border-radius:12px;cursor:pointer;" onclick="filterLeadsByStatus('New')">
+                        <div style="font-size:28px;font-weight:800;color:#fff;" id="leadsNewCount">0</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:600;text-transform:uppercase;">New</div>
+                    </div>
+                    <div class="dash-stat-card" style="--card-gradient:linear-gradient(135deg,#4facfe,#00f2fe);padding:16px;border-radius:12px;cursor:pointer;" onclick="filterLeadsByStatus('Contacted')">
+                        <div style="font-size:28px;font-weight:800;color:#fff;" id="leadsContactedCount">0</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:600;text-transform:uppercase;">Contacted</div>
+                    </div>
+                    <div class="dash-stat-card" style="--card-gradient:linear-gradient(135deg,#43e97b,#38f9d7);padding:16px;border-radius:12px;cursor:pointer;" onclick="filterLeadsByStatus('Interested')">
+                        <div style="font-size:28px;font-weight:800;color:#fff;" id="leadsInterestedCount">0</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:600;text-transform:uppercase;">Interested</div>
+                    </div>
+                    <div class="dash-stat-card" style="--card-gradient:linear-gradient(135deg,#fa709a,#fee140);padding:16px;border-radius:12px;cursor:pointer;" onclick="filterLeadsByStatus('Admitted')">
+                        <div style="font-size:28px;font-weight:800;color:#fff;" id="leadsAdmittedCount">0</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:600;text-transform:uppercase;">Admitted</div>
+                    </div>
+                    <div class="dash-stat-card" style="--card-gradient:linear-gradient(135deg,#f5576c,#f093fb);padding:16px;border-radius:12px;cursor:pointer;" onclick="document.getElementById('leadsTodayFollowup').scrollIntoView({behavior:'smooth'})">
+                        <div style="font-size:28px;font-weight:800;color:#fff;" id="leadsTodayFollowupCount">0</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:600;text-transform:uppercase;">Today's Follow-ups</div>
+                    </div>
+                </div>
+
+                <!-- View Toggle + Toolbar -->
+                <div class="page-toolbar" style="margin-bottom:20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                    <button class="btn btn-primary" onclick="openAddLeadModal()"><i class="fas fa-plus"></i> Add Lead</button>
+                    <button class="btn btn-danger" onclick="deleteSelectedLeads()"><i class="fas fa-trash"></i> Delete Selected</button>
+                    <button class="btn btn-success" onclick="exportLeadsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export Excel</button>
+                    <div style="flex:1;display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;">
+                        <div style="display:flex;gap:4px;background:rgba(255,255,255,0.1);border-radius:8px;padding:3px;">
+                            <button id="leadsTableViewBtn" onclick="switchLeadsView('table')" style="padding:6px 14px;border:none;border-radius:6px;background:#667eea;color:#fff;font-size:13px;cursor:pointer;"><i class="fas fa-table"></i> Table</button>
+                            <button id="leadsKanbanViewBtn" onclick="switchLeadsView('kanban')" style="padding:6px 14px;border:none;border-radius:6px;background:transparent;color:rgba(255,255,255,0.7);font-size:13px;cursor:pointer;"><i class="fas fa-columns"></i> Kanban</button>
+                        </div>
+                        <select id="leadsStatusFilter" onchange="filterLeads()" style="padding:9px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;width:140px;height:40px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;">
+                            <option value="">All Status</option>
+                            <option value="New">New</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Interested">Interested</option>
+                            <option value="Visit Scheduled">Visit Scheduled</option>
+                            <option value="Application Submitted">Application Submitted</option>
+                            <option value="Admitted">Admitted</option>
+                            <option value="Lost">Lost</option>
+                        </select>
+                        <select id="leadsSourceFilter" onchange="filterLeads()" style="padding:9px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;width:140px;height:40px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;">
+                            <option value="">All Sources</option>
+                            <option value="Website">Website</option>
+                            <option value="Walk-in">Walk-in</option>
+                            <option value="Phone">Phone Call</option>
+                            <option value="Social Media">Social Media</option>
+                            <option value="Referral">Referral</option>
+                            <option value="Facebook Ad">Facebook Ad</option>
+                            <option value="Google Ad">Google Ad</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <select id="leadsPriorityFilter" onchange="filterLeads()" style="padding:9px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;width:130px;height:40px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;">
+                            <option value="">All Priority</option>
+                            <option value="Hot">Hot</option>
+                            <option value="Warm">Warm</option>
+                            <option value="Cold">Cold</option>
+                        </select>
+                        <input type="text" id="leadsSearchInput" oninput="filterLeads()" placeholder="Search name, phone, email..." style="padding:9px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;width:200px;height:40px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;">
+                    </div>
+                </div>
+
+                <!-- Table View -->
+                <div id="leadsTableView" class="data-table">
+                    <div class="table-scroll-wrapper">
+                    <table id="leadsTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAllLeads" onchange="toggleAllLeadCheckboxes()"></th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Course</th>
+                                <th>Source</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Assigned To</th>
+                                <th>Follow-up</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    </div>
+                    <div id="leadsPagination" class="pagination-container"></div>
+                </div>
+
+                <!-- Kanban Board View -->
+                <div id="leadsKanbanView" style="display:none;">
+                    <div id="leadsKanbanBoard" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;min-height:400px;"></div>
+                </div>
+            </div>
+
             <!-- Testimonials Page -->
             <div id="page-testimonials" class="page-content hidden">
                 <div class="page-toolbar" style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
@@ -2389,6 +2492,153 @@
                     <div style="display:flex;gap:10px;justify-content:flex-end;">
                         <button class="btn" onclick="closeModal('enquiryReplyModal')">Cancel</button>
                         <button class="btn btn-primary" onclick="sendEnquiryReply()" id="sendReplyBtn"><i class="fas fa-paper-plane"></i> Send Reply via Email</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add/Edit Lead Modal -->
+            <div id="leadModal" class="modal">
+                <div class="modal-content" style="max-width:650px;position:relative;">
+                    <button class="modal-close-btn" onclick="closeModal('leadModal')">&times;</button>
+                    <h3 id="leadModalTitle" style="margin-bottom:20px;color:#fff;"><i class="fas fa-user-tag" style="color:#667eea;margin-right:8px;"></i> Add Lead</h3>
+                    <input type="hidden" id="leadEditId">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Name *</label>
+                            <input type="text" id="leadName" placeholder="Full name" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Phone *</label>
+                            <input type="text" id="leadPhone" placeholder="10-digit mobile" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Email</label>
+                            <input type="email" id="leadEmail" placeholder="Email address" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">WhatsApp</label>
+                            <input type="text" id="leadWhatsapp" placeholder="WhatsApp number" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Interested Course(s)</label>
+                            <input type="text" id="leadCourses" placeholder="e.g. DCA, Tally, Web Dev" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Source</label>
+                            <select id="leadSource" style="width:100%;height:42px;padding:0 10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                                <option value="Website">Website</option>
+                                <option value="Walk-in">Walk-in</option>
+                                <option value="Phone">Phone Call</option>
+                                <option value="Social Media">Social Media</option>
+                                <option value="Referral">Referral</option>
+                                <option value="Facebook Ad">Facebook Ad</option>
+                                <option value="Google Ad">Google Ad</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Status</label>
+                            <select id="leadStatus" style="width:100%;height:42px;padding:0 10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                                <option value="New">New</option>
+                                <option value="Contacted">Contacted</option>
+                                <option value="Interested">Interested</option>
+                                <option value="Visit Scheduled">Visit Scheduled</option>
+                                <option value="Application Submitted">Application Submitted</option>
+                                <option value="Admitted">Admitted</option>
+                                <option value="Lost">Lost</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Priority</label>
+                            <select id="leadPriority" style="width:100%;height:42px;padding:0 10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                                <option value="Hot">Hot</option>
+                                <option value="Warm">Warm</option>
+                                <option value="Cold">Cold</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Assigned To</label>
+                            <input type="text" id="leadAssignedTo" placeholder="Staff name" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Follow-up Date</label>
+                            <input type="date" id="leadFollowUpDate" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                        </div>
+                        <div class="form-group" id="leadLostReasonGroup" style="display:none;grid-column:span 2;">
+                            <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Lost Reason</label>
+                            <input type="text" id="leadLostReason" placeholder="e.g. Fee high, joined elsewhere, not interested" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+                        <button class="btn" onclick="closeModal('leadModal')">Cancel</button>
+                        <button class="btn btn-primary" onclick="saveLead()" id="saveLeadBtn"><i class="fas fa-save"></i> Save Lead</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lead Detail Modal -->
+            <div id="leadDetailModal" class="modal">
+                <div class="modal-content" style="max-width:800px;position:relative;">
+                    <button class="modal-close-btn" onclick="closeModal('leadDetailModal')">&times;</button>
+                    <h3 id="leadDetailTitle" style="margin-bottom:16px;color:#fff;"><i class="fas fa-user-tag" style="color:#667eea;margin-right:8px;"></i> Lead Details</h3>
+                    <input type="hidden" id="detailLeadId">
+                    <!-- Lead Info -->
+                    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:16px;margin-bottom:16px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Name</span><div id="detailLeadName" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
+                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Phone</span><div id="detailLeadPhone" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
+                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Email</span><div id="detailLeadEmail" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
+                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">WhatsApp</span><div id="detailLeadWhatsapp" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
+                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Course</span><div id="detailLeadCourse" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
+                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Source</span><div id="detailLeadSource" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
+                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Status</span><div id="detailLeadStatus" style="font-weight:600;margin-top:2px;">-</div></div>
+                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Priority</span><div id="detailLeadPriority" style="font-weight:600;margin-top:2px;">-</div></div>
+                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Assigned To</span><div id="detailLeadAssigned" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
+                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Follow-up</span><div id="detailLeadFollowup" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
+                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Created</span><div id="detailLeadCreated" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
+                        </div>
+                        <!-- Communication Buttons -->
+                        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+                            <button id="leadCallBtn" class="btn btn-sm" style="background:#3b82f6;color:#fff;padding:6px 14px;font-size:13px;border:none;border-radius:6px;cursor:pointer;"><i class="fas fa-phone"></i> Call</button>
+                            <button id="leadWhatsappBtn" class="btn btn-sm" style="background:#25D366;color:#fff;padding:6px 14px;font-size:13px;border:none;border-radius:6px;cursor:pointer;"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                            <button id="leadEmailBtn" class="btn btn-sm" style="background:#6366f1;color:#fff;padding:6px 14px;font-size:13px;border:none;border-radius:6px;cursor:pointer;"><i class="fas fa-envelope"></i> Email</button>
+                            <button id="leadEditBtn" class="btn btn-sm" style="background:#f59e0b;color:#fff;padding:6px 14px;font-size:13px;border:none;border-radius:6px;cursor:pointer;"><i class="fas fa-edit"></i> Edit</button>
+                            <button id="leadConvertBtn" class="btn btn-sm" style="background:#16a34a;color:#fff;padding:6px 14px;font-size:13px;border:none;border-radius:6px;cursor:pointer;"><i class="fas fa-user-check"></i> Convert to Student</button>
+                        </div>
+                    </div>
+                    <!-- Quick Status Change -->
+                    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:14px;margin-bottom:16px;">
+                        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                            <span style="font-weight:600;color:#fff;font-size:13px;">Quick Status:</span>
+                            <select id="quickLeadStatus" onchange="quickChangeLeadStatus()" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:6px;background:rgba(255,255,255,0.1);color:#fff;font-size:13px;">
+                                <option value="New">New</option>
+                                <option value="Contacted">Contacted</option>
+                                <option value="Interested">Interested</option>
+                                <option value="Visit Scheduled">Visit Scheduled</option>
+                                <option value="Application Submitted">Application Submitted</option>
+                                <option value="Admitted">Admitted</option>
+                                <option value="Lost">Lost</option>
+                            </select>
+                            <span style="font-weight:600;color:#fff;font-size:13px;margin-left:10px;">Priority:</span>
+                            <select id="quickLeadPriority" onchange="quickChangeLeadPriority()" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:6px;background:rgba(255,255,255,0.1);color:#fff;font-size:13px;">
+                                <option value="Hot">Hot</option>
+                                <option value="Warm">Warm</option>
+                                <option value="Cold">Cold</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Add Note -->
+                    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:14px;margin-bottom:16px;">
+                        <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;font-size:13px;">Add Note</label>
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" id="leadNoteInput" placeholder="Add a note..." style="flex:1;padding:8px 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:13px;">
+                            <button class="btn btn-primary btn-sm" onclick="addLeadNote()" style="padding:8px 16px;font-size:13px;"><i class="fas fa-plus"></i> Add</button>
+                        </div>
+                    </div>
+                    <!-- Notes Timeline -->
+                    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:14px;margin-bottom:16px;">
+                        <h4 style="color:#fff;font-size:14px;margin:0 0 10px 0;"><i class="fas fa-sticky-note" style="color:#f59e0b;margin-right:6px;"></i> Notes & Activity Timeline</h4>
+                        <div id="leadNotesTimeline" style="max-height:250px;overflow-y:auto;"></div>
                     </div>
                 </div>
             </div>
@@ -4899,6 +5149,9 @@
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)';" onmouseout="this.style.background='transparent';">
                                     <input type="checkbox" class="faculty-permission" value="enquiries" style="width: 16px; height: 16px; cursor: pointer; accent-color: #f5576c;"> Enquiries
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)';" onmouseout="this.style.background='transparent';">
+                                    <input type="checkbox" class="faculty-permission" value="leads" style="width: 16px; height: 16px; cursor: pointer; accent-color: #f5576c;"> Leads
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)';" onmouseout="this.style.background='transparent';">
                                     <input type="checkbox" class="faculty-permission" value="admissions" style="width: 16px; height: 16px; cursor: pointer; accent-color: #f5576c;"> Admissions

@@ -554,6 +554,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         'certificates': { title: 'Certificates', icon: 'certificate', breadcrumb: 'Home > Certificates' },
         'payments': { title: 'Payments', icon: 'rupee-sign', breadcrumb: 'Home > Payments' },
         'enquiries': { title: 'Enquiries', icon: 'clipboard-list', breadcrumb: 'Home > Enquiries' },
+        'leads': { title: 'Leads Management', icon: 'user-tag', breadcrumb: 'Home > Leads' },
         'courses': { title: 'Courses', icon: 'book', breadcrumb: 'Home > Courses' },
         'batches': { title: 'Batches', icon: 'layer-group', breadcrumb: 'Home > Batches' },
         'faculty': { title: 'Faculty', icon: 'user-tie', breadcrumb: 'Home > Faculty' },
@@ -792,6 +793,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const pageLoaders = {
                 'dashboard': loadDashboard,
                 'enquiries': loadEnquiries,
+                'leads': loadLeads,
                 'students': loadStudentsTable,
                 'courses': loadCoursesTable,
                 'batches': loadBatchesTable,
@@ -12573,6 +12575,429 @@ async function loadEnquiries() {
     } catch (err) {
         console.error('Error loading enquiries:', err);
     }
+}
+
+// ===== Leads Management =====
+let allLeads = [];
+let leadsCurrentPage = 1;
+let leadsPerPage = 25;
+let leadsFiltered = [];
+let leadsCurrentView = 'table';
+const LEAD_STATUSES = ['New','Contacted','Interested','Visit Scheduled','Application Submitted','Admitted','Lost'];
+const LEAD_STATUS_COLORS = {'New':'#f093fb','Contacted':'#4facfe','Interested':'#43e97b','Visit Scheduled':'#fbbf24','Application Submitted':'#a78bfa','Admitted':'#16a34a','Lost':'#f5576c'};
+const LEAD_PRIORITY_COLORS = {'Hot':'#ef4444','Warm':'#f59e0b','Cold':'#3b82f6'};
+
+async function loadLeads() {
+    try {
+        const res = await fetch('/api/leads');
+        const result = await res.json();
+        allLeads = Array.isArray(result) ? result : (result.leads || []);
+        leadsCurrentPage = 1;
+        ['leadsStatusFilter','leadsSourceFilter','leadsPriorityFilter','leadsSearchInput'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+        updateLeadsStats();
+        filterLeads();
+    } catch (err) {
+        console.error('Error loading leads:', err);
+        showNotification('Error loading leads!', 'error');
+    }
+}
+
+function updateLeadsStats() {
+    const today = new Date().toISOString().slice(0, 10);
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('leadsTotalCount', allLeads.length);
+    set('leadsNewCount', allLeads.filter(l => l.status === 'New').length);
+    set('leadsContactedCount', allLeads.filter(l => l.status === 'Contacted').length);
+    set('leadsInterestedCount', allLeads.filter(l => l.status === 'Interested').length);
+    set('leadsAdmittedCount', allLeads.filter(l => l.status === 'Admitted').length);
+    set('leadsTodayFollowupCount', allLeads.filter(l => l.followUpDate === today).length);
+}
+
+function filterLeads() {
+    const status = document.getElementById('leadsStatusFilter') ? document.getElementById('leadsStatusFilter').value : '';
+    const source = document.getElementById('leadsSourceFilter') ? document.getElementById('leadsSourceFilter').value : '';
+    const priority = document.getElementById('leadsPriorityFilter') ? document.getElementById('leadsPriorityFilter').value : '';
+    const search = document.getElementById('leadsSearchInput') ? document.getElementById('leadsSearchInput').value.toLowerCase().trim() : '';
+    leadsFiltered = allLeads.filter(l => {
+        if (status && l.status !== status) return false;
+        if (source && l.source !== source) return false;
+        if (priority && l.priority !== priority) return false;
+        if (search) {
+            const hay = (l.name+' '+l.phone+' '+(l.email||'')+' '+(l.courses||'')+' '+(l.assignedTo||'')).toLowerCase();
+            if (!hay.includes(search)) return false;
+        }
+        return true;
+    });
+    leadsFiltered.sort((a, b) => (b.createdAt||0) - (a.createdAt||0));
+    leadsCurrentPage = 1;
+    if (leadsCurrentView === 'table') renderLeadsTable(); else renderLeadsKanban();
+}
+
+function filterLeadsByStatus(status) {
+    const sf = document.getElementById('leadsStatusFilter');
+    if (sf) sf.value = status;
+    filterLeads();
+}
+
+function renderLeadsTable() {
+    const tbody = document.querySelector('#leadsTable tbody');
+    if (!tbody) return;
+    const start = (leadsCurrentPage - 1) * leadsPerPage;
+    const pageLeads = leadsFiltered.slice(start, start + leadsPerPage);
+    if (pageLeads.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:30px;color:rgba(255,255,255,0.5);">No leads found</td></tr>';
+        renderLeadsPagination();
+        return;
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    tbody.innerHTML = pageLeads.map(l => {
+        let fd = l.followUpDate || '-';
+        if (l.followUpDate === today) fd = `<span style="color:#fbbf24;font-weight:700;">${l.followUpDate}</span> <i class="fas fa-bell" style="color:#fbbf24;"></i>`;
+        else if (l.followUpDate && l.followUpDate < today && l.status !== 'Admitted' && l.status !== 'Lost') fd = `<span style="color:#ef4444;font-weight:700;">${l.followUpDate}</span> <i class="fas fa-exclamation-circle" style="color:#ef4444;"></i>`;
+        return `<tr style="cursor:pointer;" onclick="openLeadDetail(${l.id})">
+            <td onclick="event.stopPropagation();"><input type="checkbox" class="lead-checkbox" value="${l.id}" style="accent-color:#667eea;"></td>
+            <td style="font-weight:600;color:#fff;">${escapeHtml(l.name||'')}</td>
+            <td>${escapeHtml(l.phone||'')}</td>
+            <td>${escapeHtml(l.email||'-')}</td>
+            <td>${escapeHtml(l.courses||'-')}</td>
+            <td>${escapeHtml(l.source||'-')}</td>
+            <td><span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:${LEAD_STATUS_COLORS[l.status]||'#667eea'};color:#fff;">${l.status||'New'}</span></td>
+            <td><span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:${LEAD_PRIORITY_COLORS[l.priority]||'#667eea'};color:#fff;">${l.priority||'Warm'}</span></td>
+            <td>${escapeHtml(l.assignedTo||'-')}</td>
+            <td>${fd}</td>
+            <td onclick="event.stopPropagation();">
+                <div style="display:flex;gap:4px;">
+                    <button class="btn btn-sm" style="background:#3b82f6;color:#fff;padding:4px 8px;font-size:11px;border:none;border-radius:4px;cursor:pointer;" onclick="openLeadDetail(${l.id})" title="View"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-sm" style="background:#f59e0b;color:#fff;padding:4px 8px;font-size:11px;border:none;border-radius:4px;cursor:pointer;" onclick="openEditLeadModal(${l.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm" style="background:#ef4444;color:#fff;padding:4px 8px;font-size:11px;border:none;border-radius:4px;cursor:pointer;" onclick="deleteLead(${l.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+    renderLeadsPagination();
+}
+
+function renderLeadsPagination() {
+    const container = document.getElementById('leadsPagination');
+    if (!container) return;
+    const totalPages = Math.ceil(leadsFiltered.length / leadsPerPage);
+    if (totalPages <= 1) { container.innerHTML = ''; return; }
+    let html = '';
+    if (leadsCurrentPage > 1) html += `<button class="pagination-btn" onclick="leadsGoToPage(${leadsCurrentPage-1})">Prev</button>`;
+    let startP = Math.max(1, leadsCurrentPage - 3);
+    let endP = Math.min(totalPages, startP + 6);
+    if (endP - startP < 6) startP = Math.max(1, endP - 6);
+    for (let i = startP; i <= endP; i++) html += `<button class="pagination-btn ${i===leadsCurrentPage?'active':''}" onclick="leadsGoToPage(${i})">${i}</button>`;
+    if (leadsCurrentPage < totalPages) html += `<button class="pagination-btn" onclick="leadsGoToPage(${leadsCurrentPage+1})">Next</button>`;
+    container.innerHTML = html;
+}
+
+function leadsGoToPage(page) { leadsCurrentPage = page; renderLeadsTable(); }
+
+function switchLeadsView(view) {
+    leadsCurrentView = view;
+    const tblBtn = document.getElementById('leadsTableViewBtn');
+    const knbBtn = document.getElementById('leadsKanbanViewBtn');
+    const tblView = document.getElementById('leadsTableView');
+    const knbView = document.getElementById('leadsKanbanView');
+    if (view === 'table') {
+        if (tblBtn) { tblBtn.style.background = '#667eea'; tblBtn.style.color = '#fff'; }
+        if (knbBtn) { knbBtn.style.background = 'transparent'; knbBtn.style.color = 'rgba(255,255,255,0.7)'; }
+        if (tblView) tblView.style.display = '';
+        if (knbView) knbView.style.display = 'none';
+        renderLeadsTable();
+    } else {
+        if (knbBtn) { knbBtn.style.background = '#667eea'; knbBtn.style.color = '#fff'; }
+        if (tblBtn) { tblBtn.style.background = 'transparent'; tblBtn.style.color = 'rgba(255,255,255,0.7)'; }
+        if (tblView) tblView.style.display = 'none';
+        if (knbView) knbView.style.display = '';
+        renderLeadsKanban();
+    }
+}
+
+function renderLeadsKanban() {
+    const board = document.getElementById('leadsKanbanBoard');
+    if (!board) return;
+    board.innerHTML = LEAD_STATUSES.map(status => {
+        const colLeads = leadsFiltered.filter(l => l.status === status);
+        const color = LEAD_STATUS_COLORS[status];
+        return `<div style="min-width:240px;flex:1;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid rgba(255,255,255,0.15);display:flex;flex-direction:column;max-height:600px;">
+            <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-weight:700;color:#fff;font-size:13px;">${status}</span>
+                <span style="background:${color};color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">${colLeads.length}</span>
+            </div>
+            <div style="padding:8px;overflow-y:auto;flex:1;min-height:100px;" ondragover="event.preventDefault();" ondrop="kanbanDrop(event,'${status}')">
+                ${colLeads.map(l => {
+                    const pColor = LEAD_PRIORITY_COLORS[l.priority] || '#667eea';
+                    return `<div draggable="true" ondragstart="kanbanDragStart(event,${l.id})" onclick="openLeadDetail(${l.id})" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:10px;margin-bottom:8px;cursor:grab;">
+                        <div style="font-weight:600;color:#fff;font-size:13px;margin-bottom:4px;">${escapeHtml(l.name||'')}</div>
+                        <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-bottom:4px;">${escapeHtml(l.phone||'')}</div>
+                        ${l.courses ? `<div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:4px;"><i class="fas fa-book" style="margin-right:3px;"></i>${escapeHtml(l.courses)}</div>` : ''}
+                        <div style="display:flex;gap:4px;align-items:center;">
+                            <span style="padding:2px 6px;border-radius:8px;font-size:10px;font-weight:700;background:${pColor};color:#fff;">${l.priority||'Warm'}</span>
+                            ${l.followUpDate ? `<span style="font-size:10px;color:#fbbf24;"><i class="fas fa-bell"></i> ${l.followUpDate}</span>` : ''}
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+let kanbanDraggedLeadId = null;
+function kanbanDragStart(event, leadId) { kanbanDraggedLeadId = leadId; event.dataTransfer.effectAllowed = 'move'; }
+async function kanbanDrop(event, status) {
+    event.preventDefault();
+    if (!kanbanDraggedLeadId) return;
+    const leadId = kanbanDraggedLeadId;
+    kanbanDraggedLeadId = null;
+    const lead = allLeads.find(l => l.id === leadId);
+    if (!lead || lead.status === status) return;
+    try {
+        const res = await fetch(`/api/leads/${leadId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...lead, status}) });
+        const data = await res.json();
+        if (data.success) { lead.status = status; updateLeadsStats(); filterLeads(); showNotification(`Lead moved to ${status}`, 'success'); }
+        else showNotification(data.error || 'Failed to update lead', 'error');
+    } catch (err) { console.error('Error:', err); showNotification('Error updating lead status', 'error'); }
+}
+
+function openAddLeadModal() {
+    document.getElementById('leadModalTitle').innerHTML = '<i class="fas fa-user-tag" style="color:#667eea;margin-right:8px;"></i> Add Lead';
+    document.getElementById('leadEditId').value = '';
+    ['leadName','leadPhone','leadEmail','leadWhatsapp','leadCourses','leadAssignedTo','leadFollowUpDate','leadLostReason'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.getElementById('leadSource').value = 'Website';
+    document.getElementById('leadStatus').value = 'New';
+    document.getElementById('leadPriority').value = 'Warm';
+    document.getElementById('leadLostReasonGroup').style.display = 'none';
+    document.getElementById('leadStatus').onchange = function() { document.getElementById('leadLostReasonGroup').style.display = this.value === 'Lost' ? '' : 'none'; };
+    openModal('leadModal');
+}
+
+function openEditLeadModal(id) {
+    const lead = allLeads.find(l => l.id === id);
+    if (!lead) return;
+    document.getElementById('leadModalTitle').innerHTML = '<i class="fas fa-user-tag" style="color:#667eea;margin-right:8px;"></i> Edit Lead';
+    document.getElementById('leadEditId').value = lead.id;
+    document.getElementById('leadName').value = lead.name || '';
+    document.getElementById('leadPhone').value = lead.phone || '';
+    document.getElementById('leadEmail').value = lead.email || '';
+    document.getElementById('leadWhatsapp').value = lead.whatsapp || '';
+    document.getElementById('leadCourses').value = lead.courses || '';
+    document.getElementById('leadSource').value = lead.source || 'Website';
+    document.getElementById('leadStatus').value = lead.status || 'New';
+    document.getElementById('leadPriority').value = lead.priority || 'Warm';
+    document.getElementById('leadAssignedTo').value = lead.assignedTo || '';
+    document.getElementById('leadFollowUpDate').value = lead.followUpDate || '';
+    document.getElementById('leadLostReason').value = lead.lostReason || '';
+    document.getElementById('leadLostReasonGroup').style.display = lead.status === 'Lost' ? '' : 'none';
+    document.getElementById('leadStatus').onchange = function() { document.getElementById('leadLostReasonGroup').style.display = this.value === 'Lost' ? '' : 'none'; };
+    openModal('leadModal');
+}
+
+async function saveLead() {
+    const id = document.getElementById('leadEditId').value;
+    const name = document.getElementById('leadName').value.trim();
+    const phone = document.getElementById('leadPhone').value.trim();
+    if (!name || !phone) { showNotification('Name and Phone are required!', 'error'); return; }
+    const leadData = {
+        name, phone,
+        email: document.getElementById('leadEmail').value.trim(),
+        whatsapp: document.getElementById('leadWhatsapp').value.trim(),
+        courses: document.getElementById('leadCourses').value.trim(),
+        source: document.getElementById('leadSource').value,
+        status: document.getElementById('leadStatus').value,
+        priority: document.getElementById('leadPriority').value,
+        assignedTo: document.getElementById('leadAssignedTo').value.trim(),
+        followUpDate: document.getElementById('leadFollowUpDate').value,
+        lostReason: document.getElementById('leadLostReason').value.trim()
+    };
+    const btn = document.getElementById('saveLeadBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    try {
+        const url = id ? `/api/leads/${id}` : '/api/leads';
+        const method = id ? 'PUT' : 'POST';
+        const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(leadData) });
+        const data = await res.json();
+        if (data.success) { showNotification(id ? 'Lead updated!' : 'Lead added!', 'success'); closeModal('leadModal'); loadLeads(); }
+        else showNotification(data.error || 'Failed to save lead', 'error');
+    } catch (err) { console.error('Error:', err); showNotification('Error saving lead', 'error'); }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Lead'; }
+}
+
+async function deleteLead(id) {
+    if (!confirm('Are you sure you want to delete this lead?')) return;
+    try {
+        const res = await fetch(`/api/leads/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) { showNotification('Lead deleted!', 'success'); loadLeads(); }
+        else showNotification(data.error || 'Failed to delete lead', 'error');
+    } catch (err) { console.error('Error:', err); showNotification('Error deleting lead', 'error'); }
+}
+
+async function deleteSelectedLeads() {
+    const ids = Array.from(document.querySelectorAll('.lead-checkbox:checked')).map(cb => parseInt(cb.value));
+    if (ids.length === 0) { showNotification('Select leads to delete!', 'error'); return; }
+    if (!confirm(`Delete ${ids.length} selected leads?`)) return;
+    try {
+        const res = await fetch('/api/leads/bulk-action', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ ids, action: 'delete' }) });
+        const data = await res.json();
+        if (data.success) { showNotification(`${ids.length} leads deleted!`, 'success'); loadLeads(); }
+        else showNotification(data.error || 'Failed to delete leads', 'error');
+    } catch (err) { console.error('Error:', err); showNotification('Error deleting leads', 'error'); }
+}
+
+function openLeadDetail(id) {
+    const lead = allLeads.find(l => l.id === id);
+    if (!lead) return;
+    openLeadDetail._currentId = id;
+    document.getElementById('leadDetailTitle').innerHTML = `<i class="fas fa-user-tag" style="color:#667eea;margin-right:8px;"></i> ${escapeHtml(lead.name)}`;
+    document.getElementById('detailLeadId').value = id;
+    document.getElementById('detailLeadName').textContent = lead.name || '-';
+    document.getElementById('detailLeadPhone').textContent = lead.phone || '-';
+    document.getElementById('detailLeadEmail').textContent = lead.email || '-';
+    document.getElementById('detailLeadWhatsapp').textContent = lead.whatsapp || '-';
+    document.getElementById('detailLeadCourse').textContent = lead.courses || '-';
+    document.getElementById('detailLeadSource').textContent = lead.source || '-';
+    const statusColor = LEAD_STATUS_COLORS[lead.status] || '#667eea';
+    document.getElementById('detailLeadStatus').innerHTML = `<span style="padding:2px 10px;border-radius:8px;background:${statusColor};color:#fff;font-size:12px;">${escapeHtml(lead.status||'New')}</span>`;
+    const priorityColor = LEAD_PRIORITY_COLORS[lead.priority] || '#667eea';
+    document.getElementById('detailLeadPriority').innerHTML = `<span style="padding:2px 10px;border-radius:8px;background:${priorityColor};color:#fff;font-size:12px;">${escapeHtml(lead.priority||'Warm')}</span>`;
+    document.getElementById('detailLeadAssigned').textContent = lead.assignedTo || '-';
+    const today = new Date().toISOString().slice(0, 10);
+    let followupHtml = lead.followUpDate || '-';
+    if (lead.followUpDate === today) followupHtml += ' <span style="background:#fbbf24;color:#000;padding:2px 6px;border-radius:6px;font-size:10px;font-weight:700;">TODAY</span>';
+    else if (lead.followUpDate && lead.followUpDate < today && lead.status !== 'Admitted' && lead.status !== 'Lost') followupHtml += ' <span style="background:#ef4444;color:#fff;padding:2px 6px;border-radius:6px;font-size:10px;font-weight:700;">OVERDUE</span>';
+    document.getElementById('detailLeadFollowup').innerHTML = followupHtml;
+    document.getElementById('detailLeadCreated').textContent = lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('en-IN') : '-';
+    const callBtn = document.getElementById('leadCallBtn');
+    if (callBtn) callBtn.onclick = function() { window.location.href = `tel:${lead.phone}`; };
+    const waBtn = document.getElementById('leadWhatsappBtn');
+    if (waBtn) waBtn.onclick = function() { window.open(`https://wa.me/${(lead.whatsapp || lead.phone || '').replace(/[^0-9]/g, '')}`, '_blank'); };
+    const emailBtn = document.getElementById('leadEmailBtn');
+    if (emailBtn) emailBtn.onclick = function() { if (lead.email) window.location.href = `mailto:${lead.email}`; else showNotification('No email address', 'error'); };
+    const editBtn = document.getElementById('leadEditBtn');
+    if (editBtn) editBtn.onclick = function() { closeModal('leadDetailModal'); openEditLeadModal(id); };
+    const convertBtn = document.getElementById('leadConvertBtn');
+    if (convertBtn) convertBtn.onclick = function() { convertLeadToStudent(id); };
+    const quickStatus = document.getElementById('quickLeadStatus');
+    if (quickStatus) { quickStatus.value = lead.status || 'New'; quickStatus.onchange = function() { quickChangeLeadStatus(); }; }
+    const quickPriority = document.getElementById('quickLeadPriority');
+    if (quickPriority) { quickPriority.value = lead.priority || 'Warm'; quickPriority.onchange = function() { quickChangeLeadPriority(); }; }
+    renderLeadNotes(id);
+    openModal('leadDetailModal');
+}
+
+function renderLeadNotes(id) {
+    const lead = allLeads.find(l => l.id === id);
+    if (!lead) return;
+    const container = document.getElementById('leadNotesTimeline');
+    if (!container) return;
+    const notes = lead.notes || [];
+    if (notes.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.4);padding:20px;">No notes yet. Add the first note below.</div>';
+        return;
+    }
+    container.innerHTML = notes.slice().reverse().map(n => {
+        const noteColor = n.type === 'follow-up' ? '#fbbf24' : (n.type === 'status-change' ? '#4facfe' : '#667eea');
+        return `<div style="background:rgba(255,255,255,0.08);border-left:3px solid ${noteColor};border-radius:6px;padding:10px 12px;margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;">${escapeHtml(n.by || 'Admin')} · ${escapeHtml(n.date || '')}</span>
+                ${n.type ? `<span style="font-size:10px;padding:2px 6px;border-radius:6px;background:${noteColor};color:#fff;">${n.type}</span>` : ''}
+            </div>
+            <div style="color:rgba(255,255,255,0.9);font-size:13px;">${escapeHtml(n.text || '')}</div>
+        </div>`;
+    }).join('');
+}
+
+async function addLeadNote() {
+    const id = openLeadDetail._currentId;
+    const text = document.getElementById('leadNoteInput').value.trim();
+    if (!text) { showNotification('Note text is required!', 'error'); return; }
+    try {
+        const res = await fetch(`/api/leads/${id}/notes`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ text }) });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('leadNoteInput').value = '';
+            const lead = allLeads.find(l => l.id === id);
+            if (lead) lead.notes = data.lead.notes;
+            renderLeadNotes(id);
+            showNotification('Note added!', 'success');
+        } else showNotification(data.error || 'Failed to add note', 'error');
+    } catch (err) { console.error('Error:', err); showNotification('Error adding note', 'error'); }
+}
+
+async function quickUpdateLead(id, field, value) {
+    const lead = allLeads.find(l => l.id === id);
+    if (!lead) return;
+    try {
+        const res = await fetch(`/api/leads/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...lead, [field]: value}) });
+        const data = await res.json();
+        if (data.success) {
+            lead[field] = value;
+            if (field === 'status' && value === 'Lost') {
+                lead.notes = data.lead.notes;
+                renderLeadNotes(id);
+            }
+            updateLeadsStats();
+            filterLeads();
+            showNotification(`${field} updated!`, 'success');
+        } else showNotification(data.error || 'Failed to update', 'error');
+    } catch (err) { console.error('Error:', err); showNotification('Error updating lead', 'error'); }
+}
+
+async function convertLeadToStudent(id) {
+    const lead = allLeads.find(l => l.id === id);
+    if (!lead) return;
+    if (!confirm(`Convert "${lead.name}" to student? This will create a student record and mark the lead as Admitted.`)) return;
+    try {
+        const res = await fetch(`/api/leads/${id}/convert`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({}) });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Lead converted to student!', 'success');
+            closeModal('leadDetailModal');
+            loadLeads();
+        } else showNotification(data.error || 'Failed to convert lead', 'error');
+    } catch (err) { console.error('Error:', err); showNotification('Error converting lead', 'error'); }
+}
+
+function quickChangeLeadStatus() {
+    const id = openLeadDetail._currentId;
+    if (!id) return;
+    const status = document.getElementById('quickLeadStatus').value;
+    quickUpdateLead(id, 'status', status);
+}
+
+function quickChangeLeadPriority() {
+    const id = openLeadDetail._currentId;
+    if (!id) return;
+    const priority = document.getElementById('quickLeadPriority').value;
+    quickUpdateLead(id, 'priority', priority);
+}
+
+function toggleAllLeadCheckboxes() {
+    const master = document.getElementById('selectAllLeads');
+    const checkboxes = document.querySelectorAll('.lead-checkbox');
+    checkboxes.forEach(cb => { cb.checked = master.checked; });
+}
+
+async function exportLeadsToExcel() {
+    try {
+        const leads = await fetch('/api/leads').then(r => r.json());
+        const arr = Array.isArray(leads) ? leads : (leads.leads || []);
+        if (!arr || arr.length === 0) { showNotification('No leads to export!', 'error'); return; }
+        const data = arr.map(l => ({
+            'Name': l.name || '', 'Phone': l.phone || '', 'Email': l.email || '',
+            'WhatsApp': l.whatsapp || '', 'Course Interest': l.courses || '',
+            'Source': l.source || '', 'Status': l.status || '', 'Priority': l.priority || '',
+            'Assigned To': l.assignedTo || '', 'Follow-up Date': l.followUpDate || '',
+            'Lost Reason': l.lostReason || '', 'Created': l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-IN') : ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+        XLSX.writeFile(wb, 'Leads_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showNotification('Leads exported successfully!', 'success');
+    } catch (err) { console.error('Export error:', err); showNotification('Error exporting leads!', 'error'); }
 }
 
 // ===== Social Media Management =====
