@@ -409,6 +409,18 @@
                     <input type="email" id="enquiryModalEmail" placeholder="Enter your email" required>
                 </div>
                 <div class="enquiry-form-group">
+                    <label><i class="fas fa-book"></i> Interested Course</label>
+                    <select id="enquiryModalCourse" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;margin-top:4px;">
+                        <option value="">Select a course (optional)</option>
+                        <option value="DCA">DCA - Diploma in Computer Applications</option>
+                        <option value="Tally">Tally Prime</option>
+                        <option value="Web Development">Web Development</option>
+                        <option value="Graphic Design">Graphic Design</option>
+                        <option value="Typing">Typing Course</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="enquiry-form-group">
                     <label><i class="fas fa-comment"></i> Message</label>
                     <textarea id="enquiryModalMessage" rows="3" placeholder="How can we help you?" required></textarea>
                 </div>
@@ -913,12 +925,26 @@
                     phone: document.getElementById('enquiryModalPhone').value,
                     message: document.getElementById('enquiryModalMessage').value
                 };
+                const course = document.getElementById('enquiryModalCourse').value;
                 const res = await fetch('/api/enquiries', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
+                    if (course) {
+                        fetch('/api/leads/public', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name: data.name,
+                                phone: data.phone,
+                                email: data.email,
+                                interestedCourses: [course],
+                                source: 'Website'
+                            })
+                        }).catch(() => {});
+                    }
                     enquiryModalForm.style.display = 'none';
                     enquirySuccessMsg.classList.add('show');
                     setTimeout(() => {

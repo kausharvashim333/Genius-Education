@@ -794,6 +794,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 'dashboard': loadDashboard,
                 'enquiries': loadEnquiries,
                 'leads': loadLeads,
+                'leads-reports': loadLeadsReports,
                 'students': loadStudentsTable,
                 'courses': loadCoursesTable,
                 'batches': loadBatchesTable,
@@ -1611,6 +1612,53 @@ async function loadDashboard() {
                 }
             });
         }
+
+        // ===== Lead Follow-up Reminders =====
+        try {
+            const leadsRes = await fetch('/api/leads');
+            const leadsData = await leadsRes.json();
+            const leads = Array.isArray(leadsData) ? leadsData : (leadsData.leads || []);
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const followupContainer = document.getElementById('leadFollowupReminders');
+            if (followupContainer) {
+                const overdue = leads.filter(l => l.followUpDate && l.followUpDate < todayStr && l.status !== 'Admitted' && l.status !== 'Lost');
+                const today = leads.filter(l => l.followUpDate === todayStr && l.status !== 'Admitted' && l.status !== 'Lost');
+                const tomorrow = leads.filter(l => l.followUpDate === new Date(Date.now() + 86400000).toISOString().slice(0, 10) && l.status !== 'Admitted' && l.status !== 'Lost');
+                const allReminders = [
+                    ...overdue.map(l => ({ ...l, badge: 'OVERDUE', badgeColor: '#ef4444' })),
+                    ...today.map(l => ({ ...l, badge: 'TODAY', badgeColor: '#fbbf24' })),
+                    ...tomorrow.map(l => ({ ...l, badge: 'TOMORROW', badgeColor: '#4facfe' }))
+                ].sort((a, b) => (a.followUpDate || '').localeCompare(b.followUpDate || ''));
+                if (allReminders.length === 0) {
+                    followupContainer.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;">No follow-ups pending. All caught up!</div>';
+                } else {
+                    followupContainer.innerHTML = allReminders.slice(0, 10).map(l => `
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,0.05);border-radius:8px;border-left:3px solid ${l.badgeColor};cursor:pointer;" onclick="document.querySelector('[data-page=leads]').click(); setTimeout(()=>openLeadDetail(${l.id}),300)">
+                            <div style="flex:1;">
+                                <div style="font-weight:600;color:#fff;font-size:14px;">${escapeHtml(l.name || '-')}</div>
+                                <div style="font-size:12px;color:rgba(255,255,255,0.6);">${escapeHtml(l.phone || '')} ${l.interestedCourses && l.interestedCourses.length ? '· ' + escapeHtml(l.interestedCourses.join(', ')) : ''}</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <span style="background:${l.badgeColor};color:#fff;padding:3px 10px;border-radius:8px;font-size:10px;font-weight:700;">${l.badge}</span>
+                                <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;">${l.followUpDate || ''}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+            const leadsBadge = document.getElementById('sidebarLeadsBadge');
+            if (leadsBadge) {
+                const todayFollowups = leads.filter(l => l.followUpDate === todayStr && l.status !== 'Admitted' && l.status !== 'Lost').length;
+                const overdueCount = leads.filter(l => l.followUpDate && l.followUpDate < todayStr && l.status !== 'Admitted' && l.status !== 'Lost').length;
+                const totalReminders = todayFollowups + overdueCount;
+                if (totalReminders > 0) {
+                    leadsBadge.textContent = totalReminders;
+                    leadsBadge.style.display = 'inline-block';
+                } else {
+                    leadsBadge.style.display = 'none';
+                }
+            }
+        } catch (e) { console.error('Lead reminders error:', e); }
 
     } catch (err) { console.error('Dashboard error:', err.message || err); }
 }
@@ -12998,6 +13046,85 @@ async function exportLeadsToExcel() {
         XLSX.writeFile(wb, 'Leads_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
         showNotification('Leads exported successfully!', 'success');
     } catch (err) { console.error('Export error:', err); showNotification('Error exporting leads!', 'error'); }
+}
+
+// ===== Leads Reports & Analytics =====
+let lrStatusChartInstance = null;
+let lrSourceChartInstance = null;
+
+async function loadLeadsReports() {
+    try {
+        const res = await fetch('/api/leads');
+        const data = await res.json();
+        const leads = Array.isArray(data) ? data : (data.leads || []);
+        const todayStr = new Date().toISOString().slice(0, 10);
+
+        const total = leads.length;
+        const admitted = leads.filter(l => l.status === 'Admitted').length;
+        const lost = leads.filter(l => l.status === 'Lost').length;
+        const conversionRate = total > 0 ? ((admitted / total) * 100).toFixed(1) : 0;
+        const hotLeads = leads.filter(l => l.priority === 'Hot' && l.status !== 'Admitted' && l.status !== 'Lost').length;
+        const pendingFollowups = leads.filter(l => l.followUpDate && l.followUpDate <= todayStr && l.status !== 'Admitted' && l.status !== 'Lost').length;
+
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        set('lrTotalLeads', total);
+        set('lrAdmitted', admitted);
+        set('lrLost', lost);
+        set('lrConversionRate', conversionRate + '%');
+        set('lrHotLeads', hotLeads);
+        set('lrPendingFollowups', pendingFollowups);
+
+        const statuses = ['New','Contacted','Interested','Visit Scheduled','Application Submitted','Admitted','Lost'];
+        const statusColors = ['#f093fb','#4facfe','#43e97b','#fbbf24','#a78bfa','#16a34a','#f5576c'];
+        const statusCounts = statuses.map(s => leads.filter(l => l.status === s).length);
+
+        const statusCtx = document.getElementById('lrStatusChart');
+        if (statusCtx && typeof Chart !== 'undefined') {
+            if (lrStatusChartInstance) lrStatusChartInstance.destroy();
+            lrStatusChartInstance = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: { labels: statuses, datasets: [{ data: statusCounts, backgroundColor: statusColors, borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#fff', font: { size: 10 } } } } }
+            });
+        }
+
+        const sources = ['Website','Walk-in','Phone Call','Phone','Social Media','Referral','Facebook Ad','Google Ad','Other'];
+        const sourceCounts = sources.map(s => leads.filter(l => l.source === s).length);
+        const sourceCtx = document.getElementById('lrSourceChart');
+        if (sourceCtx && typeof Chart !== 'undefined') {
+            if (lrSourceChartInstance) lrSourceChartInstance.destroy();
+            lrSourceChartInstance = new Chart(sourceCtx, {
+                type: 'bar',
+                data: { labels: sources, datasets: [{ label: 'Leads', data: sourceCounts, backgroundColor: '#4facfe', borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: 'rgba(255,255,255,0.6)', font: { size: 9 } }, grid: { display: false } }, y: { ticks: { color: 'rgba(255,255,255,0.6)', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' } } } }
+            });
+        }
+
+        const sourceTbody = document.querySelector('#lrSourceTable tbody');
+        if (sourceTbody) {
+            sourceTbody.innerHTML = sources.map(s => {
+                const sLeads = leads.filter(l => l.source === s);
+                if (sLeads.length === 0) return '';
+                const sAdmitted = sLeads.filter(l => l.status === 'Admitted').length;
+                const sLost = sLeads.filter(l => l.status === 'Lost').length;
+                const sConv = sLeads.length > 0 ? ((sAdmitted / sLeads.length) * 100).toFixed(1) + '%' : '0%';
+                return `<tr><td style="font-weight:600;color:#fff;">${s}</td><td>${sLeads.length}</td><td style="color:#22c55e;font-weight:600;">${sAdmitted}</td><td style="color:#f5576c;">${sLost}</td><td>${sConv}</td></tr>`;
+            }).join('') || '<tr><td colspan="5" style="text-align:center;color:#94a3b8;">No data</td></tr>';
+        }
+
+        const priorityTbody = document.querySelector('#lrPriorityTable tbody');
+        if (priorityTbody) {
+            const priorities = ['Hot','Warm','Cold'];
+            const pColors = { Hot: '#ef4444', Warm: '#f59e0b', Cold: '#3b82f6' };
+            priorityTbody.innerHTML = priorities.map(p => {
+                const pLeads = leads.filter(l => l.priority === p);
+                const pAdmitted = pLeads.filter(l => l.status === 'Admitted').length;
+                const pLost = pLeads.filter(l => l.status === 'Lost').length;
+                const pPipeline = pLeads.filter(l => l.status !== 'Admitted' && l.status !== 'Lost').length;
+                return `<tr><td><span style="background:${pColors[p]};color:#fff;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:700;">${p}</span></td><td>${pLeads.length}</td><td style="color:#22c55e;font-weight:600;">${pAdmitted}</td><td style="color:#f5576c;">${pLost}</td><td>${pPipeline}</td></tr>`;
+            }).join('');
+        }
+    } catch (err) { console.error('Leads reports error:', err); showNotification('Error loading reports', 'error'); }
 }
 
 // ===== Social Media Management =====

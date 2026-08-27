@@ -3944,6 +3944,40 @@ app.post('/api/enquiries', (req, res) => {
     const enquiry = { id: Date.now(), date: formatDate(new Date()), replied: false, ...req.body };
     enquiries.unshift(enquiry);
     writeData('enquiries.json', enquiries);
+
+    // Auto-create a lead from this enquiry
+    try {
+        const leads = readData('leads.json') || [];
+        const lead = {
+            id: Date.now() + 1,
+            createdAt: formatDate(new Date()),
+            createdAtTime: new Date().toISOString(),
+            name: enquiry.name || '',
+            phone: enquiry.phone || '',
+            email: enquiry.email || '',
+            whatsapp: enquiry.phone || '',
+            interestedCourses: enquiry.course ? [enquiry.course] : [],
+            source: 'Website',
+            status: 'New',
+            priority: 'Warm',
+            assignedTo: '',
+            followUpDate: '',
+            followUpTime: '',
+            notes: [],
+            lostReason: '',
+            convertedStudentId: null,
+            activities: [{
+                action: 'Lead Created',
+                timestamp: new Date().toISOString(),
+                by: 'Website',
+                note: 'Auto-created from website enquiry'
+            }]
+        };
+        leads.unshift(lead);
+        writeData('leads.json', leads);
+        sendLeadNotificationEmail(lead).catch(() => {});
+    } catch (e) { console.error('Auto-lead creation error:', e); }
+
     res.json({ success: true });
 });
 
@@ -4010,6 +4044,149 @@ app.post('/api/enquiries/:id/reply', async (req, res) => {
     }
 });
 
+// --- Lead Email Notification Helper ---
+async function sendLeadNotificationEmail(lead) {
+    try {
+        const settings = readData('settings.json') || {};
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
+        if (!smtpUser || !smtpPass) return;
+        const inst = settings.name || 'Genius Computer Education';
+        const logo = getEmailLogo(settings);
+        const adminEmail = settings.email || smtpUser;
+
+        const coursesStr = Array.isArray(lead.interestedCourses) ? lead.interestedCourses.join(', ') : (lead.interestedCourses || '');
+        const html = `
+        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+            <div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:24px 30px;text-align:center;">
+                ${logo.html || ''}
+                <h2 style="color:#fff;margin:12px 0 4px;font-size:22px;">New Lead Created</h2>
+                <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px;">A new lead has been added to the system</p>
+            </div>
+            <div style="padding:24px 30px;">
+                <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;width:130px;">Name</td><td style="padding:8px 0;color:#1e293b;">${lead.name || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Phone</td><td style="padding:8px 0;color:#1e293b;">${lead.phone || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Email</td><td style="padding:8px 0;color:#1e293b;">${lead.email || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Interested In</td><td style="padding:8px 0;color:#1e293b;">${coursesStr || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Source</td><td style="padding:8px 0;color:#1e293b;">${lead.source || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Priority</td><td style="padding:8px 0;color:#1e293b;">${lead.priority || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Created</td><td style="padding:8px 0;color:#1e293b;">${lead.createdAt || new Date().toLocaleString()}</td></tr>
+                </table>
+                <div style="margin-top:20px;text-align:center;">
+                    <a href="${settings.websiteUrl || 'http://localhost:3000'}/admin" style="display:inline-block;background:#667eea;color:#fff;text-decoration:none;padding:10px 28px;border-radius:8px;font-weight:600;font-size:14px;">View in Admin Panel</a>
+                </div>
+            </div>
+            <div style="background:#f1f5f9;padding:16px 30px;text-align:center;font-size:12px;color:#94a3b8;">
+                &copy; ${new Date().getFullYear()} ${inst}. All rights reserved.
+            </div>
+        </div>`;
+
+        const transporter = nodemailer.createTransport({ host: smtpHost, port: smtpPort, secure: smtpSecure, auth: { user: smtpUser, pass: smtpPass } });
+        await transporter.sendMail({
+            from: `"${inst}" <${smtpUser}>`,
+            to: adminEmail,
+            subject: `New Lead: ${lead.name || 'Unknown'} - ${lead.source || 'Website'}`,
+            html,
+            attachments: logo.attachments || []
+        });
+        console.log(`Lead notification email sent to ${adminEmail}`);
+    } catch (err) {
+        console.error('Lead notification email error:', err.message);
+    }
+}
+
+async function sendLeadAssignedEmail(lead) {
+    try {
+        const settings = readData('settings.json') || {};
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
+        if (!smtpUser || !smtpPass) return;
+        const inst = settings.name || 'Genius Computer Education';
+        const logo = getEmailLogo(settings);
+        const adminEmail = settings.email || smtpUser;
+
+        const html = `
+        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+            <div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:24px 30px;text-align:center;">
+                ${logo.html || ''}
+                <h2 style="color:#fff;margin:12px 0 4px;font-size:22px;">Lead Assigned</h2>
+                <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px;">A lead has been assigned to you</p>
+            </div>
+            <div style="padding:24px 30px;">
+                <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;width:130px;">Name</td><td style="padding:8px 0;color:#1e293b;">${lead.name || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Phone</td><td style="padding:8px 0;color:#1e293b;">${lead.phone || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Assigned To</td><td style="padding:8px 0;color:#1e293b;">${lead.assignedTo || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Status</td><td style="padding:8px 0;color:#1e293b;">${lead.status || '-'}</td></tr>
+                </table>
+                <div style="margin-top:20px;text-align:center;">
+                    <a href="${settings.websiteUrl || 'http://localhost:3000'}/admin" style="display:inline-block;background:#667eea;color:#fff;text-decoration:none;padding:10px 28px;border-radius:8px;font-weight:600;font-size:14px;">View in Admin Panel</a>
+                </div>
+            </div>
+            <div style="background:#f1f5f9;padding:16px 30px;text-align:center;font-size:12px;color:#94a3b8;">
+                &copy; ${new Date().getFullYear()} ${inst}. All rights reserved.
+            </div>
+        </div>`;
+
+        const transporter = nodemailer.createTransport({ host: smtpHost, port: smtpPort, secure: smtpSecure, auth: { user: smtpUser, pass: smtpPass } });
+        await transporter.sendMail({
+            from: `"${inst}" <${smtpUser}>`,
+            to: adminEmail,
+            subject: `Lead Assigned: ${lead.name || 'Unknown'} → ${lead.assignedTo || '-'}`,
+            html,
+            attachments: logo.attachments || []
+        });
+        console.log(`Lead assigned email sent to ${adminEmail}`);
+    } catch (err) {
+        console.error('Lead assigned email error:', err.message);
+    }
+}
+
+async function sendLeadConvertedEmail(lead) {
+    try {
+        const settings = readData('settings.json') || {};
+        const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
+        if (!smtpUser || !smtpPass) return;
+        const inst = settings.name || 'Genius Computer Education';
+        const logo = getEmailLogo(settings);
+        const adminEmail = settings.email || smtpUser;
+
+        const html = `
+        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+            <div style="background:linear-gradient(135deg,#22c55e,#16a34a);padding:24px 30px;text-align:center;">
+                ${logo.html || ''}
+                <h2 style="color:#fff;margin:12px 0 4px;font-size:22px;">Lead Converted!</h2>
+                <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px;">A lead has been successfully converted to a student</p>
+            </div>
+            <div style="padding:24px 30px;">
+                <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;width:130px;">Name</td><td style="padding:8px 0;color:#1e293b;">${lead.name || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Phone</td><td style="padding:8px 0;color:#1e293b;">${lead.phone || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Email</td><td style="padding:8px 0;color:#1e293b;">${lead.email || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Student ID</td><td style="padding:8px 0;color:#1e293b;">${lead.convertedStudentId || '-'}</td></tr>
+                </table>
+                <div style="margin-top:20px;text-align:center;">
+                    <a href="${settings.websiteUrl || 'http://localhost:3000'}/admin" style="display:inline-block;background:#22c55e;color:#fff;text-decoration:none;padding:10px 28px;border-radius:8px;font-weight:600;font-size:14px;">View in Admin Panel</a>
+                </div>
+            </div>
+            <div style="background:#f1f5f9;padding:16px 30px;text-align:center;font-size:12px;color:#94a3b8;">
+                &copy; ${new Date().getFullYear()} ${inst}. All rights reserved.
+            </div>
+        </div>`;
+
+        const transporter = nodemailer.createTransport({ host: smtpHost, port: smtpPort, secure: smtpSecure, auth: { user: smtpUser, pass: smtpPass } });
+        await transporter.sendMail({
+            from: `"${inst}" <${smtpUser}>`,
+            to: adminEmail,
+            subject: `Lead Converted: ${lead.name || 'Unknown'} → Student`,
+            html,
+            attachments: logo.attachments || []
+        });
+        console.log(`Lead converted email sent to ${adminEmail}`);
+    } catch (err) {
+        console.error('Lead converted email error:', err.message);
+    }
+}
+
 // --- Leads Management ---
 app.get('/api/leads', verifyAdminSessionMiddleware, (req, res) => {
     res.json(readData('leads.json') || []);
@@ -4044,6 +4221,7 @@ app.post('/api/leads', verifyAdminSessionMiddleware, (req, res) => {
     };
     leads.unshift(lead);
     writeData('leads.json', leads);
+    sendLeadNotificationEmail(lead).catch(() => {});
     res.json({ success: true, lead });
 });
 
@@ -4069,6 +4247,10 @@ app.put('/api/leads/:id', verifyAdminSessionMiddleware, (req, res) => {
             by: req.body.updatedBy || 'Admin',
             note: ''
         });
+    }
+    
+    if (req.body.assignedTo && req.body.assignedTo !== leads[idx].assignedTo) {
+        sendLeadAssignedEmail(leads[idx]).catch(() => {});
     }
     
     writeData('leads.json', leads);
@@ -4144,6 +4326,7 @@ app.post('/api/leads/:id/convert', verifyAdminSessionMiddleware, (req, res) => {
     });
     
     writeData('leads.json', leads);
+    sendLeadConvertedEmail(leads[idx]).catch(() => {});
     res.json({ success: true, lead: leads[idx] });
 });
 
@@ -4208,6 +4391,7 @@ app.post('/api/leads/public', (req, res) => {
     };
     leads.unshift(lead);
     writeData('leads.json', leads);
+    sendLeadNotificationEmail(lead).catch(() => {});
     res.json({ success: true, lead });
 });
 
