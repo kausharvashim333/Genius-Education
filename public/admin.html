@@ -6163,15 +6163,16 @@
             <div class="form-group"><label>Student</label><input type="text" id="feeStudentName" readonly style="background:#f1f5f9;"></div>
             <div class="form-group"><label>Amount (₹) *</label><input type="number" id="feeAmount" required min="1"></div>
             <div class="form-group"><label>Payment Mode</label>
-                <select id="feeMode">
+                <select id="feeMode" onchange="onFeeModeChange()">
                     <option value="Cash">Cash</option>
-                    <option value="Online">Online</option>
+                    <option value="Online (Razorpay)">Online (Razorpay)</option>
                     <option value="UPI">UPI</option>
                     <option value="Cheque">Cheque</option>
                 </select>
             </div>
             <div class="form-group"><label>UTR / Transaction ID</label><input type="text" id="feeUtr" placeholder="Enter UTR or transaction ID"></div>
-            <button type="button" class="btn btn-primary" onclick="saveFee()"><i class="fas fa-save"></i> Save Payment</button>
+            <div id="feeRazorpayNote" style="display:none;background:rgba(102,126,234,0.15);border:1px solid rgba(102,126,234,0.3);border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px;color:rgba(255,255,255,0.8);"><i class="fas fa-info-circle" style="margin-right:6px;color:#667eea;"></i> Razorpay checkout khulega, payment complete hone pe automatically record ho jayega.</div>
+            <button type="button" class="btn btn-primary" onclick="saveFee()" id="feeSaveBtn"><i class="fas fa-save"></i> Save Payment</button>
             <button type="button" class="btn" onclick="closeModal('feeModal')" style="margin-left:10px;">Cancel</button>
         </div>
     </div>
@@ -7108,6 +7109,7 @@
     <script src="https://www.google.com/recaptcha/api.js?render=6LfDe_gsAAAAALle5tiQY_6WnVgp-wrRrhwlqk9t"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="js/admin.js?v=20260818b"></script>
     <script src="js/entrance-admin.js"></script>
     <script>
