@@ -562,7 +562,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         'fees': { title: 'Fees Management', icon: 'money-bill-wave', breadcrumb: 'Home > Fees' },
         'certificates': { title: 'Certificates', icon: 'certificate', breadcrumb: 'Home > Certificates' },
         'payments': { title: 'Payments', icon: 'rupee-sign', breadcrumb: 'Home > Payments' },
-        'enquiries': { title: 'Enquiries', icon: 'clipboard-list', breadcrumb: 'Home > Enquiries' },
         'leads': { title: 'Leads Management', icon: 'user-tag', breadcrumb: 'Home > Leads' },
         'courses': { title: 'Courses', icon: 'book', breadcrumb: 'Home > Courses' },
         'batches': { title: 'Batches', icon: 'layer-group', breadcrumb: 'Home > Batches' },
@@ -727,26 +726,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return;
             }
 
-            if (pageId === 'page-enquiries' && typeof allEnquiries !== 'undefined') {
-                const paginationEl = document.getElementById('enquiriesPagination');
-                if (q) {
-                    const filtered = allEnquiries.filter(e => {
-                        const text = (e.name + ' ' + (e.phone || '') + ' ' + (e.email || '') + ' ' + (e.message || '') + ' ' + (e.date || '')).toLowerCase();
-                        return text.includes(q);
-                    });
-                    paginationEl.style.display = 'none';
-                    const origPerPage = enquiriesPerPage;
-                    enquiriesPerPage = 999999;
-                    enquiriesCurrentPage = 1;
-                    renderEnquiries(filtered);
-                    enquiriesPerPage = origPerPage;
-                } else {
-                    paginationEl.style.display = '';
-                    enquiriesCurrentPage = 1;
-                    filterEnquiries();
-                }
-                return;
-            }
 
             // Generic DOM-based search for non-paginated pages
             const allTables = pageEl.querySelectorAll('table[id]');
@@ -801,7 +780,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             const pageLoaders = {
                 'dashboard': loadDashboard,
-                'enquiries': loadEnquiries,
                 'leads': loadLeads,
                 'students': loadStudentsTable,
                 'courses': loadCoursesTable,
@@ -1337,10 +1315,10 @@ function showDashboard() {
 // ===== Dashboard =====
 async function loadDashboard() {
     try {
-        let [coursesData, students, enquiries, faculty, gallery, paymentsData, batches, onlineExams, certsData, materialsData, admitCardsData] = await Promise.all([
+        let [coursesData, students, leads, faculty, gallery, paymentsData, batches, onlineExams, certsData, materialsData, admitCardsData] = await Promise.all([
             fetch('/api/courses').then(r => r.json()).catch(() => []),
             fetch('/api/students').then(r => r.json()).catch(() => []),
-            fetch('/api/enquiries').then(r => r.json()).catch(() => []),
+            fetch('/api/leads').then(r => r.json()).catch(() => []),
             fetch('/api/faculty').then(r => r.json()).catch(() => []),
             fetch('/api/gallery').then(r => r.json()).catch(() => []),
             fetch('/api/payments').then(r => r.json()).catch(() => ({ payments: [] })),
@@ -1353,7 +1331,7 @@ async function loadDashboard() {
 
         // Defensive: any endpoint that returned a non-array (e.g. 401 {success:false}) becomes []
         if (!Array.isArray(students)) students = [];
-        if (!Array.isArray(enquiries)) enquiries = [];
+        if (!Array.isArray(leads)) leads = [];
         if (!Array.isArray(faculty)) faculty = [];
         if (!Array.isArray(gallery)) gallery = [];
         if (!Array.isArray(batches)) batches = [];
@@ -1370,17 +1348,17 @@ async function loadDashboard() {
         document.getElementById('totalStudents').textContent = students.length;
         document.getElementById('totalCourses').textContent = courses.length;
         document.getElementById('totalFaculty').textContent = faculty.length;
-        document.getElementById('totalEnquiries').textContent = enquiries.length;
+        document.getElementById('totalLeads').textContent = leads.length;
 
         // Row 2
-        const pendingEnq = enquiries.filter(e => !e.replied).length;
-        document.getElementById('totalPendingEnquiries').textContent = pendingEnq;
+        const newLeads = leads.filter(l => l.status === 'New').length;
+        document.getElementById('totalNewLeads').textContent = newLeads;
 
         // Sidebar badge
-        const badge = document.getElementById('sidebarEnqBadge');
+        const badge = document.getElementById('sidebarLeadsBadge');
         if (badge) {
-            if (pendingEnq > 0) {
-                badge.textContent = pendingEnq;
+            if (newLeads > 0) {
+                badge.textContent = newLeads;
                 badge.style.display = 'inline-block';
             } else {
                 badge.style.display = 'none';
@@ -1445,32 +1423,26 @@ async function loadDashboard() {
             }
         }
 
-        // Recent Enquiries (last 5) - pending first
-        const recentEnq = [...enquiries].sort((a, b) => {
-            if (!a.replied && b.replied) return -1;
-            if (a.replied && !b.replied) return 1;
-            return (b.id || 0) - (a.id || 0);
-        }).slice(0, 5);
-        const enqTbody = document.querySelector('#recentEnquiriesTable tbody');
-        if (enqTbody) {
-            if (recentEnq.length > 0) {
-                enqTbody.innerHTML = recentEnq.map(e => {
-                    const statusBadge = e.replied
-                        ? '<span class="enq-badge enq-badge-replied">Replied</span>'
-                        : '<span class="enq-badge enq-badge-pending">Pending</span>';
-                    const safeMsg = (e.message || '-').replace(/"/g, '&quot;');
-                    return `<tr>
-                        <td style="font-weight:600;">${e.name || '-'}</td>
-                        <td style="font-size:13px;">${e.email || '-'}</td>
-                        <td style="font-size:13px;">${e.phone || '-'}</td>
-                        <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;" title="${safeMsg}">${e.message || '-'}</td>
-                        <td style="font-size:13px;">${e.date || '-'}</td>
-                        <td>${statusBadge}</td>
-                        <td><button class="action-btn edit-btn" onclick="openEnquiryReply(${e.id})" title="Reply" style="padding:5px 10px;font-size:12px;"><i class="fas fa-reply"></i> ${e.replied ? 'View' : 'Reply'}</button></td>
+        // Recent Leads (last 5)
+        const recentLeads = [...leads].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 5);
+        const leadTbody = document.querySelector('#recentLeadsTable tbody');
+        if (leadTbody) {
+            if (recentLeads.length > 0) {
+                leadTbody.innerHTML = recentLeads.map(l => {
+                    const sColor = (typeof LEAD_STATUS_COLORS !== 'undefined' ? LEAD_STATUS_COLORS[l.status] : '#667eea') || '#667eea';
+                    const pColor = (typeof LEAD_PRIORITY_COLORS !== 'undefined' ? LEAD_PRIORITY_COLORS[l.priority] : '#667eea') || '#667eea';
+                    return `<tr style="cursor:pointer;" onclick="document.querySelector('[data-page=leads]').click(); setTimeout(()=>openLeadDetail(${l.id}),300)">
+                        <td style="font-weight:600;color:#fff;">${escapeHtml(l.name||'-')}</td>
+                        <td style="font-size:13px;">${escapeHtml(l.phone||'-')}</td>
+                        <td style="font-size:13px;">${escapeHtml(l.courses||l.interestedCourses&&l.interestedCourses.join(', ')||'-')}</td>
+                        <td style="font-size:13px;">${escapeHtml(l.source||'-')}</td>
+                        <td><span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${sColor};color:#fff;">${l.status||'New'}</span></td>
+                        <td><span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${pColor};color:#fff;">${l.priority||'Warm'}</span></td>
+                        <td><button class="action-btn edit-btn" onclick="event.stopPropagation();document.querySelector('[data-page=leads]').click();setTimeout(()=>openLeadDetail(${l.id}),300)" title="View" style="padding:5px 10px;font-size:12px;"><i class="fas fa-eye"></i> View</button></td>
                     </tr>`;
                 }).join('');
             } else {
-                renderEmptyState(enqTbody, 'envelope-open', 'No enquiries yet');
+                renderEmptyState(leadTbody, 'user-tag', 'No leads yet');
             }
         }
 

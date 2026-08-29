@@ -1379,7 +1379,6 @@
             </div>
             <ul class="sidebar-menu">
                 <li><a href="#" class="active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="#" data-page="enquiries"><i class="fas fa-envelope-open-text"></i> Enquiries <span id="sidebarEnqBadge" style="background:#f5576c;color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:auto;display:none;">0</span></a></li>
                 <li><a href="#" data-page="leads"><i class="fas fa-user-tag"></i> Leads <span id="sidebarLeadsBadge" style="background:#f59e0b;color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:auto;display:none;">0</span></a></li>
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle"><i class="fas fa-graduation-cap"></i> Academic <i class="fas fa-chevron-down" style="margin-left:auto;font-size:10px;"></i></a>
@@ -1533,27 +1532,27 @@
                             <div class="dash-stat-label">Faculty Members</div>
                         </div>
                     </div>
-                    <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #43e97b, #38f9d7);" onclick="document.querySelector('[data-page=enquiries]').click()">
-                        <div class="dash-stat-icon"><i class="fas fa-clipboard-list"></i></div>
+                    <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #43e97b, #38f9d7);" onclick="document.querySelector('[data-page=leads]').click()">
+                        <div class="dash-stat-icon"><i class="fas fa-user-tag"></i></div>
                         <div class="dash-stat-info">
                             <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
-                                <div class="dash-stat-number" id="totalEnquiries">0</div>
+                                <div class="dash-stat-number" id="totalLeads">0</div>
                                 <span class="stat-trend trend-up"><i class="fas fa-arrow-trend-up"></i> +18%</span>
                             </div>
-                            <div class="dash-stat-label">Total Enquiries</div>
+                            <div class="dash-stat-label">Total Leads</div>
                         </div>
                     </div>
                 </div>
                 <!-- Stats Cards Row 2 -->
                 <div class="dash-stats-grid">
-                    <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #fa709a, #fee140);" onclick="document.querySelector('[data-page=enquiries]').click()">
+                    <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #fa709a, #fee140);" onclick="document.querySelector('[data-page=leads]').click()">
                         <div class="dash-stat-icon"><i class="fas fa-bell"></i></div>
                         <div class="dash-stat-info">
                             <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
-                                <div class="dash-stat-number" id="totalPendingEnquiries">0</div>
+                                <div class="dash-stat-number" id="totalNewLeads">0</div>
                                 <span class="stat-trend trend-down"><i class="fas fa-arrow-trend-down"></i> -8%</span>
                             </div>
-                            <div class="dash-stat-label">Pending Enquiries</div>
+                            <div class="dash-stat-label">New Leads</div>
                         </div>
                     </div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #a18cd1, #fbc2eb);" onclick="document.querySelector('[data-page=fees]').click()">
@@ -1645,7 +1644,7 @@
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #fa709a, #fee140);" onclick="document.querySelector('[data-page=fees]').click()"><div class="dash-stat-icon"><i class="fas fa-money-bill-wave"></i></div><div class="dash-stat-info"><div class="dash-stat-label">Record Payment</div></div></div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #a18cd1, #fbc2eb);" onclick="document.querySelector('[data-page=announcements]').click()"><div class="dash-stat-icon"><i class="fas fa-bullhorn"></i></div><div class="dash-stat-info"><div class="dash-stat-label">Add Notice</div></div></div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #fddb92, #d1fdff);" onclick="document.querySelector('[data-page=certificates]').click()"><div class="dash-stat-icon"><i class="fas fa-award"></i></div><div class="dash-stat-info"><div class="dash-stat-label">Gen. Certificate</div></div></div>
-                    <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #89f7fe, #66a6ff);" onclick="openReplyLatestEnquiry()"><div class="dash-stat-icon"><i class="fas fa-reply"></i></div><div class="dash-stat-info"><div class="dash-stat-label">Reply Enquiry</div></div></div>
+                    <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #89f7fe, #66a6ff);" onclick="document.querySelector('[data-page=leads]').click()"><div class="dash-stat-icon"><i class="fas fa-user-plus"></i></div><div class="dash-stat-info"><div class="dash-stat-label">Add Lead</div></div></div>
                     <div class="dash-stat-card" style="--card-gradient: linear-gradient(135deg, #d4fc79, #96e6a1);" onclick="document.querySelector('[data-page=backup]').click()"><div class="dash-stat-icon"><i class="fas fa-database"></i></div><div class="dash-stat-info"><div class="dash-stat-label">Take Backup</div></div></div>
                 </div>
 
@@ -1665,15 +1664,15 @@
                     </div>
                 </div>
 
-                <!-- Recent Enquiries Widget -->
+                <!-- Recent Leads Widget -->
                 <div class="dash-recent-card" style="margin-top:20px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
-                        <div class="dash-section-title" style="margin:0;"><i class="fas fa-envelope-open-text"></i> Recent Enquiries</div>
-                        <button class="btn btn-sm btn-primary" onclick="document.querySelector('[data-page=enquiries]').click()" style="padding:6px 14px;font-size:13px;"><i class="fas fa-list"></i> View All</button>
+                        <div class="dash-section-title" style="margin:0;"><i class="fas fa-user-tag" style="color:#667eea;"></i> Recent Leads</div>
+                        <button class="btn btn-sm btn-primary" onclick="document.querySelector('[data-page=leads]').click()" style="padding:6px 14px;font-size:13px;"><i class="fas fa-list"></i> View All</button>
                     </div>
                     <div class="table-scroll-wrapper" style="max-height:300px;">
-                    <table class="dash-recent-table" id="recentEnquiriesTable">
-                        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Message</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+                    <table class="dash-recent-table" id="recentLeadsTable">
+                        <thead><tr><th>Name</th><th>Phone</th><th>Course</th><th>Source</th><th>Status</th><th>Priority</th><th>Action</th></tr></thead>
                         <tbody><tr><td colspan="7" style="text-align:center;color:#94a3b8;">Loading...</td></tr></tbody>
                     </table>
                     </div>
@@ -2304,43 +2303,6 @@
                         <tbody></tbody>
                     </table>
                     </div>
-                </div>
-            </div>
-
-            <!-- Enquiries Page -->
-            <div id="page-enquiries" class="page-content hidden">
-                <div class="page-toolbar" style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
-                    <button class="btn btn-danger" onclick="deleteSelectedEnquiries()">
-                        <i class="fas fa-trash"></i> Delete Selected
-                    </button>
-                    <button class="btn btn-success" onclick="exportEnquiriesToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
-                    <div style="flex:1; display:flex; gap:10px; align-items:center; justify-content:flex-end; flex-wrap:wrap;">
-                        <select id="enquiryStatusFilter" onchange="filterEnquiries()" style="padding:9px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;width:150px;height:40px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;">
-                            <option value="">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="replied">Replied</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="data-table">
-                    <div class="table-scroll-wrapper">
-                    <table id="enquiriesTable">
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" id="selectAllEnquiries" onchange="toggleAllEnquiryCheckboxes()"></th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Message</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                    </div>
-                    <div id="enquiriesPagination" class="pagination-container"></div>
                 </div>
             </div>
 
