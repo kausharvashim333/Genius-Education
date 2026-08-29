@@ -2,6 +2,11 @@ function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function openModal(modalId) {
+    const el = document.getElementById(modalId);
+    if (el) el.classList.add('active');
+}
+
 let currentPage = 'dashboard';
 let galleryImageFile = null;
 let galleryEditId = null;
