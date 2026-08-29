@@ -944,19 +944,6 @@
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
-                    if (course) {
-                        fetch('/api/leads/public', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                name: data.name,
-                                phone: data.phone,
-                                email: data.email,
-                                interestedCourses: [course],
-                                source: 'Website'
-                            })
-                        }).catch(() => {});
-                    }
                     enquiryModalForm.style.display = 'none';
                     enquirySuccessMsg.classList.add('show');
                     setTimeout(() => {

@@ -2668,66 +2668,64 @@
 
             <!-- Lead Detail Modal -->
             <div id="leadDetailModal" class="modal">
-                <div class="modal-content" style="max-width:800px;position:relative;">
+                <div class="modal-content" style="max-width:850px;position:relative;border-radius:16px;">
                     <button class="modal-close-btn" onclick="closeModal('leadDetailModal')">&times;</button>
-                    <h3 id="leadDetailTitle" style="margin-bottom:16px;color:#fff;"><i class="fas fa-user-tag" style="color:#667eea;margin-right:8px;"></i> Lead Details</h3>
                     <input type="hidden" id="detailLeadId">
-                    <!-- Lead Info -->
-                    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:16px;margin-bottom:16px;">
-                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Name</span><div id="detailLeadName" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
-                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Phone</span><div id="detailLeadPhone" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
-                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Email</span><div id="detailLeadEmail" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
-                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">WhatsApp</span><div id="detailLeadWhatsapp" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
-                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Course</span><div id="detailLeadCourse" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
-                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Source</span><div id="detailLeadSource" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
-                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Status</span><div id="detailLeadStatus" style="font-weight:600;margin-top:2px;">-</div></div>
-                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Priority</span><div id="detailLeadPriority" style="font-weight:600;margin-top:2px;">-</div></div>
-                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Assigned To</span><div id="detailLeadAssigned" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
-                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Follow-up</span><div id="detailLeadFollowup" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
-                            <div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase;">Created</span><div id="detailLeadCreated" style="font-weight:600;color:#fff;margin-top:2px;">-</div></div>
-                        </div>
-                        <!-- Communication Buttons -->
-                        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
-                            <button id="leadCallBtn" class="btn btn-sm" style="background:#3b82f6;color:#fff;padding:6px 14px;font-size:13px;border:none;border-radius:6px;cursor:pointer;"><i class="fas fa-phone"></i> Call</button>
-                            <button id="leadWhatsappBtn" class="btn btn-sm" style="background:#25D366;color:#fff;padding:6px 14px;font-size:13px;border:none;border-radius:6px;cursor:pointer;"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-                            <button id="leadEmailBtn" class="btn btn-sm" style="background:#6366f1;color:#fff;padding:6px 14px;font-size:13px;border:none;border-radius:6px;cursor:pointer;"><i class="fas fa-envelope"></i> Email</button>
-                            <button id="leadEditBtn" class="btn btn-sm" style="background:#f59e0b;color:#fff;padding:6px 14px;font-size:13px;border:none;border-radius:6px;cursor:pointer;"><i class="fas fa-edit"></i> Edit</button>
-                            <button id="leadConvertBtn" class="btn btn-sm" style="background:#16a34a;color:#fff;padding:6px 14px;font-size:13px;border:none;border-radius:6px;cursor:pointer;"><i class="fas fa-user-check"></i> Convert to Student</button>
+                    <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px 24px;margin:-20px -20px 16px -20px;border-radius:16px 16px 0 0;">
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <div id="leadDetailAvatar" style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;flex-shrink:0;">L</div>
+                            <div style="flex:1;min-width:0;">
+                                <h3 id="leadDetailTitle" style="margin:0 0 4px 0;color:#fff;font-size:18px;font-weight:700;">Lead Details</h3>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                    <span id="detailLeadStatus" style="padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;color:#fff;">New</span>
+                                    <span id="detailLeadPriority" style="padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;color:#fff;">Warm</span>
+                                    <span id="detailLeadSource" style="padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(255,255,255,0.2);color:#fff;">Website</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <!-- Quick Status Change -->
-                    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:14px;margin-bottom:16px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;"><i class="fas fa-user" style="color:#a78bfa;width:16px;text-align:center;"></i><div><div style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;">Name</div><div id="detailLeadName" style="color:#fff;font-size:13px;font-weight:600;">-</div></div></div>
+                        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;"><i class="fas fa-phone" style="color:#4facfe;width:16px;text-align:center;"></i><div><div style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;">Phone</div><div id="detailLeadPhone" style="color:#fff;font-size:13px;font-weight:600;">-</div></div></div>
+                        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;"><i class="fas fa-envelope" style="color:#f093fb;width:16px;text-align:center;"></i><div><div style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;">Email</div><div id="detailLeadEmail" style="color:#fff;font-size:13px;font-weight:600;">-</div></div></div>
+                        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;"><i class="fab fa-whatsapp" style="color:#25D366;width:16px;text-align:center;"></i><div><div style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;">WhatsApp</div><div id="detailLeadWhatsapp" style="color:#fff;font-size:13px;font-weight:600;">-</div></div></div>
+                        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;"><i class="fas fa-book" style="color:#43e97b;width:16px;text-align:center;"></i><div><div style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;">Course</div><div id="detailLeadCourse" style="color:#fff;font-size:13px;font-weight:600;">-</div></div></div>
+                        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;"><i class="fas fa-user-tie" style="color:#fbbf24;width:16px;text-align:center;"></i><div><div style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;">Assigned To</div><div id="detailLeadAssigned" style="color:#fff;font-size:13px;font-weight:600;">-</div></div></div>
+                        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;"><i class="fas fa-calendar-alt" style="color:#f5576c;width:16px;text-align:center;"></i><div><div style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;">Follow-up</div><div id="detailLeadFollowup" style="color:#fff;font-size:13px;font-weight:600;">-</div></div></div>
+                        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;"><i class="fas fa-clock" style="color:#94a3b8;width:16px;text-align:center;"></i><div><div style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;">Created</div><div id="detailLeadCreated" style="color:#fff;font-size:13px;font-weight:600;">-</div></div></div>
+                    </div>
+                    <!-- Action Buttons -->
+                    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+                        <button id="leadCallBtn" style="background:#3b82f6;color:#fff;padding:8px 16px;font-size:13px;border:none;border-radius:8px;cursor:pointer;"><i class="fas fa-phone"></i> Call</button>
+                        <button id="leadWhatsappBtn" style="background:#25D366;color:#fff;padding:8px 16px;font-size:13px;border:none;border-radius:8px;cursor:pointer;"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                        <button id="leadEmailBtn" style="background:#6366f1;color:#fff;padding:8px 16px;font-size:13px;border:none;border-radius:8px;cursor:pointer;"><i class="fas fa-envelope"></i> Email</button>
+                        <button id="leadEditBtn" style="background:#f59e0b;color:#fff;padding:8px 16px;font-size:13px;border:none;border-radius:8px;cursor:pointer;"><i class="fas fa-edit"></i> Edit</button>
+                        <button id="leadConvertBtn" style="background:#16a34a;color:#fff;padding:8px 16px;font-size:13px;border:none;border-radius:8px;cursor:pointer;"><i class="fas fa-user-check"></i> Convert</button>
+                    </div>
+                    <!-- Quick Status & Priority -->
+                    <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
                         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                            <span style="font-weight:600;color:#fff;font-size:13px;">Quick Status:</span>
-                            <select id="quickLeadStatus" onchange="quickChangeLeadStatus()" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:6px;background:rgba(255,255,255,0.1);color:#fff;font-size:13px;">
-                                <option value="New">New</option>
-                                <option value="Contacted">Contacted</option>
-                                <option value="Interested">Interested</option>
-                                <option value="Visit Scheduled">Visit Scheduled</option>
-                                <option value="Application Submitted">Application Submitted</option>
-                                <option value="Admitted">Admitted</option>
-                                <option value="Lost">Lost</option>
+                            <span style="font-weight:600;color:#fff;font-size:12px;">Status:</span>
+                            <select id="quickLeadStatus" onchange="quickChangeLeadStatus()" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;font-size:12px;">
+                                <option value="New">New</option><option value="Contacted">Contacted</option><option value="Interested">Interested</option><option value="Visit Scheduled">Visit Scheduled</option><option value="Application Submitted">Application Submitted</option><option value="Admitted">Admitted</option><option value="Lost">Lost</option>
                             </select>
-                            <span style="font-weight:600;color:#fff;font-size:13px;margin-left:10px;">Priority:</span>
-                            <select id="quickLeadPriority" onchange="quickChangeLeadPriority()" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:6px;background:rgba(255,255,255,0.1);color:#fff;font-size:13px;">
-                                <option value="Hot">Hot</option>
-                                <option value="Warm">Warm</option>
-                                <option value="Cold">Cold</option>
+                            <span style="font-weight:600;color:#fff;font-size:12px;margin-left:8px;">Priority:</span>
+                            <select id="quickLeadPriority" onchange="quickChangeLeadPriority()" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;font-size:12px;">
+                                <option value="Hot">Hot</option><option value="Warm">Warm</option><option value="Cold">Cold</option>
                             </select>
                         </div>
                     </div>
                     <!-- Add Note -->
-                    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:14px;margin-bottom:16px;">
-                        <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;font-size:13px;">Add Note</label>
+                    <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+                        <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;font-size:12px;"><i class="fas fa-plus-circle" style="color:#667eea;margin-right:4px;"></i> Add Note</label>
                         <div style="display:flex;gap:8px;">
-                            <input type="text" id="leadNoteInput" placeholder="Add a note..." style="flex:1;padding:8px 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:13px;">
-                            <button class="btn btn-primary btn-sm" onclick="addLeadNote()" style="padding:8px 16px;font-size:13px;"><i class="fas fa-plus"></i> Add</button>
+                            <input type="text" id="leadNoteInput" placeholder="Type a note..." style="flex:1;padding:8px 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;font-size:13px;">
+                            <button class="btn btn-primary btn-sm" onclick="addLeadNote()" style="padding:8px 16px;font-size:13px;border-radius:8px;"><i class="fas fa-plus"></i> Add</button>
                         </div>
                     </div>
                     <!-- Notes Timeline -->
-                    <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:14px;margin-bottom:16px;">
-                        <h4 style="color:#fff;font-size:14px;margin:0 0 10px 0;"><i class="fas fa-sticky-note" style="color:#f59e0b;margin-right:6px;"></i> Notes & Activity Timeline</h4>
+                    <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 14px;">
+                        <h4 style="color:#fff;font-size:13px;margin:0 0 10px 0;"><i class="fas fa-sticky-note" style="color:#f59e0b;margin-right:6px;"></i> Notes & Activity Timeline</h4>
                         <div id="leadNotesTimeline" style="max-height:250px;overflow-y:auto;"></div>
                     </div>
                 </div>

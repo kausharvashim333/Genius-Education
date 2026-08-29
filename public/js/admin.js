@@ -12930,18 +12930,23 @@ function openLeadDetail(id) {
     const lead = allLeads.find(l => l.id === id);
     if (!lead) return;
     openLeadDetail._currentId = id;
-    document.getElementById('leadDetailTitle').innerHTML = `<i class="fas fa-user-tag" style="color:#667eea;margin-right:8px;"></i> ${escapeHtml(lead.name)}`;
+    document.getElementById('leadDetailTitle').textContent = lead.name || 'Lead Details';
+    const avatar = document.getElementById('leadDetailAvatar');
+    if (avatar) avatar.textContent = (lead.name || 'L').charAt(0).toUpperCase();
     document.getElementById('detailLeadId').value = id;
     document.getElementById('detailLeadName').textContent = lead.name || '-';
     document.getElementById('detailLeadPhone').textContent = lead.phone || '-';
     document.getElementById('detailLeadEmail').textContent = lead.email || '-';
     document.getElementById('detailLeadWhatsapp').textContent = lead.whatsapp || '-';
     document.getElementById('detailLeadCourse').textContent = lead.courses || '-';
-    document.getElementById('detailLeadSource').textContent = lead.source || '-';
     const statusColor = LEAD_STATUS_COLORS[lead.status] || '#667eea';
-    document.getElementById('detailLeadStatus').innerHTML = `<span style="padding:2px 10px;border-radius:8px;background:${statusColor};color:#fff;font-size:12px;">${escapeHtml(lead.status||'New')}</span>`;
+    const statusEl = document.getElementById('detailLeadStatus');
+    if (statusEl) { statusEl.textContent = lead.status || 'New'; statusEl.style.background = statusColor; }
     const priorityColor = LEAD_PRIORITY_COLORS[lead.priority] || '#667eea';
-    document.getElementById('detailLeadPriority').innerHTML = `<span style="padding:2px 10px;border-radius:8px;background:${priorityColor};color:#fff;font-size:12px;">${escapeHtml(lead.priority||'Warm')}</span>`;
+    const priorityEl = document.getElementById('detailLeadPriority');
+    if (priorityEl) { priorityEl.textContent = lead.priority || 'Warm'; priorityEl.style.background = priorityColor; }
+    const sourceEl = document.getElementById('detailLeadSource');
+    if (sourceEl) sourceEl.textContent = lead.source || '-';
     document.getElementById('detailLeadAssigned').textContent = lead.assignedTo || '-';
     const today = new Date().toISOString().slice(0, 10);
     let followupHtml = lead.followUpDate || '-';
