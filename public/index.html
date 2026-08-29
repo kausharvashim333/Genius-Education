@@ -410,14 +410,8 @@
                 </div>
                 <div class="enquiry-form-group">
                     <label><i class="fas fa-book"></i> Interested Course</label>
-                    <select id="enquiryModalCourse" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;margin-top:4px;">
+                    <select id="enquiryModalCourse">
                         <option value="">Select a course (optional)</option>
-                        <option value="DCA">DCA - Diploma in Computer Applications</option>
-                        <option value="Tally">Tally Prime</option>
-                        <option value="Web Development">Web Development</option>
-                        <option value="Graphic Design">Graphic Design</option>
-                        <option value="Typing">Typing Course</option>
-                        <option value="Other">Other</option>
                     </select>
                 </div>
                 <div class="enquiry-form-group">
@@ -882,6 +876,23 @@
             enquiryFab.style.transform = 'scale(0)';
             enquiryFab.style.opacity = '0';
             enquiryCallout.classList.add('dismissed');
+            loadEnquiryCourses();
+        }
+
+        async function loadEnquiryCourses() {
+            const select = document.getElementById('enquiryModalCourse');
+            if (select.dataset.loaded === '1') return;
+            try {
+                const res = await fetch('/api/courses');
+                const courses = await res.json();
+                if (Array.isArray(courses) && courses.length > 0) {
+                    select.innerHTML = '<option value="">Select a course (optional)</option>' +
+                        courses.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+                    select.dataset.loaded = '1';
+                }
+            } catch (e) {
+                console.error('Failed to load courses for enquiry:', e);
+            }
         }
 
         function closeEnquiryModal() {
@@ -923,6 +934,7 @@
                     name: document.getElementById('enquiryModalName').value,
                     email: document.getElementById('enquiryModalEmail').value,
                     phone: document.getElementById('enquiryModalPhone').value,
+                    course: document.getElementById('enquiryModalCourse').value,
                     message: document.getElementById('enquiryModalMessage').value
                 };
                 const course = document.getElementById('enquiryModalCourse').value;

@@ -7104,11 +7104,15 @@ app.post('/api/razorpay/create-order', async (req, res) => {
             }
         };
 
+        console.log('Razorpay create-order: key_id=' + (process.env.RAZORPAY_KEY_ID ? 'SET' : 'NOT SET') + ', amount=' + options.amount);
+
         const order = await razorpay.orders.create(options);
         res.json({ success: true, order: order, keyId: process.env.RAZORPAY_KEY_ID });
     } catch (err) {
-        console.error('Razorpay create-order error:', err);
-        res.status(500).json({ success: false, message: 'Failed to create order: ' + err.message });
+        console.error('Razorpay create-order error:', JSON.stringify(err, null, 2));
+        const errMsg = err.error?.description || err.message || JSON.stringify(err) || 'Unknown error';
+        const statusCode = err.statusCode || 500;
+        res.status(statusCode).json({ success: false, message: 'Failed to create order: ' + errMsg });
     }
 });
 
