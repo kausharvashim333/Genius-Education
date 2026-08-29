@@ -9,7 +9,11 @@ const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
-const puppeteer = require('puppeteer');
+let _puppeteer = null;
+function getPuppeteer() {
+    if (!_puppeteer) _puppeteer = require('puppeteer');
+    return _puppeteer;
+}
 const qrcode = require('qrcode');
 const PDFDocument = require('pdfkit');
 const archiver = require('archiver');
@@ -11889,7 +11893,7 @@ function buildResultMarksheetHTML(grade, student, settings, options) {  // optio
 let _sharedBrowser = null;
 async function getBrowser() {
     if (!_sharedBrowser || !_sharedBrowser.connected) {
-        _sharedBrowser = await puppeteer.launch({
+        _sharedBrowser = await getPuppeteer().launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
