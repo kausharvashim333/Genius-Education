@@ -1,3 +1,7 @@
+function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 let currentPage = 'dashboard';
 let galleryImageFile = null;
 let galleryEditId = null;
