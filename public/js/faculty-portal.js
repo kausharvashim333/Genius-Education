@@ -1820,6 +1820,9 @@ function openFacultyFeeModal(studentId) {
     document.getElementById('facultyFeeAmount').value = '';
     document.getElementById('facultyFeeMode').value = 'Cash';
     document.getElementById('facultyFeeUtr').value = '';
+    document.getElementById('facultyFeeRazorpayNote').style.display = 'none';
+    document.getElementById('facultyFeeUtrGroup').style.display = 'block';
+    document.getElementById('facultyFeeSaveBtn').innerHTML = '<i class="fas fa-save"></i> Save Payment';
 
     // Pre-fill student name if studentId provided
     if (studentId) {
@@ -1831,6 +1834,14 @@ function openFacultyFeeModal(studentId) {
 
     modal.classList.add('active');
     modal.style.display = 'flex';
+}
+
+function onFacultyFeeModeChange() {
+    const mode = document.getElementById('facultyFeeMode').value;
+    const isRazorpay = mode === 'Online (Razorpay)';
+    document.getElementById('facultyFeeRazorpayNote').style.display = isRazorpay ? 'block' : 'none';
+    document.getElementById('facultyFeeUtrGroup').style.display = isRazorpay ? 'none' : 'block';
+    document.getElementById('facultyFeeSaveBtn').innerHTML = isRazorpay ? '<i class="fas fa-credit-card"></i> Pay via Razorpay' : '<i class="fas fa-save"></i> Save Payment';
 }
 
 function filterFacultyFeeStudents(query) {
@@ -1887,6 +1898,15 @@ async function saveFacultyFee() {
         return;
     }
 
+    if (mode === 'Online (Razorpay)') {
+        const res = await fetch('/api/students');
+        const students = await res.json();
+        const student = students.find(s => String(s.id) === String(studentId));
+        if (!student) { alert('Student not found!'); return; }
+        startFacultyRazorpayFeePayment(student, parseInt(amount));
+        return;
+    }
+
     try {
         const res = await fetch('/api/students');
         const students = await res.json();
@@ -1923,6 +1943,112 @@ async function saveFacultyFee() {
     } catch (e) {
         console.error('Error adding payment:', e);
         alert('Error adding payment!');
+    }
+}
+
+async function startFacultyRazorpayFeePayment(student, amount) {
+    const btn = document.getElementById('facultyFeeSaveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+    try {
+        const orderRes = await fetch('/api/razorpay/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: amount,
+                purpose: 'fee_payment',
+                studentId: student.id,
+                studentName: student.name,
+                studentEmail: student.email || '',
+                studentPhone: student.phone || ''
+            })
+        });
+        const orderData = await orderRes.json();
+
+        if (!orderData.success) {
+            alert('Payment order creation failed: ' + (orderData.message || 'Unknown error'));
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
+            return;
+        }
+
+        const options = {
+            key: orderData.keyId,
+            amount: amount * 100,
+            currency: 'INR',
+            name: 'Genius Computer Education',
+            description: 'Fee Payment',
+            order_id: orderData.order.id,
+            prefill: {
+                name: student.name || '',
+                email: student.email || '',
+                contact: student.phone || ''
+            },
+            theme: { color: '#3b82f6' },
+            handler: function(response) {
+                verifyFacultyRazorpayFeePayment(student, amount, response);
+            },
+            modal: {
+                ondismiss: function() {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
+                    alert('Payment cancelled.');
+                }
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function(resp) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
+            alert('Payment failed: ' + (resp.error.description || 'Unknown error'));
+        });
+        rzp.open();
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
+        alert('Payment error: ' + err.message);
+    }
+}
+
+async function verifyFacultyRazorpayFeePayment(student, amount, response) {
+    const btn = document.getElementById('facultyFeeSaveBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+
+    try {
+        const verifyRes = await fetch('/api/razorpay/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                studentId: student.id,
+                amount: amount,
+                purpose: 'fee_payment',
+                studentName: student.name,
+                studentEmail: student.email || '',
+                studentPhone: student.phone || ''
+            })
+        });
+        const verifyData = await verifyRes.json();
+
+        if (verifyData.success) {
+            alert('Payment successful! Student fees updated.');
+            closeFacultyFeeModal();
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
+            loadFacultyFees();
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
+            alert('Payment verification failed: ' + (verifyData.message || 'Unknown error'));
+        }
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
+        alert('Verification error: ' + err.message);
     }
 }
 
