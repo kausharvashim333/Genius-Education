@@ -27,11 +27,21 @@ const Razorpay = require('razorpay');
 // Google ID token verifier (used for student Google Sign-In)
 const googleAuthClient = new OAuth2Client();
 
-// Razorpay instance
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || 'placeholder'
-});
+// Razorpay instance (lazy - created on first use to ensure env vars are loaded)
+let _razorpayInstance = null;
+function getRazorpayInstance() {
+    if (!_razorpayInstance) {
+        const keyId = process.env.RAZORPAY_KEY_ID;
+        const keySecret = process.env.RAZORPAY_KEY_SECRET;
+        if (!keyId || !keySecret || keyId === 'your_razorpay_key_id_here') {
+            console.error('Razorpay credentials not configured in .env!');
+            return null;
+        }
+        _razorpayInstance = new Razorpay({ key_id: keyId, key_secret: keySecret });
+        console.log('Razorpay instance created with key:', keyId.substring(0, 12) + '...');
+    }
+    return _razorpayInstance;
+}
 
 // XSS sanitization helper
 function sanitizeHTML(str) {
@@ -7106,7 +7116,12 @@ app.post('/api/razorpay/create-order', async (req, res) => {
 
         console.log('Razorpay create-order: key_id=' + (process.env.RAZORPAY_KEY_ID ? 'SET' : 'NOT SET') + ', amount=' + options.amount);
 
-        const order = await razorpay.orders.create(options);
+        const rzp = getRazorpayInstance();
+        if (!rzp) {
+            return res.status(500).json({ success: false, message: 'Razorpay credentials not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .env file.' });
+        }
+
+        const order = await rzp.orders.create(options);
         res.json({ success: true, order: order, keyId: process.env.RAZORPAY_KEY_ID });
     } catch (err) {
         console.error('Razorpay create-order error:', JSON.stringify(err, null, 2));
