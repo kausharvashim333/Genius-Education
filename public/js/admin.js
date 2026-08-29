@@ -794,7 +794,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 'dashboard': loadDashboard,
                 'enquiries': loadEnquiries,
                 'leads': loadLeads,
-                'leads-reports': loadLeadsReports,
                 'students': loadStudentsTable,
                 'courses': loadCoursesTable,
                 'batches': loadBatchesTable,
@@ -12634,6 +12633,30 @@ let leadsCurrentView = 'table';
 const LEAD_STATUSES = ['New','Contacted','Interested','Visit Scheduled','Application Submitted','Admitted','Lost'];
 const LEAD_STATUS_COLORS = {'New':'#f093fb','Contacted':'#4facfe','Interested':'#43e97b','Visit Scheduled':'#fbbf24','Application Submitted':'#a78bfa','Admitted':'#16a34a','Lost':'#f5576c'};
 const LEAD_PRIORITY_COLORS = {'Hot':'#ef4444','Warm':'#f59e0b','Cold':'#3b82f6'};
+
+function switchLeadsTab(tab) {
+    const mgmtBtn = document.getElementById('leadsTabManagement');
+    const reportsBtn = document.getElementById('leadsTabReports');
+    const mgmtContent = document.getElementById('leadsTabContent-management');
+    const reportsContent = document.getElementById('leadsTabContent-reports');
+
+    if (tab === 'reports') {
+        mgmtBtn.style.background = 'transparent';
+        mgmtBtn.style.color = 'rgba(255,255,255,0.6)';
+        reportsBtn.style.background = '#667eea';
+        reportsBtn.style.color = '#fff';
+        mgmtContent.style.display = 'none';
+        reportsContent.style.display = 'block';
+        loadLeadsReports();
+    } else {
+        mgmtBtn.style.background = '#667eea';
+        mgmtBtn.style.color = '#fff';
+        reportsBtn.style.background = 'transparent';
+        reportsBtn.style.color = 'rgba(255,255,255,0.6)';
+        mgmtContent.style.display = 'block';
+        reportsContent.style.display = 'none';
+    }
+}
 
 async function loadLeads() {
     try {

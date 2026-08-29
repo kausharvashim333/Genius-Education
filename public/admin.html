@@ -1381,7 +1381,6 @@
                 <li><a href="#" class="active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                 <li><a href="#" data-page="enquiries"><i class="fas fa-envelope-open-text"></i> Enquiries <span id="sidebarEnqBadge" style="background:#f5576c;color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:auto;display:none;">0</span></a></li>
                 <li><a href="#" data-page="leads"><i class="fas fa-user-tag"></i> Leads <span id="sidebarLeadsBadge" style="background:#f59e0b;color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:auto;display:none;">0</span></a></li>
-                <li><a href="#" data-page="leads-reports"><i class="fas fa-chart-bar"></i> Leads Reports</a></li>
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle"><i class="fas fa-graduation-cap"></i> Academic <i class="fas fa-chevron-down" style="margin-left:auto;font-size:10px;"></i></a>
                     <ul class="dropdown-menu">
@@ -2347,6 +2346,14 @@
 
             <!-- Leads Page -->
             <div id="page-leads" class="page-content hidden">
+                <!-- Tab Navigation -->
+                <div style="display:flex;gap:4px;background:rgba(255,255,255,0.05);border-radius:10px;padding:4px;margin-bottom:20px;width:fit-content;">
+                    <button id="leadsTabManagement" onclick="switchLeadsTab('management')" style="padding:10px 22px;border:none;border-radius:8px;background:#667eea;color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;"><i class="fas fa-user-tag"></i> Lead Management</button>
+                    <button id="leadsTabReports" onclick="switchLeadsTab('reports')" style="padding:10px 22px;border:none;border-radius:8px;background:transparent;color:rgba(255,255,255,0.6);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;"><i class="fas fa-chart-bar"></i> Reports & Analytics</button>
+                </div>
+
+                <!-- Tab: Lead Management -->
+                <div id="leadsTabContent-management">
                 <!-- Leads Dashboard Stats -->
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
                     <div class="dash-stat-card" style="--card-gradient:linear-gradient(135deg,#667eea,#764ba2);padding:16px;border-radius:12px;cursor:pointer;" onclick="filterLeadsByStatus('')">
@@ -2445,10 +2452,10 @@
                 <div id="leadsKanbanView" style="display:none;">
                     <div id="leadsKanbanBoard" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;min-height:400px;"></div>
                 </div>
-            </div>
+                </div><!-- end leadsTabContent-management -->
 
-            <!-- Leads Reports & Analytics Page -->
-            <div id="page-leads-reports" class="page-content hidden">
+                <!-- Tab: Reports & Analytics -->
+                <div id="leadsTabContent-reports" style="display:none;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
                     <h2 style="color:#fff;margin:0;"><i class="fas fa-chart-bar" style="color:#667eea;margin-right:8px;"></i> Leads Reports & Analytics</h2>
                     <button class="btn btn-primary" onclick="loadLeadsReports()" style="padding:8px 16px;"><i class="fas fa-sync"></i> Refresh</button>
@@ -2515,6 +2522,7 @@
                         </div>
                     </div>
                 </div>
+                </div><!-- end leadsTabContent-reports -->
             </div>
 
             <!-- Testimonials Page -->
