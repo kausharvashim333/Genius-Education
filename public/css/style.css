@@ -825,7 +825,7 @@ body {
 
 @media (max-width: 769px) {
     .carousel-hero {
-        padding: 60px 0 0 0;
+        padding: 0;
         margin: 0;
     }
     
@@ -8768,7 +8768,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 
     /* --- Hero overlay — liquid depth, bottom-aligned content --- */
     .carousel-hero {
-        padding-top: 55px !important;
+        padding-top: 0 !important;
     }
     .carousel-hero .hero-overlay {
         background: linear-gradient(180deg, rgba(10,14,26,0.1) 0%, rgba(10,14,26,0.3) 50%, rgba(10,14,26,0.8) 100%) !important;
