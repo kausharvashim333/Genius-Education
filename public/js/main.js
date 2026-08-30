@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadBlogs();
     loadSettings();
     loadAbout();
+    loadHeroText();
     loadAnnouncementsTicker();
     loadCourses();
     loadTestimonials();
@@ -714,6 +715,41 @@ async function loadAbout() {
             mapContainer.style.display = 'block';
         }
     } catch (err) { console.error('Error loading about:', err); }
+}
+
+async function loadHeroText() {
+    try {
+        const res = await fetch('/api/hero-text');
+        const data = await res.json();
+        if (!data.success || !data.heroText) return;
+        const ht = data.heroText;
+
+        // Hero stats
+        if (ht.stats) {
+            const heroStatsEl = document.getElementById('heroStats');
+            if (heroStatsEl) {
+                const stats = ht.stats;
+                heroStatsEl.innerHTML = `
+                    <div class="stat"><strong>${stats.students || '500+'}</strong><span>Students</span></div>
+                    <div class="stat-divider"></div>
+                    <div class="stat"><strong>${stats.courses || '15+'}</strong><span>Courses</span></div>
+                    <div class="stat-divider"></div>
+                    <div class="stat"><strong>${stats.years || '10+'}</strong><span>Years</span></div>
+                `;
+            }
+        }
+
+        // About stats
+        if (ht.aboutStats) {
+            const as = ht.aboutStats;
+            const studentsEl = document.getElementById('aboutStatStudents');
+            const coursesEl = document.getElementById('aboutStatCourses');
+            const yearsEl = document.getElementById('aboutStatYears');
+            if (studentsEl) studentsEl.textContent = as.students || '500+';
+            if (coursesEl) coursesEl.textContent = as.courses || '15+';
+            if (yearsEl) yearsEl.textContent = as.years || '10+';
+        }
+    } catch (err) { console.error('Error loading hero text:', err); }
 }
 
 async function loadAnnouncementsTicker() {
