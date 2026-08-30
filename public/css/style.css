@@ -1657,6 +1657,7 @@ body {
 @media (max-width: 769px) {
     .about-content {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
 }
 
@@ -6128,6 +6129,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     /* About Content */
     .about-content {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
     
     /* About Stats */
@@ -6642,6 +6644,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     /* About Section */
     .about-content {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
 }
 
