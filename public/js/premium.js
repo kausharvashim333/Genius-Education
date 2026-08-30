@@ -70,66 +70,17 @@ function initTiltCards() {
     });
 }
 
-// === 5. Floating Action Menu ===
+// === 5. Floating Action Menu — Direct Enquiry Modal ===
 function initFabMenu() {
     const fabBtn = document.querySelector('.enquiry-fab-btn');
     const fabWrapper = document.getElementById('enquiryFab');
     if (!fabBtn || !fabWrapper) return;
 
-    const overlay = document.createElement('div');
-    overlay.className = 'fab-menu-overlay';
-    overlay.id = 'fabMenuOverlay';
-
-    const items = document.createElement('div');
-    items.className = 'fab-menu-items';
-    items.innerHTML = `
-        <a class="fab-menu-item fab-call" id="fabCall"><i class="fas fa-phone"></i> Call Now</a>
-        <a class="fab-menu-item fab-whatsapp" id="fabWhatsapp" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-        <a class="fab-menu-item fab-enquiry" id="fabEnquiry"><i class="fas fa-comment-dots"></i> Enquiry</a>
-        <a class="fab-menu-item fab-directions" id="fabDirections" target="_blank"><i class="fas fa-map-marked-alt"></i> Directions</a>
-    `;
-
-    document.body.appendChild(overlay);
-    document.body.appendChild(items);
-
-    function toggleMenu() {
-        const isOpen = overlay.classList.contains('active');
-        if (isOpen) {
-            overlay.classList.remove('active');
-            fabBtn.classList.remove('fab-menu-open');
-        } else {
-            overlay.classList.add('active');
-            fabBtn.classList.add('fab-menu-open');
-        }
-    }
-
     fabBtn.addEventListener('click', (e) => {
-        if (typeof openEnquiryModal === 'function' && !overlay.classList.contains('active')) {
-            e.stopPropagation();
-            e.preventDefault();
-            toggleMenu();
-        }
-    });
-
-    overlay.addEventListener('click', toggleMenu);
-
-    document.getElementById('fabEnquiry').addEventListener('click', (e) => {
+        e.stopPropagation();
         e.preventDefault();
-        toggleMenu();
         if (typeof openEnquiryModal === 'function') openEnquiryModal();
     });
-
-    // Load phone/whatsapp from settings
-    fetch('/api/settings').then(r => r.json()).then(s => {
-        if (s.phone) {
-            const phone = s.phone.split(',')[0].trim().replace(/[^0-9+]/g, '');
-            document.getElementById('fabCall').href = 'tel:' + phone;
-            document.getElementById('fabWhatsapp').href = 'https://wa.me/' + phone.replace('+', '');
-        }
-        if (s.address) {
-            document.getElementById('fabDirections').href = 'https://maps.google.com/?q=' + encodeURIComponent(s.address);
-        }
-    }).catch(() => {});
 }
 
 // === 6. Glass Bottom Sheet ===
