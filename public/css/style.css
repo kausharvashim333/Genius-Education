@@ -8976,11 +8976,21 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         backdrop-filter: blur(20px) saturate(180%);
         -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
+    .enquiry-fab-btn {
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+    .enquiry-fab-btn i {
+        font-size: 28px;
+        color: #667eea;
+        filter: drop-shadow(0 0 8px rgba(102,126,234,0.6));
+    }
 
     /* --- Admissions badge — liquid glass pill between navbar and hero --- */
     .admissions-badge {
         position: absolute !important;
-        top: 8px !important;
+        top: 58px !important;
         left: 50% !important;
         right: auto !important;
         transform: translateX(-50%) !important;
