@@ -38,7 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCourses();
     loadTestimonials();
     const contactFormEl = document.getElementById('contactForm');
-    if (contactFormEl) contactFormEl.addEventListener('submit', handleContactSubmit);
+    if (contactFormEl) {
+        contactFormEl.addEventListener('submit', handleContactSubmit);
+        loadContactCourses();
+    }
     
     // Hamburger menu toggle
     const hamburger = document.querySelector('.hamburger');
@@ -734,13 +737,34 @@ async function loadAnnouncementsTicker() {
     }
 }
 
+async function loadContactCourses() {
+    const select = document.getElementById('contactCourse');
+    if (!select || select.dataset.loaded === '1') return;
+    try {
+        const res = await fetch('/api/courses');
+        const courses = await res.json();
+        if (Array.isArray(courses) && courses.length > 0) {
+            select.innerHTML = '<option value="">Select a course (optional)</option>' +
+                courses.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            select.dataset.loaded = '1';
+        }
+    } catch (e) {
+        console.error('Failed to load courses for contact form:', e);
+    }
+}
+
 async function handleContactSubmit(e) {
     e.preventDefault();
+    const submitBtn = e.target.querySelector('.enquiry-submit-btn');
+    const originalHTML = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    submitBtn.disabled = true;
     try {
         const data = {
             name: document.getElementById('name').value,
             email: document.getElementById('email').value,
             phone: document.getElementById('phone').value,
+            course: document.getElementById('contactCourse').value,
             message: document.getElementById('message').value
         };
         const res = await fetch('/api/enquiries', {
@@ -749,10 +773,20 @@ async function handleContactSubmit(e) {
             body: JSON.stringify(data)
         });
         if (res.ok) {
-            alert('Thank you for your enquiry! We will contact you soon.');
-            e.target.reset();
+            e.target.style.display = 'none';
+            const successMsg = document.getElementById('contactSuccessMsg');
+            successMsg.classList.add('show');
+            setTimeout(() => {
+                e.target.reset();
+                e.target.style.display = '';
+                successMsg.classList.remove('show');
+            }, 3000);
+        } else {
+            alert('Error submitting enquiry. Please try again.');
         }
     } catch (err) { alert('Error submitting enquiry. Please try again.'); }
+    submitBtn.innerHTML = originalHTML;
+    submitBtn.disabled = false;
 }
 
 let allNotices = [];
