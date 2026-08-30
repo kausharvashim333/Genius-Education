@@ -8666,11 +8666,14 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 @media (max-width: 769px) {
 
     /* --- Base: liquid animated background --- */
+    html {
+        background: #070b16;
+    }
     body {
         background: linear-gradient(135deg, #070b16 0%, #0a1124 15%, #0d1830 30%, #0b1530 45%, #0a1028 60%, #0d1428 75%, #070b16 100%);
         background-size: 400% 400%;
         animation: liquidBG 25s ease infinite;
-        background-attachment: fixed;
+        background-attachment: scroll;
     }
     @keyframes liquidBG {
         0%, 100% { background-position: 0% 50%; }
