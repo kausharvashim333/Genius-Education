@@ -8982,18 +8982,45 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         border: none !important;
     }
     .enquiry-fab-btn i {
-        font-size: 28px;
-        color: #667eea;
-        filter: drop-shadow(0 0 8px rgba(102,126,234,0.6));
+        font-size: 28px !important;
+        color: #667eea !important;
+        filter: drop-shadow(0 0 8px rgba(102,126,234,0.6)) !important;
+    }
+    .enquiry-pulse-wave {
+        display: none !important;
+    }
+    .enquiry-callout {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+    .enquiry-callout-arrow {
+        display: none !important;
+    }
+    .enquiry-fab-tooltip {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .enquiry-fab-tooltip::after {
+        display: none !important;
+    }
+    .enquiry-fab-badge {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
     }
 
-    /* --- Admissions badge — liquid glass pill between navbar and hero --- */
+    /* --- Admissions badge — liquid glass pill above hero --- */
     .admissions-badge {
-        position: absolute !important;
-        top: 58px !important;
-        left: 50% !important;
+        position: static !important;
+        display: inline-flex !important;
+        transform: none !important;
+        top: auto !important;
+        left: auto !important;
         right: auto !important;
-        transform: translateX(-50%) !important;
         z-index: 8 !important;
         font-size: 11px !important;
         font-weight: 700 !important;
@@ -9007,11 +9034,11 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
         border: 1px solid rgba(255,255,255,0.25) !important;
         box-shadow: 0 4px 20px rgba(245,158,11,0.3), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15) !important;
-        animation: badgeLiquidSlide 0.8s cubic-bezier(0.22,1,0.36,1) both, badgeShimmer 3s linear 1s infinite, badgeFloatPulse 2.5s ease-in-out 1s infinite !important;
+        animation: badgeShimmer 3s linear infinite, badgeFloatPulse 2.5s ease-in-out infinite !important;
         text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
     }
     .admissions-badge:active {
-        transform: translateX(-50%) scale(0.95) !important;
+        transform: scale(0.95) !important;
     }
     @keyframes badgeLiquidSlide {
         0%   { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.8); }

@@ -67,6 +67,11 @@
         </div>
     </div>
 
+    <!-- Admissions Badge (above hero) -->
+    <div style="text-align:center;padding:8px 16px;position:relative;z-index:8;">
+        <a href="apply.html" class="admissions-badge" id="admissionsBadge">🎓 Admissions Open 2026</a>
+    </div>
+
     <!-- Carousel + Hero combined -->
     <section id="home" class="hero carousel-hero">
         <div class="carousel-wrapper" id="carouselWrapper">
@@ -77,7 +82,6 @@
                 <div class="carousel-dots" id="carouselDots"></div>
             </div>
         </div>
-        <a href="apply.html" class="admissions-badge" id="admissionsBadge">🎓 Admissions Open 2026</a>
         <div class="hero-overlay">
             <div class="hero-content">
                 <h1 id="heroHeading">Welcome to Genius Computer Education</h1>
@@ -460,6 +464,36 @@
                     link.type = 'image/x-icon';
                     link.href = settings.favicon;
                     document.head.appendChild(link);
+                }
+                
+                // Load address
+                if (settings.address) {
+                    const addressEl = document.getElementById('instituteAddress');
+                    const footerAddressEl = document.getElementById('footerAddress');
+                    if (addressEl) addressEl.textContent = settings.address;
+                    if (footerAddressEl) footerAddressEl.textContent = settings.address;
+                }
+                
+                // Load email
+                if (settings.email) {
+                    const emailEl = document.getElementById('instituteEmail');
+                    const footerEmailEl = document.getElementById('footerEmail');
+                    if (emailEl) emailEl.textContent = settings.email;
+                    if (footerEmailEl) footerEmailEl.textContent = settings.email;
+                }
+                
+                // Load phone numbers
+                if (settings.phone) {
+                    const phones = Array.isArray(settings.phone) ? settings.phone : [settings.phone];
+                    const institutePhoneEl = document.getElementById('institutePhone');
+                    const footerPhoneEl = document.getElementById('footerPhone');
+                    
+                    const phoneHtml = phones.map(phone => 
+                        `<a href="tel:${phone.replace(/\s/g, '')}" style="color: inherit; text-decoration: none; display: block; margin-bottom: 5px;">${phone}</a>`
+                    ).join('');
+                    
+                    if (institutePhoneEl) institutePhoneEl.innerHTML = phoneHtml;
+                    if (footerPhoneEl) footerPhoneEl.innerHTML = phoneHtml;
                 }
             } catch (err) {
                 console.error('Failed to load favicon:', err);
