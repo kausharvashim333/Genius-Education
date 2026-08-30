@@ -8118,6 +8118,10 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     position: relative;
 }
 
+.enquiry-fab-label {
+    display: none;
+}
+
 /* Pulse Wave (Sonar Effect) */
 .enquiry-pulse-wave {
     position: absolute;
@@ -8970,50 +8974,54 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         -webkit-backdrop-filter: blur(15px) !important;
     }
 
-    /* --- Enquiry FAB — keep fixed, liquid glass --- */
+    /* --- Enquiry FAB — liquid glass redesign --- */
     .enquiry-fab-wrapper {
         position: fixed !important;
         bottom: 20px !important;
         right: 20px !important;
         z-index: 9998 !important;
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        flex-direction: column-reverse !important;
+        gap: 6px !important;
+    }
+    .enquiry-callout, .enquiry-callout-arrow {
+        display: none !important;
     }
     .enquiry-fab-btn {
-        background: transparent !important;
-        box-shadow: none !important;
-        border: none !important;
+        width: auto !important;
+        height: auto !important;
+        border-radius: 50px !important;
+        padding: 12px 20px !important;
+        gap: 8px;
+        background: linear-gradient(135deg, rgba(102,126,234,0.25), rgba(168,85,247,0.2)) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        box-shadow: 0 4px 24px rgba(102,126,234,0.25), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        color: #fff !important;
+        animation: enquiryFloat 3s ease-in-out infinite !important;
+        transition: all 0.3s cubic-bezier(0.4,0,0.2,1) !important;
     }
     .enquiry-fab-btn i {
-        font-size: 28px !important;
-        color: #667eea !important;
-        filter: drop-shadow(0 0 8px rgba(102,126,234,0.6)) !important;
+        font-size: 18px !important;
+        color: #a5b4fc !important;
+        filter: drop-shadow(0 0 6px rgba(102,126,234,0.5)) !important;
+        animation: none !important;
     }
-    .enquiry-pulse-wave {
+    .enquiry-fab-label {
+        display: inline !important;
+    }
+    .enquiry-fab-btn:active {
+        transform: scale(0.93) !important;
+        box-shadow: 0 2px 12px rgba(102,126,234,0.3), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+    }
+    .enquiry-pulse-wave, .enquiry-fab-tooltip, .enquiry-fab-tooltip::after, .enquiry-fab-badge {
         display: none !important;
     }
-    .enquiry-callout {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-    }
-    .enquiry-callout-arrow {
-        display: none !important;
-    }
-    .enquiry-fab-tooltip {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
-    .enquiry-fab-tooltip::after {
-        display: none !important;
-    }
-    .enquiry-fab-badge {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
+    @keyframes enquiryFloat {
+        0%, 100% { transform: translateY(0); box-shadow: 0 4px 24px rgba(102,126,234,0.25), inset 0 1px 0 rgba(255,255,255,0.1); }
+        50% { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(102,126,234,0.35), inset 0 1px 0 rgba(255,255,255,0.12); }
     }
 
     /* --- Admissions badge — liquid glass pill above hero --- */
