@@ -8661,3 +8661,295 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         margin-bottom: 10px;
     }
 }
+
+/* ===== Liquid Glass Theme — Mobile Only (max-width: 769px) ===== */
+@media (max-width: 769px) {
+
+    /* --- Base: liquid animated background --- */
+    body {
+        background: linear-gradient(135deg, #0a0e1a 0%, #0d1526 20%, #111d33 40%, #0a1428 60%, #0d1830 80%, #0a0e1a 100%);
+        background-size: 400% 400%;
+        animation: liquidBG 25s ease infinite;
+        background-attachment: fixed;
+    }
+    @keyframes liquidBG {
+        0%, 100% { background-position: 0% 50%; }
+        25% { background-position: 100% 50%; }
+        50% { background-position: 100% 100%; }
+        75% { background-position: 0% 100%; }
+    }
+
+    /* --- Floating ambient orbs --- */
+    body::before {
+        content: '';
+        position: fixed;
+        top: -10%; left: -10%;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(40px);
+        z-index: 0; pointer-events: none;
+        animation: orbFloat1 20s ease-in-out infinite;
+    }
+    body::after {
+        content: '';
+        position: fixed;
+        bottom: -10%; right: -10%;
+        width: 350px; height: 350px;
+        background: radial-gradient(circle, rgba(168,85,247,0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(50px);
+        z-index: 0; pointer-events: none;
+        animation: orbFloat2 25s ease-in-out infinite;
+    }
+    @keyframes orbFloat1 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(60px, 80px) scale(1.2); }
+        66% { transform: translate(-40px, 50px) scale(0.9); }
+    }
+    @keyframes orbFloat2 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(-80px, -60px) scale(1.1); }
+        66% { transform: translate(50px, -40px) scale(0.85); }
+    }
+
+    .navbar, section, .footer, .popup-modal, .enquiry-fab-wrapper, .social-sidebar {
+        position: relative; z-index: 1;
+    }
+
+    /* --- Navbar: liquid glass --- */
+    .navbar {
+        background: rgba(10,14,26,0.45) !important;
+        backdrop-filter: blur(30px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 4px 30px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .nav-menu {
+        background: rgba(10,14,26,0.55) !important;
+        backdrop-filter: blur(40px) saturate(200%) !important;
+        -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 0 0 20px 20px !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+    }
+    .nav-menu a {
+        border-radius: 14px !important;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        margin-bottom: 4px;
+        transition: all 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+    }
+    .nav-menu a:hover, .nav-menu a:active {
+        background: rgba(102,126,234,0.15) !important;
+        border-color: rgba(102,126,234,0.3) !important;
+        box-shadow: 0 4px 20px rgba(102,126,234,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+
+    /* Portal buttons — liquid glass pills */
+    .portals-dropdown-menu a {
+        background: linear-gradient(135deg, rgba(102,126,234,0.12), rgba(168,85,247,0.12)) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+        border-radius: 16px !important;
+    }
+
+    /* --- Hero overlay — liquid depth --- */
+    .carousel-hero .hero-overlay {
+        background: linear-gradient(180deg, rgba(10,14,26,0) 30%, rgba(10,14,26,0.7) 100%) !important;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+    }
+    .hero-overlay h1 {
+        text-shadow: 0 2px 20px rgba(102,126,234,0.4), 0 0 40px rgba(168,85,247,0.2);
+    }
+    .hero-stats {
+        background: rgba(255,255,255,0.06);
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        padding: 12px 16px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    /* --- Section titles — liquid shimmer --- */
+    .section-title {
+        background: linear-gradient(135deg, #fff 20%, #a5b4fc 50%, #c4b5fd 80%, #fff 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: liquidShimmer 6s linear infinite;
+    }
+    @keyframes liquidShimmer {
+        0% { background-position: 0% center; }
+        100% { background-position: 200% center; }
+    }
+    .section-title::after {
+        background: linear-gradient(90deg, transparent, #667eea, #a78bfa, transparent);
+        box-shadow: 0 0 16px rgba(102,126,234,0.6);
+        width: 60px !important;
+        height: 2px !important;
+    }
+
+    /* --- Course cards — liquid glass with specular highlight --- */
+    .course-card {
+        background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)) !important;
+        backdrop-filter: blur(25px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 22px !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.1) !important;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4,0,0.2,1) !important;
+    }
+    .course-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 50%;
+        background: linear-gradient(180deg, rgba(255,255,255,0.06), transparent);
+        border-radius: 22px 22px 0 0;
+        pointer-events: none;
+    }
+    .course-card:active {
+        transform: scale(0.97);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+    }
+
+    /* --- Notice cards — liquid glass --- */
+    .notice-card {
+        background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02)) !important;
+        backdrop-filter: blur(22px) saturate(170%) !important;
+        -webkit-backdrop-filter: blur(22px) saturate(170%) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+    }
+
+    /* --- Blog cards — liquid glass --- */
+    .blog-card {
+        background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02)) !important;
+        backdrop-filter: blur(22px) saturate(170%) !important;
+        -webkit-backdrop-filter: blur(22px) saturate(170%) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 22px !important;
+        box-shadow: 0 10px 35px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+        overflow: hidden;
+    }
+
+    /* --- About stats — liquid glass tiles --- */
+    .about-stats > div, .stat-box {
+        background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)) !important;
+        backdrop-filter: blur(20px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 18px !important;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+    }
+
+    /* --- Gallery — liquid glass frames --- */
+    .gallery-grid img, .gallery-item {
+        border-radius: 18px !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        box-shadow: 0 8px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+    }
+
+    /* --- Contact — liquid glass form --- */
+    .contact-form-wrapper, .contact-info {
+        background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02)) !important;
+        backdrop-filter: blur(25px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 22px !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+    }
+    .contact-form input, .contact-form textarea, .contact-form select {
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 14px !important;
+        color: #fff !important;
+        transition: all 0.3s ease;
+    }
+    .contact-form input:focus, .contact-form textarea:focus, .contact-form select:focus {
+        background: rgba(102,126,234,0.08) !important;
+        border-color: rgba(102,126,234,0.4) !important;
+        box-shadow: 0 0 20px rgba(102,126,234,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    /* --- Buttons — liquid glass pills --- */
+    .btn-primary, .btn-view, .btn-enroll {
+        border-radius: 50px !important;
+        background: linear-gradient(135deg, rgba(102,126,234,0.8), rgba(118,75,162,0.8)) !important;
+        box-shadow: 0 4px 20px rgba(102,126,234,0.3), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        transition: all 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+    }
+    .btn-primary:active, .btn-view:active, .btn-enroll:active {
+        transform: scale(0.96);
+        box-shadow: 0 2px 12px rgba(102,126,234,0.4), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+    }
+
+    /* --- Footer — liquid glass panel --- */
+    .footer {
+        background: linear-gradient(180deg, rgba(10,14,26,0.5), rgba(10,14,26,0.9)) !important;
+        backdrop-filter: blur(30px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(30px) saturate(160%) !important;
+        border-top: 1px solid rgba(255,255,255,0.08) !important;
+    }
+    .footer-section {
+        background: rgba(255,255,255,0.04) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 16px !important;
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+    }
+
+    /* --- Testimonials — liquid glass --- */
+    .testimonial-header {
+        background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)) !important;
+        backdrop-filter: blur(20px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+    }
+    .student-name-item {
+        background: rgba(255,255,255,0.05) !important;
+        backdrop-filter: blur(16px) saturate(150%) !important;
+        -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 22px !important;
+    }
+    .student-name-item.active {
+        background: rgba(102,126,234,0.12) !important;
+        border-color: rgba(102,126,234,0.3) !important;
+        box-shadow: 0 4px 20px rgba(102,126,234,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    /* --- Popup modal — liquid glass --- */
+    .popup-modal {
+        background: rgba(10,14,26,0.5) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+    }
+
+    /* --- Enquiry FAB — liquid glass --- */
+    .enquiry-fab-wrapper {
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+    }
+
+    /* --- Admissions badge — liquid glow --- */
+    .admissions-badge {
+        background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.05)) !important;
+        backdrop-filter: blur(15px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(15px) saturate(160%) !important;
+        border: 1px solid rgba(245,158,11,0.3) !important;
+        box-shadow: 0 4px 20px rgba(245,158,11,0.15), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+    }
+}
