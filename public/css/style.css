@@ -1654,40 +1654,44 @@ body {
     box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
 
-/* About hero stats — same as hero section stats */
+/* About hero stats — separate boxes */
 .about-hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 0;
+}
+.about-stat-box {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
-    margin-top: 0;
-    padding: 12px 16px;
+    gap: 4px;
+    padding: 18px 8px;
     background: rgba(255,255,255,0.06);
     backdrop-filter: blur(20px) saturate(160%);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
     border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px;
+    border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+    text-align: center;
+    transition: transform 0.3s ease;
 }
-.about-hero-stats .stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
+.about-stat-box:hover {
+    transform: translateY(-4px);
+    border-color: rgba(102,126,234,0.3);
+    box-shadow: 0 12px 40px rgba(102,126,234,0.2), inset 0 1px 0 rgba(255,255,255,0.12);
 }
-.about-hero-stats .stat strong {
-    font-size: 1.1rem;
-    font-weight: 700;
+.about-stat-box strong {
+    font-size: 1.4rem;
+    font-weight: 800;
     color: #fff;
+    line-height: 1;
 }
-.about-hero-stats .stat span {
-    font-size: 0.7rem;
+.about-stat-box span {
+    font-size: 0.72rem;
     color: #94a3b8;
-}
-.about-hero-stats .stat-divider {
-    width: 1px;
-    height: 24px;
-    background: rgba(255,255,255,0.15);
+    font-weight: 600;
 }
 
 @media (max-width: 769px) {
