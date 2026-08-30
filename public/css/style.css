@@ -1626,7 +1626,7 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-    margin-top: 30px;
+    margin-top: 16px;
 }
 
 .stat-item {
@@ -1654,56 +1654,40 @@ body {
     box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
 
-/* About hero stats — desktop default */
+/* About hero stats — same as hero section stats */
 .about-hero-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 0;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
 }
-.about-stat-box {
+.about-hero-stats .stat {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 16px 8px;
-    background: linear-gradient(145deg, rgba(102,126,234,0.2), rgba(118,75,162,0.1));
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
-    text-align: center;
-    transition: transform 0.3s ease;
+    gap: 2px;
 }
-.about-stat-box:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(102,126,234,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
-}
-.about-stat-icon {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: linear-gradient(135deg, rgba(102,126,234,0.35), rgba(168,85,247,0.25));
-    border: 1px solid rgba(255,255,255,0.12);
-    font-size: 16px;
-    color: #a5b4fc;
-    margin-bottom: 2px;
-}
-.about-stat-num {
-    font-size: 1.3rem;
-    font-weight: 800;
+.about-hero-stats .stat strong {
+    font-size: 1.1rem;
+    font-weight: 700;
     color: #fff;
-    line-height: 1;
 }
-.about-stat-label {
-    font-size: 0.72rem;
+.about-hero-stats .stat span {
+    font-size: 0.7rem;
     color: #94a3b8;
-    font-weight: 600;
+}
+.about-hero-stats .stat-divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255,255,255,0.15);
 }
 
 @media (max-width: 769px) {
@@ -1713,7 +1697,7 @@ body {
         margin-top: 12px;
     }
     .about-stats {
-        margin-top: 12px;
+        margin-top: 8px;
         gap: 10px;
     }
     .stat-item {
@@ -1733,18 +1717,7 @@ body {
         margin-bottom: 8px;
     }
     .about-hero-stats {
-        margin-top: 16px;
-    }
-    .about-stat-box {
-        padding: 18px 8px;
-    }
-    .about-stat-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-    .about-stat-num {
-        font-size: 1.4rem;
+        margin-top: 0;
     }
 }
 
