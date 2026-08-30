@@ -933,7 +933,7 @@ body {
 /* Admissions Open badge — fixed center-top inside carousel, above hero title */
 .admissions-badge {
     position: absolute;
-    top: 20px;
+    top: 45px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 8;
@@ -9065,7 +9065,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     /* --- Admissions badge — liquid glass pill on carousel above title --- */
     .admissions-badge {
         position: absolute !important;
-        top: 50% !important;
+        top: 62% !important;
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
         z-index: 8 !important;
