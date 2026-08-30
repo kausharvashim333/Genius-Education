@@ -9077,7 +9077,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         border-radius: 50px !important;
         width: auto !important;
         white-space: nowrap !important;
-        margin: 0 auto !important;
+        margin: 0 auto 14px !important;
         background: linear-gradient(135deg, rgba(245,158,11,0.85), rgba(217,119,6,0.75), rgba(245,158,11,0.85)) !important;
         background-size: 200% auto !important;
         backdrop-filter: blur(20px) saturate(180%) !important;

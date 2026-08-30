@@ -1,7 +1,8 @@
-/* Premium Mobile Experience JS */
+/* Premium Mobile Experience JS — Optimized */
 
 // === 1. Scroll Reveal (IntersectionObserver) ===
 function initScrollReveal() {
+    if (!('IntersectionObserver' in window)) return;
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -9,16 +10,14 @@ function initScrollReveal() {
                 observer.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
 
     document.querySelectorAll('section .container, .section-title, .courses-grid, .blog-grid, .gallery-grid, .testimonials-wrapper, .about-content, .contact-content, .notice-list').forEach(el => {
         el.classList.add('reveal');
         observer.observe(el);
     });
-
     document.querySelectorAll('.courses-grid, .blog-grid, .gallery-grid, .about-stats, .notice-list').forEach(el => {
         el.classList.add('reveal-stagger');
-        observer.observe(el);
     });
 }
 
@@ -30,95 +29,44 @@ function animateCounter(el) {
     const target = parseInt(match[1]);
     const suffix = match[2] || '';
     let current = 0;
-    const duration = 1500;
-    const steps = 60;
+    const duration = 1200;
+    const steps = 40;
     const increment = target / steps;
     const stepTime = duration / steps;
     const timer = setInterval(() => {
         current += increment;
-        if (current >= target) {
-            current = target;
-            clearInterval(timer);
-        }
+        if (current >= target) { current = target; clearInterval(timer); }
         el.textContent = Math.floor(current) + suffix;
     }, stepTime);
 }
 
 function initCounters() {
-    const counterObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                animateCounter(entry.target);
-                counterObserver.unobserve(entry.target);
-            }
-        });
+    if (!('IntersectionObserver' in window)) return;
+    const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { animateCounter(e.target); obs.unobserve(e.target); } });
     }, { threshold: 0.5 });
-    document.querySelectorAll('.stat strong, .stat-number').forEach(el => counterObserver.observe(el));
+    document.querySelectorAll('.stat strong, .stat-number').forEach(el => obs.observe(el));
 }
 
-// === 3. 3D Tilt Cards ===
+// === 3. 3D Tilt cards (lightweight, trust badges only) ===
 function initTiltCards() {
-    const cards = document.querySelectorAll('.course-card, .trust-badge, .info-item');
-    cards.forEach(card => {
-        if (window.innerWidth > 769) return;
+    if (window.innerWidth > 769) return;
+    document.querySelectorAll('.trust-badge').forEach(card => {
         card.classList.add('tilt-card');
         const shine = document.createElement('div');
         shine.className = 'tilt-shine';
         card.appendChild(shine);
-
         card.addEventListener('touchmove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const touch = e.touches[0];
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            const cx = rect.width / 2;
-            const cy = rect.height / 2;
-            const rotateX = ((y - cy) / cy) * -8;
-            const rotateY = ((x - cx) / cx) * 8;
-            card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            const r = card.getBoundingClientRect();
+            const t = e.touches[0];
+            const rx = ((t.clientY - r.top - r.height/2) / (r.height/2)) * -5;
+            const ry = ((t.clientX - r.left - r.width/2) / (r.width/2)) * 5;
+            card.style.transform = 'perspective(600px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
             card.classList.add('tilt-active');
-            card.style.setProperty('--shine-x', (x / rect.width * 100) + '%');
-            card.style.setProperty('--shine-y', (y / rect.height * 100) + '%');
-        });
-        card.addEventListener('touchend', () => {
-            card.style.transform = '';
-            card.classList.remove('tilt-active');
-        });
-    });
-}
-
-// === 4. Card Flip (courses) ===
-function initCardFlip() {
-    document.querySelectorAll('.course-card').forEach(card => {
-        card.classList.add('flip-card');
-        const inner = document.createElement('div');
-        inner.className = 'flip-card-inner';
-        const front = document.createElement('div');
-        front.className = 'flip-card-front';
-        const back = document.createElement('div');
-        back.className = 'flip-card-back';
-        back.style.background = 'linear-gradient(135deg, rgba(30,41,59,.95), rgba(15,23,42,.95))';
-        back.style.display = 'flex';
-        back.style.flexDirection = 'column';
-        back.style.justifyContent = 'center';
-        back.style.alignItems = 'center';
-        back.style.padding = '20px';
-        back.style.textAlign = 'center';
-        back.innerHTML = '<i class="fas fa-graduation-cap" style="font-size:32px;color:#a5b4fc;margin-bottom:12px"></i><p style="color:#cbd5e1;font-size:13px;margin-bottom:16px">Tap to view full course details</p><a href="courses.html" style="padding:8px 20px;background:linear-gradient(135deg,rgba(102,126,234,.5),rgba(118,75,162,.4));color:#fff;border-radius:50px;text-decoration:none;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.2)">View Details</a>';
-
-        while (card.firstChild) front.appendChild(card.firstChild);
-        inner.appendChild(front);
-        inner.appendChild(back);
-        card.appendChild(inner);
-
-        let flipTimer;
-        card.addEventListener('click', (e) => {
-            if (e.target.closest('a')) return;
-            e.preventDefault();
-            card.classList.toggle('flipped');
-            clearTimeout(flipTimer);
-            flipTimer = setTimeout(() => card.classList.remove('flipped'), 4000);
-        });
+            card.style.setProperty('--shine-x', ((t.clientX - r.left) / r.width * 100) + '%');
+            card.style.setProperty('--shine-y', ((t.clientY - r.top) / r.height * 100) + '%');
+        }, { passive: true });
+        card.addEventListener('touchend', () => { card.style.transform = ''; card.classList.remove('tilt-active'); });
     });
 }
 
@@ -215,20 +163,19 @@ function closeBottomSheet() {
     if (sheet) sheet.classList.remove('active');
 }
 
-// === 7. Mesh Background ===
+// === 6. Mesh Background (lightweight — 2 blobs only) ===
 function initMeshBg() {
     const mesh = document.createElement('div');
     mesh.className = 'mesh-bg';
-    mesh.innerHTML = '<div class="mesh-blob b1"></div><div class="mesh-blob b2"></div><div class="mesh-blob b3"></div>';
+    mesh.innerHTML = '<div class="mesh-blob b1"></div><div class="mesh-blob b2"></div>';
     document.body.insertBefore(mesh, document.body.firstChild);
 }
 
-// === 8. Liquid Ripple ===
+// === 7. Liquid Ripple ===
 function initRipple() {
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.btn, .enquiry-submit-btn, .segmented-btn, .notice-filter-btn, .gallery-filter-btn, .trust-badge');
         if (!btn) return;
-        btn.classList.add('ripple-btn');
         const rect = btn.getBoundingClientRect();
         const ripple = document.createElement('span');
         ripple.className = 'ripple-circle';
@@ -238,7 +185,7 @@ function initRipple() {
         ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
         btn.appendChild(ripple);
         setTimeout(() => ripple.remove(), 600);
-    });
+    }, { passive: true });
 }
 
 // === 9. Typewriter Effect ===
@@ -277,48 +224,40 @@ function initTrustBadges() {
     about.insertBefore(strip, about.firstChild);
 }
 
-// === 11. Toast Notifications ===
-function showToast(message, type = 'info') {
+// === 10. Toast Notifications ===
+function showToast(message, type) {
+    type = type || 'info';
     let container = document.querySelector('.toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.className = 'toast-container';
-        document.body.appendChild(container);
-    }
+    if (!container) { container = document.createElement('div'); container.className = 'toast-container'; document.body.appendChild(container); }
     const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle', warning: 'fa-exclamation-triangle' };
     const toast = document.createElement('div');
     toast.className = 'toast ' + type;
-    toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${message}`;
+    toast.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '"></i> ' + message;
     container.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('show'));
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
 }
 
-// === 12. Segmented Control (Notices/Blog) ===
+// === 11. Segmented Control (Notices/Blog) — mobile only ===
 function initSegmentedControl() {
+    if (window.innerWidth > 769) return;
     const blogSection = document.querySelector('#blog .container');
     if (!blogSection) return;
+    if (document.querySelector('.segmented-control')) return;
     const title = blogSection.querySelector('.section-title');
     const control = document.createElement('div');
     control.className = 'segmented-control';
-    control.innerHTML = `
-        <button class="segmented-btn active" data-tab="blog">Blog Posts</button>
-        <button class="segmented-btn" data-tab="notices">Notices</button>
-    `;
+    control.innerHTML = '<button class="segmented-btn active" data-tab="blog">Blog Posts</button><button class="segmented-btn" data-tab="notices">Notices</button>';
     title.insertAdjacentElement('afterend', control);
 
     const blogGrid = document.getElementById('blogContainer');
     const blogDots = document.getElementById('blogCarouselDots');
     const blogEmpty = document.getElementById('blogEmpty');
-    const blogLink = blogSection.querySelector('a[href="blog.html"]').parentElement;
-
+    const blogLink = blogSection.querySelector('a[href="blog.html"]');
+    const blogLinkWrap = blogLink ? blogLink.parentElement : null;
+    const blogDesc = blogSection.querySelector('p[style*="text-align:center"]');
     const noticeSection = document.getElementById('notices');
-    const noticeList = document.getElementById('noticeList');
     const noticeControls = document.querySelector('.notice-controls');
-    const noticeEmpty = document.getElementById('noticeEmpty');
 
     control.querySelectorAll('.segmented-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -326,52 +265,53 @@ function initSegmentedControl() {
             btn.classList.add('active');
             const tab = btn.dataset.tab;
             if (tab === 'blog') {
-                blogGrid.style.display = '';
+                if (blogGrid) blogGrid.style.display = '';
                 if (blogDots) blogDots.style.display = '';
                 if (blogEmpty) blogEmpty.style.display = 'none';
-                blogLink.style.display = '';
-                noticeSection.style.display = 'none';
+                if (blogLinkWrap) blogLinkWrap.style.display = '';
+                if (blogDesc) blogDesc.style.display = '';
+                if (noticeSection) noticeSection.style.display = 'none';
             } else {
-                blogGrid.style.display = 'none';
+                if (blogGrid) blogGrid.style.display = 'none';
                 if (blogDots) blogDots.style.display = 'none';
-                blogLink.style.display = 'none';
-                noticeSection.style.display = '';
-                noticeSection.querySelector('.container').insertBefore(noticeControls, noticeList);
-                if (noticeControls) noticeControls.style.display = '';
+                if (blogLinkWrap) blogLinkWrap.style.display = 'none';
+                if (blogDesc) blogDesc.style.display = 'none';
+                if (noticeSection) { noticeSection.style.display = ''; if (noticeControls) noticeControls.style.display = ''; }
             }
         });
     });
+    if (noticeSection) noticeSection.style.display = 'none';
 }
 
-// === 13. Peek Carousel for Courses ===
-function initPeekCarousel() {
-    if (window.innerWidth > 769) return;
-    const grid = document.getElementById('coursesContainer');
-    if (!grid) return;
-    grid.classList.add('peek-carousel');
-    grid.querySelectorAll('.course-card').forEach(card => card.classList.add('peek-card'));
-}
-
-// === Init All ===
+// === Init ===
 document.addEventListener('DOMContentLoaded', () => {
     initMeshBg();
     initScrollReveal();
-    initCounters();
-    initTiltCards();
     initRipple();
     initTrustBadges();
 
-    // Delayed inits (after content loads)
-    setTimeout(() => {
-        initCardFlip();
-        initPeekCarousel();
+    function waitForContent(callback, maxTries) {
+        maxTries = maxTries || 30;
+        let tries = 0;
+        function check() {
+            tries++;
+            const courses = document.querySelectorAll('#coursesContainer .course-card');
+            const blogs = document.querySelectorAll('#blogContainer > *');
+            if ((courses.length > 0 || tries >= maxTries) && (blogs.length > 0 || tries >= maxTries)) {
+                callback();
+            } else { setTimeout(check, 300); }
+        }
+        check();
+    }
+
+    waitForContent(() => {
+        initCounters();
+        initTiltCards();
         initTypewriter();
         initSegmentedControl();
-    }, 1000);
+    });
 
-    // FAB Menu after enquiry modal is set up
-    setTimeout(() => initFabMenu(), 500);
+    setTimeout(() => initFabMenu(), 800);
 });
 
-// Smooth scroll
 document.documentElement.style.scrollBehavior = 'smooth';

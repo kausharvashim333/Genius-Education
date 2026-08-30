@@ -59,7 +59,7 @@
 
 /* Mesh Blobs */
 .mesh-bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
-.mesh-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.15;animation:blobMorph 20s ease-in-out infinite,blobFloat 15s ease-in-out infinite}
+.mesh-blob{position:absolute;border-radius:50%;filter:blur(50px);opacity:.08;animation:blobMorph 20s ease-in-out infinite,blobFloat 15s ease-in-out infinite}
 .mesh-blob.b1{width:300px;height:300px;background:radial-gradient(circle,#667eea,transparent 70%);top:-50px;left:-80px}
 .mesh-blob.b2{width:250px;height:250px;background:radial-gradient(circle,#a855f7,transparent 70%);top:30%;right:-100px;animation-delay:-5s}
 .mesh-blob.b3{width:200px;height:200px;background:radial-gradient(circle,#f59e0b,transparent 70%);bottom:10%;left:-60px;animation-delay:-10s}
@@ -103,11 +103,6 @@
 .segmented-control{display:flex;background:rgba(255,255,255,.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:4px;margin-bottom:20px}
 .segmented-btn{flex:1;padding:10px 16px;border:none;background:transparent;color:#94a3b8;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;transition:all .3s;font-family:inherit}
 .segmented-btn.active{background:linear-gradient(135deg,rgba(102,126,234,.5),rgba(118,75,162,.4));color:#fff;box-shadow:0 2px 8px rgba(102,126,234,.3)}
-
-/* Peek Carousel */
-.peek-carousel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 16px}
-.peek-carousel::-webkit-scrollbar{display:none}
-.peek-card{scroll-snap-align:center;min-width:85%;flex-shrink:0}
 
 /* Safe Areas */
 .safe-top{padding-top:env(safe-area-inset-top)}
