@@ -933,7 +933,7 @@ body {
 /* Admissions Open badge — fixed center-top inside carousel, above hero title */
 .admissions-badge {
     position: absolute;
-    top: 60px;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 8;
