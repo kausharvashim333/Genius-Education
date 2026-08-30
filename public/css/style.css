@@ -8667,7 +8667,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 
     /* --- Base: liquid animated background --- */
     body {
-        background: linear-gradient(135deg, #0a0e1a 0%, #0d1526 20%, #111d33 40%, #0a1428 60%, #0d1830 80%, #0a0e1a 100%);
+        background: linear-gradient(135deg, #070b16 0%, #0a1124 15%, #0d1830 30%, #0b1530 45%, #0a1028 60%, #0d1428 75%, #070b16 100%);
         background-size: 400% 400%;
         animation: liquidBG 25s ease infinite;
         background-attachment: fixed;
@@ -8685,7 +8685,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         position: fixed;
         top: -10%; left: -10%;
         width: 300px; height: 300px;
-        background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%);
         border-radius: 50%;
         filter: blur(40px);
         z-index: 0; pointer-events: none;
@@ -8696,7 +8696,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         position: fixed;
         bottom: -10%; right: -10%;
         width: 350px; height: 350px;
-        background: radial-gradient(circle, rgba(168,85,247,0.12) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);
         border-radius: 50%;
         filter: blur(50px);
         z-index: 0; pointer-events: none;
@@ -8713,13 +8713,16 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         66% { transform: translate(50px, -40px) scale(0.85); }
     }
 
-    .navbar, section, .footer, .popup-modal, .enquiry-fab-wrapper, .social-sidebar {
+    section, .footer {
         position: relative; z-index: 1;
     }
 
-    /* --- Navbar: liquid glass --- */
+    /* --- Navbar: liquid glass (keep fixed!) --- */
     .navbar {
-        background: rgba(10,14,26,0.45) !important;
+        position: fixed !important;
+        top: 0; left: 0; right: 0;
+        z-index: 1000 !important;
+        background: rgba(10,14,26,0.55) !important;
         backdrop-filter: blur(30px) saturate(180%) !important;
         -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
         border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -8756,14 +8759,36 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         border-radius: 16px !important;
     }
 
-    /* --- Hero overlay — liquid depth --- */
+    /* --- Hero overlay — liquid depth, bottom-aligned content --- */
+    .carousel-hero {
+        padding-top: 55px !important;
+    }
     .carousel-hero .hero-overlay {
-        background: linear-gradient(180deg, rgba(10,14,26,0) 30%, rgba(10,14,26,0.7) 100%) !important;
-        backdrop-filter: blur(2px);
-        -webkit-backdrop-filter: blur(2px);
+        background: linear-gradient(180deg, rgba(10,14,26,0.1) 0%, rgba(10,14,26,0.3) 50%, rgba(10,14,26,0.8) 100%) !important;
+        align-items: flex-end !important;
+        padding-bottom: 20px !important;
+    }
+    .hero-overlay .hero-content {
+        padding: 16px 16px 8px !important;
+        width: 100%;
     }
     .hero-overlay h1 {
         text-shadow: 0 2px 20px rgba(102,126,234,0.4), 0 0 40px rgba(168,85,247,0.2);
+        font-size: 1.4rem !important;
+        margin-bottom: 8px !important;
+    }
+    .hero-overlay p {
+        font-size: 0.9rem !important;
+        margin-bottom: 14px !important;
+    }
+    .hero-overlay .hero-buttons {
+        gap: 10px !important;
+        margin-bottom: 12px;
+    }
+    .hero-overlay .btn {
+        padding: 10px 20px !important;
+        font-size: 0.85rem !important;
+        min-height: 40px !important;
     }
     .hero-stats {
         background: rgba(255,255,255,0.06);
@@ -8771,9 +8796,13 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         -webkit-backdrop-filter: blur(20px) saturate(160%);
         border: 1px solid rgba(255,255,255,0.1);
         border-radius: 20px;
-        padding: 12px 16px !important;
+        padding: 10px 14px !important;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+        gap: 10px !important;
+        margin-top: 10px !important;
     }
+    .hero-stats .stat strong { font-size: 1rem !important; }
+    .hero-stats .stat span { font-size: 0.65rem !important; }
 
     /* --- Section titles — liquid shimmer --- */
     .section-title {
@@ -8938,8 +8967,12 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         -webkit-backdrop-filter: blur(15px) !important;
     }
 
-    /* --- Enquiry FAB — liquid glass --- */
+    /* --- Enquiry FAB — keep fixed, liquid glass --- */
     .enquiry-fab-wrapper {
+        position: fixed !important;
+        bottom: 20px !important;
+        right: 20px !important;
+        z-index: 9998 !important;
         backdrop-filter: blur(20px) saturate(180%);
         -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
