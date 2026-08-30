@@ -8977,12 +8977,43 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
         -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
 
-    /* --- Admissions badge — liquid glow --- */
+    /* --- Admissions badge — floating liquid glass pill below navbar --- */
     .admissions-badge {
-        background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.05)) !important;
-        backdrop-filter: blur(15px) saturate(160%) !important;
-        -webkit-backdrop-filter: blur(15px) saturate(160%) !important;
-        border: 1px solid rgba(245,158,11,0.3) !important;
-        box-shadow: 0 4px 20px rgba(245,158,11,0.15), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+        position: fixed !important;
+        top: 52px !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        z-index: 999 !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        padding: 7px 18px !important;
+        border-radius: 50px !important;
+        width: auto !important;
+        white-space: nowrap !important;
+        background: linear-gradient(135deg, rgba(245,158,11,0.85), rgba(217,119,6,0.75), rgba(245,158,11,0.85)) !important;
+        background-size: 200% auto !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        border: 1px solid rgba(255,255,255,0.25) !important;
+        border-bottom: 1px solid rgba(255,255,255,0.25) !important;
+        box-shadow: 0 4px 20px rgba(245,158,11,0.3), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+        animation: badgeLiquidSlide 0.8s cubic-bezier(0.22,1,0.36,1) both, badgeShimmer 3s linear 1s infinite, badgeFloatPulse 2.5s ease-in-out 1s infinite !important;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+    }
+    .admissions-badge:active {
+        transform: translateX(-50%) scale(0.95) !important;
+    }
+    @keyframes badgeLiquidSlide {
+        0%   { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.8); }
+        100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    }
+    @keyframes badgeShimmer {
+        0%   { background-position: 0% center; }
+        100% { background-position: 200% center; }
+    }
+    @keyframes badgeFloatPulse {
+        0%, 100% { box-shadow: 0 4px 20px rgba(245,158,11,0.3), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15); }
+        50% { box-shadow: 0 6px 28px rgba(245,158,11,0.5), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2); }
     }
 }
