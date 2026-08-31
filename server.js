@@ -14720,6 +14720,112 @@ Make questions practical and relevant to the job role. Include some general HR q
     }
 });
 
+// --- Gemini AI HR Interview Chat (one question at a time, conversational) ---
+const aiInterviewLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, message: { success: false, message: 'Too many requests, try again shortly' } });
+
+app.post('/api/ai/interview-chat', aiInterviewLimiter, async (req, res) => {
+    try {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) return res.json({ success: false, fallback: true, message: 'AI not configured' });
+
+        const { jobRole, experience, language, conversation, isFirst } = req.body;
+        if (!jobRole || String(jobRole).length > 200) {
+            return res.status(400).json({ success: false, message: 'jobRole required' });
+        }
+
+        const langName = language === 'hindi' ? 'Hindi' : language === 'english' ? 'English' : 'Hinglish (mix of Hindi and English, like real Indian interviews)';
+        const convText = (conversation || []).map(m => {
+            if (m.role === 'interviewer') return `Interviewer: ${m.text}`;
+            if (m.role === 'candidate') return `Candidate: ${m.text}`;
+            return '';
+        }).filter(Boolean).join('\n');
+
+        let prompt;
+        if (isFirst) {
+            prompt = `You are an experienced HR interviewer at an Indian company. You are conducting a real interview for the role of "${jobRole}".
+The candidate's experience level: ${experience || 'fresher'}.
+Conduct the interview in ${langName}.
+
+Rules:
+- Start with a warm greeting and ask the FIRST question (like "Tell me about yourself" or similar opening).
+- Ask ONE question at a time only.
+- Be professional but friendly, like a real HR interviewer.
+- Questions should progress naturally: introduction → skills → experience → situational → technical → closing.
+- Adapt questions based on the candidate's experience level.
+- For technical questions, you can ask MCQ-style or descriptive questions.
+
+Respond with ONLY valid JSON (no markdown, no code fences):
+{
+  "message": "<your greeting and first question in ${langName}>",
+  "questionType": "<intro|technical|situational|hr|closing>",
+  "mcqOptions": null,
+  "mcqAnswer": null,
+  "isClosing": false
+}
+
+If you want to ask an MCQ question, set mcqOptions to ["opt1","opt2","opt3","opt4"] and mcqAnswer to the correct index (0-3). Otherwise set them to null.`;
+        } else {
+            const lastEntry = conversation[conversation.length - 1];
+            const candidateAnswer = lastEntry && lastEntry.role === 'candidate' ? lastEntry.text : '';
+
+            prompt = `You are an experienced HR interviewer at an Indian company. You are conducting a real interview for the role of "${jobRole}".
+Experience level: ${experience || 'fresher'}.
+Language: ${langName}.
+
+Conversation so far:
+${convText}
+
+The candidate just answered your last question. Now you need to:
+1. Briefly evaluate their answer (1-2 sentences, encouraging tone)
+2. Ask the NEXT question (only ONE question)
+
+Rules:
+- Be professional but friendly, like a real HR interviewer.
+- If the answer was weak, ask a follow-up or simpler related question.
+- If the answer was good, move to the next topic.
+- Progress naturally: introduction → skills → experience → situational → technical → closing.
+- After 8-12 questions, start wrapping up. Set isClosing to true when you ask the final question.
+- For technical questions, you can ask MCQ-style questions (set mcqOptions and mcqAnswer).
+
+Respond with ONLY valid JSON (no markdown, no code fences):
+{
+  "evaluation": "<1-2 sentence feedback on their last answer in ${langName}>",
+  "score": <0-100 for their last answer>,
+  "message": "<your feedback + next question in ${langName}>",
+  "questionType": "<intro|technical|situational|hr|closing>",
+  "mcqOptions": null or ["opt1","opt2","opt3","opt4"],
+  "mcqAnswer": null or <0-3>,
+  "isClosing": false
+}`;
+        }
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.8, maxOutputTokens: 800 }
+            })
+        });
+
+        if (!response.ok) {
+            console.error('Gemini API error:', response.status, await response.text().catch(() => ''));
+            return res.json({ success: false, fallback: true, message: 'AI interview unavailable' });
+        }
+
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) return res.json({ success: false, fallback: true, message: 'Invalid AI response' });
+
+        const result = JSON.parse(jsonMatch[0]);
+        res.json({ success: true, response: result });
+    } catch (err) {
+        console.error('AI interview chat error:', err.message);
+        res.json({ success: false, fallback: true, message: 'AI interview failed' });
+    }
+});
+
 // --- Spoken English ---
 app.get('/api/spoken-english', (req, res) => {
     const data = readData('spoken-english.json') || { categories: [] };

@@ -46,17 +46,19 @@ const TIMER_MCQ = 30;
 const TIMER_DESC = 120;
 const HISTORY_KEY = 'ipHistory';
 
-// === AI Interview QnA State ===
+// === AI HR Interview State ===
 let onboardStep = 1;
 let selectedRole = '';
 let selectedLang = '';
 let selectedExp = '';
-let aiQuestions = [];
-let aiQIndex = 0;
-let aiScore = 0;
-let aiAnswered = false;
-let aiSelectedOpt = null;
-let aiResultBreakdown = [];
+let interviewConversation = [];
+let interviewScores = [];
+let interviewQCount = 0;
+let interviewEnded = false;
+let interviewWaiting = false;
+let currentMcqOptions = null;
+let currentMcqAnswer = null;
+let mcqSelected = null;
 
 function shuffleArray(arr) {
     const a = [...arr];
@@ -107,155 +109,156 @@ function goStep(step) {
     document.querySelectorAll('.ip-onboard-dot').forEach((d, i) => d.classList.toggle('active', i < step));
 }
 
-let aiFetchingMore = false;
-const AI_BATCH_SIZE = 5;
-
 async function startAIInterview() {
     if (!selectedRole) return;
     document.getElementById('onboardSection').classList.remove('active');
     document.getElementById('qnaSection').classList.add('active');
     const chat = document.getElementById('qnaChat');
-    chat.innerHTML = '<div class="ip-qna-loading"><i class="fas fa-robot fa-bounce"></i><p>AI aapke liye "' + esc(selectedRole) + '" role ke liye questions generate kar raha hai...</p></div>';
+    chat.innerHTML = '';
     document.getElementById('qnaInputArea').style.display = 'none';
-    document.getElementById('qnaInfo').innerHTML = '<strong>' + esc(selectedRole) + '</strong> · ' + (selectedExp||'fresher') + ' · ' + (selectedLang||'hinglish') + ' · <span id="qnaCount">0 answered</span> <button class="ip-qna-exit" onclick="endAIInterview()" style="margin-left:10px"><i class="fas fa-flag-checkered"></i> End Interview</button>';
-    aiQuestions = await fetchMoreQuestions();
-    aiQIndex = 0; aiScore = 0; aiResultBreakdown = [];
-    renderQnAQuestion();
-}
-
-async function fetchMoreQuestions() {
+    document.getElementById('qnaInfo').innerHTML = '<strong>' + esc(selectedRole) + '</strong> · ' + (selectedExp||'fresher') + ' · ' + (selectedLang||'hinglish') + ' · <span id="qnaCount">0 questions</span> <button class="ip-qna-exit" onclick="endAIInterview()" style="margin-left:10px"><i class="fas fa-flag-checkered"></i> End Interview</button>';
+    interviewConversation = [];
+    interviewScores = [];
+    interviewQCount = 0;
+    interviewEnded = false;
+    interviewWaiting = false;
+    currentMcqOptions = null;
+    currentMcqAnswer = null;
+    mcqSelected = null;
+    showTyping();
     try {
-        const res = await fetch('/api/ai/generate-questions', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({jobRole:selectedRole, experience:selectedExp, language:selectedLang, numQuestions:AI_BATCH_SIZE}) });
+        const res = await fetch('/api/ai/interview-chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jobRole:selectedRole, experience:selectedExp, language:selectedLang, conversation:[], isFirst:true}) });
         const data = await res.json();
-        if (data.success && data.questions && data.questions.length > 0) return data.questions;
-        return getFallbackQuestions();
-    } catch { return getFallbackQuestions(); }
-}
-
-function getFallbackQuestions() {
-    const all = [];
-    for (const [n, d] of Object.entries(QUESTION_BANK)) all.push(...d.questions);
-    return shuffleArray(all).slice(0, AI_BATCH_SIZE);
-}
-
-async function renderQnAQuestion() {
-    if (aiQIndex >= aiQuestions.length) {
-        // Fetch more questions automatically
-        if (!aiFetchingMore) {
-            aiFetchingMore = true;
-            const chat = document.getElementById('qnaChat');
-            chat.insertAdjacentHTML('beforeend','<div class="ip-qna-msg ip-qna-msg-bot" id="qnaFetchMore"><div class="ip-qna-avatar"><i class="fas fa-robot"></i></div><div class="ip-qna-bubble"><div class="ip-qna-typing"><span></span><span></span><span></span></div></div></div>');
-            chat.scrollTop = 999999;
-            const more = await fetchMoreQuestions();
-            document.getElementById('qnaFetchMore')?.remove();
-            aiFetchingMore = false;
-            aiQuestions = aiQuestions.concat(more);
+        removeTyping();
+        if (data.success && data.response) {
+            handleInterviewerResponse(data.response);
+        } else {
+            chat.innerHTML = '<div class="ip-qna-loading"><i class="fas fa-exclamation-circle" style="color:#f87171"></i><p>AI interview start nahi ho paya. Please try again.</p></div>';
         }
+    } catch {
+        removeTyping();
+        chat.innerHTML = '<div class="ip-qna-loading"><i class="fas fa-exclamation-circle" style="color:#f87171"></i><p>Connection error. Please try again.</p></div>';
     }
-    if (aiQIndex >= aiQuestions.length) { showQnAResults(); return; }
-    const q = aiQuestions[aiQIndex];
-    aiAnswered = false; aiSelectedOpt = null;
+}
+
+function showTyping() {
+    const chat = document.getElementById('qnaChat');
+    chat.insertAdjacentHTML('beforeend','<div class="ip-qna-msg ip-qna-msg-bot" id="qnaTypingMsg"><div class="ip-qna-avatar"><i class="fas fa-user-tie"></i></div><div class="ip-qna-bubble"><div class="ip-qna-typing"><span></span><span></span><span></span></div></div></div>');
+    chat.scrollTop = 999999;
+}
+function removeTyping() { document.getElementById('qnaTypingMsg')?.remove(); }
+
+function handleInterviewerResponse(resp) {
+    const chat = document.getElementById('qnaChat');
+    interviewConversation.push({ role:'interviewer', text: resp.message });
+    interviewQCount++;
     const cntEl = document.getElementById('qnaCount');
-    if (cntEl) cntEl.textContent = aiQIndex + ' answered';
-    const isMCQ = q.type === 'mcq' || (q.options && q.options.length > 0);
-    const dc = q.difficulty==='easy'?'ip-diff-easy':q.difficulty==='hard'?'ip-diff-hard':'ip-diff-medium';
-    const db = q.difficulty ? '<span class="ip-qna-diff '+dc+'">'+q.difficulty+'</span>' : '';
-    let opts = '';
-    if (isMCQ && q.options) opts = '<div class="ip-qna-mcq-opts" id="qnaMcqOpts">' + q.options.map((o,i)=>'<div class="ip-qna-mcq-opt" onclick="selectQnAMcq('+i+')">'+String.fromCharCode(65+i)+'. '+esc(o)+'</div>').join('') + '</div>';
-    document.getElementById('qnaChat').insertAdjacentHTML('beforeend','<div class="ip-qna-msg ip-qna-msg-bot"><div class="ip-qna-avatar"><i class="fas fa-robot"></i></div><div class="ip-qna-bubble"><div class="ip-qna-q">Q'+(aiQIndex+1)+': '+esc(q.q)+' '+db+'</div>'+opts+'</div></div>');
+    if (cntEl) cntEl.textContent = interviewQCount + ' questions';
+    const qTypeIcon = { intro:'fa-handshake', technical:'fa-laptop-code', situational:'fa-lightbulb', hr:'fa-user-tie', closing:'fa-flag-checkered' };
+    const icon = qTypeIcon[resp.questionType] || 'fa-comment';
+    let mcqHtml = '';
+    if (resp.mcqOptions && resp.mcqOptions.length > 0) {
+        currentMcqOptions = resp.mcqOptions;
+        currentMcqAnswer = resp.mcqAnswer;
+        mcqSelected = null;
+        mcqHtml = '<div class="ip-qna-mcq-opts" id="qnaMcqOpts">' + resp.mcqOptions.map((o,i)=>'<div class="ip-qna-mcq-opt" onclick="selectInterviewMcq('+i+')">'+String.fromCharCode(65+i)+'. '+esc(o)+'</div>').join('') + '</div>';
+    } else {
+        currentMcqOptions = null;
+        currentMcqAnswer = null;
+    }
+    chat.insertAdjacentHTML('beforeend','<div class="ip-qna-msg ip-qna-msg-bot"><div class="ip-qna-avatar"><i class="fas '+icon+'"></i></div><div class="ip-qna-bubble">'+esc(resp.message)+mcqHtml+'</div></div>');
+    chat.scrollTop = 999999;
     const ia = document.getElementById('qnaInputArea');
-    if (isMCQ && q.options) { ia.style.display = 'none'; }
-    else { ia.style.display = 'flex'; const ta = document.getElementById('qnaTextarea'); ta.value=''; ta.disabled=false; document.getElementById('qnaSendBtn').disabled=true; ta.focus(); }
-    document.getElementById('qnaChat').scrollTop = 999999;
+    if (currentMcqOptions) {
+        ia.style.display = 'none';
+    } else {
+        ia.style.display = 'flex';
+        const ta = document.getElementById('qnaTextarea'); ta.value=''; ta.disabled=false; document.getElementById('qnaSendBtn').disabled=true; ta.focus();
+    }
+    if (resp.isClosing) interviewEnded = true;
 }
 
-function selectQnAMcq(i) {
-    if (aiAnswered) return;
-    aiSelectedOpt = i;
+function selectInterviewMcq(i) {
+    if (interviewWaiting || mcqSelected !== null) return;
+    mcqSelected = i;
     document.querySelectorAll('#qnaMcqOpts .ip-qna-mcq-opt').forEach((o,idx)=>{o.classList.remove('selected');if(idx===i)o.classList.add('selected');});
-    setTimeout(()=>submitQnAMcq(), 300);
-}
-
-function submitQnAMcq() {
-    if (aiAnswered || aiSelectedOpt === null) return;
-    aiAnswered = true;
-    const q = aiQuestions[aiQIndex];
     const opts = document.querySelectorAll('#qnaMcqOpts .ip-qna-mcq-opt');
     opts.forEach(o => o.style.cursor = 'default');
-    const correct = aiSelectedOpt === q.answer;
-    if (correct) aiScore++;
-    aiResultBreakdown.push({q:q.q, result:correct?'correct':'wrong', score:correct?100:0});
-    opts.forEach((o,idx)=>{if(idx===q.answer)o.classList.add('correct');else if(idx===aiSelectedOpt)o.classList.add('wrong');});
+    const correct = i === currentMcqAnswer;
+    opts.forEach((o,idx)=>{if(idx===currentMcqAnswer)o.classList.add('correct');else if(idx===i)o.classList.add('wrong');});
     const chat = document.getElementById('qnaChat');
-    chat.querySelectorAll('.ip-qna-bubble').forEach(b=>{});
     const lastBubble = chat.querySelectorAll('.ip-qna-msg-bot .ip-qna-bubble');
-    lastBubble[lastBubble.length-1].insertAdjacentHTML('beforeend','<div class="ip-qna-eval"><div class="ip-qna-eval-score" style="color:'+(correct?'#4ade80':'#f87171')+'">'+(correct?'✓ Correct!':'✗ Wrong')+'</div><div class="ip-qna-eval-feedback">'+esc(q.explanation||'')+'</div></div>');
+    lastBubble[lastBubble.length-1].insertAdjacentHTML('beforeend','<div class="ip-qna-eval"><div class="ip-qna-eval-score" style="color:'+(correct?'#4ade80':'#f87171')+'">'+(correct?'✓ Correct!':'✗ Wrong')+'</div></div>');
     chat.scrollTop = 999999;
-    setTimeout(()=>{aiQIndex++;renderQnAQuestion();}, 2500);
+    const answerText = currentMcqOptions[i];
+    interviewConversation.push({ role:'candidate', text: answerText });
+    interviewScores.push(correct ? 100 : 0);
+    setTimeout(()=>sendToInterview(), 1500);
 }
 
 function onQnAInput(ta) {
-    document.getElementById('qnaSendBtn').disabled = ta.value.trim().split(/\s+/).filter(w=>w.length>0).length < 3;
+    document.getElementById('qnaSendBtn').disabled = ta.value.trim().split(/\s+/).filter(w=>w.length>0).length < 2;
 }
 
 async function submitQnAAnswer() {
-    if (aiAnswered) return;
+    if (interviewWaiting) return;
     const ta = document.getElementById('qnaTextarea');
     const answer = ta.value.trim();
-    if (answer.length < 3) return;
-    aiAnswered = true; ta.disabled = true; document.getElementById('qnaSendBtn').disabled = true;
+    if (answer.length < 2) return;
+    interviewWaiting = true;
+    ta.disabled = true;
+    document.getElementById('qnaSendBtn').disabled = true;
     const chat = document.getElementById('qnaChat');
-    const q = aiQuestions[aiQIndex];
     chat.insertAdjacentHTML('beforeend','<div class="ip-qna-msg ip-qna-msg-user"><div class="ip-qna-avatar-user"><i class="fas fa-user"></i></div><div class="ip-qna-bubble-user">'+esc(answer)+'</div></div>');
-    chat.insertAdjacentHTML('beforeend','<div class="ip-qna-msg ip-qna-msg-bot" id="qnaTypingMsg"><div class="ip-qna-avatar"><i class="fas fa-robot"></i></div><div class="ip-qna-bubble"><div class="ip-qna-typing"><span></span><span></span><span></span></div></div></div>');
     chat.scrollTop = 999999;
-    let ev = null;
+    interviewConversation.push({ role:'candidate', text: answer });
+    await sendToInterview();
+}
+
+async function sendToInterview() {
+    interviewWaiting = true;
+    document.getElementById('qnaInputArea').style.display = 'none';
+    showTyping();
     try {
-        const res = await fetch('/api/ai/evaluate-answer', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q.q, modelAnswer:q.modelAnswer||'', studentAnswer:answer})});
+        const res = await fetch('/api/ai/interview-chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jobRole:selectedRole, experience:selectedExp, language:selectedLang, conversation:interviewConversation, isFirst:false}) });
         const data = await res.json();
-        if (data.success && data.evaluation) ev = data.evaluation;
-    } catch {}
-    document.getElementById('qnaTypingMsg')?.remove();
-    if (ev) {
-        if (ev.score >= 50) aiScore++;
-        aiResultBreakdown.push({q:q.q, result:ev.verdict, score:ev.score});
-        const sc = ev.score>=80?'#4ade80':ev.score>=50?'#fbbf24':'#f87171';
-        chat.insertAdjacentHTML('beforeend','<div class="ip-qna-msg ip-qna-msg-bot"><div class="ip-qna-avatar"><i class="fas fa-robot"></i></div><div class="ip-qna-bubble"><div class="ip-qna-eval"><div class="ip-qna-eval-score" style="color:'+sc+'">Score: '+ev.score+'/100</div><div class="ip-qna-eval-feedback">'+esc(ev.feedback||'')+'</div>'+(ev.improvedAnswer?'<div class="ip-qna-eval-improved"><strong>Behtar Answer:</strong> '+esc(ev.improvedAnswer)+'</div>':'')+'</div></div></div>');
-    } else {
-        const al = answer.toLowerCase();
-        const kws = q.keywords || [];
-        const found = kws.filter(k => al.includes(k.toLowerCase()));
-        const passed = found.length >= (q.minKeywords || Math.ceil(kws.length * 0.5));
-        if (passed) aiScore++;
-        aiResultBreakdown.push({q:q.q, result:passed?'partial':'wrong', score:Math.round((kws.length?found.length/kws.length:0.5)*100)});
-        chat.insertAdjacentHTML('beforeend','<div class="ip-qna-msg ip-qna-msg-bot"><div class="ip-qna-avatar"><i class="fas fa-robot"></i></div><div class="ip-qna-bubble"><div class="ip-qna-eval"><div class="ip-qna-eval-score" style="color:'+(passed?'#4ade80':'#f87171')+'">'+(passed?'✓ Passed':'✗ Needs Work')+'</div><div class="ip-qna-eval-feedback">'+found.length+'/'+kws.length+' keywords matched.</div>'+(q.modelAnswer?'<div class="ip-qna-eval-improved"><strong>Model Answer:</strong> '+esc(q.modelAnswer)+'</div>':'')+'</div></div></div>');
+        removeTyping();
+        interviewWaiting = false;
+        if (data.success && data.response) {
+            if (data.response.score !== undefined) interviewScores.push(data.response.score);
+            handleInterviewerResponse(data.response);
+        } else {
+            showQnAResults();
+        }
+    } catch {
+        removeTyping();
+        interviewWaiting = false;
+        showQnAResults();
     }
-    chat.scrollTop = 999999;
-    setTimeout(()=>{aiQIndex++;renderQnAQuestion();}, 4000);
 }
 
 function endAIInterview() {
-    if (aiQIndex === 0) { exitQnA(); return; }
+    if (interviewQCount === 0) { exitQnA(); return; }
     showQnAResults();
 }
 
 function showQnAResults() {
-    document.getElementById('qnaProgress').style.width = '100%';
-    const total = aiResultBreakdown.length;
+    const total = interviewScores.length;
     if (total === 0) { exitQnA(); return; }
-    const pct = Math.round((aiScore/total)*100);
-    let msg = pct>=80?'Excellent! Aap interview ke liye fully ready ho.':pct>=60?'Good! Thoda aur practice karo.':pct>=40?'Average. Topics revise karo.':'Aur study karna padega.';
-    saveAttempt({category:'AI: '+selectedRole, mode:'ai', difficulty:selectedExp, score:aiScore, total, pct, date:new Date().toISOString()});
-    const bh = aiResultBreakdown.map((r,i)=>{const c=r.result==='correct'?'ip-bd-correct':r.result==='partial'?'ip-bd-partial':'ip-bd-wrong';const ic=r.result==='correct'?'fa-check-circle':r.result==='partial'?'fa-circle-half-stroke':'fa-times-circle';const lb=r.result==='correct'?'Correct':r.result==='partial'?r.score+'%':'Wrong';return '<div class="ip-breakdown-item"><span class="ip-bd-q">Q'+(i+1)+': '+esc(r.q.substring(0,50))+(r.q.length>50?'...':'')+'</span><span class="ip-bd-result '+c+'"><i class="fas '+ic+'"></i> '+lb+'</span></div>';}).join('');
-    document.getElementById('qnaChat').innerHTML = '<div class="ip-qna-msg ip-qna-msg-bot"><div class="ip-qna-avatar"><i class="fas fa-trophy"></i></div><div class="ip-qna-bubble"><div class="ip-result-score">'+aiScore+'/'+total+'</div><div class="ip-result-label">You scored '+pct+'%</div><div class="ip-result-msg">'+msg+'</div><div class="ip-result-breakdown">'+bh+'</div><div class="ip-result-actions"><button class="ip-btn ip-btn-primary" onclick="startAIInterview()"><i class="fas fa-redo"></i> Retry</button><button class="ip-btn ip-btn-secondary" onclick="shareResult('+aiScore+','+total+','+pct+')"><i class="fas fa-share-nodes"></i> Share</button><button class="ip-btn ip-btn-secondary" onclick="exitQnA()"><i class="fas fa-th-large"></i> New Interview</button></div></div></div>';
+    const avgScore = Math.round(interviewScores.reduce((a,b)=>a+b,0) / total);
+    let msg = avgScore>=80?'Excellent! Aap interview ke liye fully ready ho.':avgScore>=60?'Good! Thoda aur practice karo.':avgScore>=40?'Average. Topics revise karo.':'Aur study karna padega.';
+    saveAttempt({category:'AI: '+selectedRole, mode:'hr-interview', difficulty:selectedExp, score:avgScore, total, pct:avgScore, date:new Date().toISOString()});
+    const chat = document.getElementById('qnaChat');
+    chat.insertAdjacentHTML('beforeend','<div class="ip-qna-msg ip-qna-msg-bot"><div class="ip-qna-avatar"><i class="fas fa-trophy"></i></div><div class="ip-qna-bubble"><div class="ip-result-score">'+avgScore+'/100</div><div class="ip-result-label">Average Score</div><div class="ip-result-msg">'+msg+'</div><div class="ip-result-msg" style="margin-top:8px;font-size:.8rem">Total questions: '+interviewQCount+'</div><div class="ip-result-actions"><button class="ip-btn ip-btn-primary" onclick="startAIInterview()"><i class="fas fa-redo"></i> Retry</button><button class="ip-btn ip-btn-secondary" onclick="shareResult('+avgScore+',100,'+avgScore+')"><i class="fas fa-share-nodes"></i> Share</button><button class="ip-btn ip-btn-secondary" onclick="exitQnA()"><i class="fas fa-th-large"></i> New Interview</button></div></div></div>');
     document.getElementById('qnaInputArea').style.display = 'none';
-    if (pct >= 80) launchConfetti();
+    chat.scrollTop = 999999;
+    if (avgScore >= 80) launchConfetti();
 }
 
 function exitQnA() {
     document.getElementById('qnaSection').classList.remove('active');
     document.getElementById('onboardSection').classList.add('active');
-    aiQuestions=[]; aiQIndex=0; aiScore=0; aiResultBreakdown=[];
+    interviewConversation=[]; interviewScores=[]; interviewQCount=0; interviewEnded=false; interviewWaiting=false;
     goStep(1); selectedRole=''; selectedLang=''; selectedExp='';
     document.querySelectorAll('.ip-role-chip,.ip-lang-opt,.ip-exp-opt').forEach(el=>el.classList.remove('selected'));
     document.getElementById('roleInput').value='';
