@@ -107,6 +107,9 @@ function goStep(step) {
     document.querySelectorAll('.ip-onboard-dot').forEach((d, i) => d.classList.toggle('active', i < step));
 }
 
+let aiFetchingMore = false;
+const AI_BATCH_SIZE = 5;
+
 async function startAIInterview() {
     if (!selectedRole) return;
     document.getElementById('onboardSection').classList.remove('active');
@@ -114,33 +117,52 @@ async function startAIInterview() {
     const chat = document.getElementById('qnaChat');
     chat.innerHTML = '<div class="ip-qna-loading"><i class="fas fa-robot fa-bounce"></i><p>AI aapke liye "' + esc(selectedRole) + '" role ke liye questions generate kar raha hai...</p></div>';
     document.getElementById('qnaInputArea').style.display = 'none';
-    document.getElementById('qnaInfo').innerHTML = '<strong>' + esc(selectedRole) + '</strong> · ' + (selectedExp||'fresher') + ' · ' + (selectedLang||'hinglish');
-    try {
-        const res = await fetch('/api/ai/generate-questions', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({jobRole:selectedRole, experience:selectedExp, language:selectedLang, numQuestions:8}) });
-        const data = await res.json();
-        aiQuestions = (data.success && data.questions && data.questions.length > 0) ? data.questions : getFallbackQuestions();
-    } catch { aiQuestions = getFallbackQuestions(); }
+    document.getElementById('qnaInfo').innerHTML = '<strong>' + esc(selectedRole) + '</strong> · ' + (selectedExp||'fresher') + ' · ' + (selectedLang||'hinglish') + ' · <span id="qnaCount">0 answered</span> <button class="ip-qna-exit" onclick="endAIInterview()" style="margin-left:10px"><i class="fas fa-flag-checkered"></i> End Interview</button>';
+    aiQuestions = await fetchMoreQuestions();
     aiQIndex = 0; aiScore = 0; aiResultBreakdown = [];
     renderQnAQuestion();
+}
+
+async function fetchMoreQuestions() {
+    try {
+        const res = await fetch('/api/ai/generate-questions', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({jobRole:selectedRole, experience:selectedExp, language:selectedLang, numQuestions:AI_BATCH_SIZE}) });
+        const data = await res.json();
+        if (data.success && data.questions && data.questions.length > 0) return data.questions;
+        return getFallbackQuestions();
+    } catch { return getFallbackQuestions(); }
 }
 
 function getFallbackQuestions() {
     const all = [];
     for (const [n, d] of Object.entries(QUESTION_BANK)) all.push(...d.questions);
-    return shuffleArray(all).slice(0, 8);
+    return shuffleArray(all).slice(0, AI_BATCH_SIZE);
 }
 
-function renderQnAQuestion() {
+async function renderQnAQuestion() {
+    if (aiQIndex >= aiQuestions.length) {
+        // Fetch more questions automatically
+        if (!aiFetchingMore) {
+            aiFetchingMore = true;
+            const chat = document.getElementById('qnaChat');
+            chat.insertAdjacentHTML('beforeend','<div class="ip-qna-msg ip-qna-msg-bot" id="qnaFetchMore"><div class="ip-qna-avatar"><i class="fas fa-robot"></i></div><div class="ip-qna-bubble"><div class="ip-qna-typing"><span></span><span></span><span></span></div></div></div>');
+            chat.scrollTop = 999999;
+            const more = await fetchMoreQuestions();
+            document.getElementById('qnaFetchMore')?.remove();
+            aiFetchingMore = false;
+            aiQuestions = aiQuestions.concat(more);
+        }
+    }
     if (aiQIndex >= aiQuestions.length) { showQnAResults(); return; }
     const q = aiQuestions[aiQIndex];
     aiAnswered = false; aiSelectedOpt = null;
-    document.getElementById('qnaProgress').style.width = (aiQIndex/aiQuestions.length*100) + '%';
+    const cntEl = document.getElementById('qnaCount');
+    if (cntEl) cntEl.textContent = aiQIndex + ' answered';
     const isMCQ = q.type === 'mcq' || (q.options && q.options.length > 0);
     const dc = q.difficulty==='easy'?'ip-diff-easy':q.difficulty==='hard'?'ip-diff-hard':'ip-diff-medium';
     const db = q.difficulty ? '<span class="ip-qna-diff '+dc+'">'+q.difficulty+'</span>' : '';
     let opts = '';
     if (isMCQ && q.options) opts = '<div class="ip-qna-mcq-opts" id="qnaMcqOpts">' + q.options.map((o,i)=>'<div class="ip-qna-mcq-opt" onclick="selectQnAMcq('+i+')">'+String.fromCharCode(65+i)+'. '+esc(o)+'</div>').join('') + '</div>';
-    document.getElementById('qnaChat').innerHTML = '<div class="ip-qna-msg ip-qna-msg-bot"><div class="ip-qna-avatar"><i class="fas fa-robot"></i></div><div class="ip-qna-bubble"><div class="ip-qna-q">Q'+(aiQIndex+1)+'/'+aiQuestions.length+': '+esc(q.q)+' '+db+'</div>'+opts+'</div></div>';
+    document.getElementById('qnaChat').insertAdjacentHTML('beforeend','<div class="ip-qna-msg ip-qna-msg-bot"><div class="ip-qna-avatar"><i class="fas fa-robot"></i></div><div class="ip-qna-bubble"><div class="ip-qna-q">Q'+(aiQIndex+1)+': '+esc(q.q)+' '+db+'</div>'+opts+'</div></div>');
     const ia = document.getElementById('qnaInputArea');
     if (isMCQ && q.options) { ia.style.display = 'none'; }
     else { ia.style.display = 'flex'; const ta = document.getElementById('qnaTextarea'); ta.value=''; ta.disabled=false; document.getElementById('qnaSendBtn').disabled=true; ta.focus(); }
@@ -165,7 +187,9 @@ function submitQnAMcq() {
     aiResultBreakdown.push({q:q.q, result:correct?'correct':'wrong', score:correct?100:0});
     opts.forEach((o,idx)=>{if(idx===q.answer)o.classList.add('correct');else if(idx===aiSelectedOpt)o.classList.add('wrong');});
     const chat = document.getElementById('qnaChat');
-    chat.querySelector('.ip-qna-bubble').insertAdjacentHTML('beforeend','<div class="ip-qna-eval"><div class="ip-qna-eval-score" style="color:'+(correct?'#4ade80':'#f87171')+'">'+(correct?'✓ Correct!':'✗ Wrong')+'</div><div class="ip-qna-eval-feedback">'+esc(q.explanation||'')+'</div></div>');
+    chat.querySelectorAll('.ip-qna-bubble').forEach(b=>{});
+    const lastBubble = chat.querySelectorAll('.ip-qna-msg-bot .ip-qna-bubble');
+    lastBubble[lastBubble.length-1].insertAdjacentHTML('beforeend','<div class="ip-qna-eval"><div class="ip-qna-eval-score" style="color:'+(correct?'#4ade80':'#f87171')+'">'+(correct?'✓ Correct!':'✗ Wrong')+'</div><div class="ip-qna-eval-feedback">'+esc(q.explanation||'')+'</div></div>');
     chat.scrollTop = 999999;
     setTimeout(()=>{aiQIndex++;renderQnAQuestion();}, 2500);
 }
@@ -210,9 +234,16 @@ async function submitQnAAnswer() {
     setTimeout(()=>{aiQIndex++;renderQnAQuestion();}, 4000);
 }
 
+function endAIInterview() {
+    if (aiQIndex === 0) { exitQnA(); return; }
+    showQnAResults();
+}
+
 function showQnAResults() {
     document.getElementById('qnaProgress').style.width = '100%';
-    const total = aiQuestions.length, pct = Math.round((aiScore/total)*100);
+    const total = aiResultBreakdown.length;
+    if (total === 0) { exitQnA(); return; }
+    const pct = Math.round((aiScore/total)*100);
     let msg = pct>=80?'Excellent! Aap interview ke liye fully ready ho.':pct>=60?'Good! Thoda aur practice karo.':pct>=40?'Average. Topics revise karo.':'Aur study karna padega.';
     saveAttempt({category:'AI: '+selectedRole, mode:'ai', difficulty:selectedExp, score:aiScore, total, pct, date:new Date().toISOString()});
     const bh = aiResultBreakdown.map((r,i)=>{const c=r.result==='correct'?'ip-bd-correct':r.result==='partial'?'ip-bd-partial':'ip-bd-wrong';const ic=r.result==='correct'?'fa-check-circle':r.result==='partial'?'fa-circle-half-stroke':'fa-times-circle';const lb=r.result==='correct'?'Correct':r.result==='partial'?r.score+'%':'Wrong';return '<div class="ip-breakdown-item"><span class="ip-bd-q">Q'+(i+1)+': '+esc(r.q.substring(0,50))+(r.q.length>50?'...':'')+'</span><span class="ip-bd-result '+c+'"><i class="fas '+ic+'"></i> '+lb+'</span></div>';}).join('');
