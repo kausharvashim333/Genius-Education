@@ -312,31 +312,64 @@ function selectOption(i) {
     document.getElementById('nextBtn').disabled = false;
 }
 
-function checkDescriptive() {
+async function checkDescriptive() {
     const q = currentQuestions[currentQIndex];
-    const answerLower = descAnswer.toLowerCase();
-    const found = [], missed = [];
-    q.keywords.forEach(kw => {
-        if (answerLower.includes(kw.toLowerCase())) found.push(kw);
-        else missed.push(kw);
-    });
-    const ratio = found.length / q.keywords.length;
-    const passed = found.length >= (q.minKeywords || Math.ceil(q.keywords.length * 0.5));
-    if (passed) score++;
-    resultBreakdown.push({ q: q.q, result: passed ? (ratio === 1 ? 'correct' : 'partial') : 'wrong', score: Math.round(ratio * 100) });
-
     const fb = document.getElementById('keywordFeedback');
+    const btn = document.getElementById('nextBtn');
     if (fb) {
         fb.classList.add('active');
-        fb.innerHTML = `
-            <div class="ip-kf-title"><i class="fas fa-spell-check"></i> Keyword Analysis</div>
-            <div class="ip-kf-tags">
-                ${found.map(k => `<span class="ip-kf-tag found"><i class="fas fa-check"></i> ${esc(k)}</span>`).join('')}
-                ${missed.map(k => `<span class="ip-kf-tag missed"><i class="fas fa-times"></i> ${esc(k)}</span>`).join('')}
-            </div>
-            <div class="ip-kf-score">You included <strong>${found.length}</strong> out of <strong>${q.keywords.length}</strong> keywords. ${passed ? '<span style="color:#4ade80">Passed!</span>' : '<span style="color:#f87171">Try to include more keywords.</span>'}</div>
-            <div class="ip-model-answer"><strong>Model Answer:</strong> ${esc(q.modelAnswer || q.explanation || '')}</div>`;
+        fb.innerHTML = '<div class="ip-kf-title"><i class="fas fa-robot"></i> AI aapka answer check kar raha hai... <i class="fas fa-spinner fa-spin"></i></div>';
     }
+    if (btn) btn.disabled = true;
+
+    let ai = null;
+    try {
+        const res = await fetch('/api/ai/evaluate-answer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: q.q, modelAnswer: q.modelAnswer || '', studentAnswer: descAnswer })
+        });
+        const data = await res.json();
+        if (data.success && data.evaluation) ai = data.evaluation;
+    } catch {}
+
+    if (ai) {
+        const passed = ai.score >= 50;
+        if (passed) score++;
+        resultBreakdown.push({ q: q.q, result: ai.verdict, score: ai.score });
+        if (fb) {
+            const scoreColor = ai.score >= 80 ? '#4ade80' : ai.score >= 50 ? '#fbbf24' : '#f87171';
+            fb.innerHTML = `
+                <div class="ip-kf-title"><i class="fas fa-robot"></i> AI Evaluation</div>
+                <div class="ip-ai-score" style="color:${scoreColor}">Score: ${ai.score}/100</div>
+                <div class="ip-ai-feedback">${esc(ai.feedback || '')}</div>
+                ${ai.improvedAnswer ? `<div class="ip-model-answer"><strong>Improved Answer:</strong> ${esc(ai.improvedAnswer)}</div>` : ''}
+                <div class="ip-model-answer"><strong>Model Answer:</strong> ${esc(q.modelAnswer || q.explanation || '')}</div>`;
+        }
+    } else {
+        // Fallback: keyword matching
+        const answerLower = descAnswer.toLowerCase();
+        const found = [], missed = [];
+        q.keywords.forEach(kw => {
+            if (answerLower.includes(kw.toLowerCase())) found.push(kw);
+            else missed.push(kw);
+        });
+        const ratio = found.length / q.keywords.length;
+        const passed = found.length >= (q.minKeywords || Math.ceil(q.keywords.length * 0.5));
+        if (passed) score++;
+        resultBreakdown.push({ q: q.q, result: passed ? (ratio === 1 ? 'correct' : 'partial') : 'wrong', score: Math.round(ratio * 100) });
+        if (fb) {
+            fb.innerHTML = `
+                <div class="ip-kf-title"><i class="fas fa-spell-check"></i> Keyword Analysis</div>
+                <div class="ip-kf-tags">
+                    ${found.map(k => `<span class="ip-kf-tag found"><i class="fas fa-check"></i> ${esc(k)}</span>`).join('')}
+                    ${missed.map(k => `<span class="ip-kf-tag missed"><i class="fas fa-times"></i> ${esc(k)}</span>`).join('')}
+                </div>
+                <div class="ip-kf-score">You included <strong>${found.length}</strong> out of <strong>${q.keywords.length}</strong> keywords. ${passed ? '<span style="color:#4ade80">Passed!</span>' : '<span style="color:#f87171">Try to include more keywords.</span>'}</div>
+                <div class="ip-model-answer"><strong>Model Answer:</strong> ${esc(q.modelAnswer || q.explanation || '')}</div>`;
+        }
+    }
+    if (btn) btn.disabled = false;
 }
 
 function nextQuestion() {

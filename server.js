@@ -14600,6 +14600,64 @@ app.delete('/api/interview-questions/:catId/question/:idx', verifyAdminSessionMi
     res.json({ success: true });
 });
 
+// --- Gemini AI Answer Evaluation (Interview Practice) ---
+const aiEvalLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, message: { success: false, message: 'Too many requests, try again shortly' } });
+
+app.post('/api/ai/evaluate-answer', aiEvalLimiter, async (req, res) => {
+    try {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) return res.json({ success: false, fallback: true, message: 'AI not configured' });
+
+        const { question, modelAnswer, studentAnswer } = req.body;
+        if (!question || !studentAnswer) {
+            return res.status(400).json({ success: false, message: 'question and studentAnswer required' });
+        }
+        if (String(studentAnswer).length > 2000 || String(question).length > 1000) {
+            return res.status(400).json({ success: false, message: 'Input too long' });
+        }
+
+        const prompt = `You are an interview practice evaluator for an Indian computer institute. Students answer in Hindi, English, or Hinglish.
+
+Question: ${question}
+${modelAnswer ? `Model Answer: ${modelAnswer}` : ''}
+Student's Answer: ${studentAnswer}
+
+Evaluate the student's answer and respond with ONLY valid JSON (no markdown, no code fences):
+{"score": <0-100 integer>, "verdict": "<correct|partial|wrong>", "feedback": "<2-3 line encouraging feedback in Hinglish>", "improvedAnswer": "<a short improved version of the student's answer>"}
+
+Scoring guide: 80-100 = correct concept well explained, 50-79 = partially correct, 0-49 = mostly wrong or irrelevant.`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.2, maxOutputTokens: 500 }
+            })
+        });
+
+        if (!response.ok) {
+            console.error('Gemini API error:', response.status, await response.text().catch(() => ''));
+            return res.json({ success: false, fallback: true, message: 'AI evaluation unavailable' });
+        }
+
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) return res.json({ success: false, fallback: true, message: 'Invalid AI response' });
+
+        const result = JSON.parse(jsonMatch[0]);
+        result.score = Math.max(0, Math.min(100, parseInt(result.score) || 0));
+        if (!['correct', 'partial', 'wrong'].includes(result.verdict)) {
+            result.verdict = result.score >= 80 ? 'correct' : result.score >= 50 ? 'partial' : 'wrong';
+        }
+        res.json({ success: true, evaluation: result });
+    } catch (err) {
+        console.error('AI evaluation error:', err.message);
+        res.json({ success: false, fallback: true, message: 'AI evaluation failed' });
+    }
+});
+
 // --- Spoken English ---
 app.get('/api/spoken-english', (req, res) => {
     const data = readData('spoken-english.json') || { categories: [] };
