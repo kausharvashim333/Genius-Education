@@ -14804,7 +14804,7 @@ Respond with ONLY valid JSON (no markdown, no code fences):
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.8, maxOutputTokens: 800 }
+                generationConfig: { temperature: 0.8, maxOutputTokens: 2000 }
             })
         });
 
@@ -14814,12 +14814,50 @@ Respond with ONLY valid JSON (no markdown, no code fences):
         }
 
         const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) return res.json({ success: false, fallback: true, message: 'Invalid AI response' });
+        let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        
+        // Strip markdown code fences if present
+        text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+        
+        // Try to extract JSON - handle both complete and truncated responses
+        let jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+            // If no closing brace, try to salvage truncated JSON by adding closing braces
+            const startIdx = text.indexOf('{');
+            if (startIdx !== -1) {
+                let partial = text.substring(startIdx);
+                // Try to close incomplete JSON
+                const lastQuote = partial.lastIndexOf('"');
+                const lastComma = partial.lastIndexOf(',');
+                if (lastQuote > lastComma) {
+                    partial = partial.substring(0, lastQuote + 1) + '}}';
+                } else {
+                    partial = partial + '}}';
+                }
+                try {
+                    const result = JSON.parse(partial);
+                    return res.json({ success: true, response: result });
+                } catch {}
+            }
+            console.error('AI interview: Could not parse JSON from:', text.substring(0, 200));
+            return res.json({ success: false, fallback: true, message: 'Invalid AI response' });
+        }
 
-        const result = JSON.parse(jsonMatch[0]);
-        res.json({ success: true, response: result });
+        try {
+            const result = JSON.parse(jsonMatch[0]);
+            res.json({ success: true, response: result });
+        } catch (parseErr) {
+            // If JSON.parse fails on the match, try to fix common issues
+            try {
+                // Remove trailing commas before closing braces
+                const fixed = jsonMatch[0].replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+                const result = JSON.parse(fixed);
+                res.json({ success: true, response: result });
+            } catch {
+                console.error('AI interview: JSON parse failed on:', jsonMatch[0].substring(0, 200));
+                res.json({ success: false, fallback: true, message: 'Invalid AI response' });
+            }
+        }
     } catch (err) {
         console.error('AI interview chat error:', err.message);
         res.json({ success: false, fallback: true, message: 'AI interview failed' });
