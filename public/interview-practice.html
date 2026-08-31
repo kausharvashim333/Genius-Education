@@ -13,6 +13,95 @@
 .ip-header p{color:rgba(255,255,255,0.6);font-size:.95rem}
 .ip-container{max-width:800px;margin:0 auto}
 
+/* Top-level mode selector */
+.ip-top-modes{display:flex;gap:10px;justify-content:center;margin-bottom:30px;flex-wrap:wrap}
+.ip-top-mode{padding:14px 28px;border-radius:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);cursor:pointer;font-size:.9rem;font-weight:600;transition:all .25s;display:inline-flex;align-items:center;gap:10px}
+.ip-top-mode:hover{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.85)}
+.ip-top-mode.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-color:transparent;box-shadow:0 8px 24px rgba(102,126,234,0.3)}
+.ip-top-mode i{font-size:1.1rem}
+
+/* Onboarding */
+.ip-onboard{display:none}
+.ip-onboard.active{display:block}
+.ip-onboard-card{background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:36px 32px;max-width:600px;margin:0 auto}
+.ip-onboard-step{display:none}
+.ip-onboard-step.active{display:block;animation:ipFadeIn .4s ease}
+@keyframes ipFadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.ip-onboard-title{font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:8px}
+.ip-onboard-title i{color:#a5b4fc;margin-right:8px}
+.ip-onboard-sub{color:rgba(255,255,255,0.55);font-size:.88rem;margin-bottom:24px}
+.ip-onboard-label{font-size:.85rem;font-weight:600;color:rgba(255,255,255,0.7);margin-bottom:10px;display:block}
+.ip-role-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.ip-role-chip{padding:8px 16px;border-radius:20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);cursor:pointer;font-size:.82rem;transition:all .2s}
+.ip-role-chip:hover{border-color:rgba(102,126,234,0.4);color:#fff}
+.ip-role-chip.selected{background:rgba(102,126,234,0.25);border-color:rgba(102,126,234,0.5);color:#fff}
+.ip-role-input{width:100%;padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;font-size:.9rem;font-family:inherit;margin-bottom:16px}
+.ip-role-input:focus{outline:none;border-color:rgba(102,126,234,0.5)}
+.ip-role-input::placeholder{color:rgba(255,255,255,0.3)}
+.ip-lang-options,.ip-exp-options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.ip-lang-opt,.ip-exp-opt{padding:16px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);cursor:pointer;text-align:center;transition:all .2s}
+.ip-lang-opt:hover,.ip-exp-opt:hover{border-color:rgba(102,126,234,0.4)}
+.ip-lang-opt.selected,.ip-exp-opt.selected{background:rgba(102,126,234,0.2);border-color:rgba(102,126,234,0.5)}
+.ip-lang-opt i,.ip-exp-opt i{font-size:1.5rem;margin-bottom:8px;display:block;color:#a5b4fc}
+.ip-lang-opt span,.ip-exp-opt span{font-size:.82rem;color:rgba(255,255,255,0.8)}
+.ip-onboard-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.ip-onboard-back{padding:10px 20px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);cursor:pointer;font-size:.85rem;transition:all .2s}
+.ip-onboard-back:hover{background:rgba(255,255,255,0.1)}
+.ip-onboard-next{padding:10px 24px;border-radius:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.ip-onboard-next:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(102,126,234,0.4)}
+.ip-onboard-next:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.ip-onboard-progress{display:flex;gap:6px;justify-content:center;margin-bottom:24px}
+.ip-onboard-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15);transition:all .3s}
+.ip-onboard-dot.active{background:#667eea;width:24px;border-radius:4px}
+
+/* QnA Chat */
+.ip-qna{display:none;max-width:700px;margin:0 auto}
+.ip-qna.active{display:block}
+.ip-qna-chat{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px;max-height:65vh;overflow-y:auto;margin-bottom:16px;scroll-behavior:smooth}
+.ip-qna-msg{margin-bottom:16px;animation:ipFadeIn .3s ease}
+.ip-qna-msg-bot{display:flex;gap:10px;align-items:flex-start}
+.ip-qna-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.8rem;flex-shrink:0}
+.ip-qna-avatar i{font-size:.9rem}
+.ip-qna-bubble{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:4px 14px 14px 14px;padding:14px 16px;font-size:.9rem;color:rgba(255,255,255,0.9);line-height:1.6}
+.ip-qna-bubble .ip-qna-q{font-weight:600;color:#fff;margin-bottom:10px;font-size:.95rem}
+.ip-qna-bubble .ip-qna-diff{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.68rem;font-weight:600;margin-left:8px;vertical-align:middle}
+.ip-qna-msg-user{display:flex;gap:10px;align-items:flex-start;flex-direction:row-reverse}
+.ip-qna-avatar-user{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.6);font-size:.8rem;flex-shrink:0}
+.ip-qna-bubble-user{flex:1;background:rgba(102,126,234,0.15);border:1px solid rgba(102,126,234,0.2);border-radius:14px 4px 14px 14px;padding:14px 16px;font-size:.9rem;color:rgba(255,255,255,0.85);line-height:1.6}
+.ip-qna-eval{background:rgba(255,255,255,0.04);border-left:3px solid #667eea;border-radius:8px;padding:14px 16px;margin-top:10px}
+.ip-qna-eval-score{font-size:1.1rem;font-weight:800;margin-bottom:6px}
+.ip-qna-eval-feedback{font-size:.85rem;color:#cbd5e1;line-height:1.5;margin-bottom:8px}
+.ip-qna-eval-improved{font-size:.82rem;color:rgba(255,255,255,0.6);background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:8px;padding:10px 12px;margin-top:8px}
+.ip-qna-eval-improved strong{color:#4ade80}
+.ip-qna-mcq-opts{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.ip-qna-mcq-opt{padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;font-size:.85rem;color:rgba(255,255,255,0.8);transition:all .2s}
+.ip-qna-mcq-opt:hover{background:rgba(102,126,234,0.15);border-color:rgba(102,126,234,0.3)}
+.ip-qna-mcq-opt.selected{background:rgba(102,126,234,0.25);border-color:rgba(102,126,234,0.5)}
+.ip-qna-mcq-opt.correct{background:rgba(34,197,94,0.2);border-color:rgba(34,197,94,0.5);color:#4ade80}
+.ip-qna-mcq-opt.wrong{background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.5);color:#f87171}
+.ip-qna-input-area{display:flex;gap:10px;align-items:flex-end}
+.ip-qna-textarea{flex:1;min-height:60px;max-height:150px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:12px;font-size:.9rem;color:#fff;font-family:inherit;resize:vertical}
+.ip-qna-textarea:focus{outline:none;border-color:rgba(102,126,234,0.5)}
+.ip-qna-textarea::placeholder{color:rgba(255,255,255,0.3)}
+.ip-qna-send{padding:12px 20px;border-radius:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;white-space:nowrap}
+.ip-qna-send:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(102,126,234,0.4)}
+.ip-qna-send:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.ip-qna-typing{display:inline-flex;gap:4px;align-items:center}
+.ip-qna-typing span{width:6px;height:6px;border-radius:50%;background:#a5b4fc;animation:ipTyping 1.4s infinite ease-in-out}
+.ip-qna-typing span:nth-child(2){animation-delay:.2s}
+.ip-qna-typing span:nth-child(3){animation-delay:.4s}
+@keyframes ipTyping{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
+.ip-qna-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.ip-qna-info{font-size:.82rem;color:rgba(255,255,255,0.5)}
+.ip-qna-info strong{color:#a5b4fc}
+.ip-qna-exit{padding:6px 14px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);cursor:pointer;font-size:.78rem;transition:all .2s}
+.ip-qna-exit:hover{background:rgba(255,255,255,0.1)}
+.ip-qna-progress-bar{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;margin-bottom:16px;overflow:hidden}
+.ip-qna-progress-fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:2px;transition:width .3s}
+.ip-qna-loading{text-align:center;padding:40px 20px}
+.ip-qna-loading i{font-size:2rem;color:#a5b4fc;margin-bottom:12px}
+.ip-qna-loading p{color:rgba(255,255,255,0.6);font-size:.88rem}
+
 /* Mode Tabs */
 .ip-mode-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
 .ip-mode-tab{padding:10px 20px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);cursor:pointer;font-size:.85rem;font-weight:600;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px}
@@ -196,23 +285,106 @@
 <div class="ip-page">
 <div class="ip-header">
 <h1><i class="fas fa-comments"></i> Interview Practice</h1>
-<p>MCQ aur Descriptive questions dono ke sath practice karo — answers keywords ke aadhar par check honge</p>
+<p>AI-powered interview preparation — job role ke hisab se questions aur smart answer evaluation</p>
 </div>
-<div class="ip-container">
-<div class="ip-mode-tabs" id="modeTabs">
-    <div class="ip-mode-tab active" data-mode="mcq" onclick="switchMode('mcq')"><i class="fas fa-list-ul"></i> MCQ</div>
-    <div class="ip-mode-tab" data-mode="descriptive" onclick="switchMode('descriptive')"><i class="fas fa-pen-to-square"></i> Descriptive</div>
-    <div class="ip-mode-tab" data-mode="mixed" onclick="switchMode('mixed')"><i class="fas fa-shuffle"></i> Mixed</div>
+
+<!-- Top Mode Selector -->
+<div class="ip-top-modes" id="topModes">
+    <div class="ip-top-mode active" data-topmode="ai" onclick="switchTopMode('ai')"><i class="fas fa-robot"></i> AI Interview</div>
+    <div class="ip-top-mode" data-topmode="practice" onclick="switchTopMode('practice')"><i class="fas fa-list-check"></i> Category Practice</div>
 </div>
-<div class="ip-diff-tabs" id="diffTabs">
-    <div class="ip-diff-tab active" data-diff="all" onclick="switchDifficulty('all')">All</div>
-    <div class="ip-diff-tab" data-diff="easy" onclick="switchDifficulty('easy')">Easy</div>
-    <div class="ip-diff-tab" data-diff="medium" onclick="switchDifficulty('medium')">Medium</div>
-    <div class="ip-diff-tab" data-diff="hard" onclick="switchDifficulty('hard')">Hard</div>
+
+<!-- AI Interview Onboarding -->
+<div class="ip-onboard active" id="onboardSection">
+    <div class="ip-onboard-card">
+        <div class="ip-onboard-progress" id="onboardDots">
+            <div class="ip-onboard-dot active"></div>
+            <div class="ip-onboard-dot"></div>
+            <div class="ip-onboard-dot"></div>
+        </div>
+
+        <!-- Step 1: Job Role -->
+        <div class="ip-onboard-step active" id="step1">
+            <div class="ip-onboard-title"><i class="fas fa-briefcase"></i> Kis job role ke liye interview dena hai?</div>
+            <div class="ip-onboard-sub">Apna target role select karo ya type karo</div>
+            <div class="ip-role-chips" id="roleChips">
+                <div class="ip-role-chip" onclick="selectRole(this,'Computer Operator')">Computer Operator</div>
+                <div class="ip-role-chip" onclick="selectRole(this,'Data Entry')">Data Entry</div>
+                <div class="ip-role-chip" onclick="selectRole(this,'Tally Accountant')">Tally Accountant</div>
+                <div class="ip-role-chip" onclick="selectRole(this,'MS Office Assistant')">MS Office Assistant</div>
+                <div class="ip-role-chip" onclick="selectRole(this,'Web Developer')">Web Developer</div>
+                <div class="ip-role-chip" onclick="selectRole(this,'Graphic Designer')">Graphic Designer</div>
+                <div class="ip-role-chip" onclick="selectRole(this,'Accounting Clerk')">Accounting Clerk</div>
+                <div class="ip-role-chip" onclick="selectRole(this,'Front Office')">Front Office</div>
+            </div>
+            <input type="text" class="ip-role-input" id="roleInput" placeholder="Ya apna role type karo...">
+            <div class="ip-onboard-actions">
+                <button class="ip-onboard-next" id="step1Next" onclick="goStep(2)" disabled>Next <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 2: Language -->
+        <div class="ip-onboard-step" id="step2">
+            <div class="ip-onboard-title"><i class="fas fa-language"></i> Questions kis language me chahiye?</div>
+            <div class="ip-onboard-sub">Apni preference select karo</div>
+            <div class="ip-lang-options" id="langOptions">
+                <div class="ip-lang-opt" onclick="selectLang(this,'hinglish')"><i class="fas fa-comments"></i><span>Hinglish</span></div>
+                <div class="ip-lang-opt" onclick="selectLang(this,'english')"><i class="fas fa-flag"></i><span>English</span></div>
+                <div class="ip-lang-opt" onclick="selectLang(this,'hindi')"><i class="fas fa-language"></i><span>Hindi</span></div>
+            </div>
+            <div class="ip-onboard-actions">
+                <button class="ip-onboard-back" onclick="goStep(1)"><i class="fas fa-arrow-left"></i> Back</button>
+                <button class="ip-onboard-next" id="step2Next" onclick="goStep(3)" disabled>Next <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 3: Experience -->
+        <div class="ip-onboard-step" id="step3">
+            <div class="ip-onboard-title"><i class="fas fa-briefcase"></i> Aapka experience level?</div>
+            <div class="ip-onboard-sub">Iske hisab se questions generate honge</div>
+            <div class="ip-exp-options" id="expOptions">
+                <div class="ip-exp-opt" onclick="selectExp(this,'fresher')"><i class="fas fa-seedling"></i><span>Fresher</span></div>
+                <div class="ip-exp-opt" onclick="selectExp(this,'1-2 years')"><i class="fas fa-leaf"></i><span>1-2 Years</span></div>
+                <div class="ip-exp-opt" onclick="selectExp(this,'3+ years')"><i class="fas fa-tree"></i><span>3+ Years</span></div>
+            </div>
+            <div class="ip-onboard-actions">
+                <button class="ip-onboard-back" onclick="goStep(2)"><i class="fas fa-arrow-left"></i> Back</button>
+                <button class="ip-onboard-next" id="step3Next" onclick="startAIInterview()" disabled><i class="fas fa-robot"></i> Start Interview <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
 </div>
-<div id="progressSummary"></div>
-<div class="ip-cats" id="categories"></div>
-<div class="ip-quiz-area" id="quizArea"></div>
+
+<!-- QnA Chat Interface -->
+<div class="ip-qna" id="qnaSection">
+    <div class="ip-qna-header">
+        <div class="ip-qna-info" id="qnaInfo"></div>
+        <button class="ip-qna-exit" onclick="exitQnA()"><i class="fas fa-times"></i> Exit</button>
+    </div>
+    <div class="ip-qna-progress-bar"><div class="ip-qna-progress-fill" id="qnaProgress" style="width:0%"></div></div>
+    <div class="ip-qna-chat" id="qnaChat"></div>
+    <div class="ip-qna-input-area" id="qnaInputArea" style="display:none">
+        <textarea class="ip-qna-textarea" id="qnaTextarea" placeholder="Apna answer yahan likhein..." oninput="onQnAInput(this)"></textarea>
+        <button class="ip-qna-send" id="qnaSendBtn" onclick="submitQnAAnswer()" disabled><i class="fas fa-paper-plane"></i> Send</button>
+    </div>
+</div>
+
+<!-- Category Practice (existing mode) -->
+<div class="ip-container" id="practiceSection" style="display:none">
+    <div class="ip-mode-tabs" id="modeTabs">
+        <div class="ip-mode-tab active" data-mode="mcq" onclick="switchMode('mcq')"><i class="fas fa-list-ul"></i> MCQ</div>
+        <div class="ip-mode-tab" data-mode="descriptive" onclick="switchMode('descriptive')"><i class="fas fa-pen-to-square"></i> Descriptive</div>
+        <div class="ip-mode-tab" data-mode="mixed" onclick="switchMode('mixed')"><i class="fas fa-shuffle"></i> Mixed</div>
+    </div>
+    <div class="ip-diff-tabs" id="diffTabs">
+        <div class="ip-diff-tab active" data-diff="all" onclick="switchDifficulty('all')">All</div>
+        <div class="ip-diff-tab" data-diff="easy" onclick="switchDifficulty('easy')">Easy</div>
+        <div class="ip-diff-tab" data-diff="medium" onclick="switchDifficulty('medium')">Medium</div>
+        <div class="ip-diff-tab" data-diff="hard" onclick="switchDifficulty('hard')">Hard</div>
+    </div>
+    <div id="progressSummary"></div>
+    <div class="ip-cats" id="categories"></div>
+    <div class="ip-quiz-area" id="quizArea"></div>
 </div>
 </div>
 <script src="js/interview-practice.js"></script>

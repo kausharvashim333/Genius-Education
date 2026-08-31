@@ -14658,6 +14658,68 @@ Scoring guide: 80-100 = correct concept well explained, 50-79 = partially correc
     }
 });
 
+// --- Gemini AI Question Generation (Interview Practice) ---
+const aiGenLimiter = rateLimit({ windowMs: 60 * 1000, max: 5, message: { success: false, message: 'Too many requests, try again shortly' } });
+
+app.post('/api/ai/generate-questions', aiGenLimiter, async (req, res) => {
+    try {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) return res.json({ success: false, fallback: true, message: 'AI not configured' });
+
+        const { jobRole, experience, language, numQuestions } = req.body;
+        if (!jobRole || String(jobRole).length > 200) {
+            return res.status(400).json({ success: false, message: 'jobRole required' });
+        }
+
+        const count = Math.min(Math.max(parseInt(numQuestions) || 8, 3), 15);
+        const langName = language === 'hindi' ? 'Hindi' : language === 'english' ? 'English' : 'Hinglish (mix of Hindi and English)';
+
+        const prompt = `You are an expert interviewer for an Indian computer education institute. Generate ${count} interview practice questions for a candidate preparing for the role of "${jobRole}".
+
+Experience level: ${experience || 'fresher'}
+Language for questions: ${langName}
+
+Generate a mix of MCQ and descriptive questions. For MCQs, include 4 options and the correct answer index. For descriptive questions, include a model answer and 5-8 keywords.
+
+Respond with ONLY valid JSON (no markdown, no code fences):
+{"questions": [
+  {"type": "mcq", "q": "<question text in ${langName}>", "options": ["opt1","opt2","opt3","opt4"], "answer": <0-3>, "difficulty": "<easy|medium|hard>", "explanation": "<short explanation>"},
+  {"type": "descriptive", "q": "<question text in ${langName}>", "modelAnswer": "<model answer>", "keywords": ["kw1","kw2"], "minKeywords": <number>, "difficulty": "<easy|medium|hard>", "explanation": "<short explanation>"}
+]}
+
+Make questions practical and relevant to the job role. Include some general HR questions too. Vary difficulty levels.`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 2000 }
+            })
+        });
+
+        if (!response.ok) {
+            console.error('Gemini API error:', response.status, await response.text().catch(() => ''));
+            return res.json({ success: false, fallback: true, message: 'AI question generation unavailable' });
+        }
+
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) return res.json({ success: false, fallback: true, message: 'Invalid AI response' });
+
+        const result = JSON.parse(jsonMatch[0]);
+        if (!result.questions || !Array.isArray(result.questions)) {
+            return res.json({ success: false, fallback: true, message: 'Invalid questions format' });
+        }
+
+        res.json({ success: true, questions: result.questions });
+    } catch (err) {
+        console.error('AI question generation error:', err.message);
+        res.json({ success: false, fallback: true, message: 'AI question generation failed' });
+    }
+});
+
 // --- Spoken English ---
 app.get('/api/spoken-english', (req, res) => {
     const data = readData('spoken-english.json') || { categories: [] };
