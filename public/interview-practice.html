@@ -182,5 +182,6 @@
     fetch('/api/settings').then(function(r){return r.json()}).then(function(s){if(s&&s.logo){var img=document.querySelector('.nav-logo');if(img){img.src=s.logo;img.style.display='block'}}}).catch(function(){});
 })();
 </script>
+<script src="/js/security.js"></script>
 </body>
 </html>

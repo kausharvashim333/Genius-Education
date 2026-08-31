@@ -80,6 +80,12 @@
             if (settings.devToolsPrevention) applyDevToolsBlock();
             if (settings.toolsMenuEnabled === false) {
                 document.querySelectorAll('.nav-tools-link').forEach(el => el.style.display = 'none');
+                // Block direct URL access to tools pages
+                const toolsPages = ['tools.html', 'resume-builder.html', 'interview-practice.html', 'spoken-english.html'];
+                const currentPage = (window.location.pathname.split('/').pop() || '').toLowerCase();
+                if (toolsPages.includes(currentPage)) {
+                    window.location.replace('index.html');
+                }
             }
         } catch (err) {
             // Silent fail
