@@ -38,6 +38,33 @@ let score = 0;
 let answered = false;
 let currentMode = 'mcq';
 let resultBreakdown = [];
+let currentDifficulty = 'all';
+let qTimer = null;
+let qTimeLeft = 0;
+let quizStartTime = 0;
+const TIMER_MCQ = 30;
+const TIMER_DESC = 120;
+const HISTORY_KEY = 'ipHistory';
+
+function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function getHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch { return []; }
+}
+
+function saveAttempt(attempt) {
+    const history = getHistory();
+    history.push(attempt);
+    if (history.length > 100) history.shift();
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch {}
+}
 
 async function init() {
     try {
@@ -60,37 +87,160 @@ function switchMode(mode) {
     renderCategories();
 }
 
+function switchDifficulty(diff) {
+    currentDifficulty = diff;
+    document.querySelectorAll('.ip-diff-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.diff === diff);
+    });
+    renderCategories();
+}
+
+function filterQuestions(questions) {
+    let qs = questions;
+    if (currentMode === 'mcq') qs = qs.filter(q => q.type !== 'descriptive');
+    else if (currentMode === 'descriptive') qs = qs.filter(q => q.type === 'descriptive');
+    if (currentDifficulty !== 'all') qs = qs.filter(q => q.difficulty === currentDifficulty);
+    return qs;
+}
+
+function getCategoryStats(name) {
+    const attempts = getHistory().filter(h => h.category === name);
+    if (attempts.length === 0) return null;
+    const best = Math.max(...attempts.map(a => a.pct));
+    const avg = Math.round(attempts.reduce((s, a) => s + a.pct, 0) / attempts.length);
+    return { attempts: attempts.length, best, avg };
+}
+
 function renderCategories() {
     const container = document.getElementById('categories');
     if (!container) return;
     let html = '';
     for (const [name, data] of Object.entries(QUESTION_BANK)) {
-        let count;
-        if (currentMode === 'mcq') count = data.questions.filter(q => q.type !== 'descriptive').length;
-        else if (currentMode === 'descriptive') count = data.questions.filter(q => q.type === 'descriptive').length;
-        else count = data.questions.length;
+        const count = filterQuestions(data.questions).length;
         if (count === 0) continue;
+        const stats = getCategoryStats(name);
+        let statsHtml = '';
+        if (stats) {
+            const weakClass = stats.avg < 60 ? ' ip-stat-weak' : '';
+            statsHtml = `<div class="ip-cat-stats${weakClass}">
+                <span title="Best score"><i class="fas fa-trophy"></i> ${stats.best}%</span>
+                <span title="Average"><i class="fas fa-chart-line"></i> ${stats.avg}%</span>
+                ${stats.avg < 60 ? '<span class="ip-weak-tag"><i class="fas fa-exclamation-triangle"></i> Practice more</span>' : ''}
+            </div>`;
+        }
         html += `<div class="ip-cat-card" onclick="startQuiz('${name.replace(/'/g,"\\'")}')">
             <div class="ip-cat-icon"><i class="fas ${data.icon}"></i></div>
             <div class="ip-cat-name">${name}</div>
             <div class="ip-cat-count">${count} Questions</div>
+            ${statsHtml}
         </div>`;
     }
     container.innerHTML = html;
+    renderProgressSummary();
+}
+
+function renderProgressSummary() {
+    const el = document.getElementById('progressSummary');
+    if (!el) return;
+    const history = getHistory();
+    if (history.length === 0) { el.innerHTML = ''; return; }
+    const totalAttempts = history.length;
+    const avgScore = Math.round(history.reduce((s, a) => s + a.pct, 0) / totalAttempts);
+    const recent = history.slice(-5).reverse();
+    const weak = [];
+    const catMap = {};
+    history.forEach(h => {
+        if (!catMap[h.category]) catMap[h.category] = [];
+        catMap[h.category].push(h.pct);
+    });
+    for (const [cat, scores] of Object.entries(catMap)) {
+        const avg = scores.reduce((s, p) => s + p, 0) / scores.length;
+        if (avg < 60) weak.push(cat);
+    }
+    el.innerHTML = `
+        <div class="ip-progress-card">
+            <div class="ip-progress-title"><i class="fas fa-chart-simple"></i> Your Progress</div>
+            <div class="ip-progress-stats">
+                <div class="ip-ps-item"><strong>${totalAttempts}</strong><span>Attempts</span></div>
+                <div class="ip-ps-item"><strong>${avgScore}%</strong><span>Avg Score</span></div>
+                <div class="ip-ps-item"><strong>${weak.length}</strong><span>Weak Areas</span></div>
+            </div>
+            ${weak.length > 0 ? `<div class="ip-weak-areas"><i class="fas fa-bullseye"></i> Focus on: ${weak.map(w => `<span>${esc(w)}</span>`).join(' ')}</div>` : ''}
+            <div class="ip-recent-attempts">
+                ${recent.map(r => `<div class="ip-ra-item"><span>${esc(r.category)}</span><span class="${r.pct >= 60 ? 'ip-ra-good' : 'ip-ra-bad'}">${r.pct}%</span></div>`).join('')}
+            </div>
+        </div>`;
 }
 
 function startQuiz(category) {
     currentCategory = category;
-    let allQs = [...QUESTION_BANK[category].questions];
-    if (currentMode === 'mcq') currentQuestions = allQs.filter(q => q.type !== 'descriptive');
-    else if (currentMode === 'descriptive') currentQuestions = allQs.filter(q => q.type === 'descriptive');
-    else currentQuestions = allQs;
+    currentQuestions = shuffleArray(filterQuestions(QUESTION_BANK[category].questions));
     currentQIndex = 0;
     score = 0;
     resultBreakdown = [];
+    quizStartTime = Date.now();
+    const summaryEl = document.getElementById('progressSummary');
+    if (summaryEl) summaryEl.style.display = 'none';
     document.getElementById('categories').style.display = 'none';
     document.getElementById('quizArea').classList.add('active');
     renderQuestion();
+}
+
+function startTimer(seconds) {
+    clearInterval(qTimer);
+    qTimeLeft = seconds;
+    updateTimerDisplay();
+    qTimer = setInterval(() => {
+        qTimeLeft--;
+        updateTimerDisplay();
+        if (qTimeLeft <= 0) {
+            clearInterval(qTimer);
+            onTimeUp();
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const el = document.getElementById('qTimer');
+    if (!el) return;
+    const m = Math.floor(qTimeLeft / 60);
+    const s = qTimeLeft % 60;
+    el.textContent = m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
+    el.classList.toggle('ip-timer-warning', qTimeLeft <= 10);
+}
+
+function onTimeUp() {
+    if (answered) return;
+    const q = currentQuestions[currentQIndex];
+    answered = true;
+    if (q.type === 'descriptive') {
+        if (descAnswer.trim().length >= 3) {
+            checkDescriptive();
+        } else {
+            resultBreakdown.push({ q: q.q, result: 'wrong', score: 0 });
+            const fb = document.getElementById('keywordFeedback');
+            if (fb) {
+                fb.classList.add('active');
+                fb.innerHTML = `<div class="ip-kf-title"><i class="fas fa-clock"></i> Time's up!</div><div class="ip-model-answer"><strong>Model Answer:</strong> ${esc(q.modelAnswer || q.explanation || '')}</div>`;
+            }
+        }
+        const ta = document.getElementById('descTextarea');
+        if (ta) ta.disabled = true;
+    } else {
+        const opts = document.querySelectorAll('.ip-option');
+        opts.forEach((o, idx) => {
+            o.style.cursor = 'default';
+            if (idx === q.answer) o.classList.add('correct');
+        });
+        resultBreakdown.push({ q: q.q, result: 'wrong', score: 0 });
+        const expl = document.getElementById('explanation');
+        if (expl) expl.classList.add('active');
+    }
+    const btn = document.getElementById('nextBtn');
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = currentQIndex + 1 < currentQuestions.length ? 'Next <i class="fas fa-arrow-right"></i>' : 'See Results <i class="fas fa-trophy"></i>';
+    }
 }
 
 function renderQuestion() {
@@ -131,12 +281,16 @@ function renderQuestion() {
             <button class="ip-back-btn" onclick="backToCategories()"><i class="fas fa-arrow-left"></i> Back</button>
         </div>
         <div class="ip-progress-bar"><div class="ip-progress-fill" style="width:${progress}%"></div></div>
-        <div class="ip-quiz-progress">Question ${currentQIndex+1} of ${currentQuestions.length}</div>
+        <div class="ip-quiz-meta-row">
+            <div class="ip-quiz-progress">Question ${currentQIndex+1} of ${currentQuestions.length}</div>
+            <div class="ip-timer" id="qTimerWrap"><i class="fas fa-clock"></i> <span id="qTimer"></span></div>
+        </div>
         <div class="ip-question">${typeBadge} ${esc(q.q)} <span class="ip-difficulty ip-diff-${q.difficulty}">${q.difficulty}</span></div>
         ${bodyHtml}
         <div class="ip-quiz-actions">
             <button class="ip-btn ip-btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>${isDesc?'Submit Answer':'Next'} <i class="fas ${isDesc?'fa-check':'fa-arrow-right'}"></i></button>
         </div>`;
+    startTimer(isDesc ? TIMER_DESC : TIMER_MCQ);
 }
 
 function onDescInput(ta) {
@@ -189,18 +343,20 @@ function nextQuestion() {
     const q = currentQuestions[currentQIndex];
     const isDesc = q.type === 'descriptive';
     if (isDesc) {
-        if (descAnswer.trim().length < 3) return;
+        if (!answered && descAnswer.trim().length < 3) return;
         if (!answered) {
             answered = true;
+            clearInterval(qTimer);
             checkDescriptive();
             document.getElementById('descTextarea').disabled = true;
             const btn = document.getElementById('nextBtn');
             btn.innerHTML = currentQIndex + 1 < currentQuestions.length ? 'Next <i class="fas fa-arrow-right"></i>' : 'See Results <i class="fas fa-trophy"></i>';
         } else { currentQIndex++; renderQuestion(); }
     } else {
-        if (selectedOption === null) return;
+        if (!answered && selectedOption === null) return;
         if (!answered) {
             answered = true;
+            clearInterval(qTimer);
             const opts = document.querySelectorAll('.ip-option');
             opts.forEach((o, idx) => {
                 o.style.cursor = 'default';
@@ -218,13 +374,18 @@ function nextQuestion() {
 }
 
 function showResults() {
+    clearInterval(qTimer);
     const total = currentQuestions.length;
     const pct = Math.round((score / total) * 100);
+    const timeTaken = Math.round((Date.now() - quizStartTime) / 1000);
+    const timeStr = timeTaken >= 60 ? `${Math.floor(timeTaken/60)}m ${timeTaken%60}s` : `${timeTaken}s`;
     let msg = '';
     if (pct >= 80) msg = 'Excellent! Aap interview ke liye fully ready ho.';
     else if (pct >= 60) msg = 'Good! Thoda aur practice karo.';
     else if (pct >= 40) msg = 'Average. Topics revise karo aur dobara try karo.';
     else msg = 'Aur study karna padega. Revision karo.';
+
+    saveAttempt({ category: currentCategory, mode: currentMode, difficulty: currentDifficulty, score, total, pct, date: new Date().toISOString() });
 
     const breakdownHtml = resultBreakdown.map((r, i) => {
         const cls = r.result === 'correct' ? 'ip-bd-correct' : r.result === 'partial' ? 'ip-bd-partial' : 'ip-bd-wrong';
@@ -237,18 +398,57 @@ function showResults() {
         <div class="ip-results active">
             <div class="ip-result-score">${score}/${total}</div>
             <div class="ip-result-label">You scored ${pct}%</div>
+            <div class="ip-result-time"><i class="fas fa-stopwatch"></i> Time: ${timeStr}</div>
             <div class="ip-result-msg">${msg}</div>
             <div class="ip-result-breakdown">${breakdownHtml}</div>
             <div class="ip-result-actions">
                 <button class="ip-btn ip-btn-primary" onclick="startQuiz('${currentCategory.replace(/'/g,"\\'")}')"><i class="fas fa-redo"></i> Retry</button>
+                <button class="ip-btn ip-btn-secondary" onclick="shareResult(${score}, ${total}, ${pct})"><i class="fas fa-share-nodes"></i> Share</button>
                 <button class="ip-btn ip-btn-secondary" onclick="backToCategories()"><i class="fas fa-th-large"></i> Other Categories</button>
             </div>
         </div>`;
+
+    if (pct >= 80) launchConfetti();
+}
+
+function shareResult(s, t, p) {
+    const text = `Maine Genius Computer Education ke Interview Practice me "${currentCategory}" category me ${s}/${t} (${p}%) score kiya! 🎯 Aap bhi try karo:`;
+    const url = window.location.href;
+    if (navigator.share) {
+        navigator.share({ title: 'Interview Practice Result', text, url }).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(text + ' ' + url).then(() => {
+            alert('Result copied to clipboard!');
+        }).catch(() => {});
+    }
+}
+
+function launchConfetti() {
+    const colors = ['#667eea', '#a78bfa', '#4ade80', '#fbbf24', '#f87171', '#38bdf8'];
+    const container = document.createElement('div');
+    container.className = 'ip-confetti-container';
+    for (let i = 0; i < 50; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'ip-confetti';
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = (Math.random() * 1.5) + 's';
+        piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+        piece.style.width = (6 + Math.random() * 6) + 'px';
+        piece.style.height = (6 + Math.random() * 6) + 'px';
+        container.appendChild(piece);
+    }
+    document.body.appendChild(container);
+    setTimeout(() => container.remove(), 5000);
 }
 
 function backToCategories() {
+    clearInterval(qTimer);
     document.getElementById('quizArea').classList.remove('active');
     document.getElementById('categories').style.display = 'grid';
+    const summaryEl = document.getElementById('progressSummary');
+    if (summaryEl) summaryEl.style.display = 'block';
+    renderCategories();
 }
 
 function esc(s) { return (s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
