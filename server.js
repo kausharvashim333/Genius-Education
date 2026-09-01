@@ -14751,6 +14751,7 @@ Rules:
 - Ask ONE question at a time only.
 - Be professional but friendly, like a real HR interviewer.
 - Questions should progress naturally: introduction → skills → experience → situational → technical → closing.
+- You MUST ask at least 12-15 questions total before reaching the closing stage.
 - Adapt questions based on the candidate's experience level.
 - For technical questions, you can ask MCQ-style or descriptive questions.
 
@@ -14784,7 +14785,9 @@ Rules:
 - If the answer was weak, ask a follow-up or simpler related question.
 - If the answer was good, move to the next topic.
 - Progress naturally: introduction → skills → experience → situational → technical → closing.
-- After 8-12 questions, start wrapping up. Set isClosing to true when you ask the final question.
+- IMPORTANT: You MUST ask at least 12-15 questions before closing. Do NOT close early.
+- Count the number of questions already asked in the conversation. If fewer than 12 questions have been asked, isClosing MUST be false.
+- Only set isClosing to true when you ask the FINAL closing question (after at least 12 questions).
 - For technical questions, you can ask MCQ-style questions (set mcqOptions and mcqAnswer).
 
 Respond with ONLY valid JSON (no markdown, no code fences):
