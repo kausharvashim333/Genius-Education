@@ -96,6 +96,8 @@ function init() {
         <div class="rb-hint"><i class="fas fa-info-circle"></i> Technical Skills me computer/software skills likho (MS Office, Tally, HTML). Soft Skills me personality skills likho (Communication, Teamwork).</div>
         <div class="rb-field"><label><i class="fas fa-laptop-code" style="color:#a5b4fc;margin-right:4px"></i> Technical Skills</label><textarea id="rTechSkills" placeholder="Comma separated - e.g: MS Office, Tally Prime, HTML, CSS, Photoshop" oninput="updatePreview()"></textarea></div>
         <div class="rb-field"><label><i class="fas fa-users" style="color:#4ade80;margin-right:4px"></i> Soft Skills</label><textarea id="rSoftSkills" placeholder="Comma separated - e.g: Communication, Teamwork, Time Management, Leadership" oninput="updatePreview()"></textarea></div>
+        <button class="rb-ai-btn" id="skillsAiBtn" onclick="suggestSkills()"><i class="fas fa-magic"></i> AI se skills suggest karwao</button>
+        <div id="skillSuggestions" class="rb-skill-suggestions" style="display:none"></div>
         <div class="rb-section-title"><i class="fas fa-certificate"></i> Certifications <div class="rb-toggle-switch on" id="toggleCertifications" onclick="toggleSection('certifications')"></div></div>
         <div class="rb-hint"><i class="fas fa-info-circle"></i> Jo bhi certificate course kiye ho - course ka naam, institute aur saal add karo.</div>
         <div id="certContainer"></div>
@@ -203,6 +205,8 @@ function openAISummaryModal() {
     const techSkills = document.getElementById('rTechSkills').value;
     if (jobTitle) document.getElementById('aiRole').value = jobTitle;
     if (techSkills) document.getElementById('aiSkills').value = techSkills.split(',').slice(0, 4).join(', ');
+    const optBox = document.getElementById('aiSummaryOptions');
+    if (optBox) { optBox.innerHTML = ''; optBox.style.display = 'none'; }
     modal.classList.add('active');
 }
 
@@ -210,18 +214,8 @@ function closeAISummaryModal() {
     document.getElementById('aiSummaryModal').classList.remove('active');
 }
 
-function generateAISummary() {
-    const role = document.getElementById('aiRole').value.trim();
-    const experience = document.getElementById('aiExperience').value.trim();
-    const skills = document.getElementById('aiSkills').value.trim();
-    const qualification = document.getElementById('aiQualification').value.trim();
-    const goal = document.getElementById('aiGoal').value;
-
-    if (!role) { alert('Role/job naam zaroori hai!'); return; }
-
+function buildOfflineSummary(role, experience, skills, qualification, goal) {
     let summary = '';
-
-    // Build summary based on experience level
     const isFresher = experience.toLowerCase().includes('fresher') || experience.toLowerCase().includes('0') || !experience;
 
     if (isFresher) {
@@ -241,12 +235,154 @@ function generateAISummary() {
         else summary += 'Seeking a challenging role to utilize my skills and contribute to organizational growth.';
     }
 
-    // Clean up multiple spaces
-    summary = summary.replace(/\s+/g, ' ').replace(/\.\s*\./g, '.').trim();
+    return summary.replace(/\s+/g, ' ').replace(/\.\s*\./g, '.').trim();
+}
 
-    document.getElementById('rSummary').value = summary;
+function applySummary(text) {
+    document.getElementById('rSummary').value = text;
     updatePreview();
     closeAISummaryModal();
+}
+
+function showSummaryOptions(main, alternatives) {
+    const box = document.getElementById('aiSummaryOptions');
+    if (!box) { applySummary(main); return; }
+    const all = [main].concat(Array.isArray(alternatives) ? alternatives : []).filter(Boolean);
+    box.innerHTML = '<div class="rb-ai-opt-label">Ek option choose karo:</div>' + all.map(function (t) {
+        return '<div class="rb-ai-opt" onclick="applySummary(this.dataset.text)" data-text="' + escAttr(t) + '">' + esc(t) + '</div>';
+    }).join('');
+    box.style.display = 'block';
+}
+
+async function generateAISummary() {
+    const role = document.getElementById('aiRole').value.trim();
+    const experience = document.getElementById('aiExperience').value.trim();
+    const skills = document.getElementById('aiSkills').value.trim();
+    const qualification = document.getElementById('aiQualification').value.trim();
+    const goal = document.getElementById('aiGoal').value;
+
+    if (!role) { alert('Role/job naam zaroori hai!'); return; }
+
+    const btn = document.querySelector('#aiSummaryModal .rb-ai-generate');
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI likh raha hai...'; }
+
+    try {
+        const res = await fetch('/api/ai/resume-assist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'summary', role, experience, skills, qualification, goal })
+        });
+        const data = await res.json();
+        if (data.success && data.result && data.result.summary) {
+            showSummaryOptions(data.result.summary, data.result.alternatives);
+        } else {
+            applySummary(buildOfflineSummary(role, experience, skills, qualification, goal));
+        }
+    } catch {
+        applySummary(buildOfflineSummary(role, experience, skills, qualification, goal));
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    }
+}
+
+async function generateExpBullets(idx) {
+    const role = val('expRole' + idx) || val('rJobTitle');
+    if (!role) { alert('Pehle Role/Position likho!'); return; }
+
+    const btn = document.getElementById('expAiBtn' + idx);
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Likh raha hai...'; }
+
+    try {
+        const res = await fetch('/api/ai/resume-assist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mode: 'bullets',
+                role,
+                company: val('expCompany' + idx),
+                duration: val('expDates' + idx),
+                skills: val('rTechSkills')
+            })
+        });
+        const data = await res.json();
+        if (data.success && data.result && Array.isArray(data.result.bullets) && data.result.bullets.length) {
+            const ta = document.getElementById('expDesc' + idx);
+            ta.value = data.result.bullets.map(function (b) { return '• ' + b; }).join('\n');
+            updatePreview();
+        } else {
+            alert('AI abhi bullets nahi bana paya. Thodi der baad try karo.');
+        }
+    } catch {
+        alert('Connection error. Internet check karo.');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    }
+}
+
+async function suggestSkills() {
+    const role = val('rJobTitle');
+    if (!role) { alert('Pehle Personal tab me Job Title likho!'); return; }
+
+    const btn = document.getElementById('skillsAiBtn');
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Soch raha hai...'; }
+
+    try {
+        const res = await fetch('/api/ai/resume-assist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mode: 'skills',
+                role,
+                experience: val('rJobTitle') ? '' : 'fresher',
+                skills: val('rTechSkills') + ', ' + val('rSoftSkills')
+            })
+        });
+        const data = await res.json();
+        if (data.success && data.result) {
+            renderSkillSuggestions(data.result.technical || [], data.result.soft || []);
+        } else {
+            alert('AI abhi skills suggest nahi kar paya. Thodi der baad try karo.');
+        }
+    } catch {
+        alert('Connection error. Internet check karo.');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    }
+}
+
+function renderSkillSuggestions(technical, soft) {
+    const box = document.getElementById('skillSuggestions');
+    if (!box) return;
+    let html = '<div class="rb-ai-opt-label">Click karke add karo:</div>';
+    if (technical.length) {
+        html += '<div class="rb-skill-sugg-group"><span class="rb-skill-sugg-head">Technical</span>' + technical.map(function (s) {
+            return '<span class="rb-skill-chip" onclick="addSkillChip(this,\'rTechSkills\')" data-skill="' + escAttr(s) + '">+ ' + esc(s) + '</span>';
+        }).join('') + '</div>';
+    }
+    if (soft.length) {
+        html += '<div class="rb-skill-sugg-group"><span class="rb-skill-sugg-head">Soft Skills</span>' + soft.map(function (s) {
+            return '<span class="rb-skill-chip" onclick="addSkillChip(this,\'rSoftSkills\')" data-skill="' + escAttr(s) + '">+ ' + esc(s) + '</span>';
+        }).join('') + '</div>';
+    }
+    box.innerHTML = html;
+    box.style.display = 'block';
+}
+
+function addSkillChip(el, targetId) {
+    const skill = el.dataset.skill;
+    const ta = document.getElementById(targetId);
+    if (!ta) return;
+    const existing = ta.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    if (existing.some(function (s) { return s.toLowerCase() === skill.toLowerCase(); })) return;
+    existing.push(skill);
+    ta.value = existing.join(', ');
+    el.classList.add('added');
+    el.innerHTML = '<i class="fas fa-check"></i> ' + esc(skill);
+    el.onclick = null;
+    updatePreview();
 }
 
 function toggleSection(sec) {
@@ -336,6 +472,7 @@ function removePhoto() {
 }
 
 function esc(s) { return (s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function escAttr(s) { return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 function updatePreview() {
     const name = esc(document.getElementById('rName').value) || 'Your Name';
@@ -657,7 +794,7 @@ function addExperience() {
     const d = document.createElement('div');
     d.className = 'rb-entry-block';
     d.id = 'expBlock' + expCount;
-    d.innerHTML = '<button class="rb-remove-btn" onclick="this.parentElement.remove();updatePreview()"><i class="fas fa-times"></i></button><div class="rb-field"><label>Role / Position</label><input type="text" id="expRole' + expCount + '" placeholder="Data Entry Operator" oninput="updatePreview()"></div><div class="rb-field"><label>Company</label><input type="text" id="expCompany' + expCount + '" placeholder="ABC Company" oninput="updatePreview()"></div><div class="rb-field"><label>Duration</label><input type="text" id="expDates' + expCount + '" placeholder="Jan 2024 - Present" oninput="updatePreview()"></div><div class="rb-field"><label>Description</label><textarea id="expDesc' + expCount + '" placeholder="Key responsibilities and achievements..." oninput="updatePreview()"></textarea></div>';
+    d.innerHTML = '<button class="rb-remove-btn" onclick="this.parentElement.remove();updatePreview()"><i class="fas fa-times"></i></button><div class="rb-field"><label>Role / Position</label><input type="text" id="expRole' + expCount + '" placeholder="Data Entry Operator" oninput="updatePreview()"></div><div class="rb-field"><label>Company</label><input type="text" id="expCompany' + expCount + '" placeholder="ABC Company" oninput="updatePreview()"></div><div class="rb-field"><label>Duration</label><input type="text" id="expDates' + expCount + '" placeholder="Jan 2024 - Present" oninput="updatePreview()"></div><div class="rb-field"><label>Description</label><textarea id="expDesc' + expCount + '" placeholder="Key responsibilities and achievements..." oninput="updatePreview()"></textarea><button class="rb-ai-btn" id="expAiBtn' + expCount + '" onclick="generateExpBullets(' + expCount + ')"><i class="fas fa-magic"></i> AI se description likhwao</button></div>';
     c.appendChild(d);
     updatePreview();
 }

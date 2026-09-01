@@ -14802,68 +14802,269 @@ Respond with ONLY valid JSON (no markdown, no code fences):
 }`;
         }
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+        const result = await callGeminiJSON(prompt, { temperature: 0.8, maxOutputTokens: 3000 });
+        if (!result.ok) {
+            return res.json({ success: false, fallback: true, message: result.message });
+        }
+        res.json({ success: true, response: result.data });
+    } catch (err) {
+        console.error('AI interview chat error:', err.message);
+        res.json({ success: false, fallback: true, message: 'AI interview failed' });
+    }
+});
+
+// --- Shared Gemini helper: sends a prompt and returns parsed JSON ---
+async function callGeminiJSON(prompt, opts) {
+    // Note: gemini-3.6-flash spends ~500-1500 tokens on internal reasoning before
+    // emitting output, and those count against maxOutputTokens. Keep this generous
+    // or responses get truncated mid-JSON.
+    const { temperature = 0.8, maxOutputTokens = 3000 } = opts || {};
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return { ok: false, message: 'AI not configured' };
+
+    let response;
+    try {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.8, maxOutputTokens: 2000 }
+                generationConfig: { temperature, maxOutputTokens, responseMimeType: 'application/json' }
             })
         });
-
-        if (!response.ok) {
-            console.error('Gemini API error:', response.status, await response.text().catch(() => ''));
-            return res.json({ success: false, fallback: true, message: 'AI interview unavailable' });
-        }
-
-        const data = await response.json();
-        let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        
-        // Strip markdown code fences if present
-        text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-        
-        // Try to extract JSON - handle both complete and truncated responses
-        let jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-            // If no closing brace, try to salvage truncated JSON by adding closing braces
-            const startIdx = text.indexOf('{');
-            if (startIdx !== -1) {
-                let partial = text.substring(startIdx);
-                // Try to close incomplete JSON
-                const lastQuote = partial.lastIndexOf('"');
-                const lastComma = partial.lastIndexOf(',');
-                if (lastQuote > lastComma) {
-                    partial = partial.substring(0, lastQuote + 1) + '}}';
-                } else {
-                    partial = partial + '}}';
-                }
-                try {
-                    const result = JSON.parse(partial);
-                    return res.json({ success: true, response: result });
-                } catch {}
-            }
-            console.error('AI interview: Could not parse JSON from:', text.substring(0, 200));
-            return res.json({ success: false, fallback: true, message: 'Invalid AI response' });
-        }
-
-        try {
-            const result = JSON.parse(jsonMatch[0]);
-            res.json({ success: true, response: result });
-        } catch (parseErr) {
-            // If JSON.parse fails on the match, try to fix common issues
-            try {
-                // Remove trailing commas before closing braces
-                const fixed = jsonMatch[0].replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
-                const result = JSON.parse(fixed);
-                res.json({ success: true, response: result });
-            } catch {
-                console.error('AI interview: JSON parse failed on:', jsonMatch[0].substring(0, 200));
-                res.json({ success: false, fallback: true, message: 'Invalid AI response' });
-            }
-        }
     } catch (err) {
-        console.error('AI interview chat error:', err.message);
-        res.json({ success: false, fallback: true, message: 'AI interview failed' });
+        console.error('Gemini fetch failed:', err.message);
+        return { ok: false, message: 'AI service unreachable' };
+    }
+
+    if (!response.ok) {
+        console.error('Gemini API error:', response.status, await response.text().catch(() => ''));
+        return { ok: false, message: 'AI service unavailable' };
+    }
+
+    const data = await response.json();
+    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
+    const start = text.indexOf('{');
+    if (start === -1) {
+        console.error('Gemini: no JSON found in response:', text.substring(0, 200));
+        return { ok: false, message: 'Invalid AI response' };
+    }
+    const match = text.match(/\{[\s\S]*\}/);
+    const raw = match ? match[0] : text.substring(start);
+
+    try { return { ok: true, data: JSON.parse(raw) }; } catch {}
+    try { return { ok: true, data: JSON.parse(raw.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']')) }; } catch {}
+
+    console.error('Gemini: JSON parse failed on:', raw.substring(0, 200));
+    return { ok: false, message: 'Invalid AI response' };
+}
+
+// --- Gemini AI Resume Assistant ---
+const aiResumeLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, message: { success: false, message: 'Too many requests, try again shortly' } });
+
+app.post('/api/ai/resume-assist', aiResumeLimiter, async (req, res) => {
+    try {
+        const { mode, role, experience, skills, qualification, goal, company, duration, language } = req.body || {};
+        const allowed = ['summary', 'bullets', 'skills'];
+        if (!allowed.includes(mode)) {
+            return res.status(400).json({ success: false, message: 'Invalid mode' });
+        }
+        if (!role || String(role).length > 200) {
+            return res.status(400).json({ success: false, message: 'role required' });
+        }
+
+        const clip = (v, n) => String(v || '').substring(0, n);
+        const jobRole = clip(role, 200);
+        const exp = clip(experience, 100) || 'fresher';
+        const skillList = clip(skills, 400);
+        const qual = clip(qualification, 200);
+        const langNote = language === 'hindi'
+            ? 'Write in simple Hindi (Devanagari).'
+            : 'Write in professional English. Keep it simple and easy to read.';
+
+        let prompt;
+        if (mode === 'summary') {
+            prompt = `You are an expert resume writer helping an Indian job seeker.
+
+Candidate details:
+- Target role: ${jobRole}
+- Experience: ${exp}
+- Key skills: ${skillList || 'not specified'}
+- Highest qualification: ${qual || 'not specified'}
+- Career goal: ${clip(goal, 300) || 'not specified'}
+
+Write a professional resume summary (also called career objective).
+
+Rules:
+- 2 to 3 sentences, 40 to 60 words total.
+- ${langNote}
+- Start strong. Do NOT start with "I am" or "My name is".
+- Mention the role, relevant skills, and the value the candidate brings.
+- If the candidate is a fresher, focus on qualification, skills and eagerness to learn. Do not invent work experience.
+- Never invent companies, numbers, or achievements that were not provided.
+- No buzzword stuffing, no first-person pronouns like "I" or "my".
+
+Also give 2 alternative shorter versions.
+
+Respond with JSON only:
+{
+  "summary": "<main summary>",
+  "alternatives": ["<alt 1>", "<alt 2>"]
+}`;
+        } else if (mode === 'bullets') {
+            prompt = `You are an expert resume writer helping an Indian job seeker.
+
+Job details:
+- Role: ${jobRole}
+- Company: ${clip(company, 200) || 'not specified'}
+- Duration: ${clip(duration, 100) || 'not specified'}
+- Candidate skills: ${skillList || 'not specified'}
+
+Write 4 resume bullet points describing responsibilities and achievements for this job.
+
+Rules:
+- Each bullet must start with a strong past-tense action verb (Managed, Handled, Processed, Maintained, Prepared, Coordinated).
+- Each bullet 10 to 18 words.
+- ${langNote}
+- Be realistic for this role in an Indian workplace.
+- Do NOT invent specific numbers, client names, or awards. Use general but concrete phrasing.
+- No first-person pronouns. No bullet symbols in the text.
+
+Respond with JSON only:
+{
+  "bullets": ["<bullet 1>", "<bullet 2>", "<bullet 3>", "<bullet 4>"]
+}`;
+        } else {
+            prompt = `You are a career advisor for Indian job seekers.
+
+Target role: ${jobRole}
+Experience level: ${exp}
+Skills the candidate already listed: ${skillList || 'none'}
+
+Suggest skills this candidate should put on their resume for this role.
+
+Rules:
+- Give 8 technical skills and 5 soft skills.
+- Short skill names only (1 to 4 words each), the kind recruiters scan for.
+- Do not repeat skills the candidate already listed.
+- Keep them realistic for the stated experience level.
+- Skill names in English even if the resume is in Hindi.
+
+Respond with JSON only:
+{
+  "technical": ["<skill>", "..."],
+  "soft": ["<skill>", "..."]
+}`;
+        }
+
+        const result = await callGeminiJSON(prompt, { temperature: 0.75, maxOutputTokens: 3000 });
+        if (!result.ok) {
+            return res.json({ success: false, fallback: true, message: result.message });
+        }
+        res.json({ success: true, result: result.data });
+    } catch (err) {
+        console.error('AI resume assist error:', err.message);
+        res.json({ success: false, fallback: true, message: 'AI resume assist failed' });
+    }
+});
+
+// --- Gemini AI Spoken English Partner (conversational practice) ---
+const aiSpokenLimiter = rateLimit({ windowMs: 60 * 1000, max: 40, message: { success: false, message: 'Too many requests, try again shortly' } });
+
+app.post('/api/ai/spoken-english-chat', aiSpokenLimiter, async (req, res) => {
+    try {
+        const { topic, level, conversation, isFirst } = req.body || {};
+        if (!topic || String(topic).length > 200) {
+            return res.status(400).json({ success: false, message: 'topic required' });
+        }
+
+        const lvl = ['beginner', 'intermediate', 'advanced'].includes(level) ? level : 'beginner';
+        const talkTopic = String(topic).substring(0, 200);
+
+        const levelGuide = {
+            beginner: 'Use very simple English. Short sentences, 8 to 12 words. Common everyday words only. You may add a short Hindi hint in brackets if a word is hard.',
+            intermediate: 'Use everyday conversational English. Sentences 12 to 20 words. Introduce some new vocabulary naturally.',
+            advanced: 'Use natural fluent English with idioms and varied sentence structure. Challenge the learner.'
+        }[lvl];
+
+        const history = Array.isArray(conversation) ? conversation.slice(-24) : [];
+        const convText = history.map(m => {
+            const t = String(m.text || '').substring(0, 1000);
+            if (m.role === 'partner') return `Partner: ${t}`;
+            if (m.role === 'learner') return `Learner: ${t}`;
+            return '';
+        }).filter(Boolean).join('\n');
+
+        let prompt;
+        if (isFirst) {
+            prompt = `You are a friendly English conversation partner for an Indian student practising spoken English.
+
+Topic: "${talkTopic}"
+Learner level: ${lvl}
+
+${levelGuide}
+
+Start the conversation:
+- Greet the learner warmly in one short sentence.
+- Then ask ONE simple opening question about the topic.
+- Keep your whole message under 35 words.
+- Be encouraging. Never sound like a strict teacher.
+
+Respond with JSON only:
+{
+  "message": "<your greeting and first question>",
+  "correction": null,
+  "tip": null,
+  "score": null,
+  "isClosing": false
+}`;
+        } else {
+            const last = history[history.length - 1];
+            const learnerText = last && last.role === 'learner' ? String(last.text).substring(0, 1000) : '';
+            prompt = `You are a friendly English conversation partner for an Indian student practising spoken English.
+
+Topic: "${talkTopic}"
+Learner level: ${lvl}
+
+${levelGuide}
+
+Conversation so far:
+${convText}
+
+The learner just said: "${learnerText}"
+
+Do all of this:
+1. If their sentence has grammar, word choice, or spelling mistakes, write the corrected version. If it is already correct, set "correction" to null.
+2. Give one short, friendly tip explaining the fix or praising what they did well. Maximum 20 words. You may explain in Hinglish so it is easy to understand.
+3. Score their sentence 0 to 100 on grammar and fluency.
+4. Reply naturally to what they said to keep the conversation going, and ask ONE follow-up question. Keep your reply under 40 words.
+
+Rules:
+- Never shame the learner. Always encouraging.
+- Correct only real mistakes. Do not rewrite correct sentences.
+- Stay on the topic "${talkTopic}" but let the chat flow naturally.
+- Keep the conversation going. Set isClosing to true only after at least 12 learner replies.
+
+Respond with JSON only:
+{
+  "correction": "<corrected sentence>" or null,
+  "tip": "<short friendly tip>" or null,
+  "score": <0-100>,
+  "message": "<your natural reply plus one follow-up question>",
+  "isClosing": false
+}`;
+        }
+
+        const result = await callGeminiJSON(prompt, { temperature: 0.85, maxOutputTokens: 3000 });
+        if (!result.ok) {
+            return res.json({ success: false, fallback: true, message: result.message });
+        }
+        res.json({ success: true, response: result.data });
+    } catch (err) {
+        console.error('AI spoken english chat error:', err.message);
+        res.json({ success: false, fallback: true, message: 'AI conversation failed' });
     }
 });
 

@@ -47,7 +47,19 @@
 .rb-ai-actions{display:flex;gap:10px;margin-top:18px}
 .rb-ai-actions button{flex:1;padding:10px;border-radius:8px;font-size:.85rem;cursor:pointer;border:none;font-weight:600}
 .rb-ai-generate{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+.rb-ai-generate:disabled{opacity:.6;cursor:not-allowed}
+.rb-ai-btn:disabled{opacity:.6;cursor:not-allowed}
 .rb-ai-cancel{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.15)!important}
+.rb-ai-options{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)}
+.rb-ai-opt-label{font-size:.75rem;font-weight:600;color:#a5b4fc;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.rb-ai-opt{background:rgba(102,126,234,.08);border:1px solid rgba(102,126,234,.25);border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:.83rem;color:rgba(255,255,255,.8);line-height:1.5;cursor:pointer;transition:all .2s}
+.rb-ai-opt:hover{background:rgba(102,126,234,.18);border-color:#667eea;color:#fff}
+.rb-skill-suggestions{background:rgba(102,126,234,.06);border:1px solid rgba(102,126,234,.2);border-radius:12px;padding:14px;margin-bottom:12px}
+.rb-skill-sugg-group{margin-top:10px}
+.rb-skill-sugg-head{display:block;font-size:.72rem;font-weight:600;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.rb-skill-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;margin:0 6px 6px 0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:20px;font-size:.78rem;color:rgba(255,255,255,.75);cursor:pointer;transition:all .2s}
+.rb-skill-chip:hover{background:rgba(102,126,234,.25);border-color:#667eea;color:#fff}
+.rb-skill-chip.added{background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.4);color:#4ade80;cursor:default}
 .rb-remove-btn{color:#f87171;cursor:pointer;font-size:.85rem;background:none;border:none;position:absolute;top:10px;right:10px}
 .rb-entry-block{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;margin-bottom:12px;position:relative}
 .rb-template-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
@@ -467,6 +479,7 @@
                 <option value="eager to start my career and contribute to the organization">Fresher - career start karna chahta hoon</option>
             </select>
         </div>
+        <div id="aiSummaryOptions" class="rb-ai-options" style="display:none"></div>
         <div class="rb-ai-actions">
             <button class="rb-ai-cancel" onclick="closeAISummaryModal()">Cancel</button>
             <button class="rb-ai-generate" onclick="generateAISummary()"><i class="fas fa-magic"></i> Generate Summary</button>
