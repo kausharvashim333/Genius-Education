@@ -14721,7 +14721,7 @@ Make questions practical and relevant to the job role. Include some general HR q
 });
 
 // --- Gemini AI HR Interview Chat (one question at a time, conversational) ---
-const aiInterviewLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, message: { success: false, message: 'Too many requests, try again shortly' } });
+const aiInterviewLimiter = rateLimit({ windowMs: 60 * 1000, max: 40, message: { success: false, message: 'Too many requests, try again shortly' } });
 
 app.post('/api/ai/interview-chat', aiInterviewLimiter, async (req, res) => {
     try {
