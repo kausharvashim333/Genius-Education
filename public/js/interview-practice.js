@@ -133,7 +133,8 @@ async function startAIInterview() {
         if (data.success && data.response) {
             handleInterviewerResponse(data.response);
         } else {
-            chat.innerHTML = '<div class="ip-qna-loading"><i class="fas fa-exclamation-circle" style="color:#f87171"></i><p>AI interview start nahi ho paya. Please try again.</p></div>';
+            const errMsg = data.message || 'Unknown error';
+            chat.innerHTML = '<div class="ip-qna-loading"><i class="fas fa-exclamation-circle" style="color:#f87171"></i><p>AI interview start nahi ho paya.</p><p style="font-size:.8rem;color:#999;margin-top:8px">' + esc(errMsg) + '</p><button class="ip-btn ip-btn-primary" style="margin-top:12px" onclick="startAIInterview()"><i class="fas fa-redo"></i> Retry</button></div>';
         }
     } catch {
         removeTyping();
