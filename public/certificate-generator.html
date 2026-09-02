@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificate Generator - Genius Computer Education</title>
+<link rel="stylesheet" href="css/style.css?v=20260719">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#334155 100%);min-height:100vh;font-family:'Segoe UI',system-ui,sans-serif;color:#fff}
+.cert-page{padding:90px 0 40px;min-height:100vh;position:relative}
+.cert-page::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 20% 0%,rgba(245,158,11,.12) 0%,transparent 50%);pointer-events:none;z-index:0}
+.cert-page>*{position:relative;z-index:1}
+.cert-hero{text-align:center;padding:30px 20px}
+.cert-hero-icon{width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,#f59e0b,#d97706);display:inline-flex;align-items:center;justify-content:center;font-size:2.5rem;color:#fff;margin-bottom:16px;box-shadow:0 12px 40px rgba(245,158,11,.4)}
+.cert-hero h1{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#f59e0b,#d97706);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.cert-hero p{color:#94a3b8;font-size:1rem;max-width:500px;margin:0 auto}
+.cert-container{max-width:1000px;margin:0 auto;padding:0 20px}
+.cert-layout{display:grid;grid-template-columns:320px 1fr;gap:24px}
+.cert-form{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:24px}
+.cert-row{margin-bottom:16px}
+.cert-label{display:block;font-size:.82rem;font-weight:600;color:#94a3b8;margin-bottom:6px}
+.cert-input{width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#fff;font-size:.9rem;outline:none;transition:border .2s}
+.cert-input:focus{border-color:rgba(245,158,11,.4)}
+.cert-input::placeholder{color:#475569}
+.cert-select{width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(15,23,42,.8);color:#fff;font-size:.9rem;outline:none}
+.cert-tpl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cert-tpl{padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;transition:all .2s;text-align:center;font-size:.75rem;font-weight:600;color:#94a3b8}
+.cert-tpl:hover{border-color:rgba(245,158,11,.3)}
+.cert-tpl.active{border-color:#f59e0b;background:rgba(245,158,11,.1);color:#fbbf24}
+.cert-tpl-color{width:100%;height:24px;border-radius:6px;margin-bottom:4px}
+.cert-btn{width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px}
+.cert-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,158,11,.35)}
+.cert-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.cert-preview-wrap{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:20px;display:flex;align-items:center;justify-content:center;min-height:500px;overflow:auto}
+.cert-canvas{width:100%;max-width:700px;aspect-ratio:1.414/1;background:#fff;border-radius:8px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+.cert-border{position:absolute;inset:12px;border:3px solid var(--cert-primary,#f59e0b);border-radius:4px}
+.cert-border-inner{position:absolute;inset:18px;border:1px solid var(--cert-primary,#f59e0b);opacity:.4;border-radius:2px}
+.cert-content{text-align:center;padding:40px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.cert-org{font-size:.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+-cert-org-name{font-size:1.1rem;font-weight:800;color:var(--cert-primary,#f59e0b);margin-bottom:20px}
+.cert-title{font-size:2.2rem;font-weight:800;color:var(--cert-primary,#f59e0b);margin-bottom:8px;font-family:Georgia,serif}
+.cert-subtitle{font-size:.8rem;color:#64748b;margin-bottom:24px;text-transform:uppercase;letter-spacing:1px}
+.cert-presented{font-size:.85rem;color:#64748b;margin-bottom:8px}
+.cert-name{font-size:1.8rem;font-weight:700;color:#1e293b;margin-bottom:4px;font-family:Georgia,serif;border-bottom:2px solid var(--cert-primary,#f59e0b);padding-bottom:4px;display:inline-block}
+.cert-desc{font-size:.85rem;color:#475569;margin:16px 0;max-width:400px;line-height:1.5}
+.cert-course{font-size:1rem;font-weight:600;color:#1e293b;margin-bottom:20px}
+.cert-date{font-size:.78rem;color:#64748b;margin-bottom:20px}
+.cert-signatures{display:flex;justify-content:space-around;width:100%;margin-top:auto;padding-top:20px}
+.cert-sig{text-align:center}
+.cert-sig-line{width:120px;height:1px;background:#94a3b8;margin:0 auto 4px}
+.cert-sig-label{font-size:.7rem;color:#64748b;font-weight:600}
+.cert-seal{width:60px;height:60px;border-radius:50%;border:2px solid var(--cert-primary,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:var(--cert-primary,#f59e0b);position:absolute;bottom:30px;right:30px;opacity:.8;text-align:center;line-height:1.2}
+@media(max-width:768px){.cert-layout{grid-template-columns:1fr}.cert-canvas{aspect-ratio:1.414/1}.cert-hero h1{font-size:1.8rem}}
+</style>
+</head>
+<body>
+<nav class="navbar"><div class="container">
+<div class="nav-brand">
+<img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22%3EG%3C/text%3E%3C/svg%3E" alt="Logo" class="nav-logo" style="display:block;max-height:45px;max-width:45px;border-radius:10px;">
+<a href="index.html">Genius Computer Education</a>
+</div>
+<ul class="nav-menu">
+<li><a href="index.html">Home</a></li>
+<li><a href="courses.html">Courses</a></li>
+<li><a href="tools.html"><i class="fas fa-tools"></i> Tools</a></li>
+</ul>
+<div class="hamburger"><span></span><span></span><span></span></div>
+</div></nav>
+
+<div class="cert-page">
+<div class="cert-hero">
+<div class="cert-hero-icon"><i class="fas fa-certificate"></i></div>
+<h1>Certificate Generator</h1>
+<p>Course completion certificates banao custom names, course details aur logo ke saath.</p>
+</div>
+<div class="cert-container">
+<div class="cert-layout">
+<div class="cert-form">
+<div class="cert-row">
+<label class="cert-label">Student Name</label>
+<input type="text" class="cert-input" id="cName" placeholder="Enter student name" value="" oninput="updatePreview()">
+</div>
+<div class="cert-row">
+<label class="cert-label">Course Name</label>
+<input type="text" class="cert-input" id="cCourse" placeholder="Enter course name" value="Web Development" oninput="updatePreview()">
+</div>
+<div class="cert-row">
+<label class="cert-label">Organization Name</label>
+<input type="text" class="cert-input" id="cOrg" placeholder="Organization name" value="Genius Computer Education" oninput="updatePreview()">
+</div>
+<div class="cert-row">
+<label class="cert-label">Duration</label>
+<input type="text" class="cert-input" id="cDuration" placeholder="e.g. 3 Months" value="3 Months" oninput="updatePreview()">
+</div>
+<div class="cert-row">
+<label class="cert-label">Date</label>
+<input type="date" class="cert-input" id="cDate" oninput="updatePreview()">
+</div>
+<div class="cert-row">
+<label class="cert-label">Certificate ID (optional)</label>
+<input type="text" class="cert-input" id="cId" placeholder="Auto-generated if empty" oninput="updatePreview()">
+</div>
+<div class="cert-row">
+<label class="cert-label">Template</label>
+<div class="cert-tpl-grid">
+<div class="cert-tpl active" data-tpl="gold" onclick="setTemplate('gold')"><div class="cert-tpl-color" style="background:linear-gradient(135deg,#f59e0b,#d97706)"></div>Gold</div>
+<div class="cert-tpl" data-tpl="blue" onclick="setTemplate('blue')"><div class="cert-tpl-color" style="background:linear-gradient(135deg,#667eea,#764ba2)"></div>Blue</div>
+<div class="cert-tpl" data-tpl="green" onclick="setTemplate('green')"><div class="cert-tpl-color" style="background:linear-gradient(135deg,#10b981,#059669)"></div>Green</div>
+<div class="cert-tpl" data-tpl="red" onclick="setTemplate('red')"><div class="cert-tpl-color" style="background:linear-gradient(135deg,#ef4444,#dc2626)"></div>Red</div>
+<div class="cert-tpl" data-tpl="purple" onclick="setTemplate('purple')"><div class="cert-tpl-color" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)"></div>Purple</div>
+<div class="cert-tpl" data-tpl="teal" onclick="setTemplate('teal')"><div class="cert-tpl-color" style="background:linear-gradient(135deg,#0d9488,#0891b2)"></div>Teal</div>
+</div>
+</div>
+<button class="cert-btn" id="certDownload" onclick="downloadCert()"><i class="fas fa-download"></i> Download PNG</button>
+</div>
+<div class="cert-preview-wrap">
+<div class="cert-canvas" id="certCanvas">
+<div class="cert-border"></div>
+<div class="cert-border-inner"></div>
+<div class="cert-content">
+<div class="cert-org">Certificate of Completion</div>
+<div class="cert-org-name" id="prevOrg" style="font-size:1.1rem;font-weight:800;color:var(--cert-primary,#f59e0b);margin-bottom:20px">Genius Computer Education</div>
+<div class="cert-title">Certificate</div>
+<div class="cert-subtitle">This is proudly presented to</div>
+<div class="cert-name" id="prevName">Student Name</div>
+<div class="cert-desc" id="prevDesc">For successfully completing the course</div>
+<div class="cert-course" id="prevCourse">Web Development</div>
+<div class="cert-date" id="prevDate"></div>
+<div class="cert-signatures">
+<div class="cert-sig"><div class="cert-sig-line"></div><div class="cert-sig-label">Director</div></div>
+<div class="cert-sig"><div class="cert-sig-line"></div><div class="cert-sig-label">Instructor</div></div>
+</div>
+<div class="cert-seal" id="prevSeal">GENIUS<br>EDU</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+var tplColors = {
+  gold: '#f59e0b', blue: '#667eea', green: '#10b981',
+  red: '#ef4444', purple: '#8b5cf6', teal: '#0d9488'
+};
+var currentTpl = 'gold';
+
+function setTemplate(tpl) {
+  currentTpl = tpl;
+  document.querySelectorAll('.cert-tpl').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelector('.cert-tpl[data-tpl="' + tpl + '"]').classList.add('active');
+  document.getElementById('certCanvas').style.setProperty('--cert-primary', tplColors[tpl]);
+  document.querySelectorAll('.cert-org-name, .cert-title, .cert-name, .cert-seal').forEach(function(el) {
+    el.style.color = tplColors[tpl];
+  });
+  document.querySelector('.cert-border').style.borderColor = tplColors[tpl];
+  document.querySelector('.cert-border-inner').style.borderColor = tplColors[tpl];
+  document.querySelector('.cert-name').style.borderBottomColor = tplColors[tpl];
+  document.querySelector('.cert-seal').style.borderColor = tplColors[tpl];
+}
+
+function updatePreview() {
+  var name = document.getElementById('cName').value.trim() || 'Student Name';
+  var course = document.getElementById('cCourse').value.trim() || 'Course Name';
+  var org = document.getElementById('cOrg').value.trim() || 'Organization';
+  var duration = document.getElementById('cDuration').value.trim();
+  var date = document.getElementById('cDate').value;
+  var certId = document.getElementById('cId').value.trim();
+
+  document.getElementById('prevName').textContent = name;
+  document.getElementById('prevCourse').textContent = course;
+  document.getElementById('prevOrg').textContent = org;
+  document.getElementById('prevSeal').innerHTML = org.split(' ').map(function(w) { return w.substring(0, 4); }).join('<br>');
+
+  var descText = 'For successfully completing';
+  if (duration) descText += ' the ' + duration + ' program in';
+  else descText += ' the course in';
+  document.getElementById('prevDesc').textContent = descText;
+
+  if (date) {
+    var d = new Date(date);
+    var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    document.getElementById('prevDate').textContent = 'Date: ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  } else {
+    document.getElementById('prevDate').textContent = '';
+  }
+
+  if (certId) {
+    document.getElementById('prevDate').textContent += (date ? '  |  ' : '') + 'ID: ' + certId;
+  }
+}
+
+function downloadCert() {
+  var btn = document.getElementById('certDownload');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+  var canvas = document.getElementById('certCanvas');
+  html2canvas(canvas, { scale: 2, backgroundColor: '#ffffff' }).then(function(c) {
+    var link = document.createElement('a');
+    var name = document.getElementById('cName').value.trim() || 'certificate';
+    link.download = 'Certificate_' + name.replace(/\s+/g, '_') + '.png';
+    link.href = c.toDataURL('image/png');
+    link.click();
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-download"></i> Download PNG';
+  }).catch(function(err) {
+    alert('Download failed: ' + err.message);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-download"></i> Download PNG';
+  });
+}
+
+var today = new Date().toISOString().split('T')[0];
+document.getElementById('cDate').value = today;
+updatePreview();
+
+var hb = document.querySelector('.hamburger');
+var nm = document.querySelector('.nav-menu');
+if (hb && nm) hb.addEventListener('click', function() { nm.classList.toggle('active'); });
+</script>
+<script src="/js/security.js"></script>
+</body>
+</html>

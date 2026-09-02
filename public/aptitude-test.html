@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aptitude Test - Genius Computer Education</title>
+<link rel="stylesheet" href="css/style.css?v=20260719">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#334155 100%);min-height:100vh;font-family:'Segoe UI',system-ui,sans-serif;color:#fff}
+.apt-page{padding:90px 0 40px;min-height:100vh;position:relative}
+.apt-page::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 20% 0%,rgba(124,58,237,.12) 0%,transparent 50%);pointer-events:none;z-index:0}
+.apt-page>*{position:relative;z-index:1}
+.apt-hero{text-align:center;padding:30px 20px}
+.apt-hero-icon{width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,#7c3aed,#db2777);display:inline-flex;align-items:center;justify-content:center;font-size:2.5rem;color:#fff;margin-bottom:16px;box-shadow:0 12px 40px rgba(124,58,237,.4)}
+.apt-hero h1{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#7c3aed,#db2777);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.apt-hero p{color:#94a3b8;font-size:1rem;max-width:500px;margin:0 auto}
+.apt-container{max-width:800px;margin:0 auto;padding:0 20px}
+.apt-cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:30px}
+.apt-cat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;cursor:pointer;transition:all .3s;text-align:center}
+.apt-cat:hover{transform:translateY(-4px);border-color:rgba(124,58,237,.3);box-shadow:0 12px 32px rgba(124,58,237,.15)}
+.apt-cat-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#fff;margin:0 auto 12px}
+.apt-cat h3{font-size:1.05rem;font-weight:700;margin-bottom:4px}
+.apt-cat p{font-size:.78rem;color:#64748b}
+.apt-cat-count{display:inline-block;margin-top:8px;font-size:.72rem;padding:3px 10px;border-radius:12px;background:rgba(124,58,237,.15);color:#c4b5fd}
+.apt-quiz{display:none}
+.apt-quiz.active{display:block;animation:aptFade .4s ease}
+@keyframes aptFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.apt-quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.apt-quiz-title{font-size:1.3rem;font-weight:700;display:flex;align-items:center;gap:10px}
+.apt-quiz-title i{color:#c4b5fd}
+.apt-timer{padding:8px 16px;border-radius:10px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.25);font-size:.9rem;font-weight:700;color:#c4b5fd;display:flex;align-items:center;gap:8px}
+.apt-timer.warn{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.25);color:#f87171}
+.apt-progress{height:6px;border-radius:3px;background:rgba(255,255,255,.06);margin-bottom:20px;overflow:hidden}
+.apt-progress-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,#7c3aed,#db2777);transition:width .3s}
+.apt-q-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:28px;margin-bottom:20px}
+.apt-q-num{font-size:.78rem;font-weight:600;color:#c4b5fd;margin-bottom:8px}
+.apt-q-text{font-size:1.1rem;font-weight:600;margin-bottom:20px;line-height:1.5}
+.apt-options{display:flex;flex-direction:column;gap:10px}
+.apt-opt{padding:14px 18px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);cursor:pointer;transition:all .2s;font-size:.95rem;display:flex;align-items:center;gap:12px}
+.apt-opt:hover{border-color:rgba(124,58,237,.3);background:rgba(124,58,237,.05)}
+.apt-opt.selected{border-color:#7c3aed;background:rgba(124,58,237,.1)}
+.apt-opt.correct{border-color:#10b981;background:rgba(16,185,129,.1)}
+.apt-opt.wrong{border-color:#ef4444;background:rgba(239,68,68,.1)}
+.apt-opt-letter{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0}
+.apt-opt.selected .apt-opt-letter{background:#7c3aed;color:#fff}
+.apt-opt.correct .apt-opt-letter{background:#10b981;color:#fff}
+.apt-opt.wrong .apt-opt-letter{background:#ef4444;color:#fff}
+.apt-quiz-nav{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.apt-nav-btn{padding:10px 24px;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;border:none;transition:all .25s;display:inline-flex;align-items:center;gap:8px}
+.apt-nav-btn.prev{background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.12)}
+.apt-nav-btn.next{background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff}
+.apt-nav-btn:hover{transform:translateY(-2px)}
+.apt-nav-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.apt-result{display:none;text-align:center}
+.apt-result.active{display:block;animation:aptFade .4s ease}
+.apt-result-score{font-size:4rem;font-weight:800;margin:20px 0}
+.apt-result-score.good{color:#34d399}
+.apt-result-score.avg{color:#fbbf24}
+.apt-result-score.bad{color:#f87171}
+.apt-result-stats{display:flex;gap:20px;justify-content:center;margin:20px 0;flex-wrap:wrap}
+.apt-stat{padding:16px 24px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.apt-stat-num{font-size:1.8rem;font-weight:800}
+.apt-stat-label{font-size:.75rem;color:#64748b;text-transform:uppercase;letter-spacing:1px}
+.apt-result-btn{padding:12px 28px;border-radius:12px;border:none;background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .25s;margin-top:16px}
+.apt-result-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,58,237,.35)}
+.apt-review{text-align:left;margin-top:24px}
+.apt-review-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;margin-bottom:10px}
+.apt-review-q{font-size:.9rem;font-weight:600;margin-bottom:8px}
+.apt-review-a{font-size:.82rem;padding:4px 10px;border-radius:6px;display:inline-block;margin-right:6px}
+.apt-review-a.right{background:rgba(16,185,129,.1);color:#34d399}
+.apt-review-a.wrong{background:rgba(239,68,68,.1);color:#f87171}
+.apt-review-a.ans{background:rgba(255,255,255,.06);color:#94a3b8}
+@media(max-width:640px){.apt-hero h1{font-size:1.8rem}.apt-cats{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav class="navbar"><div class="container">
+<div class="nav-brand">
+<img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22%3EG%3C/text%3E%3C/svg%3E" alt="Logo" class="nav-logo" style="display:block;max-height:45px;max-width:45px;border-radius:10px;">
+<a href="index.html">Genius Computer Education</a>
+</div>
+<ul class="nav-menu">
+<li><a href="index.html">Home</a></li>
+<li><a href="courses.html">Courses</a></li>
+<li><a href="tools.html"><i class="fas fa-tools"></i> Tools</a></li>
+</ul>
+<div class="hamburger"><span></span><span></span><span></span></div>
+</div></nav>
+
+<div class="apt-page">
+<div class="apt-hero">
+<div class="apt-hero-icon"><i class="fas fa-calculator"></i></div>
+<h1>Aptitude Test</h1>
+<p>Quantitative aptitude, logical reasoning aur verbal ability practice.</p>
+</div>
+<div class="apt-container">
+<div id="aptHome">
+<div class="apt-cats">
+<div class="apt-cat" onclick="startQuiz('quant')">
+<div class="apt-cat-icon" style="background:linear-gradient(135deg,#7c3aed,#db2777)"><i class="fas fa-square-root-variable"></i></div>
+<h3>Quantitative</h3>
+<p>Numbers, percentages, profit-loss, time-speed</p>
+<span class="apt-cat-count">10 Questions</span>
+</div>
+<div class="apt-cat" onclick="startQuiz('reasoning')">
+<div class="apt-cat-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)"><i class="fas fa-puzzle-piece"></i></div>
+<h3>Logical Reasoning</h3>
+<p>Series, analogies, coding-decoding</p>
+<span class="apt-cat-count">10 Questions</span>
+</div>
+<div class="apt-cat" onclick="startQuiz('verbal')">
+<div class="apt-cat-icon" style="background:linear-gradient(135deg,#ec4899,#8b5cf6)"><i class="fas fa-book-open"></i></div>
+<h3>Verbal Ability</h3>
+<p>Synonyms, antonyms, comprehension</p>
+<span class="apt-cat-count">10 Questions</span>
+</div>
+</div>
+</div>
+
+<div class="apt-quiz" id="aptQuiz">
+<div class="apt-quiz-header">
+<div class="apt-quiz-title"><i class="fas fa-clipboard-list"></i> <span id="aptQuizTitle"></span></div>
+<div class="apt-timer" id="aptTimer"><i class="fas fa-clock"></i> <span id="aptTimerText">10:00</span></div>
+</div>
+<div class="apt-progress"><div class="apt-progress-bar" id="aptProgress" style="width:0%"></div></div>
+<div class="apt-q-card" id="aptQCard"></div>
+<div class="apt-quiz-nav">
+<button class="apt-nav-btn prev" id="aptPrev" onclick="prevQ()"><i class="fas fa-arrow-left"></i> Previous</button>
+<button class="apt-nav-btn next" id="aptNext" onclick="nextQ()">Next <i class="fas fa-arrow-right"></i></button>
+</div>
+</div>
+
+<div class="apt-result" id="aptResult">
+<div class="apt-result-score" id="aptScore">0</div>
+<p id="aptScoreMsg" style="color:#94a3b8;font-size:1rem"></p>
+<div class="apt-result-stats">
+<div class="apt-stat"><div class="apt-stat-num" style="color:#34d399" id="aptCorrect">0</div><div class="apt-stat-label">Correct</div></div>
+<div class="apt-stat"><div class="apt-stat-num" style="color:#f87171" id="aptWrong">0</div><div class="apt-stat-label">Wrong</div></div>
+<div class="apt-stat"><div class="apt-stat-num" style="color:#94a3b8" id="aptSkipped">0</div><div class="apt-stat-label">Skipped</div></div>
+</div>
+<div class="apt-review" id="aptReview"></div>
+<button class="apt-result-btn" onclick="goHome()"><i class="fas fa-redo"></i> Try Again</button>
+</div>
+</div>
+</div>
+<script src="js/aptitude-test.js"></script>
+<script src="/js/security.js"></script>
+</body>
+</html>

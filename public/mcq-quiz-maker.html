@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCQ Quiz Maker - Genius Computer Education</title>
+<link rel="stylesheet" href="css/style.css?v=20260719">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#334155 100%);min-height:100vh;font-family:'Segoe UI',system-ui,sans-serif;color:#fff}
+.mcq-page{padding:90px 0 40px;min-height:100vh;position:relative}
+.mcq-page::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 20% 0%,rgba(59,130,246,.12) 0%,transparent 50%);pointer-events:none;z-index:0}
+.mcq-page>*{position:relative;z-index:1}
+.mcq-hero{text-align:center;padding:30px 20px}
+.mcq-hero-icon{width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:inline-flex;align-items:center;justify-content:center;font-size:2.5rem;color:#fff;margin-bottom:16px;box-shadow:0 12px 40px rgba(59,130,246,.4)}
+.mcq-hero h1{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#3b82f6,#1d4ed8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.mcq-hero p{color:#94a3b8;font-size:1rem;max-width:500px;margin:0 auto}
+.mcq-container{max-width:800px;margin:0 auto;padding:0 20px}
+.mcq-tabs{display:flex;gap:4px;margin-bottom:24px;justify-content:center}
+.mcq-tab{padding:10px 24px;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#94a3b8;transition:all .25s}
+.mcq-tab:hover{color:#fff;border-color:rgba(59,130,246,.3)}
+.mcq-tab.active{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border-color:transparent}
+.mcq-panel{display:none}
+.mcq-panel.active{display:block;animation:mcqFade .4s ease}
+@keyframes mcqFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.mcq-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:24px;margin-bottom:16px}
+.mcq-row{margin-bottom:16px}
+.mcq-label{display:block;font-size:.82rem;font-weight:600;color:#94a3b8;margin-bottom:6px}
+.mcq-input{width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#fff;font-size:.9rem;outline:none;transition:border .2s}
+.mcq-input:focus{border-color:rgba(59,130,246,.4)}
+.mcq-input::placeholder{color:#475569}
+.mcq-q-block{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px;margin-bottom:12px}
+.mcq-q-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mcq-q-num{font-size:.82rem;font-weight:700;color:#60a5fa}
+.mcq-q-del{width:28px;height:28px;border-radius:8px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.2);color:#f87171;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:all .2s}
+.mcq-q-del:hover{background:rgba(239,68,68,.25)}
+.mcq-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.mcq-opt-row{display:flex;align-items:center;gap:8px}
+.mcq-opt-radio{width:18px;height:18px;cursor:pointer;accent-color:#3b82f6;flex-shrink:0}
+.mcq-opt-input{flex:1;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:#fff;font-size:.82rem;outline:none}
+.mcq-opt-input:focus{border-color:rgba(59,130,246,.3)}
+.mcq-add-q{width:100%;padding:10px;border-radius:10px;border:1px dashed rgba(255,255,255,.15);background:transparent;color:#94a3b8;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s}
+.mcq-add-q:hover{border-color:rgba(59,130,246,.3);color:#60a5fa;background:rgba(59,130,246,.05)}
+.mcq-btn{padding:12px 28px;border-radius:12px;border:none;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px}
+.mcq-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(59,130,246,.35)}
+.mcq-btn.secondary{background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.12)}
+.mcq-saved-list{display:flex;flex-direction:column;gap:12px}
+.mcq-saved-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:18px;display:flex;justify-content:space-between;align-items:center;transition:all .2s}
+.mcq-saved-item:hover{border-color:rgba(59,130,246,.2)}
+.mcq-saved-info h3{font-size:1rem;font-weight:700;margin-bottom:4px}
+.mcq-saved-meta{font-size:.78rem;color:#64748b;display:flex;gap:12px}
+.mcq-saved-actions{display:flex;gap:8px}
+.mcq-saved-btn{padding:8px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.mcq-saved-btn.play{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff}
+.mcq-saved-btn.play:hover{transform:translateY(-1px)}
+.mcq-saved-btn.share{background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.12)}
+.mcq-saved-btn.share:hover{background:rgba(255,255,255,.1)}
+.mcq-saved-btn.del{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.15)}
+.mcq-saved-btn.del:hover{background:rgba(239,68,68,.2)}
+.mcq-empty{text-align:center;padding:40px;color:#64748b}
+.mcq-empty i{font-size:2.5rem;margin-bottom:12px;opacity:.3}
+.mcq-quiz-view{display:none}
+.mcq-quiz-view.active{display:block}
+.mcq-q-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:28px;margin-bottom:16px}
+.mcq-q-num{font-size:.78rem;font-weight:600;color:#60a5fa;margin-bottom:8px}
+.mcq-q-text{font-size:1.1rem;font-weight:600;margin-bottom:20px;line-height:1.5}
+.mcq-options{display:flex;flex-direction:column;gap:10px}
+.mcq-opt{padding:14px 18px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);cursor:pointer;transition:all .2s;font-size:.95rem;display:flex;align-items:center;gap:12px}
+.mcq-opt:hover{border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.05)}
+.mcq-opt.selected{border-color:#3b82f6;background:rgba(59,130,246,.1)}
+.mcq-opt.correct{border-color:#10b981;background:rgba(16,185,129,.1)}
+.mcq-opt.wrong{border-color:#ef4444;background:rgba(239,68,68,.1)}
+.mcq-opt-letter{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0}
+.mcq-opt.selected .mcq-opt-letter{background:#3b82f6;color:#fff}
+.mcq-opt.correct .mcq-opt-letter{background:#10b981;color:#fff}
+.mcq-opt.wrong .mcq-opt-letter{background:#ef4444;color:#fff}
+.mcq-progress{height:6px;border-radius:3px;background:rgba(255,255,255,.06);margin-bottom:16px;overflow:hidden}
+.mcq-progress-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,#3b82f6,#1d4ed8);transition:width .3s}
+.mcq-nav{display:flex;justify-content:space-between;gap:12px}
+.mcq-nav-btn{padding:10px 24px;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;border:none;transition:all .25s;display:inline-flex;align-items:center;gap:8px}
+.mcq-nav-btn.prev{background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.12)}
+.mcq-nav-btn.next{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff}
+.mcq-nav-btn:disabled{opacity:.4;cursor:not-allowed}
+.mcq-result{text-align:center;display:none}
+.mcq-result.active{display:block;animation:mcqFade .4s ease}
+.mcq-result-score{font-size:3.5rem;font-weight:800;margin:16px 0}
+.mcq-result-btn{padding:12px 28px;border-radius:12px;border:none;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .25s;margin-top:16px}
+.mcq-result-btn:hover{transform:translateY(-2px)}
+@media(max-width:640px){.mcq-opts{grid-template-columns:1fr}.mcq-hero h1{font-size:1.8rem}}
+</style>
+</head>
+<body>
+<nav class="navbar"><div class="container">
+<div class="nav-brand">
+<img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22%3EG%3C/text%3E%3C/svg%3E" alt="Logo" class="nav-logo" style="display:block;max-height:45px;max-width:45px;border-radius:10px;">
+<a href="index.html">Genius Computer Education</a>
+</div>
+<ul class="nav-menu">
+<li><a href="index.html">Home</a></li>
+<li><a href="courses.html">Courses</a></li>
+<li><a href="tools.html"><i class="fas fa-tools"></i> Tools</a></li>
+</ul>
+<div class="hamburger"><span></span><span></span><span></span></div>
+</div></nav>
+
+<div class="mcq-page">
+<div class="mcq-hero">
+<div class="mcq-hero-icon"><i class="fas fa-question-circle"></i></div>
+<h1>MCQ Quiz Maker</h1>
+<p>Apne khud ke MCQ quiz banao. Questions add karo, quiz share karo, aur results track karo.</p>
+</div>
+<div class="mcq-container">
+<div class="mcq-tabs">
+<div class="mcq-tab active" onclick="switchPanel('create')">Create Quiz</div>
+<div class="mcq-tab" onclick="switchPanel('myquizzes')">My Quizzes</div>
+</div>
+
+<div class="mcq-panel active" id="panel-create">
+<div class="mcq-card">
+<div class="mcq-row">
+<label class="mcq-label">Quiz Title</label>
+<input type="text" class="mcq-input" id="quizTitle" placeholder="e.g. Computer Basics Quiz">
+</div>
+<div class="mcq-row">
+<label class="mcq-label">Description (optional)</label>
+<input type="text" class="mcq-input" id="quizDesc" placeholder="Short description">
+</div>
+</div>
+<div id="questionsContainer"></div>
+<button class="mcq-add-q" onclick="addQuestion()"><i class="fas fa-plus"></i> Add Question</button>
+<div style="text-align:center;margin-top:20px">
+<button class="mcq-btn" onclick="saveQuiz()"><i class="fas fa-save"></i> Save Quiz</button>
+</div>
+</div>
+
+<div class="mcq-panel" id="panel-myquizzes">
+<div class="mcq-saved-list" id="savedQuizzes"></div>
+</div>
+
+<div class="mcq-panel" id="panel-play">
+<div class="mcq-quiz-view active" id="mcqQuizView">
+<div class="mcq-progress"><div class="mcq-progress-bar" id="mcqProgress" style="width:0%"></div></div>
+<div class="mcq-q-card" id="mcqQCard"></div>
+<div class="mcq-nav">
+<button class="mcq-nav-btn prev" id="mcqPrev" onclick="mcqPrev()"><i class="fas fa-arrow-left"></i> Previous</button>
+<button class="mcq-nav-btn next" id="mcqNext" onclick="mcqNext()">Next <i class="fas fa-arrow-right"></i></button>
+</div>
+</div>
+<div class="mcq-result" id="mcqResult">
+<div class="mcq-result-score" id="mcqScore">0%</div>
+<p id="mcqScoreMsg" style="color:#94a3b8;margin-bottom:16px"></p>
+<button class="mcq-result-btn" onclick="backToList()"><i class="fas fa-arrow-left"></i> Back to Quizzes</button>
+</div>
+</div>
+</div>
+</div>
+<script src="js/mcq-quiz-maker.js"></script>
+<script src="/js/security.js"></script>
+</body>
+</html>

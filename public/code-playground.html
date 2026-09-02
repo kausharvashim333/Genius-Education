@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Playground - Genius Computer Education</title>
+<link rel="stylesheet" href="css/style.css?v=20260719">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#334155 100%);min-height:100vh;font-family:'Segoe UI',system-ui,sans-serif;color:#fff}
+.pg-page{padding:90px 0 40px;min-height:100vh;position:relative}
+.pg-page::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 20% 0%,rgba(13,148,136,.12) 0%,transparent 50%);pointer-events:none;z-index:0}
+.pg-page>*{position:relative;z-index:1}
+.pg-hero{text-align:center;padding:30px 20px}
+.pg-hero-icon{width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,#0d9488,#0891b2);display:inline-flex;align-items:center;justify-content:center;font-size:2.5rem;color:#fff;margin-bottom:16px;box-shadow:0 12px 40px rgba(13,148,136,.4)}
+.pg-hero h1{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#0d9488,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.pg-hero p{color:#94a3b8;font-size:1rem;max-width:500px;margin:0 auto}
+.pg-container{max-width:1200px;margin:0 auto;padding:0 20px}
+.pg-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+.pg-tabs{display:flex;gap:4px}
+.pg-tab{padding:8px 18px;border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#94a3b8;transition:all .25s;display:flex;align-items:center;gap:8px}
+.pg-tab:hover{color:#fff;border-color:rgba(13,148,136,.3)}
+.pg-tab.active{background:linear-gradient(135deg,#0d9488,#0891b2);color:#fff;border-color:transparent}
+.pg-actions{display:flex;gap:8px}
+.pg-btn{padding:8px 18px;border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:8px;transition:all .25s}
+.pg-btn-run{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+.pg-btn-run:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(16,185,129,.35)}
+.pg-btn-reset{background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.12)}
+.pg-btn-reset:hover{background:rgba(255,255,255,.1);color:#fff}
+.pg-btn-copy{background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.12)}
+.pg-btn-copy:hover{background:rgba(255,255,255,.1);color:#fff}
+.pg-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:500px}
+.pg-editors{display:flex;flex-direction:column;gap:12px}
+.pg-editor-wrap{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;flex:1;display:none}
+.pg-editor-wrap.active{display:flex;flex-direction:column}
+.pg-editor-header{padding:8px 14px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:600;color:#94a3b8}
+.pg-editor-header .dot{width:10px;height:10px;border-radius:50%}
+.dot.html{background:#e34c26}.dot.css{background:#264de4}.dot.js{background:#f0db4f}
+.pg-textarea{flex:1;width:100%;background:#0f172a;color:#e2e8f0;border:none;padding:14px;font-family:monospace;font-size:.85rem;line-height:1.6;resize:none;outline:none;min-height:120px}
+.pg-preview-wrap{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.pg-preview-header{padding:8px 14px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;color:#94a3b8}
+.pg-dot{width:10px;height:10px;border-radius:50%}.pg-dot:nth-child(1){background:#ef4444}.pg-dot:nth-child(2){background:#f59e0b}.pg-dot:nth-child(3){background:#10b981}
+.pg-iframe{flex:1;width:100%;border:none;background:#fff;min-height:400px}
+.pg-templates{margin-top:20px}
+.pg-templates-title{font-size:.8rem;font-weight:600;color:#64748b;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+.pg-template-list{display:flex;gap:8px;flex-wrap:wrap}
+.pg-template-chip{padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#94a3b8;transition:all .25s}
+.pg-template-chip:hover{color:#fff;border-color:rgba(13,148,136,.3);background:rgba(13,148,136,.08)}
+@media(max-width:768px){.pg-layout{grid-template-columns:1fr}.pg-hero h1{font-size:1.8rem}}
+</style>
+</head>
+<body>
+<nav class="navbar"><div class="container">
+<div class="nav-brand">
+<img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22%3EG%3C/text%3E%3C/svg%3E" alt="Logo" class="nav-logo" style="display:block;max-height:45px;max-width:45px;border-radius:10px;">
+<a href="index.html">Genius Computer Education</a>
+</div>
+<ul class="nav-menu">
+<li><a href="index.html">Home</a></li>
+<li><a href="courses.html">Courses</a></li>
+<li><a href="tools.html"><i class="fas fa-tools"></i> Tools</a></li>
+</ul>
+<div class="hamburger"><span></span><span></span><span></span></div>
+</div></nav>
+
+<div class="pg-page">
+<div class="pg-hero">
+<div class="pg-hero-icon"><i class="fas fa-code"></i></div>
+<h1>Code Playground</h1>
+<p>HTML, CSS aur JavaScript ka code likho aur live result dekho.</p>
+</div>
+<div class="pg-container">
+<div class="pg-toolbar">
+<div class="pg-tabs">
+<div class="pg-tab active" data-tab="html" onclick="switchTab('html')"><i class="fab fa-html5"></i> HTML</div>
+<div class="pg-tab" data-tab="css" onclick="switchTab('css')"><i class="fab fa-css3-alt"></i> CSS</div>
+<div class="pg-tab" data-tab="js" onclick="switchTab('js')"><i class="fab fa-js"></i> JS</div>
+</div>
+<div class="pg-actions">
+<button class="pg-btn pg-btn-copy" onclick="copyCode()"><i class="fas fa-copy"></i> Copy</button>
+<button class="pg-btn pg-btn-reset" onclick="resetCode()"><i class="fas fa-undo"></i> Reset</button>
+<button class="pg-btn pg-btn-run" onclick="runCode()"><i class="fas fa-play"></i> Run</button>
+</div>
+</div>
+<div class="pg-layout">
+<div class="pg-editors">
+<div class="pg-editor-wrap active" id="editor-html">
+<div class="pg-editor-header"><span class="dot html"></span> HTML</div>
+<textarea class="pg-textarea" id="htmlCode" spellcheck="false" placeholder="HTML yahan likho..."></textarea>
+</div>
+<div class="pg-editor-wrap" id="editor-css">
+<div class="pg-editor-header"><span class="dot css"></span> CSS</div>
+<textarea class="pg-textarea" id="cssCode" spellcheck="false" placeholder="CSS yahan likho..."></textarea>
+</div>
+<div class="pg-editor-wrap" id="editor-js">
+<div class="pg-editor-header"><span class="dot js"></span> JavaScript</div>
+<textarea class="pg-textarea" id="jsCode" spellcheck="false" placeholder="JavaScript yahan likho..."></textarea>
+</div>
+</div>
+<div class="pg-preview-wrap">
+<div class="pg-preview-header">
+<span class="pg-dot"></span><span class="pg-dot"></span><span class="pg-dot"></span>
+<span>Live Preview</span>
+</div>
+<iframe class="pg-iframe" id="previewFrame" sandbox="allow-scripts" title="Code Preview"></iframe>
+</div>
+</div>
+<div class="pg-templates">
+<div class="pg-templates-title">Quick Templates</div>
+<div class="pg-template-list">
+<div class="pg-template-chip" onclick="loadTemplate('card')">Profile Card</div>
+<div class="pg-template-chip" onclick="loadTemplate('counter')">Counter App</div>
+<div class="pg-template-chip" onclick="loadTemplate('todo')">Todo List</div>
+<div class="pg-template-chip" onclick="loadTemplate('clock')">Digital Clock</div>
+<div class="pg-template-chip" onclick="loadTemplate('blank')">Blank</div>
+</div>
+</div>
+</div>
+</div>
+<script src="js/code-playground.js"></script>
+<script src="/js/security.js"></script>
+</body>
+</html>
