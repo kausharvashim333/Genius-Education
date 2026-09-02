@@ -123,7 +123,3 @@ if (!loadSaved()) {
 }
 runCode();
 
-// Hamburger
-var hb = document.querySelector('.hamburger');
-var nm = document.querySelector('.nav-menu');
-if (hb && nm) hb.addEventListener('click', function() { nm.classList.toggle('active'); });

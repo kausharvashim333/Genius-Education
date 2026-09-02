@@ -1,39 +1,39 @@
 var questions = {
   quant: [
-    { q: 'What is 15% of 200?', options: ['20', '30', '25', '35'], answer: 1 },
-    { q: 'If the cost price is Rs. 500 and selling price is Rs. 600, what is the profit percentage?', options: ['15%', '20%', '25%', '10%'], answer: 1 },
-    { q: 'A train travels 60 km in 1.5 hours. What is its speed?', options: ['30 km/h', '40 km/h', '45 km/h', '50 km/h'], answer: 1 },
-    { q: 'What is the value of 2^3 + 3^2?', options: ['12', '17', '15', '13'], answer: 1 },
-    { q: 'If x + 5 = 12, what is x?', options: ['5', '6', '7', '8'], answer: 2 },
-    { q: 'The average of 10, 20, 30, 40, 50 is:', options: ['25', '30', '35', '28'], answer: 1 },
-    { q: 'What is the simple interest on Rs. 1000 at 5% per annum for 2 years?', options: ['Rs. 50', 'Rs. 100', 'Rs. 150', 'Rs. 200'], answer: 1 },
-    { q: 'If a:b = 2:3 and b:c = 4:5, find a:c?', options: ['8:15', '2:5', '8:12', '5:8'], answer: 0 },
-    { q: 'The LCM of 12 and 18 is:', options: ['24', '36', '48', '72'], answer: 1 },
-    { q: 'A shopkeeper sells an item for Rs. 450 with a loss of 10%. What was the cost price?', options: ['Rs. 480', 'Rs. 500', 'Rs. 520', 'Rs. 550'], answer: 1 }
+    { q: 'What is 15% of 200?', qHi: '200 का 15% क्या है?', options: ['20', '30', '25', '35'], answer: 1 },
+    { q: 'If the cost price is Rs. 500 and selling price is Rs. 600, what is the profit percentage?', qHi: 'यदि क्रय मूल्य Rs. 500 है और विक्रय मूल्य Rs. 600 है, तो लाभ प्रतिशत क्या है?', options: ['15%', '20%', '25%', '10%'], answer: 1 },
+    { q: 'A train travels 60 km in 1.5 hours. What is its speed?', qHi: 'एक ट्रेन 1.5 घंटे में 60 किमी यात्रा करती है। इसकी गति क्या है?', options: ['30 km/h', '40 km/h', '45 km/h', '50 km/h'], answer: 1 },
+    { q: 'What is the value of 2^3 + 3^2?', qHi: '2^3 + 3^2 का मान क्या है?', options: ['12', '17', '15', '13'], answer: 1 },
+    { q: 'If x + 5 = 12, what is x?', qHi: 'यदि x + 5 = 12 है, तो x क्या है?', options: ['5', '6', '7', '8'], answer: 2 },
+    { q: 'The average of 10, 20, 30, 40, 50 is:', qHi: '10, 20, 30, 40, 50 का औसत क्या है:', options: ['25', '30', '35', '28'], answer: 1 },
+    { q: 'What is the simple interest on Rs. 1000 at 5% per annum for 2 years?', qHi: 'Rs. 1000 पर 5% वार्षिक दर से 2 वर्ष का साधारण ब्याज क्या होगा?', options: ['Rs. 50', 'Rs. 100', 'Rs. 150', 'Rs. 200'], answer: 1 },
+    { q: 'If a:b = 2:3 and b:c = 4:5, find a:c?', qHi: 'यदि a:b = 2:3 और b:c = 4:5 है, तो a:c ज्ञात करें?', options: ['8:15', '2:5', '8:12', '5:8'], answer: 0 },
+    { q: 'The LCM of 12 and 18 is:', qHi: '12 और 18 का लघुत्तम समापवर्त्य (LCM) क्या है:', options: ['24', '36', '48', '72'], answer: 1 },
+    { q: 'A shopkeeper sells an item for Rs. 450 with a loss of 10%. What was the cost price?', qHi: 'एक दुकानदार Rs. 450 में 10% की हानि पर सामान बेचता है। क्रय मूल्य क्या था?', options: ['Rs. 480', 'Rs. 500', 'Rs. 520', 'Rs. 550'], answer: 1 }
   ],
   reasoning: [
-    { q: 'Find the next number: 2, 6, 12, 20, 30, ?', options: ['40', '42', '44', '46'], answer: 1 },
-    { q: 'If CAT is coded as 24, DOG is coded as 26, what is RAT?', options: ['18', '20', '22', '24'], answer: 0 },
-    { q: 'Complete the analogy: Book is to Read as Food is to ?', options: ['Cook', 'Eat', 'Buy', 'Store'], answer: 1 },
-    { q: 'Find the odd one out:', options: ['Apple', 'Mango', 'Carrot', 'Banana'], answer: 2 },
-    { q: 'If MONDAY is coded as NPOEBZ, how is FRIDAY coded?', options: ['GSJEBZ', 'GSJEAZ', 'GSJFBZ', 'GSJEBY'], answer: 0 },
-    { q: 'Which number does not belong: 3, 5, 7, 9, 11, 13?', options: ['3', '5', '9', '11'], answer: 2 },
-    { q: 'Complete the series: A, C, E, G, ?, K', options: ['H', 'I', 'J', 'F'], answer: 1 },
-    { q: 'If all roses are flowers and some flowers fade quickly, can we say all roses fade quickly?', options: ['Yes', 'No', 'Cannot be determined', 'Only some roses'], answer: 1 },
-    { q: 'Find the next: 1, 4, 9, 16, 25, ?', options: ['30', '36', '42', '49'], answer: 1 },
-    { q: 'Pointing to a photo, Raj said "She is my mother\'s only daughter." Who is in the photo?', options: ['His sister', 'Himself', 'His mother', 'His daughter'], answer: 1 }
+    { q: 'Find the next number: 2, 6, 12, 20, 30, ?', qHi: 'अगला नंबर ज्ञात करें: 2, 6, 12, 20, 30, ?', options: ['40', '42', '44', '46'], answer: 1 },
+    { q: 'If CAT is coded as 24, DOG is coded as 26, what is RAT?', qHi: 'यदि CAT को 24 के रूप में कोडित किया जाता है, DOG को 26, तो RAT क्या होगा?', options: ['18', '20', '22', '24'], answer: 0 },
+    { q: 'Complete the analogy: Book is to Read as Food is to ?', qHi: 'समानता पूर्ण करें: पुस्तक है पढ़ने के लिए, जैसे भोजन है ___ के लिए', options: ['Cook', 'Eat', 'Buy', 'Store'], answer: 1 },
+    { q: 'Find the odd one out:', qHi: 'अजीब/अलग वाला चुनें:', options: ['Apple', 'Mango', 'Carrot', 'Banana'], answer: 2 },
+    { q: 'If MONDAY is coded as NPOEBZ, how is FRIDAY coded?', qHi: 'यदि MONDAY को NPOEBZ के रूप में कोडित किया जाता है, तो FRIDAY को कैसे कोडित किया जाएगा?', options: ['GSJEBZ', 'GSJEAZ', 'GSJFBZ', 'GSJEBY'], answer: 0 },
+    { q: 'Which number does not belong: 3, 5, 7, 9, 11, 13?', qHi: 'कौन सा नंबर नहीं आता: 3, 5, 7, 9, 11, 13?', options: ['3', '5', '9', '11'], answer: 2 },
+    { q: 'Complete the series: A, C, E, G, ?, K', qHi: 'श्रृंखला पूर्ण करें: A, C, E, G, ?, K', options: ['H', 'I', 'J', 'F'], answer: 1 },
+    { q: 'If all roses are flowers and some flowers fade quickly, can we say all roses fade quickly?', qHi: 'यदि सभी गुलाब फूल हैं और कुछ फूल जल्दी मुरझाते हैं, क्या हम कह सकते हैं कि सभी गुलाब जल्दी मुरझाते हैं?', options: ['Yes', 'No', 'Cannot be determined', 'Only some roses'], answer: 1 },
+    { q: 'Find the next: 1, 4, 9, 16, 25, ?', qHi: 'अगला ज्ञात करें: 1, 4, 9, 16, 25, ?', options: ['30', '36', '42', '49'], answer: 1 },
+    { q: 'Pointing to a photo, Raj said "She is my mother\'s only daughter." Who is in the photo?', qHi: 'एक फोटो की ओर इशारा करते हुए राज ने कहा "वह मेरी माँ की इकलौती बेटी है।" फोटो में कौन है?', options: ['His sister', 'Himself', 'His mother', 'His daughter'], answer: 1 }
   ],
   verbal: [
-    { q: 'Choose the synonym of "Abundant":', options: ['Scarce', 'Plentiful', 'Empty', 'Limited'], answer: 1 },
-    { q: 'Choose the antonym of "Ancient":', options: ['Old', 'Modern', 'Historic', 'Classic'], answer: 1 },
-    { q: 'Choose the synonym of "Diligent":', options: ['Lazy', 'Hardworking', 'Careless', 'Slow'], answer: 1 },
-    { q: 'Choose the antonym of "Generous":', options: ['Kind', 'Stingy', 'Helpful', 'Friendly'], answer: 1 },
-    { q: 'Fill in the blank: "She is good ___ math."', options: ['in', 'at', 'on', 'for'], answer: 1 },
-    { q: 'Choose the correctly spelled word:', options: ['Recieve', 'Receive', 'Receeve', 'Receve'], answer: 1 },
-    { q: 'What is the meaning of "Benevolent"?', options: ['Cruel', 'Kind', 'Selfish', 'Angry'], answer: 1 },
-    { q: 'Choose the synonym of "Ephemeral":', options: ['Permanent', 'Temporary', 'Long-lasting', 'Eternal'], answer: 1 },
-    { q: 'Fill in the blank: "Neither John nor his friends ___ coming."', options: ['is', 'are', 'was', 'has'], answer: 1 },
-    { q: 'Choose the antonym of "Transparent":', options: ['Clear', 'Opaque', 'Visible', 'Bright'], answer: 1 }
+    { q: 'Choose the synonym of "Abundant":', qHi: '"Abundant" का पर्यायवाची चुनें:', options: ['Scarce', 'Plentiful', 'Empty', 'Limited'], answer: 1 },
+    { q: 'Choose the antonym of "Ancient":', qHi: '"Ancient" का विलोम चुनें:', options: ['Old', 'Modern', 'Historic', 'Classic'], answer: 1 },
+    { q: 'Choose the synonym of "Diligent":', qHi: '"Diligent" का पर्यायवाची चुनें:', options: ['Lazy', 'Hardworking', 'Careless', 'Slow'], answer: 1 },
+    { q: 'Choose the antonym of "Generous":', qHi: '"Generous" का विलोम चुनें:', options: ['Kind', 'Stingy', 'Helpful', 'Friendly'], answer: 1 },
+    { q: 'Fill in the blank: "She is good ___ math."', qHi: 'रिक्त स्थान भरें: "She is good ___ math."', options: ['in', 'at', 'on', 'for'], answer: 1 },
+    { q: 'Choose the correctly spelled word:', qHi: 'सही वर्तनी वाला शब्द चुनें:', options: ['Recieve', 'Receive', 'Receeve', 'Receve'], answer: 1 },
+    { q: 'What is the meaning of "Benevolent"?', qHi: '"Benevolent" का अर्थ क्या है?', options: ['Cruel', 'Kind', 'Selfish', 'Angry'], answer: 1 },
+    { q: 'Choose the synonym of "Ephemeral":', qHi: '"Ephemeral" का पर्यायवाची चुनें:', options: ['Permanent', 'Temporary', 'Long-lasting', 'Eternal'], answer: 1 },
+    { q: 'Fill in the blank: "Neither John nor his friends ___ coming."', qHi: 'रिक्त स्थान भरें: "Neither John nor his friends ___ coming."', options: ['is', 'are', 'was', 'has'], answer: 1 },
+    { q: 'Choose the antonym of "Transparent":', qHi: '"Transparent" का विलोम चुनें:', options: ['Clear', 'Opaque', 'Visible', 'Bright'], answer: 1 }
   ]
 };
 
@@ -86,6 +86,7 @@ function renderQ() {
   var card = document.getElementById('aptQCard');
   var html = '<div class="apt-q-num">Question ' + (currentQ + 1) + ' of ' + qs.length + '</div>';
   html += '<div class="apt-q-text">' + q.q + '</div>';
+  if (q.qHi) html += '<div style="font-size:.92rem;color:rgba(255,255,255,.55);margin-bottom:16px;line-height:1.5">' + q.qHi + '</div>';
   html += '<div class="apt-options">';
   var letters = ['A', 'B', 'C', 'D'];
   for (var i = 0; i < q.options.length; i++) {
@@ -142,6 +143,7 @@ function finishQuiz() {
     }
     reviewHtml += '<div class="apt-review-item">';
     reviewHtml += '<div class="apt-review-q">Q' + (i + 1) + ': ' + qs[i].q + '</div>';
+    if (qs[i].qHi) reviewHtml += '<div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-bottom:6px">' + qs[i].qHi + '</div>';
     if (answers[i] !== null) {
       var isCorrect = answers[i] === qs[i].answer;
       reviewHtml += '<span class="apt-review-a ' + (isCorrect ? 'right' : 'wrong') + '">Your: ' + qs[i].options[answers[i]] + '</span>';
@@ -178,6 +180,3 @@ function goHome() {
   answers = [];
 }
 
-var hb = document.querySelector('.hamburger');
-var nm = document.querySelector('.nav-menu');
-if (hb && nm) hb.addEventListener('click', function() { nm.classList.toggle('active'); });

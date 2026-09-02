@@ -49,18 +49,39 @@ body{background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#334155 100%);min-
 </style>
 </head>
 <body>
-<nav class="navbar"><div class="container">
+<nav class="navbar">
+<div class="container">
 <div class="nav-brand">
-<img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22%3EG%3C/text%3E%3C/svg%3E" alt="Logo" class="nav-logo" style="display:block;max-height:45px;max-width:45px;border-radius:10px;">
+<img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22%3EG%3C/text%3E%3C/svg%3E" alt="Logo" class="nav-logo" style="display:block;max-height:45px;max-width:45px;height:auto;width:auto;border-radius:10px;">
 <a href="index.html">Genius Computer Education</a>
 </div>
 <ul class="nav-menu">
 <li><a href="index.html">Home</a></li>
 <li><a href="courses.html">Courses</a></li>
-<li><a href="tools.html"><i class="fas fa-tools"></i> Tools</a></li>
+<li><a href="index.html#about">About Us</a></li>
+<li><a href="index.html#blog">Blog</a></li>
+<li><a href="index.html#contact">Contact</a></li>
+<li class="nav-tools-link"><a href="tools.html"><i class="fas fa-tools"></i> Tools</a></li>
+<li class="nav-portals-dropdown">
+<a href="#" class="nav-cta nav-portals-toggle" onclick="togglePortalsDropdown(event)">
+<i class="fas fa-th-large icon-3d"></i> Portals <i class="fas fa-chevron-down portals-chevron"></i>
+</a>
+<div class="portals-dropdown-menu" id="portalsDropdownMenu">
+<a href="typing-practice.html?guide=true&selectLang=true&app=1" onclick="openTypingFullscreen(event); closePortalsDropdown();">
+<i class="fas fa-keyboard"></i><span>Typing Practice</span>
+</a>
+<a href="student-portal.html" onclick="closePortalsDropdown()">
+<i class="fas fa-user-graduate"></i><span>Student Portal</span>
+</a>
+<a href="faculty-portal.html" onclick="closePortalsDropdown()">
+<i class="fas fa-chalkboard-teacher"></i><span>Faculty Portal</span>
+</a>
+</div>
+</li>
 </ul>
 <div class="hamburger"><span></span><span></span><span></span></div>
-</div></nav>
+</div>
+</nav>
 
 <div class="gst-page">
 <div class="gst-hero">
@@ -189,6 +210,13 @@ calculate();
 var hb = document.querySelector('.hamburger');
 var nm = document.querySelector('.nav-menu');
 if (hb && nm) hb.addEventListener('click', function() { nm.classList.toggle('active'); });
+</script>
+<script>
+(async function(){try{const r=await fetch('/api/settings');const s=await r.json();if(s&&s.logo){const l=document.querySelector('.nav-logo');if(l){l.src=s.logo;l.style.display='block';}}}catch(e){}})();
+function togglePortalsDropdown(e){e.preventDefault();e.stopPropagation();const m=document.getElementById('portalsDropdownMenu');if(m)m.classList.toggle('open');const t=document.querySelector('.nav-portals-toggle');if(t)t.classList.toggle('active');}
+function closePortalsDropdown(){const m=document.getElementById('portalsDropdownMenu');const t=document.querySelector('.nav-portals-toggle');if(m)m.classList.remove('open');if(t)t.classList.remove('active');}
+function openTypingFullscreen(event){event.preventDefault();const a=event.target.closest('a');const url=a?a.getAttribute('href'):null;if(!url)return;const w=Math.min(window.screen.availWidth,1200);const h=window.screen.availHeight;const f='popup=yes,width='+w+',height='+h+',left=0,top=0,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';let win=null;try{win=window.open(url,'geniusTypingPractice',f);}catch(e){win=null;}if(win){win.focus();try{const el=win.document.documentElement;const req=el.requestFullscreen||el.webkitRequestFullscreen;if(req)Promise.resolve(req.call(el)).catch(()=>{});}catch(e){}}else{window.location.href=url;}}
+var hb=document.querySelector('.hamburger');var nm=document.querySelector('.nav-menu');if(hb&&nm)hb.addEventListener('click',function(){nm.classList.toggle('active');});
 </script>
 <script src="/js/security.js"></script>
 </body>
