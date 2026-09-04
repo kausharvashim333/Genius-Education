@@ -6238,121 +6238,184 @@ async function rejectStudyMaterial(id) {
 }
 
 // ===== Videos (Video Learning Platform) =====
+let _videoCoursesCache = [];
+let _videoActiveTabId = '';
+let _videoAllChapters = [];
+let _videoAllVideos = [];
+let _videoCourseMap = {};
+
 async function loadVideosWithChapters() {
     const container = document.getElementById('videosCardGrid');
     if (!container) return;
     container.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;"><i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:10px;"></i><div>Loading...</div></div>';
     try {
-        const courseFilter = document.getElementById('chapterCourseFilter');
-        const filterCourseId = courseFilter ? courseFilter.value : '';
-
         const [chapters, videos, courses] = await Promise.all([
-            fetch(filterCourseId ? '/api/chapters?courseId=' + filterCourseId : '/api/chapters').then(r => r.json()),
+            fetch('/api/chapters').then(r => r.json()),
             fetch('/api/videos').then(r => r.json()),
             fetch('/api/courses').then(r => r.json())
         ]);
 
-        const courseMap = {};
-        courses.forEach(c => courseMap[c.id] = c.name);
+        _videoAllChapters = chapters;
+        _videoAllVideos = videos;
+        _videoCoursesCache = courses;
+        _videoCourseMap = {};
+        courses.forEach(c => _videoCourseMap[c.id] = c.name);
 
-        // Filter videos by course if filter is set
-        let filteredVideos = videos;
-        if (filterCourseId) {
-            filteredVideos = videos.filter(v => {
-                if (v.courseIds && Array.isArray(v.courseIds)) return v.courseIds.includes(filterCourseId);
-                if (v.courseId) return v.courseId == filterCourseId;
-                return false;
-            });
-        }
-
-        // Build chapter lookup map
-        const chapterMap = {};
-        chapters.forEach(ch => { chapterMap[ch.id] = ch; });
-
-        // Group videos by chapterId — also assign to sibling chapters (same name, different course in video's courseIds)
-        const videosByChapter = {};
-        const ungroupedVideos = [];
-        const assignedVideoIds = new Set();
-        filteredVideos.forEach(v => {
-            if (v.chapterId && chapterMap[v.chapterId]) {
-                const origChapter = chapterMap[v.chapterId];
-                // Find all sibling chapters with same name whose courseId is in video's courseIds
-                const vCourseIds = (v.courseIds && Array.isArray(v.courseIds)) ? v.courseIds.map(String) : [String(v.courseId)];
-                const siblingChapters = chapters.filter(ch =>
-                    ch.name === origChapter.name && vCourseIds.includes(String(ch.courseId))
-                );
-                if (siblingChapters.length > 0) {
-                    siblingChapters.forEach(ch => {
-                        if (!videosByChapter[ch.id]) videosByChapter[ch.id] = [];
-                        // Avoid duplicate if video is already added to this chapter
-                        if (!videosByChapter[ch.id].some(existing => existing.id === v.id)) {
-                            videosByChapter[ch.id].push(v);
-                        }
-                    });
-                    assignedVideoIds.add(v.id);
-                } else {
-                    // No sibling found, assign to original chapter
-                    if (!videosByChapter[v.chapterId]) videosByChapter[v.chapterId] = [];
-                    videosByChapter[v.chapterId].push(v);
-                    assignedVideoIds.add(v.id);
-                }
-            } else if (v.chapterId) {
-                // chapterId set but chapter not in current filter — skip grouping, treat as ungrouped
-                ungroupedVideos.push(v);
-            } else {
-                ungroupedVideos.push(v);
-            }
-        });
-
-        let html = '';
-
-        if (chapters.length === 0 && ungroupedVideos.length === 0) {
-            html = '<div style="text-align:center;padding:50px;color:#94a3b8;"><i class="fas fa-video" style="font-size:40px;margin-bottom:12px;opacity:0.3;"></i><div style="font-size:16px;font-weight:500;">No chapters or videos found</div><div style="font-size:13px;margin-top:4px;">Click "Add Chapter" or "Add Video" to get started</div></div>';
-        } else {
-            // Render chapters with their videos as card sections
-            chapters.forEach((ch, idx) => {
-                const chVideos = videosByChapter[ch.id] || [];
-                const courseName = courseMap[ch.courseId] || 'N/A';
-                html += '<div style="margin-bottom:24px;">' +
-                    '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(102,126,234,0.08);border-left:3px solid #667eea;border-radius:8px;margin-bottom:12px;">' +
-                        '<div style="display:flex;align-items:center;gap:10px;">' +
-                            '<i class="fas fa-folder" style="color:#667eea;font-size:16px;"></i>' +
-                            '<strong style="font-size:15px;color:#e2e8f0;">' + ch.name + '</strong>' +
-                            '<span style="padding:3px 10px;font-size:11px;background:rgba(102,126,234,0.2);color:#a5b4fc;border-radius:12px;">' + chVideos.length + ' video' + (chVideos.length !== 1 ? 's' : '') + '</span>' +
-                            '<span style="font-size:12px;color:#94a3b8;">' + courseName + '</span>' +
-                        '</div>' +
-                        '<div style="display:flex;gap:6px;">' +
-                            '<button onclick="addVideoToChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:6px;cursor:pointer;"><i class="fas fa-plus" style="margin-right:4px;"></i>Video</button>' +
-                            '<button onclick="editChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;"><i class="fas fa-edit" style="margin-right:4px;"></i>Edit</button>' +
-                            '<button onclick="deleteChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:6px;cursor:pointer;"><i class="fas fa-trash" style="margin-right:4px;"></i>Delete</button>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 4px;">' +
-                        chVideos.map(v => renderVideoCard(v, courseMap)).join('') +
-                    '</div>' +
-                '</div>';
-            });
-
-            // Ungrouped videos section
-            if (ungroupedVideos.length > 0) {
-                html += '<div style="margin-bottom:24px;">' +
-                    '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(255,255,255,0.03);border-left:3px solid #64748b;border-radius:8px;margin-bottom:12px;">' +
-                        '<i class="fas fa-folder-open" style="color:#64748b;font-size:16px;"></i>' +
-                        '<strong style="font-size:15px;color:#94a3b8;">Ungrouped Videos</strong>' +
-                        '<span style="padding:3px 10px;font-size:11px;background:rgba(100,116,139,0.2);color:#94a3b8;border-radius:12px;">' + ungroupedVideos.length + ' video' + (ungroupedVideos.length !== 1 ? 's' : '') + '</span>' +
-                    '</div>' +
-                    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 4px;">' +
-                        ungroupedVideos.map(v => renderVideoCard(v, courseMap)).join('') +
-                    '</div>' +
-                '</div>';
-            }
-        }
-
-        container.innerHTML = html;
+        renderVideoCourseTabs();
     } catch (e) {
         console.error('Error loading videos with chapters:', e);
         container.innerHTML = '<div style="text-align:center;padding:40px;color:#f5576c;"><i class="fas fa-exclamation-circle" style="font-size:24px;margin-bottom:10px;"></i><div>Error loading data</div></div>';
     }
+}
+
+function renderVideoCourseTabs() {
+    const tabsContainer = document.getElementById('videoCourseTabs');
+    if (!tabsContainer) return;
+
+    // Build course list with video/chapter counts
+    const courseCounts = {};
+
+    // Count chapters per course
+    _videoAllChapters.forEach(ch => {
+        if (!courseCounts[ch.courseId]) courseCounts[ch.courseId] = { chapters: 0, videos: 0 };
+        courseCounts[ch.courseId].chapters++;
+    });
+
+    // Count videos per course
+    _videoAllVideos.forEach(v => {
+        const vCourseIds = (v.courseIds && Array.isArray(v.courseIds)) ? v.courseIds : [v.courseId];
+        vCourseIds.forEach(cid => {
+            if (cid) {
+                if (!courseCounts[cid]) courseCounts[cid] = { chapters: 0, videos: 0 };
+                courseCounts[cid].videos++;
+            }
+        });
+    });
+
+    // Build tabs: "All" + one per course
+    let tabsHtml = '<button class="course-tab' + (_videoActiveTabId === '' ? ' active' : '') + '" onclick="switchVideoTab(\'\')"><i class="fas fa-th"></i> All Courses</button>';
+    _videoCoursesCache.forEach(c => {
+        const counts = courseCounts[c.id] || { chapters: 0, videos: 0 };
+        const total = counts.chapters + counts.videos;
+        if (total === 0) return; // skip empty courses
+        tabsHtml += '<button class="course-tab' + (_videoActiveTabId === String(c.id) ? ' active' : '') + '" onclick="switchVideoTab(\'' + c.id + '\')">' +
+            '<span>' + c.name + '</span>' +
+            '<span class="tab-badge">' + counts.videos + '</span>' +
+        '</button>';
+    });
+    tabsContainer.innerHTML = tabsHtml;
+
+    // Render content for active tab
+    renderVideoTabContent();
+}
+
+function switchVideoTab(courseId) {
+    _videoActiveTabId = courseId;
+    renderVideoCourseTabs();
+}
+
+function renderVideoTabContent() {
+    const container = document.getElementById('videosCardGrid');
+    if (!container) return;
+
+    const filterCourseId = _videoActiveTabId;
+
+    // Filter chapters by course
+    let chapters = _videoAllChapters;
+    if (filterCourseId) {
+        chapters = chapters.filter(ch => String(ch.courseId) === filterCourseId);
+    }
+
+    // Filter videos by course
+    let filteredVideos = _videoAllVideos;
+    if (filterCourseId) {
+        filteredVideos = _videoAllVideos.filter(v => {
+            if (v.courseIds && Array.isArray(v.courseIds)) return v.courseIds.includes(filterCourseId);
+            if (v.courseId) return String(v.courseId) === filterCourseId;
+            return false;
+        });
+    }
+
+    // Build chapter lookup map
+    const chapterMap = {};
+    chapters.forEach(ch => { chapterMap[ch.id] = ch; });
+
+    // Group videos by chapterId — also assign to sibling chapters (same name, different course in video's courseIds)
+    const videosByChapter = {};
+    const ungroupedVideos = [];
+    const assignedVideoIds = new Set();
+    filteredVideos.forEach(v => {
+        if (v.chapterId && chapterMap[v.chapterId]) {
+            const origChapter = chapterMap[v.chapterId];
+            const vCourseIds = (v.courseIds && Array.isArray(v.courseIds)) ? v.courseIds.map(String) : [String(v.courseId)];
+            const siblingChapters = chapters.filter(ch =>
+                ch.name === origChapter.name && vCourseIds.includes(String(ch.courseId))
+            );
+            if (siblingChapters.length > 0) {
+                siblingChapters.forEach(ch => {
+                    if (!videosByChapter[ch.id]) videosByChapter[ch.id] = [];
+                    if (!videosByChapter[ch.id].some(existing => existing.id === v.id)) {
+                        videosByChapter[ch.id].push(v);
+                    }
+                });
+                assignedVideoIds.add(v.id);
+            } else {
+                if (!videosByChapter[v.chapterId]) videosByChapter[v.chapterId] = [];
+                videosByChapter[v.chapterId].push(v);
+                assignedVideoIds.add(v.id);
+            }
+        } else if (v.chapterId) {
+            ungroupedVideos.push(v);
+        } else {
+            ungroupedVideos.push(v);
+        }
+    });
+
+    let html = '';
+
+    if (chapters.length === 0 && ungroupedVideos.length === 0) {
+        html = '<div style="text-align:center;padding:50px;color:#94a3b8;"><i class="fas fa-video" style="font-size:40px;margin-bottom:12px;opacity:0.3;"></i><div style="font-size:16px;font-weight:500;">No chapters or videos found</div><div style="font-size:13px;margin-top:4px;">Click "Add Chapter" or "Add Video" to get started</div></div>';
+    } else {
+        // Render chapters with their videos as card sections
+        chapters.forEach((ch, idx) => {
+            const chVideos = videosByChapter[ch.id] || [];
+            const courseName = _videoCourseMap[ch.courseId] || 'N/A';
+            html += '<div style="margin-bottom:24px;">' +
+                '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(102,126,234,0.08);border-left:3px solid #667eea;border-radius:8px;margin-bottom:12px;">' +
+                    '<div style="display:flex;align-items:center;gap:10px;">' +
+                        '<i class="fas fa-folder" style="color:#667eea;font-size:16px;"></i>' +
+                        '<strong style="font-size:15px;color:#e2e8f0;">' + ch.name + '</strong>' +
+                        '<span style="padding:3px 10px;font-size:11px;background:rgba(102,126,234,0.2);color:#a5b4fc;border-radius:12px;">' + chVideos.length + ' video' + (chVideos.length !== 1 ? 's' : '') + '</span>' +
+                        '<span style="font-size:12px;color:#94a3b8;">' + courseName + '</span>' +
+                    '</div>' +
+                    '<div style="display:flex;gap:6px;">' +
+                        '<button onclick="addVideoToChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:6px;cursor:pointer;"><i class="fas fa-plus" style="margin-right:4px;"></i>Video</button>' +
+                        '<button onclick="editChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;"><i class="fas fa-edit" style="margin-right:4px;"></i>Edit</button>' +
+                        '<button onclick="deleteChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:6px;cursor:pointer;"><i class="fas fa-trash" style="margin-right:4px;"></i>Delete</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 4px;">' +
+                    chVideos.map(v => renderVideoCard(v, _videoCourseMap)).join('') +
+                '</div>' +
+            '</div>';
+        });
+
+        // Ungrouped videos section
+        if (ungroupedVideos.length > 0) {
+            html += '<div style="margin-bottom:24px;">' +
+                '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(255,255,255,0.03);border-left:3px solid #64748b;border-radius:8px;margin-bottom:12px;">' +
+                    '<i class="fas fa-folder-open" style="color:#64748b;font-size:16px;"></i>' +
+                    '<strong style="font-size:15px;color:#94a3b8;">Ungrouped Videos</strong>' +
+                    '<span style="padding:3px 10px;font-size:11px;background:rgba(100,116,139,0.2);color:#94a3b8;border-radius:12px;">' + ungroupedVideos.length + ' video' + (ungroupedVideos.length !== 1 ? 's' : '') + '</span>' +
+                '</div>' +
+                '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 4px;">' +
+                    ungroupedVideos.map(v => renderVideoCard(v, _videoCourseMap)).join('') +
+                '</div>' +
+            '</div>';
+        }
+    }
+
+    container.innerHTML = html;
 }
 
 function renderVideoCard(v, courseMap) {
@@ -15332,20 +15395,25 @@ async function openQuizManager(videoId, videoTitle) {
 function renderQuizQuestions() {
     const container = document.getElementById('quizQuestionsList');
     if (currentQuizQuestions.length === 0) {
-        container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px;">No questions yet. Click "Add Question" below.</p>';
+        container.innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;"><i class="fas fa-comment-dots" style="font-size:32px;margin-bottom:10px;opacity:0.3;"></i><div style="font-size:14px;">No questions yet. Click "Add Question" to start.</div></div>';
         return;
     }
     container.innerHTML = currentQuizQuestions.map((q, i) => `
-        <div style="border:1px solid #e2e8f0;border-radius:8px;padding:15px;margin-bottom:10px;background:#f8fafc;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
-                <strong>Question ${i + 1}</strong>
-                <button class="action-btn delete-btn" onclick="removeQuestion(${i})">Remove</button>
+        <div style="border:1px solid rgba(167,139,250,0.2);border-radius:12px;padding:16px;margin-bottom:12px;background:rgba(167,139,250,0.05);transition:all 0.2s;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="width:28px;height:28px;border-radius:50%;background:rgba(167,139,250,0.2);color:#c4b5fd;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">${i + 1}</span>
+                    <strong style="color:#e2e8f0;font-size:14px;">Question ${i + 1}</strong>
+                </div>
+                <button onclick="removeQuestion(${i})" style="padding:5px 12px;font-size:11px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.1);color:#fca5a5;border-radius:6px;cursor:pointer;"><i class="fas fa-times" style="margin-right:4px;"></i>Remove</button>
             </div>
-            <input type="text" placeholder="Question text" value="${(q.question || '').replace(/"/g, '&quot;')}" onchange="currentQuizQuestions[${i}].question=this.value" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #cbd5e1;border-radius:4px;">
+            <input type="text" placeholder="Enter question text..." value="${(q.question || '').replace(/"/g, '&quot;')}" onchange="currentQuizQuestions[${i}].question=this.value" style="width:100%;padding:10px 14px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.12);border-radius:8px;background:rgba(255,255,255,0.05);color:#e2e8f0;font-size:14px;outline:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(167,139,250,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Options <span style="color:#a78bfa;">(select correct answer)</span></div>
             ${[0,1,2,3].map(optIdx => `
-                <div style="display:flex;gap:8px;align-items:center;margin-bottom:5px;">
-                    <input type="radio" name="correct_${i}" ${q.correctAnswer === optIdx ? 'checked' : ''} onchange="currentQuizQuestions[${i}].correctAnswer=${optIdx}">
-                    <input type="text" placeholder="Option ${optIdx + 1}" value="${(q.options && q.options[optIdx] || '').replace(/"/g, '&quot;')}" onchange="if(!currentQuizQuestions[${i}].options)currentQuizQuestions[${i}].options=[];currentQuizQuestions[${i}].options[${optIdx}]=this.value" style="flex:1;padding:6px;border:1px solid #cbd5e1;border-radius:4px;">
+                <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">
+                    <input type="radio" name="correct_${i}" id="q${i}_opt${optIdx}" ${q.correctAnswer === optIdx ? 'checked' : ''} onchange="currentQuizQuestions[${i}].correctAnswer=${optIdx}" style="width:18px;height:18px;accent-color:#a78bfa;cursor:pointer;flex-shrink:0;">
+                    <input type="text" placeholder="Option ${optIdx + 1}" value="${(q.options && q.options[optIdx] || '').replace(/"/g, '&quot;')}" onchange="if(!currentQuizQuestions[${i}].options)currentQuizQuestions[${i}].options=[];currentQuizQuestions[${i}].options[${optIdx}]=this.value" style="flex:1;padding:8px 14px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:13px;outline:none;transition:all 0.2s;" onfocus="this.style.borderColor='rgba(167,139,250,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                    <label for="q${i}_opt${optIdx}" style="font-size:11px;color:rgba(255,255,255,0.3);cursor:pointer;flex-shrink:0;width:50px;text-align:center;">${q.correctAnswer === optIdx ? '<span style="color:#6ee7b7;"><i class="fas fa-check"></i> Correct</span>' : 'Correct'}</label>
                 </div>
             `).join('')}
         </div>
