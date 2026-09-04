@@ -175,7 +175,8 @@ app.use((req, res, next) => {
 // Security headers with Helmet
 app.use(helmet({
     contentSecurityPolicy: false, // Temporarily disabled due to inline event handler conflicts
-    crossOriginEmbedderPolicy: false
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false
 }));
 
 // Rate limiting for API endpoints
