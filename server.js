@@ -15119,18 +15119,33 @@ Rules:
 - Do NOT use marketing buzzwords or clickbait phrases.
 - Do NOT start with "In this video" — start with the topic directly.
 - Do NOT include any HTML, markdown, or special formatting — plain text only.
+- Output ONLY the description text, nothing else.`;
 
-Respond with JSON only:
-{
-  "description": "<the description text>"
-}`;
-
-        const result = await callGeminiJSON(prompt, { temperature: 0.7, maxOutputTokens: 1000 });
-        if (!result.ok) {
-            return res.json({ success: false, fallback: true, message: result.message });
+        let response;
+        try {
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+                })
+            });
+        } catch (err) {
+            console.error('Gemini fetch failed:', err.message);
+            return res.json({ success: false, fallback: true, message: 'AI service unreachable' });
         }
-        const description = (result.data.description || '').trim();
+
+        if (!response.ok) {
+            console.error('Gemini API error:', response.status, await response.text().catch(() => ''));
+            return res.json({ success: false, fallback: true, message: 'AI service unavailable' });
+        }
+
+        const data = await response.json();
+        const description = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+
         if (!description) {
+            console.error('Gemini: empty response for video description');
             return res.json({ success: false, fallback: true, message: 'AI returned empty description' });
         }
         res.json({ success: true, description });
