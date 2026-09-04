@@ -4859,7 +4859,7 @@ const videoStorage = multer.diskStorage({
 });
 const uploadVideo = multer({
     storage: videoStorage,
-    limits: { fileSize: 1024 * 1024 * 1024 },
+    limits: { fileSize: 300 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         if (file.fieldname === 'video' && !file.mimetype.startsWith('video/')) {
             return cb(new Error('Please upload a valid video file.'));
@@ -4868,6 +4868,40 @@ const uploadVideo = multer({
             return cb(new Error('Please upload a valid thumbnail image file.'));
         }
         cb(null, true);
+    }
+});
+
+// Chunked video upload - bypasses proxy body-size limits (chunks are < 1MB each)
+const videoChunkUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 1 * 1024 * 1024 } });
+app.post('/api/videos/upload-chunk', videoChunkUpload.single('chunk'), (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ success: false, message: 'No chunk received' });
+        const chunkIndex = parseInt(req.body.chunkIndex, 10);
+        const totalChunks = parseInt(req.body.totalChunks, 10);
+        const fileName = (req.body.fileName || 'video.mp4').replace(/[^a-zA-Z0-9._-]/g, '_');
+        if (isNaN(chunkIndex) || isNaN(totalChunks) || totalChunks < 1) {
+            return res.status(400).json({ success: false, message: 'Invalid chunk info' });
+        }
+        const videosDir = path.join(__dirname, 'uploads', 'videos');
+        if (!fs.existsSync(videosDir)) fs.mkdirSync(videosDir, { recursive: true });
+        const finalName = Date.now() + '-' + fileName;
+        const tempPath = path.join(videosDir, finalName + '.uploading');
+        const finalPath = path.join(videosDir, finalName);
+
+        // First chunk: start fresh temp file
+        if (chunkIndex === 0 && fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+        fs.appendFileSync(tempPath, req.file.buffer);
+
+        // Last chunk: finalize
+        if (chunkIndex === totalChunks - 1) {
+            if (fs.existsSync(finalPath)) fs.unlinkSync(finalPath);
+            fs.renameSync(tempPath, finalPath);
+            return res.json({ success: true, completed: true, fileName: finalName });
+        }
+        res.json({ success: true, completed: false, chunkIndex });
+    } catch (err) {
+        console.error('Video chunk upload error:', err);
+        res.status(500).json({ success: false, message: 'Chunk upload failed' });
     }
 });
 
@@ -7574,7 +7608,9 @@ app.post('/api/videos', uploadVideo.fields([{ name: 'video', maxCount: 1 }, { na
     if (courseIds.length === 0) {
         return res.status(400).json({ success: false, message: 'At least one course is required' });
     }
-    if (!videoFile && !videoUrlInput) {
+    const chunkedFileName = (req.body.videoFileName || '').trim();
+
+    if (!videoFile && !videoUrlInput && !chunkedFileName) {
         return res.status(400).json({ success: false, message: 'Please provide a video file or video URL' });
     }
 
@@ -7585,6 +7621,14 @@ app.post('/api/videos', uploadVideo.fields([{ name: 'video', maxCount: 1 }, { na
         try { imageSize(thumbFile.path); } catch (e) { /* dimensions read failed, thumbnail still valid */ }
     }
 
+    // Determine video URL: chunked upload > direct upload > URL
+    let finalVideoUrl = videoUrlInput;
+    if (chunkedFileName) {
+        finalVideoUrl = '/uploads/videos/' + chunkedFileName;
+    } else if (videoFile) {
+        finalVideoUrl = '/uploads/videos/' + videoFile.filename;
+    }
+
     const video = {
         id: Date.now(),
         title,
@@ -7592,7 +7636,7 @@ app.post('/api/videos', uploadVideo.fields([{ name: 'video', maxCount: 1 }, { na
         courseIds,
         courseId: courseIds[0], // backward compat
         chapterId: req.body.chapterId || null,
-        videoUrl: videoFile ? '/uploads/videos/' + videoFile.filename : videoUrlInput,
+        videoUrl: finalVideoUrl,
         thumbnail: thumbnail,
         duration: req.body.duration || 0,
         category: req.body.category || 'General',
@@ -7612,6 +7656,7 @@ app.put('/api/videos/:id', uploadVideo.fields([{ name: 'video', maxCount: 1 }, {
 
     const videoFile = req.files && req.files.video ? req.files.video[0] : null;
     const thumbFile = req.files && req.files.thumbnail ? req.files.thumbnail[0] : null;
+    const chunkedFileName = (req.body.videoFileName || '').trim();
     let thumbnail = videos[idx].thumbnail;
 
     if (thumbFile) {
@@ -7636,11 +7681,13 @@ app.put('/api/videos/:id', uploadVideo.fields([{ name: 'video', maxCount: 1 }, {
         courseIds,
         courseId: courseIds[0], // backward compat
         chapterId: req.body.chapterId !== undefined ? req.body.chapterId : videos[idx].chapterId,
-        videoUrl: videoFile
-            ? '/uploads/videos/' + videoFile.filename
-            : (req.body.videoUrl !== undefined && String(req.body.videoUrl).trim() !== ''
-                ? String(req.body.videoUrl).trim()
-                : videos[idx].videoUrl),
+        videoUrl: chunkedFileName
+            ? '/uploads/videos/' + chunkedFileName
+            : (videoFile
+                ? '/uploads/videos/' + videoFile.filename
+                : (req.body.videoUrl !== undefined && String(req.body.videoUrl).trim() !== ''
+                    ? String(req.body.videoUrl).trim()
+                    : videos[idx].videoUrl)),
         thumbnail: thumbnail,
         duration: req.body.duration || videos[idx].duration,
         category: req.body.category || videos[idx].category
@@ -7652,7 +7699,7 @@ app.put('/api/videos/:id', uploadVideo.fields([{ name: 'video', maxCount: 1 }, {
 // Multer error handler for video uploads
 app.use('/api/videos', (err, req, res, next) => {
     if (err instanceof multer.MulterError) {
-        if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ success: false, message: 'File size too large. Maximum allowed is 1GB.' });
+        if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ success: false, message: 'File size too large. Maximum allowed is 300MB.' });
         return res.status(400).json({ success: false, message: err.message });
     } else if (err) {
         return res.status(500).json({ success: false, message: err.message });

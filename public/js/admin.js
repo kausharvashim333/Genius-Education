@@ -6315,7 +6315,7 @@ function openVideoModal() {
     document.getElementById('videoFile').value = '';
     document.getElementById('thumbnailFile').value = '';
     document.getElementById('videoChapter').innerHTML = '<option value="">No Chapter</option>';
-    document.getElementById('videoChapterCourse').innerHTML = '<option value="">Select Course for Chapter</option>';
+    document.getElementById('videoUploadProgress').style.display = 'none';
     document.getElementById('thumbnailPreview').style.display = 'none';
     document.getElementById('thumbnailPreviewImg').src = '';
     loadCoursesForVideoModal();
@@ -6378,35 +6378,61 @@ async function loadCoursesForVideoModal(selectedCourseIds = []) {
     container.innerHTML = courses.map(c => {
         const checked = selectedCourseIds.includes(String(c.id)) ? 'checked' : '';
         return '<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.08)\'" onmouseout="this.style.background=\'transparent\'">' +
-            '<input type="checkbox" value="' + c.id + '" ' + checked + ' style="width:16px;height:16px;accent-color:#667eea;cursor:pointer;">' +
+            '<input type="checkbox" value="' + c.id + '" ' + checked + ' onchange="loadChaptersForVideoModal()" style="width:16px;height:16px;accent-color:#667eea;cursor:pointer;">' +
             '<span style="font-size:14px;">' + c.name + '</span>' +
             '</label>';
     }).join('');
-    // Also populate chapter course filter dropdown
-    const chapterCourseSelect = document.getElementById('videoChapterCourse');
-    if (chapterCourseSelect) {
-        chapterCourseSelect.innerHTML = '<option value="">Select Course for Chapter</option>' + courses.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
-    }
-    // Also populate chapter course filter on videos page
+    // Populate chapter course filter on videos page
     const filterSelect = document.getElementById('chapterCourseFilter');
     if (filterSelect) {
         const currentVal = filterSelect.value;
         filterSelect.innerHTML = '<option value="">All Courses</option>' + courses.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
         filterSelect.value = currentVal;
     }
+    // Auto-load chapters if courses are pre-selected (edit mode)
+    if (selectedCourseIds.length > 0) {
+        await loadChaptersForVideoModal();
+    }
 }
 
 async function loadChaptersForVideoModal() {
-    const courseId = document.getElementById('videoChapterCourse').value;
+    const checkboxes = document.querySelectorAll('#videoCourseList input[type=checkbox]:checked');
+    const courseIds = Array.from(checkboxes).map(cb => cb.value);
     const select = document.getElementById('videoChapter');
-    if (!courseId) {
+    if (courseIds.length === 0) {
         select.innerHTML = '<option value="">No Chapter</option>';
         return;
     }
     try {
-        const res = await fetch('/api/chapters?courseId=' + courseId);
-        const chapters = await res.json();
-        select.innerHTML = '<option value="">No Chapter</option>' + chapters.map(ch => '<option value="' + ch.id + '">' + ch.name + '</option>').join('');
+        // Fetch chapters from all selected courses
+        const allChapters = [];
+        for (const cid of courseIds) {
+            const res = await fetch('/api/chapters?courseId=' + cid);
+            const chapters = await res.json();
+            chapters.forEach(ch => allChapters.push(ch));
+        }
+        // Find common chapters (same name across ALL selected courses)
+        let options = '';
+        if (courseIds.length === 1) {
+            // Single course: show all its chapters
+            options = allChapters.map(ch => '<option value="' + ch.id + '">' + ch.name + '</option>').join('');
+        } else {
+            // Multiple courses: show chapters that exist in ALL selected courses (by name)
+            const courseCount = courseIds.length;
+            const nameMap = {};
+            allChapters.forEach(ch => {
+                if (!nameMap[ch.name]) nameMap[ch.name] = { count: 0, sample: ch };
+                nameMap[ch.name].count++;
+            });
+            const common = Object.values(nameMap).filter(v => v.count === courseCount).map(v => v.sample);
+            if (common.length > 0) {
+                options = common.map(ch => '<option value="' + ch.id + '">' + ch.name + '</option>').join('');
+            } else {
+                // No common chapters - show all with course prefix
+                options = allChapters.map(ch => '<option value="' + ch.id + '">[' + (ch.courseName || ch.courseId) + '] ' + ch.name + '</option>').join('');
+            }
+        }
+        select.innerHTML = '<option value="">No Chapter</option>' + options;
     } catch (e) {
         select.innerHTML = '<option value="">No Chapter</option>';
     }
@@ -6444,6 +6470,51 @@ async function saveVideo() {
         return;
     }
 
+    // Check video file size (300MB limit)
+    if (videoFile && videoFile.size > 300 * 1024 * 1024) {
+        showNotification('Video file too large. Maximum 300MB allowed.', 'error');
+        return;
+    }
+
+    const progressEl = document.getElementById('videoUploadProgress');
+    let uploadedVideoFilename = null;
+
+    // Chunked upload for video file (bypasses nginx body-size limits)
+    if (videoFile) {
+        progressEl.style.display = 'block';
+        progressEl.textContent = 'Uploading video... 0%';
+        const CHUNK_SIZE = 700 * 1024; // 700KB - safely under 1MB proxy limits
+        const totalChunks = Math.ceil(videoFile.size / CHUNK_SIZE);
+        const safeName = videoFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        try {
+            for (let i = 0; i < totalChunks; i++) {
+                const start = i * CHUNK_SIZE;
+                const chunk = videoFile.slice(start, start + CHUNK_SIZE);
+                const chunkForm = new FormData();
+                chunkForm.append('chunkIndex', i);
+                chunkForm.append('totalChunks', totalChunks);
+                chunkForm.append('fileName', safeName);
+                chunkForm.append('chunk', chunk, safeName);
+                const chunkRes = await fetch('/api/videos/upload-chunk', { method: 'POST', body: chunkForm });
+                const chunkData = await chunkRes.json();
+                if (!chunkData.success) {
+                    throw new Error(chunkData.message || 'Chunk upload failed');
+                }
+                if (chunkData.completed && chunkData.fileName) {
+                    uploadedVideoFilename = chunkData.fileName;
+                }
+                const percent = Math.round(((i + 1) / totalChunks) * 100);
+                progressEl.textContent = 'Uploading video... ' + percent + '%';
+            }
+        } catch (e) {
+            console.error('Video chunk upload error:', e);
+            progressEl.style.display = 'none';
+            showNotification('Video upload failed: ' + e.message, 'error');
+            return;
+        }
+        progressEl.textContent = 'Upload complete! Saving...';
+    }
+
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', document.getElementById('videoDescription').value);
@@ -6453,8 +6524,8 @@ async function saveVideo() {
     formData.append('videoUrl', videoUrl);
     formData.append('duration', document.getElementById('videoDuration').value);
 
-    if (videoFile) {
-        formData.append('video', videoFile);
+    if (uploadedVideoFilename) {
+        formData.append('videoFileName', uploadedVideoFilename);
     }
 
     if (thumbFile) {
@@ -6480,11 +6551,9 @@ async function saveVideo() {
             data = null;
         }
 
+        progressEl.style.display = 'none';
+
         if (!res.ok) {
-            if (res.status === 413) {
-                showNotification('File too large for server. Use a video URL instead, or ask admin to increase nginx client_max_body_size.', 'error');
-                return;
-            }
             const msg = (data && data.message) || (data && data.error) || ('Upload failed (HTTP ' + res.status + ')');
             showNotification(msg, 'error');
             return;
@@ -6499,6 +6568,7 @@ async function saveVideo() {
         }
     } catch (e) {
         console.error('Error saving video:', e);
+        progressEl.style.display = 'none';
         showNotification('Error saving video!', 'error');
     }
 }
@@ -6535,13 +6605,12 @@ async function editVideo(id) {
         } else if (video.courseId) {
             selectedIds = [String(video.courseId)];
         }
-        loadCoursesForVideoModal(selectedIds).then(async () => {
-            // Set chapter course dropdown and load chapters
-            if (selectedIds.length > 0) {
-                document.getElementById('videoChapterCourse').value = selectedIds[0];
-                await loadChaptersForVideoModal();
+        loadCoursesForVideoModal(selectedIds).then(() => {
+            // Chapters are auto-loaded by loadCoursesForVideoModal when selectedIds provided
+            // Set the chapter value after chapters are loaded
+            setTimeout(() => {
                 document.getElementById('videoChapter').value = video.chapterId || '';
-            }
+            }, 200);
         });
 
         document.getElementById('videoModal').classList.add('active');
