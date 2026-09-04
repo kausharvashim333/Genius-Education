@@ -15217,8 +15217,63 @@ Respond with JSON only:
     }
 });
 
-// --- Gemini AI Video Description Generator ---
+// --- Video Description Generator (Wikipedia-based, no AI API needed) ---
 const aiVideoDescLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, message: { success: false, message: 'Too many requests, try again shortly' } });
+
+// Fetch topic info from Wikipedia (free, no API key needed)
+async function fetchWikiInfo(query) {
+    // Clean the query by removing common filler words
+    const fillerWords = ['introduction', 'to', 'basics', 'for', 'beginners', 'beginner', 'tutorial', 'complete', 'guide', 'lesson', 'part', 'chapter', 'lecture', 'learn', 'learning', 'full', 'crash', 'course', 'master', 'masterclass', 'easy', 'simple', 'step', 'by', 'step'];
+    const cleanQuery = query.replace(/\b\w+\b/g, (w) => {
+        return fillerWords.includes(w.toLowerCase()) ? '' : w;
+    }).replace(/\s+/g, ' ').trim() || query;
+
+    const queries = [cleanQuery, query];
+    
+    for (const q of queries) {
+        try {
+            const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=5&format=json&origin=*`;
+            const searchRes = await fetch(searchUrl);
+            if (!searchRes.ok) continue;
+            const searchData = await searchRes.json();
+            const searchResults = searchData?.query?.search;
+            if (!searchResults || searchResults.length === 0) continue;
+
+            // Try top 3 search results to find a good match
+            for (let i = 0; i < Math.min(3, searchResults.length); i++) {
+                const pageTitle = searchResults[i].title;
+                const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
+                const summaryRes = await fetch(summaryUrl);
+                if (!summaryRes.ok) continue;
+                const summaryData = await summaryRes.json();
+                const extract = summaryData.extract || '';
+                if (extract.length > 50) {
+                    return { extract, title: summaryData.title || pageTitle };
+                }
+            }
+        } catch (e) {
+            console.error('Wikipedia fetch error:', e.message);
+        }
+    }
+    return null;
+}
+
+// Generate description from Wikipedia data (no AI API needed)
+function generateDescriptionFromWiki(videoTitle, wikiData) {
+    if (wikiData && wikiData.extract && wikiData.extract.length > 30) {
+        let extract = wikiData.extract.trim();
+        // Limit to ~100 words
+        const words = extract.split(/\s+/);
+        if (words.length > 100) {
+            extract = words.slice(0, 100).join(' ') + '.';
+        }
+        // Ensure it ends with a period
+        if (!/[.!?]$/.test(extract)) extract += '.';
+        return extract;
+    }
+    // Fallback: simple template
+    return `This video covers ${videoTitle}, explaining the core concepts and practical applications. Students will learn the fundamental principles, key techniques, and real-world usage scenarios. The lesson is designed to build a strong foundation for further learning.`;
+}
 
 app.post('/api/ai/video-description', aiVideoDescLimiter, async (req, res) => {
     try {
@@ -15228,63 +15283,19 @@ app.post('/api/ai/video-description', aiVideoDescLimiter, async (req, res) => {
         }
         const cleanTitle = String(title).substring(0, 200);
 
-        const prompt = `You are an educational content writer for an Indian e-learning platform called "Genius Computer Education".
+        // Fetch info from Wikipedia (internet search)
+        const wikiData = await fetchWikiInfo(cleanTitle);
 
-Video title: "${cleanTitle}"
+        // Generate description from the fetched info
+        const description = generateDescriptionFromWiki(cleanTitle, wikiData);
 
-Search the internet to find accurate information about this topic, then write a compelling, informative video description.
-
-Rules:
-- 3 to 5 sentences, 60 to 100 words total.
-- Write in simple, clear English that students can easily understand.
-- Describe what the video covers and what students will learn.
-- Mention key topics or concepts that will be explained based on your web search findings.
-- Do NOT use marketing buzzwords or clickbait phrases.
-- Do NOT start with "In this video" — start with the topic directly.
-- Do NOT include any HTML, markdown, citations, URLs, or special formatting — plain text only.
-- Output ONLY the description text, nothing else.`;
-
-        const result = await callGeminiWithSearch(prompt, { temperature: 0.7, maxOutputTokens: 3000 });
-        if (!result.ok) {
-            // Fallback: try without Google Search if quota exceeded
-            await new Promise(r => setTimeout(r, 3000));
-            const fallbackPrompt = `You are an educational content writer for an Indian e-learning platform called "Genius Computer Education".
-
-Video title: "${cleanTitle}"
-
-Write a compelling, informative video description for this educational video.
-
-Rules:
-- 3 to 5 sentences, 60 to 100 words total.
-- Write in simple, clear English that students can easily understand.
-- Describe what the video covers and what students will learn.
-- Mention key topics or concepts that will be explained.
-- Do NOT use marketing buzzwords or clickbait phrases.
-- Do NOT start with "In this video" — start with the topic directly.
-- Do NOT include any HTML, markdown, or special formatting — plain text only.
-
-Respond with JSON only:
-{
-  "description": "<the description text>"
-}`;
-            const fallbackResult = await callGeminiJSON(fallbackPrompt, { temperature: 0.7, maxOutputTokens: 3000 });
-            if (!fallbackResult.ok) {
-                return res.json({ success: false, fallback: true, message: result.message });
-            }
-            const description = (fallbackResult.data.description || '').trim();
-            if (!description) {
-                return res.json({ success: false, fallback: true, message: 'AI returned empty description' });
-            }
-            return res.json({ success: true, description });
-        }
-        const description = (result.text || '').trim();
         if (!description) {
-            return res.json({ success: false, fallback: true, message: 'AI returned empty description' });
+            return res.json({ success: false, fallback: true, message: 'Could not generate description' });
         }
         res.json({ success: true, description });
     } catch (err) {
-        console.error('AI video description error:', err.message);
-        res.json({ success: false, fallback: true, message: 'AI description generation failed' });
+        console.error('Video description error:', err.message);
+        res.json({ success: false, fallback: true, message: 'Description generation failed' });
     }
 });
 
