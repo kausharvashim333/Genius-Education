@@ -14905,7 +14905,7 @@ async function callGeminiJSON(prompt, opts) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return { ok: false, message: 'AI not configured' };
 
-    const models = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
+    const models = ['gemini-3.6-flash', 'gemini-3.5-flash-lite'];
     let lastError = '';
 
     for (const model of models) {
@@ -14955,6 +14955,56 @@ async function callGeminiJSON(prompt, opts) {
 
         console.error(`Gemini: JSON parse failed (${model}):`, raw.substring(0, 200));
         lastError = 'Invalid AI response';
+    }
+
+    return { ok: false, message: lastError || 'AI service unavailable' };
+}
+
+// --- Gemini helper with Google Search grounding: returns plain text ---
+async function callGeminiWithSearch(prompt, opts) {
+    const { temperature = 0.7, maxOutputTokens = 3000 } = opts || {};
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return { ok: false, message: 'AI not configured' };
+
+    const models = ['gemini-3.6-flash', 'gemini-3.5-flash-lite'];
+    let lastError = '';
+
+    for (const model of models) {
+        let response;
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 30000);
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    tools: [{ google_search: {} }],
+                    generationConfig: { temperature, maxOutputTokens }
+                }),
+                signal: controller.signal
+            });
+            clearTimeout(timeout);
+        } catch (err) {
+            console.error(`Gemini search fetch failed (${model}):`, err.message);
+            lastError = err.name === 'AbortError' ? 'AI service timed out' : 'AI service unreachable';
+            continue;
+        }
+
+        if (!response.ok) {
+            const errBody = await response.text().catch(() => '');
+            console.error(`Gemini search API error (${model}):`, response.status, errBody.substring(0, 300));
+            lastError = 'AI service unavailable (status ' + response.status + ')';
+            if (response.status === 403 || response.status === 404) continue;
+            return { ok: false, message: lastError };
+        }
+
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (text.trim()) return { ok: true, text: text.trim() };
+
+        console.error(`Gemini search: empty response (${model})`);
+        lastError = 'Empty AI response';
     }
 
     return { ok: false, message: lastError || 'AI service unavailable' };
@@ -15178,7 +15228,27 @@ app.post('/api/ai/video-description', aiVideoDescLimiter, async (req, res) => {
         }
         const cleanTitle = String(title).substring(0, 200);
 
-        const prompt = `You are an educational content writer for an Indian e-learning platform.
+        const prompt = `You are an educational content writer for an Indian e-learning platform called "Genius Computer Education".
+
+Video title: "${cleanTitle}"
+
+Search the internet to find accurate information about this topic, then write a compelling, informative video description.
+
+Rules:
+- 3 to 5 sentences, 60 to 100 words total.
+- Write in simple, clear English that students can easily understand.
+- Describe what the video covers and what students will learn.
+- Mention key topics or concepts that will be explained based on your web search findings.
+- Do NOT use marketing buzzwords or clickbait phrases.
+- Do NOT start with "In this video" — start with the topic directly.
+- Do NOT include any HTML, markdown, citations, URLs, or special formatting — plain text only.
+- Output ONLY the description text, nothing else.`;
+
+        const result = await callGeminiWithSearch(prompt, { temperature: 0.7, maxOutputTokens: 3000 });
+        if (!result.ok) {
+            // Fallback: try without Google Search if quota exceeded
+            await new Promise(r => setTimeout(r, 3000));
+            const fallbackPrompt = `You are an educational content writer for an Indian e-learning platform called "Genius Computer Education".
 
 Video title: "${cleanTitle}"
 
@@ -15197,12 +15267,17 @@ Respond with JSON only:
 {
   "description": "<the description text>"
 }`;
-
-        const result = await callGeminiJSON(prompt, { temperature: 0.7, maxOutputTokens: 3000 });
-        if (!result.ok) {
-            return res.json({ success: false, fallback: true, message: result.message });
+            const fallbackResult = await callGeminiJSON(fallbackPrompt, { temperature: 0.7, maxOutputTokens: 3000 });
+            if (!fallbackResult.ok) {
+                return res.json({ success: false, fallback: true, message: result.message });
+            }
+            const description = (fallbackResult.data.description || '').trim();
+            if (!description) {
+                return res.json({ success: false, fallback: true, message: 'AI returned empty description' });
+            }
+            return res.json({ success: true, description });
         }
-        const description = (result.data.description || '').trim();
+        const description = (result.text || '').trim();
         if (!description) {
             return res.json({ success: false, fallback: true, message: 'AI returned empty description' });
         }
