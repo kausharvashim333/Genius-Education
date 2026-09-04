@@ -6560,6 +6560,42 @@ async function deleteVideo(id) {
     }
 }
 
+async function generateVideoDescription() {
+    const title = document.getElementById('videoTitle').value.trim();
+    if (!title) {
+        showNotification('Please enter a video title first!', 'error');
+        document.getElementById('videoTitle').focus();
+        return;
+    }
+
+    const btn = document.getElementById('aiDescBtn');
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:10px;"></i> Generating...';
+
+    try {
+        const res = await fetch('/api/ai/video-description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title })
+        });
+        const data = await res.json();
+
+        if (data && data.success && data.description) {
+            document.getElementById('videoDescription').value = data.description;
+            showNotification('Description generated!', 'success');
+        } else {
+            showNotification((data && data.message) || 'AI could not generate description. Try writing manually.', 'error');
+        }
+    } catch (e) {
+        console.error('AI description error:', e);
+        showNotification('AI service unavailable. Try writing manually.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+    }
+}
+
 // ===== Chapters =====
 async function loadChaptersTable() {
     const tbody = document.getElementById('chaptersTable').querySelector('tbody');

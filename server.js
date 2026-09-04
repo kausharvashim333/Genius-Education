@@ -15091,6 +15091,55 @@ Respond with JSON only:
     }
 });
 
+// --- Gemini AI Video Description Generator ---
+const aiVideoDescLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, message: { success: false, message: 'Too many requests, try again shortly' } });
+
+app.post('/api/ai/video-description', aiVideoDescLimiter, async (req, res) => {
+    try {
+        const { title } = req.body || {};
+        if (!title || String(title).length < 2) {
+            return res.status(400).json({ success: false, message: 'Video title is required' });
+        }
+        const cleanTitle = String(title).substring(0, 200);
+
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) return res.json({ success: false, fallback: true, message: 'AI not configured' });
+
+        const prompt = `You are an educational content writer for an Indian e-learning platform.
+
+Video title: "${cleanTitle}"
+
+Write a compelling, informative video description for this educational video.
+
+Rules:
+- 3 to 5 sentences, 60 to 100 words total.
+- Write in simple, clear English that students can easily understand.
+- Describe what the video covers and what students will learn.
+- Mention key topics or concepts that will be explained.
+- Do NOT use marketing buzzwords or clickbait phrases.
+- Do NOT start with "In this video" — start with the topic directly.
+- Do NOT include any HTML, markdown, or special formatting — plain text only.
+
+Respond with JSON only:
+{
+  "description": "<the description text>"
+}`;
+
+        const result = await callGeminiJSON(prompt, { temperature: 0.7, maxOutputTokens: 1000 });
+        if (!result.ok) {
+            return res.json({ success: false, fallback: true, message: result.message });
+        }
+        const description = (result.data.description || '').trim();
+        if (!description) {
+            return res.json({ success: false, fallback: true, message: 'AI returned empty description' });
+        }
+        res.json({ success: true, description });
+    } catch (err) {
+        console.error('AI video description error:', err.message);
+        res.json({ success: false, fallback: true, message: 'AI description generation failed' });
+    }
+});
+
 // --- Spoken English ---
 app.get('/api/spoken-english', (req, res) => {
     const data = readData('spoken-english.json') || { categories: [] };
