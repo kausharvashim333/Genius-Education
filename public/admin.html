@@ -4638,7 +4638,7 @@
                 <div class="data-table">
                     <div class="table-scroll-wrapper">
                         <table id="videosTable">
-                            <thead><tr><th><input type="checkbox" id="selectAllVideos" onchange="toggleAllVideoCheckboxes()"></th><th>Thumbnail</th><th>Title</th><th>Course</th><th>Chapter</th><th>Category</th><th>Duration</th><th>Views</th><th>Schedule</th><th>Expiry</th><th>Single Session</th><th>Last Notified</th><th>Uploaded</th><th>Actions</th></tr></thead>
+                            <thead><tr><th><input type="checkbox" id="selectAllVideos" onchange="toggleAllVideoCheckboxes()"></th><th>Thumbnail</th><th>Title</th><th>Courses</th><th>Chapter</th><th>Category</th><th>Duration</th><th>Views</th><th>Uploaded</th><th>Actions</th></tr></thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -5832,29 +5832,28 @@
         <div class="modal-content" style="max-width: 600px;">
             <h3 id="videoModalTitle">Add Video</h3>
             <input type="hidden" id="videoId">
-            <div class="form-group"><label>Title *</label><input type="text" id="videoTitle" required></div>
-            <div class="form-group"><label>Description</label><textarea id="videoDescription" rows="3" placeholder="Video description"></textarea></div>
-            <div class="form-group"><label>Course *</label><select id="videoCourse" required onchange="loadChaptersForVideoModal()"><option value="">Select Course</option></select></div>
-            <div class="form-group"><label>Chapter</label><select id="videoChapter"><option value="">No Chapter</option></select></div>
+            <div class="form-group"><label>Title *</label><input type="text" id="videoTitle" required placeholder="Enter video title"></div>
+            <div class="form-group"><label>Description</label><textarea id="videoDescription" rows="3" placeholder="Video description (optional)"></textarea></div>
+            <div class="form-group">
+                <label>Courses * <span style="color:#94a3b8;font-size:12px;">(Select multiple courses to show same video in all)</span></label>
+                <div id="videoCourseList" style="max-height:150px;overflow-y:auto;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px;background:rgba(255,255,255,0.04);"></div>
+            </div>
+            <div class="form-group"><label>Chapter <span style="color:#94a3b8;font-size:12px;">(Select course first, then pick chapter)</span></label>
+            <div style="display:flex;gap:8px;">
+                <select id="videoChapterCourse" onchange="loadChaptersForVideoModal()" style="flex:1;"><option value="">Select Course for Chapter</option></select>
+                <select id="videoChapter" style="flex:1;"><option value="">No Chapter</option></select>
+            </div>
+            </div>
             <div class="form-group"><label>Category</label><select id="videoCategory"><option value="General">General</option><option value="Lecture">Lecture</option><option value="Tutorial">Tutorial</option><option value="Demo">Demo</option><option value="Interview">Interview</option></select></div>
-            <div class="form-group"><label>Video File (or URL)</label><input type="file" id="videoFile" accept="video/*"></div>
+            <div class="form-group"><label>Video File</label><input type="file" id="videoFile" accept="video/*"></div>
             <div class="form-group"><label>Or Video URL</label><input type="text" id="videoUrl" placeholder="https://example.com/video.mp4"></div>
             <div class="form-group">
-                <label>Thumbnail Image <span style="color:#dc2626;font-size:12px;">* Required: min 640x360, 16:9 ratio (Recommended 1280x720)</span></label>
+                <label>Thumbnail Image <span style="color:#94a3b8;font-size:12px;">(Optional: min 640x360, 16:9 ratio)</span></label>
                 <input type="file" id="thumbnailFile" accept="image/*" onchange="validateThumbnail(this)">
                 <div id="thumbnailPreview" style="margin-top:8px;display:none;"><img id="thumbnailPreviewImg" src="" style="max-width:200px;max-height:120px;border-radius:6px;border:1px solid #e2e8f0;"><div id="thumbnailResText" style="font-size:12px;color:#64748b;margin-top:4px;"></div></div>
             </div>
             <div class="form-group"><label>Or Thumbnail URL</label><input type="text" id="videoThumbnail" placeholder="https://example.com/thumbnail.jpg"></div>
             <div class="form-group"><label>Duration (minutes)</label><input type="number" id="videoDuration" placeholder="e.g., 30"></div>
-            <div class="form-group"><label>Subtitle URL (.vtt)</label><input type="text" id="videoSubtitleUrl" placeholder="/uploads/subtitles/video.vtt"></div>
-            <div class="form-group"><label>Watermark Text</label><input type="text" id="videoWatermarkText" placeholder="e.g., Genius Education"></div>
-            <div class="form-group"><label>Availability Start</label><input type="datetime-local" id="videoAvailabilityStart"></div>
-            <div class="form-group"><label>Availability End</label><input type="datetime-local" id="videoAvailabilityEnd"></div>
-            <div class="form-group"><label>Expiry After First Watch (days)</label><input type="number" id="videoExpiryDays" min="0" value="0" placeholder="0 = no expiry"></div>
-            <div class="form-group" style="display:flex;align-items:center;gap:8px;">
-                <input type="checkbox" id="videoSingleSession" style="width:16px;height:16px;">
-                <label for="videoSingleSession" style="margin:0;">Enforce single active student session</label>
-            </div>
             <button type="button" class="btn btn-primary" onclick="saveVideo()"><i class="fas fa-save"></i> Save Video</button>
             <button type="button" class="btn" onclick="closeModal('videoModal')" style="margin-left:10px;">Cancel</button>
         </div>

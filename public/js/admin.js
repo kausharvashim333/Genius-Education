@@ -6274,28 +6274,24 @@ async function loadVideosTable() {
             html += '<td><input type="checkbox" class="video-checkbox" data-id="' + v.id + '"></td>';
             html += '<td>' + (v.thumbnail ? '<img src="' + v.thumbnail + '" style="width:60px;height:40px;object-fit:cover;border-radius:4px;">' : '<span style="color:#94a3b8;">No thumbnail</span>') + '</td>';
             html += '<td><strong>' + v.title + '</strong></td>';
-            html += '<td>' + (courseMap[v.courseId] || 'N/A') + '</td>';
+            // Handle both old courseId and new courseIds
+            let courseNames = [];
+            if (v.courseIds && Array.isArray(v.courseIds)) {
+                courseNames = v.courseIds.map(id => courseMap[id] || 'N/A');
+            } else if (v.courseId) {
+                courseNames = [courseMap[v.courseId] || 'N/A'];
+            }
+            html += '<td style="font-size:12px;">' + (courseNames.length > 0 ? courseNames.join('<br>') : 'N/A') + '</td>';
             html += '<td>' + (chapterMap[v.chapterId] || '-') + '</td>';
             html += '<td>' + v.category + '</td>';
             html += '<td>' + (v.duration ? v.duration + ' min' : '-') + '</td>';
             html += '<td>' + v.views + '</td>';
-            const scheduleText = (v.availabilityStart || v.availabilityEnd)
-                ? [
-                    v.availabilityStart ? ('From: ' + formatDateTime(v.availabilityStart)) : '',
-                    v.availabilityEnd ? ('To: ' + formatDateTime(v.availabilityEnd)) : ''
-                ].filter(Boolean).join('<br>')
-                : '-';
-            html += '<td style="font-size:12px;line-height:1.4;">' + scheduleText + '</td>';
-            html += '<td>' + ((v.expiryDays || 0) > 0 ? (v.expiryDays + ' day(s)') : 'No expiry') + '</td>';
-            html += '<td>' + (v.enforceSingleSession ? '<span style="color:#dc2626;font-weight:600;">Yes</span>' : '<span style="color:#16a34a;">No</span>') + '</td>';
-            html += '<td style="font-size:12px;line-height:1.35;">' + (v.lastNotifiedAt ? ('<span title="' + esc(v.lastNotifiedAt) + '">' + formatDateTime(v.lastNotifiedAt) + '</span><br><span style="color:#64748b;">' + (v.lastNotificationSent || 0) + ' sent</span>') : '<span style="color:#94a3b8;">Never</span>') + '</td>';
             html += '<td>' + formatDate(v.uploadedAt) + '</td>';
             html += '<td><div style="position:relative;"><button class="action-btn edit-btn" onclick="toggleVideoOptions(' + v.id + ')"><i class="fas fa-ellipsis-v"></i> Options</button><div id="videoOpts' + v.id + '" style="display:none;position:absolute;right:0;top:100%;z-index:100;min-width:160px;background:rgba(30,41,59,0.97);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.4);padding:4px;">';
             html += '<button class="action-btn edit-btn" style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#e2e8f0;padding:8px 12px;border-radius:6px;" onclick="editVideo(' + v.id + ')"><i class="fas fa-edit"></i> Edit</button>';
             html += '<button style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#a78bfa;padding:8px 12px;border-radius:6px;cursor:pointer;" onclick="openQuizManager(' + v.id + ',\'' + (v.title || '').replace(/\'/g, "\\'") + '\')"><i class="fas fa-question-circle"></i> Quiz</button>';
             html += '<button style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#10b981;padding:8px 12px;border-radius:6px;cursor:pointer;" onclick="openResourcesManager(' + v.id + ',\'' + (v.title || '').replace(/\'/g, "\\'") + '\')"><i class="fas fa-paperclip"></i> Files</button>';
             html += '<button style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#0ea5e9;padding:8px 12px;border-radius:6px;cursor:pointer;" onclick="openHotspotManager(' + v.id + ',\'' + (v.title || '').replace(/\'/g, "\\'") + '\')"><i class="fas fa-map-pin"></i> Hotspots</button>';
-            html += '<button style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#f59e0b;padding:8px 12px;border-radius:6px;cursor:pointer;" onclick="notifyVideoAvailability(' + v.id + ')"><i class="fas fa-bell"></i> Notify</button>';
             html += '<button class="action-btn delete-btn" style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#f5576c;padding:8px 12px;border-radius:6px;" onclick="deleteVideo(' + v.id + ')"><i class="fas fa-trash"></i> Delete</button>';
             html += '</div></div></td>';
             html += '</tr>';
@@ -6316,15 +6312,10 @@ function openVideoModal() {
     document.getElementById('videoThumbnail').value = '';
     document.getElementById('videoDuration').value = '';
     document.getElementById('videoCategory').value = 'General';
-    document.getElementById('videoSubtitleUrl').value = '';
-    document.getElementById('videoWatermarkText').value = '';
-    document.getElementById('videoAvailabilityStart').value = '';
-    document.getElementById('videoAvailabilityEnd').value = '';
-    document.getElementById('videoExpiryDays').value = '0';
-    document.getElementById('videoSingleSession').checked = false;
     document.getElementById('videoFile').value = '';
     document.getElementById('thumbnailFile').value = '';
     document.getElementById('videoChapter').innerHTML = '<option value="">No Chapter</option>';
+    document.getElementById('videoChapterCourse').innerHTML = '<option value="">Select Course for Chapter</option>';
     document.getElementById('thumbnailPreview').style.display = 'none';
     document.getElementById('thumbnailPreviewImg').src = '';
     loadCoursesForVideoModal();
@@ -6375,12 +6366,28 @@ function validateThumbnail(input) {
     image.src = URL.createObjectURL(file);
 }
 
-async function loadCoursesForVideoModal() {
+async function loadCoursesForVideoModal(selectedCourseIds = []) {
     const res = await fetch('/api/courses');
     const courses = await res.json();
-    const select = document.getElementById('videoCourse');
-    select.innerHTML = '<option value="">Select Course</option>' + courses.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
-    // Also populate chapter course filter
+    // Render multi-select checkbox list
+    const container = document.getElementById('videoCourseList');
+    if (courses.length === 0) {
+        container.innerHTML = '<span style="color:rgba(255,255,255,0.4);font-size:13px;padding:8px;">No courses available. Pehle course add karein.</span>';
+        return;
+    }
+    container.innerHTML = courses.map(c => {
+        const checked = selectedCourseIds.includes(String(c.id)) ? 'checked' : '';
+        return '<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.08)\'" onmouseout="this.style.background=\'transparent\'">' +
+            '<input type="checkbox" value="' + c.id + '" ' + checked + ' style="width:16px;height:16px;accent-color:#667eea;cursor:pointer;">' +
+            '<span style="font-size:14px;">' + c.name + '</span>' +
+            '</label>';
+    }).join('');
+    // Also populate chapter course filter dropdown
+    const chapterCourseSelect = document.getElementById('videoChapterCourse');
+    if (chapterCourseSelect) {
+        chapterCourseSelect.innerHTML = '<option value="">Select Course for Chapter</option>' + courses.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
+    }
+    // Also populate chapter course filter on videos page
     const filterSelect = document.getElementById('chapterCourseFilter');
     if (filterSelect) {
         const currentVal = filterSelect.value;
@@ -6390,7 +6397,7 @@ async function loadCoursesForVideoModal() {
 }
 
 async function loadChaptersForVideoModal() {
-    const courseId = document.getElementById('videoCourse').value;
+    const courseId = document.getElementById('videoChapterCourse').value;
     const select = document.getElementById('videoChapter');
     if (!courseId) {
         select.innerHTML = '<option value="">No Chapter</option>';
@@ -6421,13 +6428,15 @@ async function saveVideo() {
 
     // Validate required fields
     const title = document.getElementById('videoTitle').value.trim();
-    const courseId = document.getElementById('videoCourse').value;
     if (!title) {
         showNotification('Video title is required.', 'error');
         return;
     }
-    if (!courseId) {
-        showNotification('Course is required.', 'error');
+    // Get selected course IDs from checkboxes
+    const courseCheckboxes = document.querySelectorAll('#videoCourseList input[type=checkbox]:checked');
+    const courseIds = Array.from(courseCheckboxes).map(cb => cb.value);
+    if (courseIds.length === 0) {
+        showNotification('At least one course is required.', 'error');
         return;
     }
     if (!videoFile && !videoUrl) {
@@ -6438,17 +6447,11 @@ async function saveVideo() {
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', document.getElementById('videoDescription').value);
-    formData.append('courseId', courseId);
+    formData.append('courseIds', JSON.stringify(courseIds));
     formData.append('chapterId', document.getElementById('videoChapter').value);
     formData.append('category', document.getElementById('videoCategory').value);
     formData.append('videoUrl', videoUrl);
     formData.append('duration', document.getElementById('videoDuration').value);
-    formData.append('subtitleUrl', document.getElementById('videoSubtitleUrl').value);
-    formData.append('watermarkText', document.getElementById('videoWatermarkText').value);
-    formData.append('availabilityStart', document.getElementById('videoAvailabilityStart').value);
-    formData.append('availabilityEnd', document.getElementById('videoAvailabilityEnd').value);
-    formData.append('expiryDays', document.getElementById('videoExpiryDays').value || '0');
-    formData.append('enforceSingleSession', document.getElementById('videoSingleSession').checked ? 'true' : 'false');
 
     if (videoFile) {
         formData.append('video', videoFile);
@@ -6501,14 +6504,6 @@ async function editVideo(id) {
         const res = await fetch('/api/videos/' + id);
         const video = await res.json();
 
-        const toDateTimeLocal = (value) => {
-            if (!value) return '';
-            const d = new Date(value);
-            if (Number.isNaN(d.getTime())) return '';
-            const pad = n => String(n).padStart(2, '0');
-            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        };
-
         document.getElementById('videoModalTitle').textContent = 'Edit Video';
         document.getElementById('videoId').value = video.id;
         document.getElementById('videoTitle').value = video.title;
@@ -6517,12 +6512,6 @@ async function editVideo(id) {
         document.getElementById('videoThumbnail').value = video.thumbnail || '';
         document.getElementById('videoDuration').value = video.duration || '';
         document.getElementById('videoCategory').value = video.category || 'General';
-        document.getElementById('videoSubtitleUrl').value = video.subtitleUrl || '';
-        document.getElementById('videoWatermarkText').value = video.watermarkText || '';
-        document.getElementById('videoAvailabilityStart').value = toDateTimeLocal(video.availabilityStart);
-        document.getElementById('videoAvailabilityEnd').value = toDateTimeLocal(video.availabilityEnd);
-        document.getElementById('videoExpiryDays').value = video.expiryDays || 0;
-        document.getElementById('videoSingleSession').checked = !!video.enforceSingleSession;
         document.getElementById('thumbnailFile').value = '';
         const preview = document.getElementById('thumbnailPreview');
         const img = document.getElementById('thumbnailPreviewImg');
@@ -6535,10 +6524,20 @@ async function editVideo(id) {
             img.src = '';
         }
 
-        loadCoursesForVideoModal().then(async () => {
-            document.getElementById('videoCourse').value = video.courseId || '';
-            await loadChaptersForVideoModal();
-            document.getElementById('videoChapter').value = video.chapterId || '';
+        // Get selected course IDs (handle both old courseId and new courseIds)
+        let selectedIds = [];
+        if (video.courseIds && Array.isArray(video.courseIds)) {
+            selectedIds = video.courseIds.map(String);
+        } else if (video.courseId) {
+            selectedIds = [String(video.courseId)];
+        }
+        loadCoursesForVideoModal(selectedIds).then(async () => {
+            // Set chapter course dropdown and load chapters
+            if (selectedIds.length > 0) {
+                document.getElementById('videoChapterCourse').value = selectedIds[0];
+                await loadChaptersForVideoModal();
+                document.getElementById('videoChapter').value = video.chapterId || '';
+            }
         });
 
         document.getElementById('videoModal').classList.add('active');

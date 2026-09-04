@@ -7543,7 +7543,12 @@ app.get('/api/videos/:id', (req, res) => {
 
 app.get('/api/videos/course/:courseId', (req, res) => {
     const videos = readData('videos.json') || [];
-    const courseVideos = videos.filter(v => v.courseId == req.params.courseId);
+    const courseVideos = videos.filter(v => {
+        if (v.courseIds && Array.isArray(v.courseIds)) {
+            return v.courseIds.includes(req.params.courseId);
+        }
+        return v.courseId == req.params.courseId;
+    });
     res.json(courseVideos);
 });
 
@@ -7552,14 +7557,22 @@ app.post('/api/videos', uploadVideo.fields([{ name: 'video', maxCount: 1 }, { na
     const videoFile = req.files && req.files.video ? req.files.video[0] : null;
     const thumbFile = req.files && req.files.thumbnail ? req.files.thumbnail[0] : null;
     const title = (req.body.title || '').trim();
-    const courseId = (req.body.courseId || '').trim();
     const videoUrlInput = (req.body.videoUrl || '').trim();
+
+    // Parse courseIds (array) or fallback to single courseId for backward compat
+    let courseIds = [];
+    if (req.body.courseIds) {
+        try { courseIds = JSON.parse(req.body.courseIds); } catch (e) { courseIds = []; }
+    }
+    if (courseIds.length === 0 && req.body.courseId) {
+        courseIds = [req.body.courseId.trim()];
+    }
 
     if (!title) {
         return res.status(400).json({ success: false, message: 'Video title is required' });
     }
-    if (!courseId) {
-        return res.status(400).json({ success: false, message: 'Course is required' });
+    if (courseIds.length === 0) {
+        return res.status(400).json({ success: false, message: 'At least one course is required' });
     }
     if (!videoFile && !videoUrlInput) {
         return res.status(400).json({ success: false, message: 'Please provide a video file or video URL' });
@@ -7576,23 +7589,16 @@ app.post('/api/videos', uploadVideo.fields([{ name: 'video', maxCount: 1 }, { na
         id: Date.now(),
         title,
         description: req.body.description,
-        courseId,
+        courseIds,
+        courseId: courseIds[0], // backward compat
         chapterId: req.body.chapterId || null,
         videoUrl: videoFile ? '/uploads/videos/' + videoFile.filename : videoUrlInput,
         thumbnail: thumbnail,
         duration: req.body.duration || 0,
         category: req.body.category || 'General',
-        subtitleUrl: req.body.subtitleUrl || '',
-        watermarkText: req.body.watermarkText || '',
-        lastNotifiedAt: '',
-        lastNotificationSent: 0,
-        availabilityStart: req.body.availabilityStart || '',
-        availabilityEnd: req.body.availabilityEnd || '',
-        expiryDays: parseInt(req.body.expiryDays) || 0,
-        enforceSingleSession: req.body.enforceSingleSession === 'true' || req.body.enforceSingleSession === true,
         uploadedAt: new Date().toISOString(),
         views: 0,
-        progress: {} // Track student progress: { studentId: { currentTime, completed, lastWatched } }
+        progress: {}
     };
     videos.push(video);
     writeData('videos.json', videos);
@@ -7615,11 +7621,20 @@ app.put('/api/videos/:id', uploadVideo.fields([{ name: 'video', maxCount: 1 }, {
         thumbnail = req.body.thumbnail;
     }
 
+    // Parse courseIds (array) or fallback to single courseId for backward compat
+    let courseIds = videos[idx].courseIds || (videos[idx].courseId ? [videos[idx].courseId] : []);
+    if (req.body.courseIds) {
+        try { courseIds = JSON.parse(req.body.courseIds); } catch (e) { /* keep existing */ }
+    } else if (req.body.courseId) {
+        courseIds = [req.body.courseId.trim()];
+    }
+
     videos[idx] = {
         ...videos[idx],
         title: req.body.title || videos[idx].title,
         description: req.body.description || videos[idx].description,
-        courseId: req.body.courseId || videos[idx].courseId,
+        courseIds,
+        courseId: courseIds[0], // backward compat
         chapterId: req.body.chapterId !== undefined ? req.body.chapterId : videos[idx].chapterId,
         videoUrl: videoFile
             ? '/uploads/videos/' + videoFile.filename
@@ -7628,17 +7643,7 @@ app.put('/api/videos/:id', uploadVideo.fields([{ name: 'video', maxCount: 1 }, {
                 : videos[idx].videoUrl),
         thumbnail: thumbnail,
         duration: req.body.duration || videos[idx].duration,
-        category: req.body.category || videos[idx].category,
-        subtitleUrl: req.body.subtitleUrl !== undefined ? req.body.subtitleUrl : (videos[idx].subtitleUrl || ''),
-        watermarkText: req.body.watermarkText !== undefined ? req.body.watermarkText : (videos[idx].watermarkText || ''),
-        lastNotifiedAt: videos[idx].lastNotifiedAt || '',
-        lastNotificationSent: videos[idx].lastNotificationSent || 0,
-        availabilityStart: req.body.availabilityStart !== undefined ? req.body.availabilityStart : (videos[idx].availabilityStart || ''),
-        availabilityEnd: req.body.availabilityEnd !== undefined ? req.body.availabilityEnd : (videos[idx].availabilityEnd || ''),
-        expiryDays: req.body.expiryDays !== undefined ? (parseInt(req.body.expiryDays) || 0) : (videos[idx].expiryDays || 0),
-        enforceSingleSession: req.body.enforceSingleSession !== undefined
-            ? (req.body.enforceSingleSession === 'true' || req.body.enforceSingleSession === true)
-            : !!videos[idx].enforceSingleSession
+        category: req.body.category || videos[idx].category
     };
     writeData('videos.json', videos);
     res.json({ success: true, video: videos[idx] });
@@ -7990,7 +7995,10 @@ app.get('/api/students/:studentId/video-certificate/:courseId', (req, res) => {
     if (!course) return res.status(404).send('Course not found');
     
     const videos = readData('videos.json') || [];
-    const courseVideos = videos.filter(v => v.courseId == req.params.courseId);
+    const courseVideos = videos.filter(v => {
+        if (v.courseIds && Array.isArray(v.courseIds)) return v.courseIds.includes(String(req.params.courseId));
+        return v.courseId == req.params.courseId;
+    });
     
     // Check all videos completed
     const allCompleted = courseVideos.length > 0 && courseVideos.every(v => 
@@ -8194,7 +8202,10 @@ app.get('/api/videos/leaderboard/:courseId?', (req, res) => {
     
     let targetVideos = videos;
     if (req.params.courseId) {
-        targetVideos = videos.filter(v => v.courseId == req.params.courseId);
+        targetVideos = videos.filter(v => {
+            if (v.courseIds && Array.isArray(v.courseIds)) return v.courseIds.includes(String(req.params.courseId));
+            return v.courseId == req.params.courseId;
+        });
     }
     
     // Calculate each student's stats
@@ -8247,6 +8258,7 @@ app.get('/api/admin/video-analytics', (req, res) => {
         return {
             id: v.id,
             title: v.title,
+            courseIds: v.courseIds || (v.courseId ? [v.courseId] : []),
             courseId: v.courseId,
             views: v.views || 0,
             uniqueViewers,
@@ -8277,8 +8289,11 @@ app.post('/api/admin/videos/:id/notify-availability', async (req, res) => {
 
     const students = readData('students.json') || [];
     const courses = readData('courses.json') || [];
-    const course = courses.find(c => c.id == video.courseId);
-    const targetStudents = students.filter(s => s.email && (!course || s.course == course.name));
+    // For multi-course videos, find all matching courses
+    const videoCourseIds = (video.courseIds && Array.isArray(video.courseIds)) ? video.courseIds : [video.courseId];
+    const videoCourses = courses.filter(c => videoCourseIds.includes(String(c.id)));
+    const videoCourseNames = videoCourses.map(c => c.name);
+    const targetStudents = students.filter(s => s.email && (videoCourseNames.length === 0 || videoCourseNames.includes(s.course)));
     if (targetStudents.length === 0) {
         return res.json({ success: true, sent: 0, message: 'No students with valid email found for this course.' });
     }
@@ -8357,7 +8372,10 @@ app.get('/api/students/:studentId/video-study-schedule', (req, res) => {
     chapters.forEach(ch => { chapterMap[ch.id] = ch.name; });
 
     const pending = videos
-        .filter(v => v.courseId == course.id)
+        .filter(v => {
+            if (v.courseIds && Array.isArray(v.courseIds)) return v.courseIds.includes(String(course.id));
+            return v.courseId == course.id;
+        })
         .filter(v => !(v.progress && v.progress[req.params.studentId] && v.progress[req.params.studentId].completed))
         .sort((a, b) => {
             if ((a.chapterId || '') !== (b.chapterId || '')) return String(a.chapterId || '').localeCompare(String(b.chapterId || ''));
@@ -8440,9 +8458,14 @@ app.get('/api/videos/student/:studentId', (req, res) => {
         return true;
     };
 
-    // Filter videos by courseId (use ID match) + scheduling/expiry conditions
+    // Filter videos by courseIds array (or backward compat courseId) + scheduling/expiry conditions
     const courseVideos = studentCourseId
-        ? videos.filter(v => v.courseId == studentCourseId && isVideoAvailableForStudent(v, req.params.studentId))
+        ? videos.filter(v => {
+            const matchesCourse = (v.courseIds && Array.isArray(v.courseIds))
+                ? v.courseIds.includes(String(studentCourseId))
+                : v.courseId == studentCourseId;
+            return matchesCourse && isVideoAvailableForStudent(v, req.params.studentId);
+        })
         : [];
     const courseChapters = studentCourseId ? chapters.filter(c => c.courseId == studentCourseId).sort((a, b) => a.order - b.order) : [];
 
