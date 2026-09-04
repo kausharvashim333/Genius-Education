@@ -6290,6 +6290,7 @@ async function loadVideosWithChapters() {
                             '<span style="font-size:12px;color:#94a3b8;">' + courseName + '</span>' +
                         '</div>' +
                         '<div style="display:flex;gap:6px;">' +
+                            '<button onclick="addVideoToChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:6px;cursor:pointer;"><i class="fas fa-plus" style="margin-right:4px;"></i>Video</button>' +
                             '<button onclick="editChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;"><i class="fas fa-edit" style="margin-right:4px;"></i>Edit</button>' +
                             '<button onclick="deleteChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:6px;cursor:pointer;"><i class="fas fa-trash" style="margin-right:4px;"></i>Delete</button>' +
                         '</div>' +
@@ -6813,12 +6814,203 @@ async function loadChaptersTable() {
     await loadVideosWithChapters();
 }
 
+// Reusable chunked upload - returns uploaded filename or null
+async function performChunkedUpload(file, onProgress) {
+    if (!file.type.startsWith('video/')) {
+        showNotification('Please select a valid video file.', 'error');
+        return null;
+    }
+    if (file.size > 300 * 1024 * 1024) {
+        showNotification('Video file too large. Maximum 300MB allowed.', 'error');
+        return null;
+    }
+    const CHUNK_SIZE = 700 * 1024;
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    let uploadedFileName = null;
+    for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const chunk = file.slice(start, start + CHUNK_SIZE);
+        const chunkForm = new FormData();
+        chunkForm.append('chunkIndex', i);
+        chunkForm.append('totalChunks', totalChunks);
+        chunkForm.append('fileName', safeName);
+        chunkForm.append('chunk', chunk, safeName);
+        const chunkRes = await fetch('/api/videos/upload-chunk', { method: 'POST', body: chunkForm });
+        const chunkData = await chunkRes.json();
+        if (!chunkData.success) throw new Error(chunkData.message || 'Chunk upload failed');
+        if (chunkData.completed && chunkData.fileName) uploadedFileName = chunkData.fileName;
+        if (onProgress) onProgress(Math.round(((i + 1) / totalChunks) * 100));
+    }
+    return uploadedFileName;
+}
+
+// ===== Chapter Video Entries =====
+let chapterVideoEntryCounter = 0;
+
+function addChapterVideoEntry(existingVideo = null) {
+    const container = document.getElementById('chapterVideoEntries');
+    const entryId = 'chVid_' + (++chapterVideoEntryCounter);
+    const entry = document.createElement('div');
+    entry.id = entryId;
+    entry.style.cssText = 'padding:14px;border:1px solid rgba(255,255,255,0.12);border-radius:10px;background:rgba(255,255,255,0.04);';
+
+    if (existingVideo) {
+        entry.innerHTML =
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
+                '<span style="font-size:13px;font-weight:600;color:#10b981;"><i class="fas fa-check-circle" style="margin-right:4px;"></i>' + (existingVideo.title || 'Video') + '</span>' +
+                '<button type="button" onclick="removeChapterVideoEntry(\'' + entryId + '\', ' + (existingVideo.id || 0) + ')" style="background:none;border:none;color:#f5576c;cursor:pointer;font-size:14px;padding:2px 6px;"><i class="fas fa-times"></i></button>' +
+            '</div>' +
+            '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px;">' + (existingVideo.videoUrl || '') + ' • ' + (existingVideo.duration || 0) + ' min • ' + (existingVideo.views || 0) + ' views</div>' +
+            '<input type="hidden" data-field="existingId" value="' + (existingVideo.id || '') + '">' +
+            '<input type="hidden" data-field="videoUrl" value="' + (existingVideo.videoUrl || '') + '">';
+    } else {
+        entry.innerHTML =
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
+                '<span style="font-size:12px;color:#94a3b8;">Video #' + chapterVideoEntryCounter + '</span>' +
+                '<button type="button" onclick="removeChapterVideoEntry(\'' + entryId + '\')" style="background:none;border:none;color:#f5576c;cursor:pointer;font-size:14px;padding:2px 6px;"><i class="fas fa-times"></i></button>' +
+            '</div>' +
+            '<div class="form-group" style="margin-bottom:8px;"><input type="text" data-field="title" placeholder="Video title *" style="border-radius:6px;font-size:13px;"></div>' +
+            // Upload zone
+            '<div data-zone style="border:2px dashed rgba(102,126,234,0.3);border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(102,126,234,0.04);margin-bottom:8px;" onclick="document.getElementById=\'' + entryId + '_file\'.click()" ondragover="event.preventDefault();this.style.borderColor=\'#667eea\';this.style.background=\'rgba(102,126,234,0.1)\'" ondragleave="this.style.borderColor=\'rgba(102,126,234,0.3)\';this.style.background=\'rgba(102,126,234,0.04)\'" ondrop="event.preventDefault();handleChapterVideoFileDrop(event,\'' + entryId + '\')">' +
+                '<i class="fas fa-cloud-upload-alt" style="font-size:22px;color:#667eea;margin-bottom:6px;display:block;"></i>' +
+                '<div style="font-size:12px;color:#94a3b8;">Click or drop video file</div>' +
+                '<input type="file" id="' + entryId + '_file" accept="video/*" style="display:none;" onchange="handleChapterVideoFileSelect(this,\'' + entryId + '\')">' +
+            '</div>' +
+            // Progress bar
+            '<div data-progress style="display:none;margin-bottom:8px;">' +
+                '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span data-pstatus style="font-size:11px;color:#a5b4fc;">Uploading...</span><span data-ppct style="font-size:11px;color:#a5b4fc;">0%</span></div>' +
+                '<div style="width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;"><div data-pbar style="width:0%;height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:3px;transition:width 0.3s;"></div></div>' +
+            '</div>' +
+            // File info after upload
+            '<div data-info style="display:none;margin-bottom:8px;padding:8px 12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;align-items:center;gap:8px;">' +
+                '<i class="fas fa-check-circle" style="color:#10b981;font-size:16px;"></i>' +
+                '<span data-fname style="flex:1;font-size:12px;color:#e2e8f0;"></span>' +
+            '</div>' +
+            // Video preview
+            '<div data-preview style="display:none;margin-bottom:8px;"><video data-player controls style="width:100%;max-height:200px;border-radius:8px;background:#000;"></video></div>' +
+            // Thumbnail + duration + category row
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+                '<div style="flex:1;min-width:120px;"><input type="file" data-field="thumbnail" accept="image/*" style="font-size:11px;border-radius:6px;" onchange="validateChapterThumbnail(this,\'' + entryId + '\')"></div>' +
+                '<div style="width:80px;"><input type="number" data-field="duration" placeholder="Min" style="border-radius:6px;font-size:12px;"></div>' +
+                '<div style="width:110px;"><select data-field="category" style="border-radius:6px;font-size:12px;"><option value="General">General</option><option value="Lecture">Lecture</option><option value="Tutorial">Tutorial</option><option value="Demo">Demo</option></select></div>' +
+            '</div>' +
+            '<div data-thumbpreview style="display:none;margin-top:6px;"><img data-thumbimg style="max-width:120px;max-height:70px;border-radius:6px;"></div>' +
+            '<input type="hidden" data-field="uploadedFileName" value="">';
+    }
+    container.appendChild(entry);
+}
+
+function removeChapterVideoEntry(entryId, existingVideoId) {
+    const entry = document.getElementById(entryId);
+    if (!entry) return;
+    if (existingVideoId) {
+        entry.dataset.deleteExisting = '1';
+        entry.style.display = 'none';
+    } else {
+        const player = entry.querySelector('[data-player]');
+        if (player) { player.pause(); player.removeAttribute('src'); player.load(); }
+        entry.remove();
+    }
+}
+
+function handleChapterVideoFileSelect(input, entryId) {
+    const file = input.files[0];
+    if (file) uploadChapterVideoFile(file, entryId);
+}
+
+function handleChapterVideoFileDrop(e, entryId) {
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        const entry = document.getElementById(entryId);
+        if (!entry) return;
+        const fileInput = entry.querySelector('input[type=file][accept="video/*"]');
+        if (fileInput) fileInput.files = e.dataTransfer.files;
+        uploadChapterVideoFile(file, entryId);
+    }
+}
+
+async function uploadChapterVideoFile(file, entryId) {
+    const entry = document.getElementById(entryId);
+    if (!entry) return;
+    if (!file.type.startsWith('video/')) { showNotification('Invalid video file.', 'error'); return; }
+    if (file.size > 300 * 1024 * 1024) { showNotification('Max 300MB allowed.', 'error'); return; }
+
+    const zone = entry.querySelector('[data-zone]');
+    const progress = entry.querySelector('[data-progress]');
+    const info = entry.querySelector('[data-info]');
+    const preview = entry.querySelector('[data-preview]');
+    const player = entry.querySelector('[data-player]');
+    const pbar = entry.querySelector('[data-pbar]');
+    const ppct = entry.querySelector('[data-ppct]');
+    const pstatus = entry.querySelector('[data-pstatus]');
+    const fname = entry.querySelector('[data-fname]');
+    const hiddenFileName = entry.querySelector('[data-field="uploadedFileName"]');
+
+    zone.style.display = 'none';
+    progress.style.display = 'block';
+    pstatus.textContent = 'Uploading ' + file.name + '...';
+    pbar.style.width = '0%';
+    ppct.textContent = '0%';
+
+    try {
+        const uploadedFileName = await performChunkedUpload(file, (pct) => {
+            pbar.style.width = pct + '%';
+            ppct.textContent = pct + '%';
+        });
+        if (!uploadedFileName) throw new Error('Upload failed');
+
+        hiddenFileName.value = uploadedFileName;
+        progress.style.display = 'none';
+        info.style.display = 'flex';
+        fname.textContent = file.name + ' • ' + formatFileSize(file.size);
+        // Show preview
+        if (player && preview) {
+            player.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+        }
+        // Auto-fill title if empty
+        const titleInput = entry.querySelector('[data-field="title"]');
+        if (titleInput && !titleInput.value.trim()) {
+            titleInput.value = file.name.replace(/\.[^.]+$/, '').replace(/[_-]/g, ' ');
+        }
+        showNotification('Video uploaded!', 'success');
+    } catch (e) {
+        console.error('Chapter video upload error:', e);
+        progress.style.display = 'none';
+        zone.style.display = 'block';
+        showNotification('Upload failed: ' + e.message, 'error');
+    }
+}
+
+function validateChapterThumbnail(input, entryId) {
+    const entry = document.getElementById(entryId);
+    if (!entry) return;
+    const preview = entry.querySelector('[data-thumbpreview]');
+    const img = entry.querySelector('[data-thumbimg]');
+    const file = input.files[0];
+    if (!file) { if (preview) preview.style.display = 'none'; return; }
+    if (!file.type.startsWith('image/')) {
+        if (preview) preview.style.display = 'none';
+        input.value = '';
+        showNotification('Invalid thumbnail image!', 'error');
+        return;
+    }
+    if (img && preview) {
+        img.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+    }
+}
+
 function openChapterModal() {
     const title = document.getElementById('chapterModalTitle');
     title.innerHTML = '<i class="fas fa-folder-plus" style="margin-right:8px;color:#667eea;"></i> Add Chapter';
     document.getElementById('chapterId').value = '';
     document.getElementById('chapterName').value = '';
     document.getElementById('chapterOrder').value = '1';
+    document.getElementById('chapterVideoEntries').innerHTML = '';
+    chapterVideoEntryCounter = 0;
+    addChapterVideoEntry();
     loadCoursesForChapterModal();
     document.getElementById('chapterModal').classList.add('active');
 }
@@ -6856,25 +7048,69 @@ async function saveChapter() {
         return;
     }
 
+    // Collect video entries
+    const videoEntries = document.querySelectorAll('#chapterVideoEntries > div');
+    const newVideos = [];
+    const deletedVideoIds = [];
+    videoEntries.forEach(entry => {
+        if (entry.dataset.deleteExisting === '1') {
+            const exId = entry.querySelector('[data-field="existingId"]');
+            if (exId && exId.value) deletedVideoIds.push(exId.value);
+            return;
+        }
+        const existingId = entry.querySelector('[data-field="existingId"]');
+        if (existingId && existingId.value) return; // existing video, skip
+        const uploadedFileName = entry.querySelector('[data-field="uploadedFileName"]');
+        if (!uploadedFileName || !uploadedFileName.value) return; // no file uploaded, skip
+        const title = entry.querySelector('[data-field="title"]') ? entry.querySelector('[data-field="title"]').value.trim() : '';
+        if (!title) return;
+        newVideos.push({
+            entry,
+            title,
+            uploadedFileName: uploadedFileName.value,
+            thumbnailFile: entry.querySelector('[data-field="thumbnail"]') ? entry.querySelector('[data-field="thumbnail"]').files[0] : null,
+            duration: entry.querySelector('[data-field="duration"]') ? entry.querySelector('[data-field="duration"]').value : '',
+            category: entry.querySelector('[data-field="category"]') ? entry.querySelector('[data-field="category"]').value : 'General'
+        });
+    });
+
+    const saveBtn = document.querySelector('#chapterModal .btn-primary');
+    const originalHTML = saveBtn ? saveBtn.innerHTML : '';
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; }
+
     try {
         if (chapterId) {
-            // Edit mode: single course update
+            // Edit mode: update chapter
             const res = await fetch('/api/chapters/' + chapterId, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, order })
             });
             const data = await res.json();
-            if (data.success) {
-                closeModal('chapterModal');
-                loadVideosWithChapters();
-                showNotification('Chapter updated!', 'success');
-            } else {
+            if (!data.success) {
                 showNotification('Error saving chapter', 'error');
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = originalHTML; }
+                return;
             }
+
+            // Delete removed videos
+            for (const vid of deletedVideoIds) {
+                await fetch('/api/videos/' + vid, { method: 'DELETE' });
+            }
+
+            // Save new videos to this chapter
+            const courseId = selectedCourseIds[0];
+            for (const v of newVideos) {
+                await saveChapterVideo(v, chapterId, selectedCourseIds);
+            }
+
+            closeModal('chapterModal');
+            loadVideosWithChapters();
+            showNotification('Chapter updated!', 'success');
         } else {
             // Add mode: create chapter for each selected course
             let successCount = 0;
+            let firstChapterId = null;
             for (const courseId of selectedCourseIds) {
                 const res = await fetch('/api/chapters', {
                     method: 'POST',
@@ -6882,16 +7118,47 @@ async function saveChapter() {
                     body: JSON.stringify({ courseId, name, order })
                 });
                 const data = await res.json();
-                if (data.success) successCount++;
+                if (data.success) {
+                    successCount++;
+                    if (!firstChapterId && data.chapter && data.chapter.id) firstChapterId = data.chapter.id;
+                }
             }
+
+            // Save videos to the first created chapter with all courseIds
+            if (firstChapterId && newVideos.length > 0) {
+                for (const v of newVideos) {
+                    await saveChapterVideo(v, firstChapterId, selectedCourseIds);
+                }
+            }
+
             closeModal('chapterModal');
             loadVideosWithChapters();
-            showNotification(successCount + ' course' + (successCount > 1 ? 's' : '') + ' me chapter add hua!', 'success');
+            let msg = successCount + ' course' + (successCount > 1 ? 's' : '') + ' me chapter add hua!';
+            if (newVideos.length > 0) msg += ' ' + newVideos.length + ' video' + (newVideos.length > 1 ? 's' : '') + ' bhi add hua!';
+            showNotification(msg, 'success');
         }
     } catch (e) {
         console.error('Error saving chapter:', e);
         showNotification('Error saving chapter', 'error');
+    } finally {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = originalHTML; }
     }
+}
+
+async function saveChapterVideo(v, chapterId, courseIds) {
+    const formData = new FormData();
+    formData.append('title', v.title);
+    formData.append('description', '');
+    formData.append('courseIds', JSON.stringify(courseIds));
+    formData.append('chapterId', chapterId);
+    formData.append('category', v.category);
+    formData.append('videoUrl', '');
+    formData.append('duration', v.duration);
+    formData.append('videoFileName', v.uploadedFileName);
+    if (v.thumbnailFile) {
+        formData.append('thumbnail', v.thumbnailFile);
+    }
+    await fetch('/api/videos', { method: 'POST', body: formData });
 }
 
 async function editChapter(id) {
@@ -6906,10 +7173,34 @@ async function editChapter(id) {
         document.getElementById('chapterName').value = chapter.name;
         document.getElementById('chapterOrder').value = chapter.order;
         loadCoursesForChapterModal([String(chapter.courseId)]);
+
+        // Load existing videos for this chapter
+        document.getElementById('chapterVideoEntries').innerHTML = '';
+        chapterVideoEntryCounter = 0;
+        try {
+            const vidRes = await fetch('/api/videos');
+            const allVideos = await vidRes.json();
+            const chVideos = allVideos.filter(v => v.chapterId == id);
+            chVideos.forEach(v => addChapterVideoEntry(v));
+        } catch (vidErr) {
+            console.error('Error loading chapter videos:', vidErr);
+        }
+        // Add one empty entry for new video
+        addChapterVideoEntry();
+
         document.getElementById('chapterModal').classList.add('active');
     } catch (e) {
         console.error('Error loading chapter:', e);
     }
+}
+
+async function addVideoToChapter(chapterId) {
+    // Open chapter modal in edit mode, then scroll to video section
+    await editChapter(chapterId);
+    setTimeout(() => {
+        const videoSection = document.getElementById('chapterVideoEntries');
+        if (videoSection) videoSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 200);
 }
 
 async function deleteChapter(id) {

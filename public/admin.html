@@ -5966,6 +5966,15 @@
                     <label><i class="fas fa-sort-numeric-down" style="margin-right:5px;color:#667eea;"></i> Order</label>
                     <input type="number" id="chapterOrder" placeholder="1, 2, 3..." value="1">
                 </div>
+
+                <!-- Videos Section -->
+                <div style="margin-top:20px;border-top:1px solid rgba(255,255,255,0.1);padding-top:16px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                        <label style="font-weight:600;font-size:14px;color:#e2e8f0;"><i class="fas fa-video" style="margin-right:5px;color:#667eea;"></i> Videos <span style="color:#94a3b8;font-size:12px;font-weight:400;">(Optional — add now or later)</span></label>
+                        <button type="button" onclick="addChapterVideoEntry()" style="padding:5px 12px;font-size:12px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;"><i class="fas fa-plus" style="margin-right:4px;"></i>Add Video</button>
+                    </div>
+                    <div id="chapterVideoEntries" style="display:flex;flex-direction:column;gap:12px;"></div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" onclick="saveChapter()"><i class="fas fa-save"></i> Save Chapter</button>
