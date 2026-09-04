@@ -14845,43 +14845,55 @@ async function callGeminiJSON(prompt, opts) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return { ok: false, message: 'AI not configured' };
 
-    let response;
-    try {
-        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature, maxOutputTokens, responseMimeType: 'application/json' }
-            })
-        });
-    } catch (err) {
-        console.error('Gemini fetch failed:', err.message);
-        return { ok: false, message: 'AI service unreachable' };
+    const models = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
+    let lastError = '';
+
+    for (const model of models) {
+        let response;
+        try {
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { temperature, maxOutputTokens, responseMimeType: 'application/json' }
+                })
+            });
+        } catch (err) {
+            console.error(`Gemini fetch failed (${model}):`, err.message);
+            lastError = 'AI service unreachable';
+            continue;
+        }
+
+        if (!response.ok) {
+            const errBody = await response.text().catch(() => '');
+            console.error(`Gemini API error (${model}):`, response.status, errBody.substring(0, 300));
+            lastError = 'AI service unavailable (status ' + response.status + ')';
+            if (response.status === 403 || response.status === 404) continue;
+            return { ok: false, message: lastError };
+        }
+
+        const data = await response.json();
+        let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
+        const start = text.indexOf('{');
+        if (start === -1) {
+            console.error(`Gemini: no JSON found in response (${model}):`, text.substring(0, 200));
+            lastError = 'Invalid AI response';
+            continue;
+        }
+        const match = text.match(/\{[\s\S]*\}/);
+        const raw = match ? match[0] : text.substring(start);
+
+        try { return { ok: true, data: JSON.parse(raw) }; } catch {}
+        try { return { ok: true, data: JSON.parse(raw.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']')) }; } catch {}
+
+        console.error(`Gemini: JSON parse failed (${model}):`, raw.substring(0, 200));
+        lastError = 'Invalid AI response';
     }
 
-    if (!response.ok) {
-        console.error('Gemini API error:', response.status, await response.text().catch(() => ''));
-        return { ok: false, message: 'AI service unavailable' };
-    }
-
-    const data = await response.json();
-    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-
-    const start = text.indexOf('{');
-    if (start === -1) {
-        console.error('Gemini: no JSON found in response:', text.substring(0, 200));
-        return { ok: false, message: 'Invalid AI response' };
-    }
-    const match = text.match(/\{[\s\S]*\}/);
-    const raw = match ? match[0] : text.substring(start);
-
-    try { return { ok: true, data: JSON.parse(raw) }; } catch {}
-    try { return { ok: true, data: JSON.parse(raw.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']')) }; } catch {}
-
-    console.error('Gemini: JSON parse failed on:', raw.substring(0, 200));
-    return { ok: false, message: 'Invalid AI response' };
+    return { ok: false, message: lastError || 'AI service unavailable' };
 }
 
 // --- Gemini AI Resume Assistant ---

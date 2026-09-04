@@ -6481,6 +6481,10 @@ async function saveVideo() {
         }
 
         if (!res.ok) {
+            if (res.status === 413) {
+                showNotification('File too large for server. Use a video URL instead, or ask admin to increase nginx client_max_body_size.', 'error');
+                return;
+            }
             const msg = (data && data.message) || (data && data.error) || ('Upload failed (HTTP ' + res.status + ')');
             showNotification(msg, 'error');
             return;
