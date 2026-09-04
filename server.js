@@ -8517,12 +8517,24 @@ app.get('/api/videos/student/:studentId', (req, res) => {
         : [];
     const courseChapters = studentCourseId ? chapters.filter(c => c.courseId == studentCourseId).sort((a, b) => a.order - b.order) : [];
 
-    // Group videos by chapter
+    // Group videos by chapter — match by exact chapterId OR sibling chapter (same name) whose courseId is in video's courseIds
     const grouped = courseChapters.map(ch => ({
         id: ch.id,
         name: ch.name,
         order: ch.order,
-        videos: courseVideos.filter(v => v.chapterId == ch.id).map(v => ({
+        videos: courseVideos.filter(v => {
+            if (v.chapterId == ch.id) return true;
+            // Check if video's chapterId points to a sibling chapter with the same name
+            if (v.chapterId) {
+                const origChapter = chapters.find(c => c.id == v.chapterId);
+                if (origChapter && origChapter.name === ch.name) {
+                    // Verify the video's courseIds includes this student's course
+                    const vCourseIds = (v.courseIds && Array.isArray(v.courseIds)) ? v.courseIds.map(String) : [String(v.courseId)];
+                    return vCourseIds.includes(String(studentCourseId));
+                }
+            }
+            return false;
+        }).map(v => ({
             ...v,
             progress: v.progress && v.progress[req.params.studentId] ? v.progress[req.params.studentId] : { currentTime: 0, completed: false }
         }))

@@ -6260,13 +6260,40 @@ async function loadVideosWithChapters() {
             });
         }
 
-        // Group videos by chapterId
+        // Build chapter lookup map
+        const chapterMap = {};
+        chapters.forEach(ch => { chapterMap[ch.id] = ch; });
+
+        // Group videos by chapterId — also assign to sibling chapters (same name, different course in video's courseIds)
         const videosByChapter = {};
         const ungroupedVideos = [];
+        const assignedVideoIds = new Set();
         filteredVideos.forEach(v => {
-            if (v.chapterId) {
-                if (!videosByChapter[v.chapterId]) videosByChapter[v.chapterId] = [];
-                videosByChapter[v.chapterId].push(v);
+            if (v.chapterId && chapterMap[v.chapterId]) {
+                const origChapter = chapterMap[v.chapterId];
+                // Find all sibling chapters with same name whose courseId is in video's courseIds
+                const vCourseIds = (v.courseIds && Array.isArray(v.courseIds)) ? v.courseIds.map(String) : [String(v.courseId)];
+                const siblingChapters = chapters.filter(ch =>
+                    ch.name === origChapter.name && vCourseIds.includes(String(ch.courseId))
+                );
+                if (siblingChapters.length > 0) {
+                    siblingChapters.forEach(ch => {
+                        if (!videosByChapter[ch.id]) videosByChapter[ch.id] = [];
+                        // Avoid duplicate if video is already added to this chapter
+                        if (!videosByChapter[ch.id].some(existing => existing.id === v.id)) {
+                            videosByChapter[ch.id].push(v);
+                        }
+                    });
+                    assignedVideoIds.add(v.id);
+                } else {
+                    // No sibling found, assign to original chapter
+                    if (!videosByChapter[v.chapterId]) videosByChapter[v.chapterId] = [];
+                    videosByChapter[v.chapterId].push(v);
+                    assignedVideoIds.add(v.id);
+                }
+            } else if (v.chapterId) {
+                // chapterId set but chapter not in current filter — skip grouping, treat as ungrouped
+                ungroupedVideos.push(v);
             } else {
                 ungroupedVideos.push(v);
             }
