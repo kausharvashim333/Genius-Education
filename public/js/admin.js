@@ -1990,7 +1990,12 @@ async function aiWriteCourseDesc() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ courseName, duration, fee })
         });
-        const data = await res.json();
+        const raw = await res.text();
+        let data = null;
+        try { data = raw ? JSON.parse(raw) : null; } catch (parseErr) {
+            if (!res.ok) throw new Error('Server error (' + res.status + ')');
+            throw new Error('Invalid response from server');
+        }
         if (data.success) {
             const textarea = document.getElementById('courseDesc');
             textarea.value = '';
@@ -6825,7 +6830,12 @@ async function generateVideoDescription() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ title })
         });
-        const data = await res.json();
+        const raw = await res.text();
+        let data = null;
+        try { data = raw ? JSON.parse(raw) : null; } catch (parseErr) {
+            if (!res.ok) throw new Error('Server error (' + res.status + ')');
+            throw new Error('Invalid response from server');
+        }
 
         if (data && data.success && data.description) {
             document.getElementById('videoDescription').value = data.description;
@@ -6835,7 +6845,7 @@ async function generateVideoDescription() {
         }
     } catch (e) {
         console.error('AI description error:', e);
-        showNotification('AI service unavailable. Try writing manually.', 'error');
+        showNotification(e.message || 'AI service unavailable. Try writing manually.', 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalHTML;

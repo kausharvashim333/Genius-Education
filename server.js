@@ -14911,17 +14911,21 @@ async function callGeminiJSON(prompt, opts) {
     for (const model of models) {
         let response;
         try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 25000);
             response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: prompt }] }],
                     generationConfig: { temperature, maxOutputTokens, responseMimeType: 'application/json' }
-                })
+                }),
+                signal: controller.signal
             });
+            clearTimeout(timeout);
         } catch (err) {
             console.error(`Gemini fetch failed (${model}):`, err.message);
-            lastError = 'AI service unreachable';
+            lastError = err.name === 'AbortError' ? 'AI service timed out' : 'AI service unreachable';
             continue;
         }
 
