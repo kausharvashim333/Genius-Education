@@ -6379,6 +6379,9 @@ function openVideoModal() {
     document.getElementById('videoUploadProgress').style.display = 'none';
     document.getElementById('videoUploadZone').style.display = 'block';
     document.getElementById('videoFileInfo').style.display = 'none';
+    document.getElementById('videoPreviewContainer').style.display = 'none';
+    const vp = document.getElementById('videoPreviewPlayer');
+    if (vp) { vp.pause(); vp.removeAttribute('src'); vp.load(); }
     document.getElementById('thumbnailPreview').style.display = 'none';
     document.getElementById('thumbnailPreviewImg').src = '';
     loadCoursesForVideoModal();
@@ -6456,6 +6459,13 @@ async function uploadVideoFile(file) {
         infoEl.style.display = 'flex';
         document.getElementById('videoFileNameDisplay').textContent = file.name;
         document.getElementById('videoFileSizeDisplay').textContent = formatFileSize(file.size) + ' • Upload complete';
+        // Show video preview using local object URL
+        const previewContainer = document.getElementById('videoPreviewContainer');
+        const previewPlayer = document.getElementById('videoPreviewPlayer');
+        if (previewContainer && previewPlayer) {
+            previewPlayer.src = URL.createObjectURL(file);
+            previewContainer.style.display = 'block';
+        }
         showNotification('Video uploaded successfully!', 'success');
     } catch (e) {
         console.error('Video chunk upload error:', e);
@@ -6470,6 +6480,14 @@ function removeUploadedVideo() {
     document.getElementById('videoFile').value = '';
     document.getElementById('videoFileInfo').style.display = 'none';
     document.getElementById('videoUploadZone').style.display = 'block';
+    const previewContainer = document.getElementById('videoPreviewContainer');
+    const previewPlayer = document.getElementById('videoPreviewPlayer');
+    if (previewContainer && previewPlayer) {
+        previewPlayer.pause();
+        previewPlayer.removeAttribute('src');
+        previewPlayer.load();
+        previewContainer.style.display = 'none';
+    }
 }
 
 function validateThumbnail(input) {
@@ -6680,6 +6698,8 @@ async function editVideo(id) {
         const zoneEl = document.getElementById('videoUploadZone');
         const infoEl = document.getElementById('videoFileInfo');
         const progressEl = document.getElementById('videoUploadProgress');
+        const previewContainer = document.getElementById('videoPreviewContainer');
+        const previewPlayer = document.getElementById('videoPreviewPlayer');
         progressEl.style.display = 'none';
         if (video.videoUrl && video.videoUrl.startsWith('/uploads/videos/')) {
             const fileName = video.videoUrl.split('/').pop();
@@ -6688,9 +6708,26 @@ async function editVideo(id) {
             infoEl.style.display = 'flex';
             document.getElementById('videoFileNameDisplay').textContent = video.title + ' (existing video)';
             document.getElementById('videoFileSizeDisplay').textContent = 'Already uploaded — upload new to replace';
+            // Show video preview from server URL
+            if (previewContainer && previewPlayer) {
+                previewPlayer.src = video.videoUrl;
+                previewContainer.style.display = 'block';
+            }
+        } else if (video.videoUrl) {
+            zoneEl.style.display = 'block';
+            infoEl.style.display = 'none';
+            // External URL - show preview if possible
+            if (previewContainer && previewPlayer) {
+                previewPlayer.src = video.videoUrl;
+                previewContainer.style.display = 'block';
+            }
         } else {
             zoneEl.style.display = 'block';
             infoEl.style.display = 'none';
+            if (previewContainer && previewPlayer) {
+                previewPlayer.removeAttribute('src');
+                previewContainer.style.display = 'none';
+            }
         }
 
         const preview = document.getElementById('thumbnailPreview');
