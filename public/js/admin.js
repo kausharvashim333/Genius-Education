@@ -6233,29 +6233,16 @@ async function rejectStudyMaterial(id) {
 }
 
 // ===== Videos (Video Learning Platform) =====
-function toggleVideoOptions(id) {
-    const menu = document.getElementById('videoOpts' + id);
-    if (!menu) return;
-    document.querySelectorAll('[id^="videoOpts"]').forEach(m => {
-        if (m !== menu) m.style.display = 'none';
-    });
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-}
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('[id^="videoOpts"]') && !e.target.closest('button[onclick*="toggleVideoOptions"]')) {
-        document.querySelectorAll('[id^="videoOpts"]').forEach(m => m.style.display = 'none');
-    }
-});
-
 async function loadVideosTable() {
-    const tbody = document.getElementById('videosTable').querySelector('tbody');
-    renderLoadingSpinner(tbody, 'Loading videos...');
+    const grid = document.getElementById('videosCardGrid');
+    if (!grid) return;
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8;"><i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:10px;"></i><div>Loading videos...</div></div>';
     try {
         const res = await fetch('/api/videos');
         const videos = await res.json();
 
         if (videos.length === 0) {
-            renderEmptyState(tbody, 'video', 'No videos found');
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:50px;color:#94a3b8;"><i class="fas fa-video" style="font-size:40px;margin-bottom:12px;opacity:0.3;"></i><div style="font-size:16px;font-weight:500;">No videos found</div><div style="font-size:13px;margin-top:4px;">Click "Add Video" to upload your first video</div></div>';
             return;
         }
 
@@ -6268,58 +6255,167 @@ async function loadVideosTable() {
         const chapterMap = {};
         chapters.forEach(ch => chapterMap[ch.id] = ch.name);
 
-        tbody.innerHTML = videos.map(v => {
-            let html = '';
-            html += '<tr>';
-            html += '<td><input type="checkbox" class="video-checkbox" data-id="' + v.id + '"></td>';
-            html += '<td>' + (v.thumbnail ? '<img src="' + v.thumbnail + '" style="width:60px;height:40px;object-fit:cover;border-radius:4px;">' : '<span style="color:#94a3b8;">No thumbnail</span>') + '</td>';
-            html += '<td><strong>' + v.title + '</strong></td>';
-            // Handle both old courseId and new courseIds
+        grid.innerHTML = videos.map(v => {
             let courseNames = [];
             if (v.courseIds && Array.isArray(v.courseIds)) {
                 courseNames = v.courseIds.map(id => courseMap[id] || 'N/A');
             } else if (v.courseId) {
                 courseNames = [courseMap[v.courseId] || 'N/A'];
             }
-            html += '<td style="font-size:12px;">' + (courseNames.length > 0 ? courseNames.join('<br>') : 'N/A') + '</td>';
-            html += '<td>' + (chapterMap[v.chapterId] || '-') + '</td>';
-            html += '<td>' + v.category + '</td>';
-            html += '<td>' + (v.duration ? v.duration + ' min' : '-') + '</td>';
-            html += '<td>' + v.views + '</td>';
-            html += '<td>' + formatDate(v.uploadedAt) + '</td>';
-            html += '<td><div style="position:relative;"><button class="action-btn edit-btn" onclick="toggleVideoOptions(' + v.id + ')"><i class="fas fa-ellipsis-v"></i> Options</button><div id="videoOpts' + v.id + '" style="display:none;position:absolute;right:0;top:100%;z-index:100;min-width:160px;background:rgba(30,41,59,0.97);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.4);padding:4px;">';
-            html += '<button class="action-btn edit-btn" style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#e2e8f0;padding:8px 12px;border-radius:6px;" onclick="editVideo(' + v.id + ')"><i class="fas fa-edit"></i> Edit</button>';
-            html += '<button style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#a78bfa;padding:8px 12px;border-radius:6px;cursor:pointer;" onclick="openQuizManager(' + v.id + ',\'' + (v.title || '').replace(/\'/g, "\\'") + '\')"><i class="fas fa-question-circle"></i> Quiz</button>';
-            html += '<button style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#10b981;padding:8px 12px;border-radius:6px;cursor:pointer;" onclick="openResourcesManager(' + v.id + ',\'' + (v.title || '').replace(/\'/g, "\\'") + '\')"><i class="fas fa-paperclip"></i> Files</button>';
-            html += '<button style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#0ea5e9;padding:8px 12px;border-radius:6px;cursor:pointer;" onclick="openHotspotManager(' + v.id + ',\'' + (v.title || '').replace(/\'/g, "\\'") + '\')"><i class="fas fa-map-pin"></i> Hotspots</button>';
-            html += '<button class="action-btn delete-btn" style="width:100%;text-align:left;margin:2px 0;border:none;background:transparent;color:#f5576c;padding:8px 12px;border-radius:6px;" onclick="deleteVideo(' + v.id + ')"><i class="fas fa-trash"></i> Delete</button>';
-            html += '</div></div></td>';
-            html += '</tr>';
+            const chapterName = chapterMap[v.chapterId] || '';
+            const safeTitle = (v.title || '').replace(/'/g, "\\'");
+
+            let html = '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden;transition:all 0.3s;" onmouseover="this.style.borderColor=\'rgba(102,126,234,0.4)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.1)\';this.style.transform=\'none\'">';
+            // Thumbnail
+            html += '<div style="position:relative;width:100%;height:160px;background:rgba(255,255,255,0.05);overflow:hidden;">';
+            if (v.thumbnail) {
+                html += '<img src="' + v.thumbnail + '" style="width:100%;height:100%;object-fit:cover;">';
+            } else {
+                html += '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><i class="fas fa-video" style="font-size:32px;color:rgba(255,255,255,0.15);"></i></div>';
+            }
+            // Category badge
+            html += '<span style="position:absolute;top:8px;left:8px;padding:3px 10px;font-size:11px;font-weight:600;background:rgba(102,126,234,0.85);color:#fff;border-radius:12px;backdrop-filter:blur(4px);">' + (v.category || 'General') + '</span>';
+            // Duration badge
+            if (v.duration) {
+                html += '<span style="position:absolute;bottom:8px;right:8px;padding:3px 8px;font-size:11px;font-weight:600;background:rgba(0,0,0,0.7);color:#fff;border-radius:6px;">' + v.duration + ' min</span>';
+            }
+            html += '</div>';
+
+            // Body
+            html += '<div style="padding:14px;">';
+            html += '<div style="font-size:14px;font-weight:600;color:#e2e8f0;margin-bottom:6px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + v.title + '</div>';
+            // Courses
+            html += '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px;"><i class="fas fa-book" style="margin-right:4px;"></i>' + (courseNames.length > 0 ? courseNames.join(', ') : 'N/A') + '</div>';
+            // Chapter + Views
+            html += '<div style="display:flex;align-items:center;gap:12px;font-size:11px;color:#94a3b8;margin-bottom:12px;">';
+            if (chapterName) html += '<span><i class="fas fa-list-ul" style="margin-right:3px;"></i>' + chapterName + '</span>';
+            html += '<span><i class="fas fa-eye" style="margin-right:3px;"></i>' + (v.views || 0) + ' views</span>';
+            html += '<span style="margin-left:auto;"><i class="fas fa-calendar" style="margin-right:3px;"></i>' + formatDate(v.uploadedAt) + '</span>';
+            html += '</div>';
+
+            // Actions
+            html += '<div style="display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.08);padding-top:10px;">';
+            html += '<button onclick="editVideo(' + v.id + ')" style="flex:1;min-width:60px;padding:6px 8px;font-size:12px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(102,126,234,0.2)\'" onmouseout="this.style.background=\'rgba(102,126,234,0.1)\'"><i class="fas fa-edit"></i> Edit</button>';
+            html += '<button onclick="openQuizManager(' + v.id + ',\'' + safeTitle + '\')" style="flex:1;min-width:60px;padding:6px 8px;font-size:12px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#c4b5fd;border-radius:6px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(167,139,250,0.2)\'" onmouseout="this.style.background=\'rgba(167,139,250,0.1)\'"><i class="fas fa-question-circle"></i> Quiz</button>';
+            html += '<button onclick="openResourcesManager(' + v.id + ',\'' + safeTitle + '\')" style="flex:1;min-width:60px;padding:6px 8px;font-size:12px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:6px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(16,185,129,0.2)\'" onmouseout="this.style.background=\'rgba(16,185,129,0.1)\'"><i class="fas fa-paperclip"></i> Files</button>';
+            html += '<button onclick="deleteVideo(' + v.id + ')" style="padding:6px 8px;font-size:12px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:6px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(245,87,108,0.2)\'" onmouseout="this.style.background=\'rgba(245,87,108,0.1)\'"><i class="fas fa-trash"></i></button>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
             return html;
         }).join('');
     } catch (e) {
         console.error('Error loading videos:', e);
-        showNotification('Error loading videos', 'error');
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#f5576c;"><i class="fas fa-exclamation-circle" style="font-size:24px;margin-bottom:10px;"></i><div>Error loading videos</div></div>';
     }
 }
 
 function openVideoModal() {
-    document.getElementById('videoModalTitle').textContent = 'Add Video';
+    document.getElementById('videoModalTitle').innerHTML = '<i class="fas fa-video" style="color:#667eea;"></i> Add Video';
     document.getElementById('videoId').value = '';
     document.getElementById('videoTitle').value = '';
     document.getElementById('videoDescription').value = '';
     document.getElementById('videoUrl').value = '';
-    document.getElementById('videoThumbnail').value = '';
+    document.getElementById('uploadedVideoFileName').value = '';
     document.getElementById('videoDuration').value = '';
     document.getElementById('videoCategory').value = 'General';
     document.getElementById('videoFile').value = '';
     document.getElementById('thumbnailFile').value = '';
     document.getElementById('videoChapter').innerHTML = '<option value="">No Chapter</option>';
     document.getElementById('videoUploadProgress').style.display = 'none';
+    document.getElementById('videoUploadZone').style.display = 'block';
+    document.getElementById('videoFileInfo').style.display = 'none';
     document.getElementById('thumbnailPreview').style.display = 'none';
     document.getElementById('thumbnailPreviewImg').src = '';
     loadCoursesForVideoModal();
     document.getElementById('videoModal').classList.add('active');
+}
+
+function handleVideoFileSelect(input) {
+    const file = input.files[0];
+    if (file) uploadVideoFile(file);
+}
+
+function handleVideoFileDrop(e) {
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        document.getElementById('videoFile').files = e.dataTransfer.files;
+        uploadVideoFile(file);
+    }
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+async function uploadVideoFile(file) {
+    if (!file.type.startsWith('video/')) {
+        showNotification('Please select a valid video file.', 'error');
+        return;
+    }
+    if (file.size > 300 * 1024 * 1024) {
+        showNotification('Video file too large. Maximum 300MB allowed.', 'error');
+        return;
+    }
+
+    const progressEl = document.getElementById('videoUploadProgress');
+    const zoneEl = document.getElementById('videoUploadZone');
+    const infoEl = document.getElementById('videoFileInfo');
+    const barEl = document.getElementById('videoUploadBar');
+    const pctEl = document.getElementById('videoUploadPercent');
+    const statusEl = document.getElementById('videoUploadStatus');
+
+    zoneEl.style.display = 'none';
+    infoEl.style.display = 'none';
+    progressEl.style.display = 'block';
+    statusEl.textContent = 'Uploading ' + file.name + '...';
+    barEl.style.width = '0%';
+    pctEl.textContent = '0%';
+
+    const CHUNK_SIZE = 700 * 1024;
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    let uploadedFileName = null;
+
+    try {
+        for (let i = 0; i < totalChunks; i++) {
+            const start = i * CHUNK_SIZE;
+            const chunk = file.slice(start, start + CHUNK_SIZE);
+            const chunkForm = new FormData();
+            chunkForm.append('chunkIndex', i);
+            chunkForm.append('totalChunks', totalChunks);
+            chunkForm.append('fileName', safeName);
+            chunkForm.append('chunk', chunk, safeName);
+            const chunkRes = await fetch('/api/videos/upload-chunk', { method: 'POST', body: chunkForm });
+            const chunkData = await chunkRes.json();
+            if (!chunkData.success) throw new Error(chunkData.message || 'Chunk upload failed');
+            if (chunkData.completed && chunkData.fileName) uploadedFileName = chunkData.fileName;
+            const percent = Math.round(((i + 1) / totalChunks) * 100);
+            barEl.style.width = percent + '%';
+            pctEl.textContent = percent + '%';
+        }
+
+        document.getElementById('uploadedVideoFileName').value = uploadedFileName;
+        progressEl.style.display = 'none';
+        infoEl.style.display = 'flex';
+        document.getElementById('videoFileNameDisplay').textContent = file.name;
+        document.getElementById('videoFileSizeDisplay').textContent = formatFileSize(file.size) + ' • Upload complete';
+        showNotification('Video uploaded successfully!', 'success');
+    } catch (e) {
+        console.error('Video chunk upload error:', e);
+        progressEl.style.display = 'none';
+        zoneEl.style.display = 'block';
+        showNotification('Video upload failed: ' + e.message, 'error');
+    }
+}
+
+function removeUploadedVideo() {
+    document.getElementById('uploadedVideoFileName').value = '';
+    document.getElementById('videoFile').value = '';
+    document.getElementById('videoFileInfo').style.display = 'none';
+    document.getElementById('videoUploadZone').style.display = 'block';
 }
 
 function validateThumbnail(input) {
@@ -6440,79 +6536,30 @@ async function loadChaptersForVideoModal() {
 
 async function saveVideo() {
     const videoId = document.getElementById('videoId').value;
-    const videoFile = document.getElementById('videoFile').files[0];
     const thumbInput = document.getElementById('thumbnailFile');
     const thumbFile = thumbInput.files[0];
-    const thumbUrl = document.getElementById('videoThumbnail').value.trim();
+    const uploadedVideoFilename = document.getElementById('uploadedVideoFileName').value.trim();
     const videoUrl = document.getElementById('videoUrl').value.trim();
 
-    // Only check invalid state if a file is actually selected
     if (thumbFile && thumbInput.dataset.invalid === 'true') {
         showNotification('Please provide a valid thumbnail image.', 'error');
         return;
     }
 
-    // Validate required fields
     const title = document.getElementById('videoTitle').value.trim();
     if (!title) {
         showNotification('Video title is required.', 'error');
         return;
     }
-    // Get selected course IDs from checkboxes
     const courseCheckboxes = document.querySelectorAll('#videoCourseList input[type=checkbox]:checked');
     const courseIds = Array.from(courseCheckboxes).map(cb => cb.value);
     if (courseIds.length === 0) {
         showNotification('At least one course is required.', 'error');
         return;
     }
-    if (!videoFile && !videoUrl) {
-        showNotification('Please provide a video file or video URL.', 'error');
+    if (!uploadedVideoFilename && !videoUrl) {
+        showNotification('Please upload a video file first.', 'error');
         return;
-    }
-
-    // Check video file size (300MB limit)
-    if (videoFile && videoFile.size > 300 * 1024 * 1024) {
-        showNotification('Video file too large. Maximum 300MB allowed.', 'error');
-        return;
-    }
-
-    const progressEl = document.getElementById('videoUploadProgress');
-    let uploadedVideoFilename = null;
-
-    // Chunked upload for video file (bypasses nginx body-size limits)
-    if (videoFile) {
-        progressEl.style.display = 'block';
-        progressEl.textContent = 'Uploading video... 0%';
-        const CHUNK_SIZE = 700 * 1024; // 700KB - safely under 1MB proxy limits
-        const totalChunks = Math.ceil(videoFile.size / CHUNK_SIZE);
-        const safeName = videoFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-        try {
-            for (let i = 0; i < totalChunks; i++) {
-                const start = i * CHUNK_SIZE;
-                const chunk = videoFile.slice(start, start + CHUNK_SIZE);
-                const chunkForm = new FormData();
-                chunkForm.append('chunkIndex', i);
-                chunkForm.append('totalChunks', totalChunks);
-                chunkForm.append('fileName', safeName);
-                chunkForm.append('chunk', chunk, safeName);
-                const chunkRes = await fetch('/api/videos/upload-chunk', { method: 'POST', body: chunkForm });
-                const chunkData = await chunkRes.json();
-                if (!chunkData.success) {
-                    throw new Error(chunkData.message || 'Chunk upload failed');
-                }
-                if (chunkData.completed && chunkData.fileName) {
-                    uploadedVideoFilename = chunkData.fileName;
-                }
-                const percent = Math.round(((i + 1) / totalChunks) * 100);
-                progressEl.textContent = 'Uploading video... ' + percent + '%';
-            }
-        } catch (e) {
-            console.error('Video chunk upload error:', e);
-            progressEl.style.display = 'none';
-            showNotification('Video upload failed: ' + e.message, 'error');
-            return;
-        }
-        progressEl.textContent = 'Upload complete! Saving...';
     }
 
     const formData = new FormData();
@@ -6530,31 +6577,19 @@ async function saveVideo() {
 
     if (thumbFile) {
         formData.append('thumbnail', thumbFile);
-    } else if (thumbUrl) {
-        formData.append('thumbnail', thumbUrl);
     }
 
     try {
         const url = videoId ? '/api/videos/' + videoId : '/api/videos';
         const method = videoId ? 'PUT' : 'POST';
 
-        const res = await fetch(url, {
-            method: method,
-            body: formData
-        });
-
+        const res = await fetch(url, { method: method, body: formData });
         const raw = await res.text();
         let data = null;
-        try {
-            data = raw ? JSON.parse(raw) : null;
-        } catch (parseErr) {
-            data = null;
-        }
-
-        progressEl.style.display = 'none';
+        try { data = raw ? JSON.parse(raw) : null; } catch (parseErr) { data = null; }
 
         if (!res.ok) {
-            const msg = (data && data.message) || (data && data.error) || ('Upload failed (HTTP ' + res.status + ')');
+            const msg = (data && data.message) || (data && data.error) || ('Save failed (HTTP ' + res.status + ')');
             showNotification(msg, 'error');
             return;
         }
@@ -6568,7 +6603,6 @@ async function saveVideo() {
         }
     } catch (e) {
         console.error('Error saving video:', e);
-        progressEl.style.display = 'none';
         showNotification('Error saving video!', 'error');
     }
 }
@@ -6578,15 +6612,33 @@ async function editVideo(id) {
         const res = await fetch('/api/videos/' + id);
         const video = await res.json();
 
-        document.getElementById('videoModalTitle').textContent = 'Edit Video';
+        document.getElementById('videoModalTitle').innerHTML = '<i class="fas fa-edit" style="color:#667eea;"></i> Edit Video';
         document.getElementById('videoId').value = video.id;
         document.getElementById('videoTitle').value = video.title;
         document.getElementById('videoDescription').value = video.description || '';
         document.getElementById('videoUrl').value = video.videoUrl || '';
-        document.getElementById('videoThumbnail').value = video.thumbnail || '';
+        document.getElementById('uploadedVideoFileName').value = '';
         document.getElementById('videoDuration').value = video.duration || '';
         document.getElementById('videoCategory').value = video.category || 'General';
         document.getElementById('thumbnailFile').value = '';
+
+        // Show existing video info if it's an uploaded file
+        const zoneEl = document.getElementById('videoUploadZone');
+        const infoEl = document.getElementById('videoFileInfo');
+        const progressEl = document.getElementById('videoUploadProgress');
+        progressEl.style.display = 'none';
+        if (video.videoUrl && video.videoUrl.startsWith('/uploads/videos/')) {
+            const fileName = video.videoUrl.split('/').pop();
+            document.getElementById('uploadedVideoFileName').value = fileName;
+            zoneEl.style.display = 'none';
+            infoEl.style.display = 'flex';
+            document.getElementById('videoFileNameDisplay').textContent = video.title + ' (existing video)';
+            document.getElementById('videoFileSizeDisplay').textContent = 'Already uploaded — upload new to replace';
+        } else {
+            zoneEl.style.display = 'block';
+            infoEl.style.display = 'none';
+        }
+
         const preview = document.getElementById('thumbnailPreview');
         const img = document.getElementById('thumbnailPreviewImg');
         if (video.thumbnail) {
@@ -6598,7 +6650,6 @@ async function editVideo(id) {
             img.src = '';
         }
 
-        // Get selected course IDs (handle both old courseId and new courseIds)
         let selectedIds = [];
         if (video.courseIds && Array.isArray(video.courseIds)) {
             selectedIds = video.courseIds.map(String);
@@ -6606,8 +6657,6 @@ async function editVideo(id) {
             selectedIds = [String(video.courseId)];
         }
         loadCoursesForVideoModal(selectedIds).then(() => {
-            // Chapters are auto-loaded by loadCoursesForVideoModal when selectedIds provided
-            // Set the chapter value after chapters are loaded
             setTimeout(() => {
                 document.getElementById('videoChapter').value = video.chapterId || '';
             }, 200);

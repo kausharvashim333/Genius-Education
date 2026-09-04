@@ -4636,11 +4636,7 @@
                 </div>
 
                 <div class="data-table">
-                    <div class="table-scroll-wrapper">
-                        <table id="videosTable">
-                            <thead><tr><th><input type="checkbox" id="selectAllVideos" onchange="toggleAllVideoCheckboxes()"></th><th>Thumbnail</th><th>Title</th><th>Courses</th><th>Chapter</th><th>Category</th><th>Duration</th><th>Views</th><th>Uploaded</th><th>Actions</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
+                    <div id="videosCardGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding:8px;">
                     </div>
                 </div>
             </div>
@@ -5829,31 +5825,68 @@
 
     <!-- Video Modal -->
     <div id="videoModal" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
-            <h3 id="videoModalTitle">Add Video</h3>
+        <div class="modal-content" style="max-width:640px;border-radius:16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                <h3 id="videoModalTitle" style="margin:0;display:flex;align-items:center;gap:8px;"><i class="fas fa-video" style="color:#667eea;"></i> Add Video</h3>
+                <button onclick="closeModal('videoModal')" style="background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;padding:4px 8px;border-radius:6px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'">&times;</button>
+            </div>
             <input type="hidden" id="videoId">
-            <div class="form-group"><label>Title *</label><input type="text" id="videoTitle" required placeholder="Enter video title"></div>
-            <div class="form-group"><label>Description <button type="button" id="aiDescBtn" onclick="generateVideoDescription()" style="margin-left:8px;padding:2px 10px;font-size:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-magic" style="font-size:10px;"></i> Write with AI</button></label><textarea id="videoDescription" rows="3" placeholder="Video description (optional)"></textarea></div>
+            <input type="hidden" id="uploadedVideoFileName" value="">
+            <input type="hidden" id="videoUrl" value="">
+
+            <!-- Video Upload Zone -->
+            <div id="videoUploadZone" style="border:2px dashed rgba(102,126,234,0.4);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(102,126,234,0.05);margin-bottom:16px;" onclick="document.getElementById('videoFile').click()" ondragover="event.preventDefault();this.style.borderColor='#667eea';this.style.background='rgba(102,126,234,0.12)'" ondragleave="this.style.borderColor='rgba(102,126,234,0.4)';this.style.background='rgba(102,126,234,0.05)'" ondrop="event.preventDefault();handleVideoFileDrop(event)">
+                <i class="fas fa-cloud-upload-alt" style="font-size:36px;color:#667eea;margin-bottom:10px;display:block;"></i>
+                <div style="font-size:15px;font-weight:600;color:#e2e8f0;">Click to select or drag & drop video</div>
+                <div style="font-size:12px;color:#94a3b8;margin-top:4px;">MP4, AVI, MKV, MOV — Max 300MB</div>
+                <input type="file" id="videoFile" accept="video/*" style="display:none;" onchange="handleVideoFileSelect(this)">
+            </div>
+
+            <!-- Upload progress bar -->
+            <div id="videoUploadProgress" style="display:none;margin-bottom:16px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <span id="videoUploadStatus" style="font-size:13px;color:#a5b4fc;font-weight:500;">Uploading...</span>
+                    <span id="videoUploadPercent" style="font-size:13px;color:#a5b4fc;font-weight:600;">0%</span>
+                </div>
+                <div style="width:100%;height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">
+                    <div id="videoUploadBar" style="width:0%;height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:4px;transition:width 0.3s;"></div>
+                </div>
+            </div>
+
+            <!-- Video file info after upload -->
+            <div id="videoFileInfo" style="display:none;margin-bottom:16px;padding:12px 16px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;align-items:center;gap:10px;">
+                <i class="fas fa-check-circle" style="color:#10b981;font-size:20px;"></i>
+                <div style="flex:1;">
+                    <div id="videoFileNameDisplay" style="font-size:13px;font-weight:600;color:#e2e8f0;"></div>
+                    <div id="videoFileSizeDisplay" style="font-size:11px;color:#94a3b8;"></div>
+                </div>
+                <button onclick="removeUploadedVideo()" style="background:none;border:none;color:#f5576c;cursor:pointer;font-size:16px;padding:4px 8px;border-radius:6px;" onmouseover="this.style.background='rgba(245,87,108,0.1)'" onmouseout="this.style.background='none'"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="form-group"><label>Title *</label><input type="text" id="videoTitle" required placeholder="Enter video title" style="border-radius:8px;"></div>
+            <div class="form-group"><label>Description <button type="button" id="aiDescBtn" onclick="generateVideoDescription()" style="margin-left:8px;padding:2px 10px;font-size:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-magic" style="font-size:10px;"></i> Write with AI</button></label><textarea id="videoDescription" rows="3" placeholder="Video description (optional)" style="border-radius:8px;"></textarea></div>
             <div class="form-group">
                 <label>Courses * <span style="color:#94a3b8;font-size:12px;">(Select multiple courses to show same video in all)</span></label>
-                <div id="videoCourseList" style="max-height:150px;overflow-y:auto;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px;background:rgba(255,255,255,0.04);"></div>
+                <div id="videoCourseList" style="max-height:130px;overflow-y:auto;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px;background:rgba(255,255,255,0.04);"></div>
             </div>
-            <div class="form-group"><label>Chapter <span style="color:#94a3b8;font-size:12px;">(Chapters from selected courses)</span></label>
-                <select id="videoChapter" style="width:100%;"><option value="">No Chapter</option></select>
+            <div style="display:flex;gap:12px;">
+                <div class="form-group" style="flex:1;"><label>Chapter <span style="color:#94a3b8;font-size:12px;">(From selected courses)</span></label>
+                    <select id="videoChapter" style="width:100%;border-radius:8px;"><option value="">No Chapter</option></select>
+                </div>
+                <div class="form-group" style="flex:1;"><label>Category</label><select id="videoCategory" style="border-radius:8px;"><option value="General">General</option><option value="Lecture">Lecture</option><option value="Tutorial">Tutorial</option><option value="Demo">Demo</option><option value="Interview">Interview</option></select></div>
             </div>
-            <div class="form-group"><label>Category</label><select id="videoCategory"><option value="General">General</option><option value="Lecture">Lecture</option><option value="Tutorial">Tutorial</option><option value="Demo">Demo</option><option value="Interview">Interview</option></select></div>
-            <div class="form-group"><label>Video File <span style="color:#94a3b8;font-size:12px;">(Max 300MB)</span></label><input type="file" id="videoFile" accept="video/*"></div>
-            <div id="videoUploadProgress" style="display:none;margin-bottom:10px;padding:8px 12px;background:rgba(102,126,234,0.15);border-radius:6px;font-size:13px;color:#a5b4fc;"></div>
-            <div class="form-group"><label>Or Video URL</label><input type="text" id="videoUrl" placeholder="https://example.com/video.mp4"></div>
-            <div class="form-group">
-                <label>Thumbnail Image <span style="color:#94a3b8;font-size:12px;">(Optional: min 640x360, 16:9 ratio)</span></label>
-                <input type="file" id="thumbnailFile" accept="image/*" onchange="validateThumbnail(this)">
-                <div id="thumbnailPreview" style="margin-top:8px;display:none;"><img id="thumbnailPreviewImg" src="" style="max-width:200px;max-height:120px;border-radius:6px;border:1px solid #e2e8f0;"><div id="thumbnailResText" style="font-size:12px;color:#64748b;margin-top:4px;"></div></div>
+            <div style="display:flex;gap:12px;">
+                <div class="form-group" style="flex:1;">
+                    <label>Thumbnail Image <span style="color:#94a3b8;font-size:12px;">(Optional)</span></label>
+                    <input type="file" id="thumbnailFile" accept="image/*" onchange="validateThumbnail(this)" style="border-radius:8px;">
+                    <div id="thumbnailPreview" style="margin-top:8px;display:none;"><img id="thumbnailPreviewImg" src="" style="max-width:160px;max-height:90px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);"><div id="thumbnailResText" style="font-size:12px;color:#94a3b8;margin-top:4px;"></div></div>
+                </div>
+                <div class="form-group" style="flex:1;"><label>Duration (minutes)</label><input type="number" id="videoDuration" placeholder="e.g., 30" style="border-radius:8px;"></div>
             </div>
-            <div class="form-group"><label>Or Thumbnail URL</label><input type="text" id="videoThumbnail" placeholder="https://example.com/thumbnail.jpg"></div>
-            <div class="form-group"><label>Duration (minutes)</label><input type="number" id="videoDuration" placeholder="e.g., 30"></div>
-            <button type="button" class="btn btn-primary" onclick="saveVideo()"><i class="fas fa-save"></i> Save Video</button>
-            <button type="button" class="btn" onclick="closeModal('videoModal')" style="margin-left:10px;">Cancel</button>
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;border-top:1px solid rgba(255,255,255,0.1);padding-top:16px;">
+                <button type="button" class="btn" onclick="closeModal('videoModal')">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveVideo()"><i class="fas fa-save"></i> Save Video</button>
+            </div>
         </div>
     </div>
 
