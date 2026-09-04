@@ -15091,7 +15091,7 @@ Respond with JSON only:
     }
 });
 
-// --- Claude AI Video Description Generator ---
+// --- Gemini AI Video Description Generator ---
 const aiVideoDescLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, message: { success: false, message: 'Too many requests, try again shortly' } });
 
 app.post('/api/ai/video-description', aiVideoDescLimiter, async (req, res) => {
@@ -15101,9 +15101,6 @@ app.post('/api/ai/video-description', aiVideoDescLimiter, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Video title is required' });
         }
         const cleanTitle = String(title).substring(0, 200);
-
-        const apiKey = process.env.ANTHROPIC_API_KEY;
-        if (!apiKey) return res.json({ success: false, fallback: true, message: 'AI not configured' });
 
         const prompt = `You are an educational content writer for an Indian e-learning platform.
 
@@ -15119,39 +15116,18 @@ Rules:
 - Do NOT use marketing buzzwords or clickbait phrases.
 - Do NOT start with "In this video" — start with the topic directly.
 - Do NOT include any HTML, markdown, or special formatting — plain text only.
-- Output ONLY the description text, nothing else.`;
 
-        let response;
-        try {
-            response = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': apiKey,
-                    'anthropic-version': '2023-06-01'
-                },
-                body: JSON.stringify({
-                    model: 'claude-sonnet-4-20250514',
-                    max_tokens: 300,
-                    messages: [{ role: 'user', content: prompt }]
-                })
-            });
-        } catch (err) {
-            console.error('Claude fetch failed:', err.message);
-            return res.json({ success: false, fallback: true, message: 'AI service unreachable' });
+Respond with JSON only:
+{
+  "description": "<the description text>"
+}`;
+
+        const result = await callGeminiJSON(prompt, { temperature: 0.7, maxOutputTokens: 3000 });
+        if (!result.ok) {
+            return res.json({ success: false, fallback: true, message: result.message });
         }
-
-        if (!response.ok) {
-            const errBody = await response.text().catch(() => '');
-            console.error('Claude API error:', response.status, errBody.substring(0, 500));
-            return res.json({ success: false, fallback: true, message: 'AI service unavailable (status ' + response.status + ')' });
-        }
-
-        const data = await response.json();
-        const description = (data.content?.[0]?.text || '').trim();
-
+        const description = (result.data.description || '').trim();
         if (!description) {
-            console.error('Claude: empty response for video description');
             return res.json({ success: false, fallback: true, message: 'AI returned empty description' });
         }
         res.json({ success: true, description });
