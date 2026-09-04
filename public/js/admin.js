@@ -805,7 +805,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 'roles': loadRolesTable,
                 'about': loadAbout,
                 'study-materials': loadStudyMaterialsTable,
-                'videos': () => { loadVideosTable(); loadChaptersTable(); },
+                'videos': () => { loadVideosWithChapters(); },
                 'video-comments': loadAdminVideoComments,
                 'video-analytics': loadVideoAnalytics,
                 'assignments': loadAssignmentsTable,
@@ -6233,81 +6233,135 @@ async function rejectStudyMaterial(id) {
 }
 
 // ===== Videos (Video Learning Platform) =====
-async function loadVideosTable() {
-    const grid = document.getElementById('videosCardGrid');
-    if (!grid) return;
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8;"><i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:10px;"></i><div>Loading videos...</div></div>';
+async function loadVideosWithChapters() {
+    const container = document.getElementById('videosCardGrid');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;"><i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:10px;"></i><div>Loading...</div></div>';
     try {
-        const res = await fetch('/api/videos');
-        const videos = await res.json();
+        const courseFilter = document.getElementById('chapterCourseFilter');
+        const filterCourseId = courseFilter ? courseFilter.value : '';
 
-        if (videos.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:50px;color:#94a3b8;"><i class="fas fa-video" style="font-size:40px;margin-bottom:12px;opacity:0.3;"></i><div style="font-size:16px;font-weight:500;">No videos found</div><div style="font-size:13px;margin-top:4px;">Click "Add Video" to upload your first video</div></div>';
-            return;
-        }
-
-        const [courses, chapters] = await Promise.all([
-            fetch('/api/courses').then(r => r.json()),
-            fetch('/api/chapters').then(r => r.json())
+        const [chapters, videos, courses] = await Promise.all([
+            fetch(filterCourseId ? '/api/chapters?courseId=' + filterCourseId : '/api/chapters').then(r => r.json()),
+            fetch('/api/videos').then(r => r.json()),
+            fetch('/api/courses').then(r => r.json())
         ]);
+
         const courseMap = {};
         courses.forEach(c => courseMap[c.id] = c.name);
-        const chapterMap = {};
-        chapters.forEach(ch => chapterMap[ch.id] = ch.name);
 
-        grid.innerHTML = videos.map(v => {
-            let courseNames = [];
-            if (v.courseIds && Array.isArray(v.courseIds)) {
-                courseNames = v.courseIds.map(id => courseMap[id] || 'N/A');
-            } else if (v.courseId) {
-                courseNames = [courseMap[v.courseId] || 'N/A'];
-            }
-            const chapterName = chapterMap[v.chapterId] || '';
-            const safeTitle = (v.title || '').replace(/'/g, "\\'");
+        // Filter videos by course if filter is set
+        let filteredVideos = videos;
+        if (filterCourseId) {
+            filteredVideos = videos.filter(v => {
+                if (v.courseIds && Array.isArray(v.courseIds)) return v.courseIds.includes(filterCourseId);
+                if (v.courseId) return v.courseId == filterCourseId;
+                return false;
+            });
+        }
 
-            let html = '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden;transition:all 0.3s;" onmouseover="this.style.borderColor=\'rgba(102,126,234,0.4)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.1)\';this.style.transform=\'none\'">';
-            // Thumbnail
-            html += '<div style="position:relative;width:100%;height:160px;background:rgba(255,255,255,0.05);overflow:hidden;">';
-            if (v.thumbnail) {
-                html += '<img src="' + v.thumbnail + '" style="width:100%;height:100%;object-fit:cover;">';
+        // Group videos by chapterId
+        const videosByChapter = {};
+        const ungroupedVideos = [];
+        filteredVideos.forEach(v => {
+            if (v.chapterId) {
+                if (!videosByChapter[v.chapterId]) videosByChapter[v.chapterId] = [];
+                videosByChapter[v.chapterId].push(v);
             } else {
-                html += '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><i class="fas fa-video" style="font-size:32px;color:rgba(255,255,255,0.15);"></i></div>';
+                ungroupedVideos.push(v);
             }
-            // Category badge
-            html += '<span style="position:absolute;top:8px;left:8px;padding:3px 10px;font-size:11px;font-weight:600;background:rgba(102,126,234,0.85);color:#fff;border-radius:12px;backdrop-filter:blur(4px);">' + (v.category || 'General') + '</span>';
-            // Duration badge
-            if (v.duration) {
-                html += '<span style="position:absolute;bottom:8px;right:8px;padding:3px 8px;font-size:11px;font-weight:600;background:rgba(0,0,0,0.7);color:#fff;border-radius:6px;">' + v.duration + ' min</span>';
+        });
+
+        let html = '';
+
+        if (chapters.length === 0 && ungroupedVideos.length === 0) {
+            html = '<div style="text-align:center;padding:50px;color:#94a3b8;"><i class="fas fa-video" style="font-size:40px;margin-bottom:12px;opacity:0.3;"></i><div style="font-size:16px;font-weight:500;">No chapters or videos found</div><div style="font-size:13px;margin-top:4px;">Click "Add Chapter" or "Add Video" to get started</div></div>';
+        } else {
+            // Render chapters with their videos as card sections
+            chapters.forEach((ch, idx) => {
+                const chVideos = videosByChapter[ch.id] || [];
+                const courseName = courseMap[ch.courseId] || 'N/A';
+                html += '<div style="margin-bottom:24px;">' +
+                    '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(102,126,234,0.08);border-left:3px solid #667eea;border-radius:8px;margin-bottom:12px;">' +
+                        '<div style="display:flex;align-items:center;gap:10px;">' +
+                            '<i class="fas fa-folder" style="color:#667eea;font-size:16px;"></i>' +
+                            '<strong style="font-size:15px;color:#e2e8f0;">' + ch.name + '</strong>' +
+                            '<span style="padding:3px 10px;font-size:11px;background:rgba(102,126,234,0.2);color:#a5b4fc;border-radius:12px;">' + chVideos.length + ' video' + (chVideos.length !== 1 ? 's' : '') + '</span>' +
+                            '<span style="font-size:12px;color:#94a3b8;">' + courseName + '</span>' +
+                        '</div>' +
+                        '<div style="display:flex;gap:6px;">' +
+                            '<button onclick="editChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;"><i class="fas fa-edit" style="margin-right:4px;"></i>Edit</button>' +
+                            '<button onclick="deleteChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:6px;cursor:pointer;"><i class="fas fa-trash" style="margin-right:4px;"></i>Delete</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 4px;">' +
+                        chVideos.map(v => renderVideoCard(v, courseMap)).join('') +
+                    '</div>' +
+                '</div>';
+            });
+
+            // Ungrouped videos section
+            if (ungroupedVideos.length > 0) {
+                html += '<div style="margin-bottom:24px;">' +
+                    '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(255,255,255,0.03);border-left:3px solid #64748b;border-radius:8px;margin-bottom:12px;">' +
+                        '<i class="fas fa-folder-open" style="color:#64748b;font-size:16px;"></i>' +
+                        '<strong style="font-size:15px;color:#94a3b8;">Ungrouped Videos</strong>' +
+                        '<span style="padding:3px 10px;font-size:11px;background:rgba(100,116,139,0.2);color:#94a3b8;border-radius:12px;">' + ungroupedVideos.length + ' video' + (ungroupedVideos.length !== 1 ? 's' : '') + '</span>' +
+                    '</div>' +
+                    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 4px;">' +
+                        ungroupedVideos.map(v => renderVideoCard(v, courseMap)).join('') +
+                    '</div>' +
+                '</div>';
             }
-            html += '</div>';
+        }
 
-            // Body
-            html += '<div style="padding:14px;">';
-            html += '<div style="font-size:14px;font-weight:600;color:#e2e8f0;margin-bottom:6px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + v.title + '</div>';
-            // Courses
-            html += '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px;"><i class="fas fa-book" style="margin-right:4px;"></i>' + (courseNames.length > 0 ? courseNames.join(', ') : 'N/A') + '</div>';
-            // Chapter + Views
-            html += '<div style="display:flex;align-items:center;gap:12px;font-size:11px;color:#94a3b8;margin-bottom:12px;">';
-            if (chapterName) html += '<span><i class="fas fa-list-ul" style="margin-right:3px;"></i>' + chapterName + '</span>';
-            html += '<span><i class="fas fa-eye" style="margin-right:3px;"></i>' + (v.views || 0) + ' views</span>';
-            html += '<span style="margin-left:auto;"><i class="fas fa-calendar" style="margin-right:3px;"></i>' + formatDate(v.uploadedAt) + '</span>';
-            html += '</div>';
-
-            // Actions
-            html += '<div style="display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.08);padding-top:10px;">';
-            html += '<button onclick="editVideo(' + v.id + ')" style="flex:1;min-width:60px;padding:6px 8px;font-size:12px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(102,126,234,0.2)\'" onmouseout="this.style.background=\'rgba(102,126,234,0.1)\'"><i class="fas fa-edit"></i> Edit</button>';
-            html += '<button onclick="openQuizManager(' + v.id + ',\'' + safeTitle + '\')" style="flex:1;min-width:60px;padding:6px 8px;font-size:12px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#c4b5fd;border-radius:6px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(167,139,250,0.2)\'" onmouseout="this.style.background=\'rgba(167,139,250,0.1)\'"><i class="fas fa-question-circle"></i> Quiz</button>';
-            html += '<button onclick="openResourcesManager(' + v.id + ',\'' + safeTitle + '\')" style="flex:1;min-width:60px;padding:6px 8px;font-size:12px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:6px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(16,185,129,0.2)\'" onmouseout="this.style.background=\'rgba(16,185,129,0.1)\'"><i class="fas fa-paperclip"></i> Files</button>';
-            html += '<button onclick="deleteVideo(' + v.id + ')" style="padding:6px 8px;font-size:12px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:6px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(245,87,108,0.2)\'" onmouseout="this.style.background=\'rgba(245,87,108,0.1)\'"><i class="fas fa-trash"></i></button>';
-            html += '</div>';
-            html += '</div>';
-            html += '</div>';
-            return html;
-        }).join('');
+        container.innerHTML = html;
     } catch (e) {
-        console.error('Error loading videos:', e);
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#f5576c;"><i class="fas fa-exclamation-circle" style="font-size:24px;margin-bottom:10px;"></i><div>Error loading videos</div></div>';
+        console.error('Error loading videos with chapters:', e);
+        container.innerHTML = '<div style="text-align:center;padding:40px;color:#f5576c;"><i class="fas fa-exclamation-circle" style="font-size:24px;margin-bottom:10px;"></i><div>Error loading data</div></div>';
     }
+}
+
+function renderVideoCard(v, courseMap) {
+    let courseNames = [];
+    if (v.courseIds && Array.isArray(v.courseIds)) {
+        courseNames = v.courseIds.map(id => courseMap[id] || 'N/A');
+    } else if (v.courseId) {
+        courseNames = [courseMap[v.courseId] || 'N/A'];
+    }
+    const safeTitle = (v.title || '').replace(/'/g, "\\'");
+    let thumbHtml = '';
+    if (v.thumbnail) {
+        thumbHtml = '<img src="' + v.thumbnail + '" style="width:100%;height:140px;object-fit:cover;border-radius:8px 8px 0 0;">';
+    } else {
+        thumbHtml = '<div style="width:100%;height:140px;background:linear-gradient(135deg,rgba(102,126,234,0.15),rgba(167,139,250,0.15));border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;"><i class="fas fa-video" style="font-size:36px;color:rgba(255,255,255,0.2);"></i></div>';
+    }
+    return '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform=\'translateY(-3px)\';this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.3)\';" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\';">' +
+        thumbHtml +
+        '<div style="padding:14px;flex:1;display:flex;flex-direction:column;gap:8px;">' +
+            '<div style="font-size:14px;font-weight:600;color:#e2e8f0;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">' + v.title + '</div>' +
+            '<div style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:6px;">' +
+                '<i class="fas fa-book" style="font-size:10px;"></i>' +
+                '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (courseNames.length > 0 ? courseNames.join(', ') : 'N/A') + '</span>' +
+            '</div>' +
+            '<div style="display:flex;gap:10px;font-size:11px;color:#94a3b8;flex-wrap:wrap;">' +
+                (v.category ? '<span style="display:flex;align-items:center;gap:3px;"><i class="fas fa-tag" style="font-size:9px;"></i>' + v.category + '</span>' : '') +
+                (v.duration ? '<span style="display:flex;align-items:center;gap:3px;"><i class="fas fa-clock" style="font-size:9px;"></i>' + v.duration + ' min</span>' : '') +
+                '<span style="display:flex;align-items:center;gap:3px;"><i class="fas fa-eye" style="font-size:9px;"></i>' + (v.views || 0) + ' views</span>' +
+            '</div>' +
+            '<div style="display:flex;gap:6px;margin-top:auto;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">' +
+                '<button onclick="editVideo(' + v.id + ')" style="flex:1;padding:6px;font-size:11px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;" title="Edit"><i class="fas fa-edit"></i></button>' +
+                '<button onclick="openQuizManager(' + v.id + ',\'' + safeTitle + '\')" style="flex:1;padding:6px;font-size:11px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#c4b5fd;border-radius:6px;cursor:pointer;" title="Quiz"><i class="fas fa-question-circle"></i></button>' +
+                '<button onclick="openResourcesManager(' + v.id + ',\'' + safeTitle + '\')" style="flex:1;padding:6px;font-size:11px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:6px;cursor:pointer;" title="Files"><i class="fas fa-paperclip"></i></button>' +
+                '<button onclick="deleteVideo(' + v.id + ')" style="flex:1;padding:6px;font-size:11px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:6px;cursor:pointer;" title="Delete"><i class="fas fa-trash"></i></button>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+}
+
+// Wrapper for backward compatibility
+async function loadVideosTable() {
+    await loadVideosWithChapters();
 }
 
 function openVideoModal() {
@@ -6596,7 +6650,7 @@ async function saveVideo() {
 
         if (data && data.success) {
             closeModal('videoModal');
-            loadVideosTable();
+            loadVideosWithChapters();
             showNotification(videoId ? 'Video updated!' : 'Video added!', 'success');
         } else {
             showNotification((data && data.message) || 'Error saving video!', 'error');
@@ -6673,8 +6727,7 @@ async function deleteVideo(id) {
     if (!confirm('Delete this video?')) return;
     try {
         await fetch('/api/videos/' + id, { method: 'DELETE' });
-        loadVideosTable();
-        loadChaptersTable();
+        loadVideosWithChapters();
         showNotification('Video deleted!', 'success');
     } catch (e) {
         console.error('Error deleting video:', e);
@@ -6720,43 +6773,7 @@ async function generateVideoDescription() {
 
 // ===== Chapters =====
 async function loadChaptersTable() {
-    const tbody = document.getElementById('chaptersTable').querySelector('tbody');
-    renderLoadingSpinner(tbody, 'Loading chapters...');
-    try {
-        const courseFilter = document.getElementById('chapterCourseFilter');
-        const courseId = courseFilter ? courseFilter.value : '';
-        const url = courseId ? '/api/chapters?courseId=' + courseId : '/api/chapters';
-        const res = await fetch(url);
-        const chapters = await res.json();
-
-        if (chapters.length === 0) {
-            renderEmptyState(tbody, 'list-ol', 'No chapters found');
-            return;
-        }
-
-        const [courses, videos] = await Promise.all([
-            fetch('/api/courses').then(r => r.json()),
-            fetch('/api/videos').then(r => r.json())
-        ]);
-        const courseMap = {};
-        courses.forEach(c => courseMap[c.id] = c.name);
-
-        tbody.innerHTML = chapters.map(ch => {
-            const videoCount = videos.filter(v => v.chapterId == ch.id).length;
-            return '<tr>' +
-                '<td>' + ch.order + '</td>' +
-                '<td><strong>' + ch.name + '</strong></td>' +
-                '<td>' + (courseMap[ch.courseId] || 'N/A') + '</td>' +
-                '<td>' + videoCount + '</td>' +
-                '<td>' +
-                '<button class="action-btn edit-btn" onclick="editChapter(' + ch.id + ')">Edit</button>' +
-                '<button class="action-btn delete-btn" onclick="deleteChapter(' + ch.id + ')">Delete</button>' +
-                '</td>' +
-                '</tr>';
-        }).join('');
-    } catch (e) {
-        console.error('Error loading chapters:', e);
-    }
+    await loadVideosWithChapters();
 }
 
 function openChapterModal() {
@@ -6813,7 +6830,7 @@ async function saveChapter() {
             const data = await res.json();
             if (data.success) {
                 closeModal('chapterModal');
-                loadChaptersTable();
+                loadVideosWithChapters();
                 showNotification('Chapter updated!', 'success');
             } else {
                 showNotification('Error saving chapter', 'error');
@@ -6831,7 +6848,7 @@ async function saveChapter() {
                 if (data.success) successCount++;
             }
             closeModal('chapterModal');
-            loadChaptersTable();
+            loadVideosWithChapters();
             showNotification(successCount + ' course' + (successCount > 1 ? 's' : '') + ' me chapter add hua!', 'success');
         }
     } catch (e) {
@@ -6862,8 +6879,7 @@ async function deleteChapter(id) {
     if (!confirm('Delete this chapter? Videos in this chapter will become ungrouped.')) return;
     try {
         await fetch('/api/chapters/' + id, { method: 'DELETE' });
-        loadChaptersTable();
-        loadVideosTable();
+        loadVideosWithChapters();
         showNotification('Chapter deleted!', 'success');
     } catch (e) {
         console.error('Error deleting chapter:', e);
@@ -6905,7 +6921,7 @@ async function deleteSelectedVideos() {
         }
         
         document.getElementById('selectAllVideos').checked = false;
-        loadVideosTable();
+        loadVideosWithChapters();
     } catch (e) {
         console.error('Error deleting videos:', e);
         showNotification('Error deleting videos', 'error');
@@ -15440,7 +15456,7 @@ async function notifyVideoAvailability(videoId) {
             } else {
                 showNotification('Notification sent to ' + (data.sent || 0) + ' student(s)', 'success');
             }
-            loadVideosTable();
+            loadVideosWithChapters();
         } else {
             showNotification(data.message || 'Failed to send notification', 'error');
         }

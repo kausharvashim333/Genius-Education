@@ -4611,33 +4611,20 @@
 
             <!-- Videos Page -->
             <div id="page-videos" class="page-content hidden">
-                <div class="page-toolbar" style="display:flex;gap:10px;">
-                        <button class="btn btn-primary" onclick="openVideoModal()"><i class="fas fa-plus"></i> Add Video</button>
-                        <button class="btn btn-danger" onclick="deleteSelectedVideos()"><i class="fas fa-trash"></i> Delete Selected</button>
-                        <button class="btn btn-success" onclick="exportVideosToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
-                    </div>
-
-                <!-- Chapters Management -->
+                <!-- Unified Chapters + Videos Table -->
                 <div class="card" style="margin-bottom:20px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-                        <h4 style="margin:0;"><i class="fas fa-list-ol"></i> Chapters</h4>
-                        <button class="btn btn-primary" onclick="openChapterModal()"><i class="fas fa-plus"></i> Add Chapter</button>
+                        <h4 style="margin:0;"><i class="fas fa-layer-group"></i> Chapters & Videos</h4>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn btn-primary" onclick="openChapterModal()"><i class="fas fa-plus"></i> Add Chapter</button>
+                            <button class="btn btn-primary" onclick="openVideoModal()"><i class="fas fa-plus"></i> Add Video</button>
+                        </div>
                     </div>
                     <div class="form-group" style="margin-bottom:15px;">
-                        <label>Select Course to Manage Chapters</label>
-                        <select id="chapterCourseFilter" onchange="loadChaptersTable()"><option value="">All Courses</option></select>
+                        <label>Filter by Course</label>
+                        <select id="chapterCourseFilter" onchange="loadVideosWithChapters()"><option value="">All Courses</option></select>
                     </div>
-                    <div class="chapter-table-wrapper">
-                        <table id="chaptersTable">
-                            <thead><tr><th>Order</th><th>Chapter Name</th><th>Course</th><th>Videos</th><th>Actions</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="data-table">
-                    <div id="videosCardGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding:8px;">
-                    </div>
+                    <div id="videosCardGrid" style="min-height:200px;"></div>
                 </div>
             </div>
 
