@@ -7670,11 +7670,26 @@ app.post('/api/videos', uploadVideo.fields([{ name: 'video', maxCount: 1 }, { na
 // Reorder videos within a chapter (must be before /:id route)
 app.put('/api/videos/reorder', (req, res) => {
     const videos = readData('videos.json') || [];
+    const chapters = readData('chapters.json') || [];
     const { videoIds, videoId, chapterId, direction } = req.body;
 
     if (videoId !== undefined && chapterId !== undefined && direction) {
+        // Find the video's actual chapterId — it may differ from the displayed chapterId
+        // when the video is shown under a sibling chapter (same name, different course)
+        const video = videos.find(v => String(v.id) === String(videoId));
+        if (!video) return res.status(404).json({ success: false, message: 'Video not found' });
+
+        const actualChapterId = video.chapterId || chapterId;
+
+        // Find all sibling chapters with the same name (across courses)
+        const origChapter = chapters.find(ch => String(ch.id) === String(actualChapterId));
+        const siblingChapterIds = origChapter
+            ? chapters.filter(ch => ch.name === origChapter.name).map(ch => ch.id)
+            : [actualChapterId];
+
+        // Reorder in the video's actual chapter
         const chapterVideos = videos
-            .filter(v => String(v.chapterId) === String(chapterId))
+            .filter(v => String(v.chapterId) === String(actualChapterId))
             .sort((a, b) => (a.order ?? 999999) - (b.order ?? 999999));
 
         const currentIdx = chapterVideos.findIndex(v => String(v.id) === String(videoId));

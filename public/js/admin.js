@@ -6394,39 +6394,94 @@ function renderVideoTabContent() {
     if (chapters.length === 0 && ungroupedVideos.length === 0) {
         html = '<div style="text-align:center;padding:50px;color:#94a3b8;"><i class="fas fa-video" style="font-size:40px;margin-bottom:12px;opacity:0.3;"></i><div style="font-size:16px;font-weight:500;">No chapters or videos found</div><div style="font-size:13px;margin-top:4px;">Click "Add Chapter" or "Add Video" to get started</div></div>';
     } else {
-        // Render chapters with their videos as compact list sections
-        chapters.forEach((ch, idx) => {
-            const chVideos = videosByChapter[ch.id] || [];
-            const courseName = _videoCourseMap[ch.courseId] || 'N/A';
-            html += '<div style="margin-bottom:20px;">' +
-                '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(102,126,234,0.08);border-left:3px solid #667eea;border-radius:8px;margin-bottom:8px;">' +
-                    '<div style="display:flex;align-items:center;gap:8px;">' +
-                        '<i class="fas fa-folder" style="color:#667eea;font-size:14px;"></i>' +
-                        '<strong style="font-size:14px;color:#e2e8f0;">' + ch.name + '</strong>' +
-                        '<span style="padding:2px 8px;font-size:10px;background:rgba(102,126,234,0.2);color:#a5b4fc;border-radius:10px;">' + chVideos.length + '</span>' +
-                        '<span style="font-size:11px;color:#94a3b8;">' + courseName + '</span>' +
-                    '</div>' +
-                    '<div style="display:flex;gap:5px;">' +
-                        '<button onclick="addVideoToChapter(' + ch.id + ')" style="padding:4px 10px;font-size:11px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:6px;cursor:pointer;"><i class="fas fa-plus" style="margin-right:3px;"></i>Video</button>' +
-                        '<button onclick="editChapter(' + ch.id + ')" style="padding:4px 10px;font-size:11px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;"><i class="fas fa-edit"></i></button>' +
-                        '<button onclick="deleteChapter(' + ch.id + ')" style="padding:4px 10px;font-size:11px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:6px;cursor:pointer;"><i class="fas fa-trash"></i></button>' +
-                    '</div>' +
-                '</div>' +
-                '<div style="display:flex;flex-direction:column;gap:6px;padding:0 4px;">' +
-                    chVideos.map((v, vi) => renderVideoCard(v, _videoCourseMap, ch.id, vi, chVideos.length)).join('') +
-                '</div>' +
-            '</div>';
-        });
+        const isAllCourses = !filterCourseId;
 
-        // Ungrouped videos section
+        if (isAllCourses) {
+            // Group sibling chapters by name
+            const chapterGroups = {};
+            const chapterGroupOrder = [];
+            chapters.forEach(ch => {
+                if (!chapterGroups[ch.name]) {
+                    chapterGroups[ch.name] = [];
+                    chapterGroupOrder.push(ch.name);
+                }
+                chapterGroups[ch.name].push(ch);
+            });
+
+            chapterGroupOrder.forEach(chName => {
+                const groupChapters = chapterGroups[chName];
+                const allGroupVideos = [];
+                const seenVideoIds = new Set();
+                groupChapters.forEach(ch => {
+                    (videosByChapter[ch.id] || []).forEach(v => {
+                        if (!seenVideoIds.has(v.id)) {
+                            seenVideoIds.add(v.id);
+                            allGroupVideos.push(v);
+                        }
+                    });
+                });
+                const courseBadges = groupChapters.map(ch => {
+                    const cn = _videoCourseMap[ch.courseId] || 'N/A';
+                    return '<span style="padding:1px 6px;font-size:9px;background:rgba(102,126,234,0.15);color:#a5b4fc;border-radius:8px;">' + cn + '</span>';
+                }).join(' ');
+                const firstCh = groupChapters[0];
+
+                html += '<div style="margin-bottom:10px;border:1px solid rgba(255,255,255,0.06);border-radius:8px;overflow:hidden;">' +
+                    '<div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'flex\':\'none\';this.querySelector(\'.toggle-icon\').style.transform=this.nextElementSibling.style.display===\'none\'?\'rotate(0deg)\':\'rotate(90deg)\'" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(102,126,234,0.06);cursor:pointer;user-select:none;">' +
+                        '<div style="display:flex;align-items:center;gap:8px;">' +
+                            '<i class="fas fa-chevron-right toggle-icon" style="color:#667eea;font-size:10px;transition:transform 0.2s;"></i>' +
+                            '<i class="fas fa-folder" style="color:#667eea;font-size:13px;"></i>' +
+                            '<strong style="font-size:13px;color:#e2e8f0;">' + chName + '</strong>' +
+                            '<span style="padding:1px 7px;font-size:10px;background:rgba(102,126,234,0.2);color:#a5b4fc;border-radius:10px;">' + allGroupVideos.length + '</span>' +
+                            '<span style="display:flex;gap:3px;flex-wrap:wrap;">' + courseBadges + '</span>' +
+                        '</div>' +
+                        '<div style="display:flex;gap:4px;align-items:center;" onclick="event.stopPropagation();">' +
+                            '<button onclick="addVideoToChapter(' + firstCh.id + ')" style="padding:3px 8px;font-size:10px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:5px;cursor:pointer;"><i class="fas fa-plus"></i></button>' +
+                            '<button onclick="editChapter(' + firstCh.id + ')" style="padding:3px 8px;font-size:10px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:5px;cursor:pointer;"><i class="fas fa-edit"></i></button>' +
+                            '<button onclick="deleteChapter(' + firstCh.id + ')" style="padding:3px 8px;font-size:10px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:5px;cursor:pointer;"><i class="fas fa-trash"></i></button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="display:none;flex-direction:column;gap:4px;padding:6px 8px;">' +
+                        allGroupVideos.map((v, vi) => renderVideoCard(v, _videoCourseMap, v.chapterId || firstCh.id, vi, allGroupVideos.length)).join('') +
+                    '</div>' +
+                '</div>';
+            });
+        } else {
+            // Single course tab — render chapters directly (collapsible)
+            chapters.forEach((ch, idx) => {
+                const chVideos = videosByChapter[ch.id] || [];
+                const courseName = _videoCourseMap[ch.courseId] || 'N/A';
+                html += '<div style="margin-bottom:10px;border:1px solid rgba(255,255,255,0.06);border-radius:8px;overflow:hidden;">' +
+                    '<div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'flex\':\'none\';this.querySelector(\'.toggle-icon\').style.transform=this.nextElementSibling.style.display===\'none\'?\'rotate(0deg)\':\'rotate(90deg)\'" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(102,126,234,0.06);cursor:pointer;user-select:none;">' +
+                        '<div style="display:flex;align-items:center;gap:8px;">' +
+                            '<i class="fas fa-chevron-right toggle-icon" style="color:#667eea;font-size:10px;transition:transform 0.2s;"></i>' +
+                            '<i class="fas fa-folder" style="color:#667eea;font-size:13px;"></i>' +
+                            '<strong style="font-size:13px;color:#e2e8f0;">' + ch.name + '</strong>' +
+                            '<span style="padding:1px 7px;font-size:10px;background:rgba(102,126,234,0.2);color:#a5b4fc;border-radius:10px;">' + chVideos.length + '</span>' +
+                        '</div>' +
+                        '<div style="display:flex;gap:4px;align-items:center;" onclick="event.stopPropagation();">' +
+                            '<button onclick="addVideoToChapter(' + ch.id + ')" style="padding:3px 8px;font-size:10px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:5px;cursor:pointer;"><i class="fas fa-plus"></i></button>' +
+                            '<button onclick="editChapter(' + ch.id + ')" style="padding:3px 8px;font-size:10px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:5px;cursor:pointer;"><i class="fas fa-edit"></i></button>' +
+                            '<button onclick="deleteChapter(' + ch.id + ')" style="padding:3px 8px;font-size:10px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:5px;cursor:pointer;"><i class="fas fa-trash"></i></button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="display:flex;flex-direction:column;gap:4px;padding:6px 8px;">' +
+                        chVideos.map((v, vi) => renderVideoCard(v, _videoCourseMap, ch.id, vi, chVideos.length)).join('') +
+                    '</div>' +
+                '</div>';
+            });
+        }
+
+        // Ungrouped videos section (collapsible)
         if (ungroupedVideos.length > 0) {
-            html += '<div style="margin-bottom:20px;">' +
-                '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,255,255,0.03);border-left:3px solid #64748b;border-radius:8px;margin-bottom:8px;">' +
-                    '<i class="fas fa-folder-open" style="color:#64748b;font-size:14px;"></i>' +
-                    '<strong style="font-size:14px;color:#94a3b8;">Ungrouped Videos</strong>' +
-                    '<span style="padding:2px 8px;font-size:10px;background:rgba(100,116,139,0.2);color:#94a3b8;border-radius:10px;">' + ungroupedVideos.length + '</span>' +
+            html += '<div style="margin-bottom:10px;border:1px solid rgba(255,255,255,0.06);border-radius:8px;overflow:hidden;">' +
+                '<div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'flex\':\'none\';this.querySelector(\'.toggle-icon\').style.transform=this.nextElementSibling.style.display===\'none\'?\'rotate(0deg)\':\'rotate(90deg)\'" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,0.03);cursor:pointer;user-select:none;">' +
+                    '<i class="fas fa-chevron-right toggle-icon" style="color:#64748b;font-size:10px;transition:transform 0.2s;"></i>' +
+                    '<i class="fas fa-folder-open" style="color:#64748b;font-size:13px;"></i>' +
+                    '<strong style="font-size:13px;color:#94a3b8;">Ungrouped Videos</strong>' +
+                    '<span style="padding:1px 7px;font-size:10px;background:rgba(100,116,139,0.2);color:#94a3b8;border-radius:10px;">' + ungroupedVideos.length + '</span>' +
                 '</div>' +
-                '<div style="display:flex;flex-direction:column;gap:6px;padding:0 4px;">' +
+                '<div style="display:none;flex-direction:column;gap:4px;padding:6px 8px;">' +
                     ungroupedVideos.map((v, vi) => renderVideoCard(v, _videoCourseMap, null, vi, ungroupedVideos.length)).join('') +
                 '</div>' +
             '</div>';
@@ -6452,9 +6507,10 @@ function renderVideoCard(v, courseMap, chapterId, idx, total) {
     }
     const canMoveUp = idx > 0;
     const canMoveDown = idx < total - 1;
+    const actualChapterId = v.chapterId || chapterId;
     const reorderHtml = (chapterId !== null && chapterId !== undefined) ?
-        '<button onclick="moveVideoOrder(' + v.id + ',' + chapterId + ',\'up\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:5px;cursor:pointer;' + (canMoveUp ? '' : 'opacity:0.3;pointer-events:none;') + '" title="Move Up"><i class="fas fa-arrow-up"></i></button>' +
-        '<button onclick="moveVideoOrder(' + v.id + ',' + chapterId + ',\'down\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:5px;cursor:pointer;' + (canMoveDown ? '' : 'opacity:0.3;pointer-events:none;') + '" title="Move Down"><i class="fas fa-arrow-down"></i></button>'
+        '<button onclick="moveVideoOrder(' + v.id + ',' + actualChapterId + ',\'up\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:5px;cursor:pointer;' + (canMoveUp ? '' : 'opacity:0.3;pointer-events:none;') + '" title="Move Up"><i class="fas fa-arrow-up"></i></button>' +
+        '<button onclick="moveVideoOrder(' + v.id + ',' + actualChapterId + ',\'down\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:5px;cursor:pointer;' + (canMoveDown ? '' : 'opacity:0.3;pointer-events:none;') + '" title="Move Down"><i class="fas fa-arrow-down"></i></button>'
         : '';
     return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;transition:background 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.06)\';" onmouseout="this.style.background=\'rgba(255,255,255,0.03)\';">' +
         thumbHtml +
