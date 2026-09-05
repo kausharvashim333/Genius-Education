@@ -6413,7 +6413,7 @@ function renderVideoTabContent() {
                     '</div>' +
                 '</div>' +
                 '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 4px;">' +
-                    chVideos.map(v => renderVideoCard(v, _videoCourseMap)).join('') +
+                    chVideos.map((v, vi) => renderVideoCard(v, _videoCourseMap, ch.id, vi, chVideos.length)).join('') +
                 '</div>' +
             '</div>';
         });
@@ -6427,7 +6427,7 @@ function renderVideoTabContent() {
                     '<span style="padding:3px 10px;font-size:11px;background:rgba(100,116,139,0.2);color:#94a3b8;border-radius:12px;">' + ungroupedVideos.length + ' video' + (ungroupedVideos.length !== 1 ? 's' : '') + '</span>' +
                 '</div>' +
                 '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 4px;">' +
-                    ungroupedVideos.map(v => renderVideoCard(v, _videoCourseMap)).join('') +
+                    ungroupedVideos.map((v, vi) => renderVideoCard(v, _videoCourseMap, null, vi, ungroupedVideos.length)).join('') +
                 '</div>' +
             '</div>';
         }
@@ -6436,7 +6436,7 @@ function renderVideoTabContent() {
     container.innerHTML = html;
 }
 
-function renderVideoCard(v, courseMap) {
+function renderVideoCard(v, courseMap, chapterId, idx, total) {
     let courseNames = [];
     if (v.courseIds && Array.isArray(v.courseIds)) {
         courseNames = v.courseIds.map(id => courseMap[id] || 'N/A');
@@ -6450,6 +6450,12 @@ function renderVideoCard(v, courseMap) {
     } else {
         thumbHtml = '<div style="width:100%;height:140px;background:linear-gradient(135deg,rgba(102,126,234,0.15),rgba(167,139,250,0.15));border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;"><i class="fas fa-video" style="font-size:36px;color:rgba(255,255,255,0.2);"></i></div>';
     }
+    const canMoveUp = idx > 0;
+    const canMoveDown = idx < total - 1;
+    const reorderHtml = (chapterId !== null && chapterId !== undefined) ?
+        '<button onclick="moveVideoOrder(' + v.id + ',' + chapterId + ',\'up\')" style="flex:0.7;padding:6px;font-size:11px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:6px;cursor:pointer;' + (canMoveUp ? '' : 'opacity:0.35;pointer-events:none;') + '" title="Move Up"><i class="fas fa-arrow-up"></i></button>' +
+        '<button onclick="moveVideoOrder(' + v.id + ',' + chapterId + ',\'down\')" style="flex:0.7;padding:6px;font-size:11px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:6px;cursor:pointer;' + (canMoveDown ? '' : 'opacity:0.35;pointer-events:none;') + '" title="Move Down"><i class="fas fa-arrow-down"></i></button>'
+        : '';
     return '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform=\'translateY(-3px)\';this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.3)\';" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\';">' +
         thumbHtml +
         '<div style="padding:14px;flex:1;display:flex;flex-direction:column;gap:8px;">' +
@@ -6464,6 +6470,7 @@ function renderVideoCard(v, courseMap) {
                 '<span style="display:flex;align-items:center;gap:3px;"><i class="fas fa-eye" style="font-size:9px;"></i>' + (v.views || 0) + ' views</span>' +
             '</div>' +
             '<div style="display:flex;gap:6px;margin-top:auto;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">' +
+                reorderHtml +
                 '<button onclick="editVideo(' + v.id + ')" style="flex:1;padding:6px;font-size:11px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;" title="Edit"><i class="fas fa-edit"></i></button>' +
                 '<button onclick="openQuizManager(' + v.id + ',\'' + safeTitle + '\')" style="flex:1;padding:6px;font-size:11px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#c4b5fd;border-radius:6px;cursor:pointer;" title="Quiz"><i class="fas fa-question-circle"></i></button>' +
                 '<button onclick="openResourcesManager(' + v.id + ',\'' + safeTitle + '\')" style="flex:1;padding:6px;font-size:11px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:6px;cursor:pointer;" title="Files"><i class="fas fa-paperclip"></i></button>' +
@@ -6476,6 +6483,24 @@ function renderVideoCard(v, courseMap) {
 // Wrapper for backward compatibility
 async function loadVideosTable() {
     await loadVideosWithChapters();
+}
+
+async function moveVideoOrder(videoId, chapterId, direction) {
+    try {
+        const res = await fetch('/api/videos/reorder', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ videoId, chapterId, direction })
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to reorder video');
+        }
+        await loadVideosWithChapters();
+    } catch (e) {
+        console.error('Reorder error:', e);
+        alert('Failed to reorder video: ' + e.message);
+    }
 }
 
 function openVideoModal(prefill = null) {

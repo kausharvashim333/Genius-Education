@@ -7565,7 +7565,13 @@ app.delete('/api/certificates/:id', (req, res) => {
 
 // --- Videos (Video Learning Platform) ---
 app.get('/api/videos', (req, res) => {
-    const videos = readData('videos.json') || [];
+    let videos = readData('videos.json') || [];
+    videos.sort((a, b) => {
+        const aOrder = a.order !== undefined ? a.order : 999999;
+        const bOrder = b.order !== undefined ? b.order : 999999;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return (a.id || 0) - (b.id || 0);
+    });
     res.json(videos);
 });
 
@@ -7630,13 +7636,18 @@ app.post('/api/videos', uploadVideo.fields([{ name: 'video', maxCount: 1 }, { na
         finalVideoUrl = '/uploads/videos/' + videoFile.filename;
     }
 
+    // Calculate order: count existing videos in the same chapter
+    const chapterId = req.body.chapterId || null;
+    const sameChapterCount = videos.filter(v => String(v.chapterId) === String(chapterId)).length;
+
     const video = {
         id: Date.now(),
         title,
         description: req.body.description,
         courseIds,
         courseId: courseIds[0], // backward compat
-        chapterId: req.body.chapterId || null,
+        chapterId: chapterId,
+        order: sameChapterCount,
         videoUrl: finalVideoUrl,
         thumbnail: thumbnail,
         duration: req.body.duration || 0,
@@ -7714,6 +7725,46 @@ app.delete('/api/videos/:id', (req, res) => {
     if (idx === -1) return res.status(404).json({ success: false, message: 'Video not found' });
     
     videos.splice(idx, 1);
+    writeData('videos.json', videos);
+    res.json({ success: true });
+});
+
+// Reorder videos within a chapter
+app.put('/api/videos/reorder', (req, res) => {
+    const videos = readData('videos.json') || [];
+    const { videoIds, videoId, chapterId, direction } = req.body;
+
+    // New format: move a single video up/down within its chapter
+    if (videoId !== undefined && chapterId !== undefined && direction) {
+        const chapterVideos = videos
+            .filter(v => String(v.chapterId) === String(chapterId))
+            .sort((a, b) => (a.order ?? 999999) - (b.order ?? 999999));
+
+        const currentIdx = chapterVideos.findIndex(v => String(v.id) === String(videoId));
+        if (currentIdx === -1) return res.status(404).json({ success: false, message: 'Video not found in chapter' });
+
+        const swapIdx = direction === 'up' ? currentIdx - 1 : currentIdx + 1;
+        if (swapIdx < 0 || swapIdx >= chapterVideos.length) {
+            return res.json({ success: true }); // Already at boundary
+        }
+
+        // Swap order values
+        const a = chapterVideos[currentIdx];
+        const b = chapterVideos[swapIdx];
+        const tmpOrder = a.order ?? currentIdx;
+        a.order = b.order ?? swapIdx;
+        b.order = tmpOrder;
+
+        writeData('videos.json', videos);
+        return res.json({ success: true });
+    }
+
+    // Legacy format: array of videoIds in desired order
+    if (!Array.isArray(videoIds)) return res.status(400).json({ success: false, message: 'videoIds array or videoId+chapterId+direction required' });
+    videoIds.forEach((vid, i) => {
+        const v = videos.find(v => String(v.id) === String(vid));
+        if (v) v.order = i;
+    });
     writeData('videos.json', videos);
     res.json({ success: true });
 });
