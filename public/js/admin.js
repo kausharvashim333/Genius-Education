@@ -6441,7 +6441,7 @@ function renderVideoTabContent() {
                             '<button onclick="deleteChapter(' + firstCh.id + ')" style="padding:3px 8px;font-size:10px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:5px;cursor:pointer;"><i class="fas fa-trash"></i></button>' +
                         '</div>' +
                     '</div>' +
-                    '<div style="display:none;flex-direction:column;gap:4px;padding:6px 8px;">' +
+                    '<div class="video-list-container" style="display:none;flex-direction:column;gap:4px;padding:6px 8px;">' +
                         allGroupVideos.map((v, vi) => renderVideoCard(v, _videoCourseMap, v.chapterId || firstCh.id, vi, allGroupVideos.length)).join('') +
                     '</div>' +
                 '</div>';
@@ -6465,7 +6465,7 @@ function renderVideoTabContent() {
                             '<button onclick="deleteChapter(' + ch.id + ')" style="padding:3px 8px;font-size:10px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:5px;cursor:pointer;"><i class="fas fa-trash"></i></button>' +
                         '</div>' +
                     '</div>' +
-                    '<div style="display:flex;flex-direction:column;gap:4px;padding:6px 8px;">' +
+                    '<div class="video-list-container" style="display:flex;flex-direction:column;gap:4px;padding:6px 8px;">' +
                         chVideos.map((v, vi) => renderVideoCard(v, _videoCourseMap, ch.id, vi, chVideos.length)).join('') +
                     '</div>' +
                 '</div>';
@@ -6481,7 +6481,7 @@ function renderVideoTabContent() {
                     '<strong style="font-size:13px;color:#94a3b8;">Ungrouped Videos</strong>' +
                     '<span style="padding:1px 7px;font-size:10px;background:rgba(100,116,139,0.2);color:#94a3b8;border-radius:10px;">' + ungroupedVideos.length + '</span>' +
                 '</div>' +
-                '<div style="display:none;flex-direction:column;gap:4px;padding:6px 8px;">' +
+                '<div class="video-list-container" style="display:none;flex-direction:column;gap:4px;padding:6px 8px;">' +
                     ungroupedVideos.map((v, vi) => renderVideoCard(v, _videoCourseMap, null, vi, ungroupedVideos.length)).join('') +
                 '</div>' +
             '</div>';
@@ -6489,6 +6489,7 @@ function renderVideoTabContent() {
     }
 
     container.innerHTML = html;
+    initVideoDragDrop();
 }
 
 function renderVideoCard(v, courseMap, chapterId, idx, total) {
@@ -6501,33 +6502,31 @@ function renderVideoCard(v, courseMap, chapterId, idx, total) {
     const safeTitle = (v.title || '').replace(/'/g, "\\'");
     let thumbHtml = '';
     if (v.thumbnail) {
-        thumbHtml = '<img src="' + v.thumbnail + '" style="width:56px;height:40px;object-fit:cover;border-radius:4px;flex-shrink:0;">';
+        thumbHtml = '<img src="' + v.thumbnail + '" style="width:48px;height:34px;object-fit:cover;border-radius:4px;flex-shrink:0;">';
     } else {
-        thumbHtml = '<div style="width:56px;height:40px;background:rgba(102,126,234,0.15);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;"><i class="fas fa-video" style="font-size:14px;color:rgba(255,255,255,0.2);"></i></div>';
+        thumbHtml = '<div style="width:48px;height:34px;background:rgba(102,126,234,0.15);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;"><i class="fas fa-video" style="font-size:12px;color:rgba(255,255,255,0.2);"></i></div>';
     }
-    const canMoveUp = idx > 0;
-    const canMoveDown = idx < total - 1;
     const actualChapterId = v.chapterId || chapterId;
-    const reorderHtml = (chapterId !== null && chapterId !== undefined) ?
-        '<button onclick="moveVideoOrder(' + v.id + ',' + actualChapterId + ',\'up\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:5px;cursor:pointer;' + (canMoveUp ? '' : 'opacity:0.3;pointer-events:none;') + '" title="Move Up"><i class="fas fa-arrow-up"></i></button>' +
-        '<button onclick="moveVideoOrder(' + v.id + ',' + actualChapterId + ',\'down\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:5px;cursor:pointer;' + (canMoveDown ? '' : 'opacity:0.3;pointer-events:none;') + '" title="Move Down"><i class="fas fa-arrow-down"></i></button>'
+    const canDrag = (chapterId !== null && chapterId !== undefined);
+    const dragHandleHtml = canDrag ?
+        '<div class="video-drag-handle" style="cursor:grab;flex-shrink:0;padding:0 4px;color:#64748b;font-size:12px;"><i class="fas fa-grip-vertical"></i></div>'
         : '';
-    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;transition:background 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.06)\';" onmouseout="this.style.background=\'rgba(255,255,255,0.03)\';">' +
+    return '<div class="video-card-item" data-video-id="' + v.id + '" data-chapter-id="' + actualChapterId + '" draggable="' + canDrag + '" style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:background 0.15s,border-color 0.15s,opacity 0.15s;max-width:560px;" onmouseover="this.style.background=\'rgba(255,255,255,0.06)\';" onmouseout="if(!this.classList.contains(\'dragging\')){this.style.background=\'rgba(255,255,255,0.03)\';}">' +
+        dragHandleHtml +
         thumbHtml +
         '<div style="flex:1;min-width:0;">' +
-            '<div style="font-size:13px;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + v.title + '</div>' +
-            '<div style="font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:8px;margin-top:2px;">' +
+            '<div style="font-size:12px;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + v.title + '</div>' +
+            '<div style="font-size:10px;color:#94a3b8;display:flex;align-items:center;gap:6px;margin-top:1px;">' +
                 '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (courseNames.length > 0 ? courseNames.join(', ') : 'N/A') + '</span>' +
-                (v.duration ? '<span style="display:flex;align-items:center;gap:2px;"><i class="fas fa-clock" style="font-size:8px;"></i>' + v.duration + 'm</span>' : '') +
-                '<span style="display:flex;align-items:center;gap:2px;"><i class="fas fa-eye" style="font-size:8px;"></i>' + (v.views || 0) + '</span>' +
+                (v.duration ? '<span style="display:flex;align-items:center;gap:2px;"><i class="fas fa-clock" style="font-size:7px;"></i>' + v.duration + 'm</span>' : '') +
+                '<span style="display:flex;align-items:center;gap:2px;"><i class="fas fa-eye" style="font-size:7px;"></i>' + (v.views || 0) + '</span>' +
             '</div>' +
         '</div>' +
-        '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">' +
-            reorderHtml +
-            '<button onclick="editVideo(' + v.id + ')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:5px;cursor:pointer;" title="Edit"><i class="fas fa-edit"></i></button>' +
-            '<button onclick="openQuizManager(' + v.id + ',\'' + safeTitle + '\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#c4b5fd;border-radius:5px;cursor:pointer;" title="Quiz"><i class="fas fa-question-circle"></i></button>' +
-            '<button onclick="openResourcesManager(' + v.id + ',\'' + safeTitle + '\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:5px;cursor:pointer;" title="Files"><i class="fas fa-paperclip"></i></button>' +
-            '<button onclick="deleteVideo(' + v.id + ')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:5px;cursor:pointer;" title="Delete"><i class="fas fa-trash"></i></button>' +
+        '<div style="display:flex;align-items:center;gap:3px;flex-shrink:0;">' +
+            '<button onclick="editVideo(' + v.id + ')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:4px;cursor:pointer;" title="Edit"><i class="fas fa-edit"></i></button>' +
+            '<button onclick="openQuizManager(' + v.id + ',\'' + safeTitle + '\')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#c4b5fd;border-radius:4px;cursor:pointer;" title="Quiz"><i class="fas fa-question-circle"></i></button>' +
+            '<button onclick="openResourcesManager(' + v.id + ',\'' + safeTitle + '\')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:4px;cursor:pointer;" title="Files"><i class="fas fa-paperclip"></i></button>' +
+            '<button onclick="deleteVideo(' + v.id + ')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:4px;cursor:pointer;" title="Delete"><i class="fas fa-trash"></i></button>' +
         '</div>' +
     '</div>';
 }
@@ -6555,6 +6554,120 @@ async function moveVideoOrder(videoId, chapterId, direction) {
     } catch (e) {
         console.error('Reorder error:', e);
         alert('Failed to reorder video: ' + e.message);
+    }
+}
+
+// ===== Drag-and-drop video reordering =====
+let _draggedVideoCard = null;
+let _draggedVideoChapterId = null;
+
+function initVideoDragDrop() {
+    document.querySelectorAll('.video-list-container').forEach(container => {
+        const cards = container.querySelectorAll('.video-card-item[draggable="true"]');
+        cards.forEach(card => {
+            card.addEventListener('dragstart', onVideoDragStart);
+            card.addEventListener('dragend', onVideoDragEnd);
+            card.addEventListener('dragover', onVideoDragOver);
+            card.addEventListener('drop', onVideoDrop);
+        });
+        container.addEventListener('dragover', onContainerDragOver);
+        container.addEventListener('drop', onContainerDrop);
+    });
+}
+
+function onVideoDragStart(e) {
+    _draggedVideoCard = this;
+    _draggedVideoChapterId = this.getAttribute('data-chapter-id');
+    this.classList.add('dragging');
+    this.style.opacity = '0.4';
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', this.getAttribute('data-video-id'));
+}
+
+function onVideoDragEnd(e) {
+    this.classList.remove('dragging');
+    this.style.opacity = '';
+    _draggedVideoCard = null;
+    _draggedVideoChapterId = null;
+    document.querySelectorAll('.video-card-item').forEach(c => {
+        c.style.borderTop = '';
+        c.style.borderBottom = '';
+    });
+}
+
+function onVideoDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!_draggedVideoCard) return;
+    if (this.getAttribute('data-chapter-id') !== _draggedVideoChapterId) return;
+    e.dataTransfer.dropEffect = 'move';
+    const rect = this.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    document.querySelectorAll('.video-card-item').forEach(c => {
+        c.style.borderTop = '';
+        c.style.borderBottom = '';
+    });
+    if (e.clientY < midpoint) {
+        this.style.borderTop = '2px solid #667eea';
+    } else {
+        this.style.borderBottom = '2px solid #667eea';
+    }
+}
+
+function onVideoDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!_draggedVideoCard) return;
+    if (this.getAttribute('data-chapter-id') !== _draggedVideoChapterId) return;
+    const container = this.parentElement;
+    const rect = this.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    if (e.clientY < midpoint) {
+        container.insertBefore(_draggedVideoCard, this);
+    } else {
+        container.insertBefore(_draggedVideoCard, this.nextSibling);
+    }
+    saveVideoOrderFromContainer(container);
+}
+
+function onContainerDragOver(e) {
+    e.preventDefault();
+    if (!_draggedVideoCard) return;
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function onContainerDrop(e) {
+    e.preventDefault();
+    if (!_draggedVideoCard) return;
+    const cards = this.querySelectorAll('.video-card-item[draggable="true"]');
+    const sameChapterCards = Array.from(cards).filter(c => c.getAttribute('data-chapter-id') === _draggedVideoChapterId);
+    if (sameChapterCards.length === 0) {
+        this.appendChild(_draggedVideoCard);
+        saveVideoOrderFromContainer(this);
+    }
+}
+
+async function saveVideoOrderFromContainer(container) {
+    const cards = container.querySelectorAll('.video-card-item[draggable="true"]');
+    const videoIds = Array.from(cards).map(c => parseInt(c.getAttribute('data-video-id')));
+    if (videoIds.length === 0) return;
+    try {
+        const res = await fetch('/api/videos/reorder', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ videoIds })
+        });
+        if (!res.ok) {
+            const errText = await res.text();
+            let errMsg;
+            try { errMsg = JSON.parse(errText).error || JSON.parse(errText).message; }
+            catch { errMsg = errText || `HTTP ${res.status}`; }
+            throw new Error(errMsg);
+        }
+    } catch (e) {
+        console.error('Drag reorder error:', e);
+        alert('Failed to save video order: ' + e.message);
+        await loadVideosWithChapters();
     }
 }
 

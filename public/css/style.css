@@ -9218,3 +9218,20 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     background: rgba(102, 126, 234, 0.4);
     color: #fff;
 }
+
+/* Drag-and-drop video reordering */
+.video-card-item.dragging {
+    opacity: 0.4;
+}
+.video-drag-handle {
+    cursor: grab;
+}
+.video-drag-handle:active {
+    cursor: grabbing;
+}
+.video-card-item[draggable="true"] {
+    cursor: default;
+}
+.video-card-item[draggable="true"]:hover .video-drag-handle {
+    color: #a5b4fc;
+}
