@@ -6336,18 +6336,40 @@ function renderVideoTabContent() {
         });
     }
 
-    // Build chapter lookup map
+    // Build chapter lookup maps — one for filtered chapters, one for ALL chapters
     const chapterMap = {};
     chapters.forEach(ch => { chapterMap[ch.id] = ch; });
+    const allChapterMap = {};
+    _videoAllChapters.forEach(ch => { allChapterMap[ch.id] = ch; });
 
     // Group videos by chapterId — also assign to sibling chapters (same name, different course in video's courseIds)
     const videosByChapter = {};
     const ungroupedVideos = [];
     const assignedVideoIds = new Set();
     filteredVideos.forEach(v => {
+        const vCourseIds = (v.courseIds && Array.isArray(v.courseIds)) ? v.courseIds.map(String) : [String(v.courseId)];
+
         if (v.chapterId && chapterMap[v.chapterId]) {
+            // Video's chapter is directly in the filtered course
             const origChapter = chapterMap[v.chapterId];
-            const vCourseIds = (v.courseIds && Array.isArray(v.courseIds)) ? v.courseIds.map(String) : [String(v.courseId)];
+            const siblingChapters = chapters.filter(ch =>
+                ch.name === origChapter.name && vCourseIds.includes(String(ch.courseId))
+            );
+            if (siblingChapters.length > 0) {
+                siblingChapters.forEach(ch => {
+                    if (!videosByChapter[ch.id]) videosByChapter[ch.id] = [];
+                    if (!videosByChapter[ch.id].some(existing => existing.id === v.id)) {
+                        videosByChapter[ch.id].push(v);
+                    }
+                });
+            } else {
+                if (!videosByChapter[v.chapterId]) videosByChapter[v.chapterId] = [];
+                videosByChapter[v.chapterId].push(v);
+            }
+            assignedVideoIds.add(v.id);
+        } else if (v.chapterId && allChapterMap[v.chapterId]) {
+            // Video's chapter belongs to a DIFFERENT course — find sibling chapter by name in current course
+            const origChapter = allChapterMap[v.chapterId];
             const siblingChapters = chapters.filter(ch =>
                 ch.name === origChapter.name && vCourseIds.includes(String(ch.courseId))
             );
@@ -6360,12 +6382,8 @@ function renderVideoTabContent() {
                 });
                 assignedVideoIds.add(v.id);
             } else {
-                if (!videosByChapter[v.chapterId]) videosByChapter[v.chapterId] = [];
-                videosByChapter[v.chapterId].push(v);
-                assignedVideoIds.add(v.id);
+                ungroupedVideos.push(v);
             }
-        } else if (v.chapterId) {
-            ungroupedVideos.push(v);
         } else {
             ungroupedVideos.push(v);
         }
