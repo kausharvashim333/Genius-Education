@@ -6394,25 +6394,25 @@ function renderVideoTabContent() {
     if (chapters.length === 0 && ungroupedVideos.length === 0) {
         html = '<div style="text-align:center;padding:50px;color:#94a3b8;"><i class="fas fa-video" style="font-size:40px;margin-bottom:12px;opacity:0.3;"></i><div style="font-size:16px;font-weight:500;">No chapters or videos found</div><div style="font-size:13px;margin-top:4px;">Click "Add Chapter" or "Add Video" to get started</div></div>';
     } else {
-        // Render chapters with their videos as card sections
+        // Render chapters with their videos as compact list sections
         chapters.forEach((ch, idx) => {
             const chVideos = videosByChapter[ch.id] || [];
             const courseName = _videoCourseMap[ch.courseId] || 'N/A';
-            html += '<div style="margin-bottom:24px;">' +
-                '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(102,126,234,0.08);border-left:3px solid #667eea;border-radius:8px;margin-bottom:12px;">' +
-                    '<div style="display:flex;align-items:center;gap:10px;">' +
-                        '<i class="fas fa-folder" style="color:#667eea;font-size:16px;"></i>' +
-                        '<strong style="font-size:15px;color:#e2e8f0;">' + ch.name + '</strong>' +
-                        '<span style="padding:3px 10px;font-size:11px;background:rgba(102,126,234,0.2);color:#a5b4fc;border-radius:12px;">' + chVideos.length + ' video' + (chVideos.length !== 1 ? 's' : '') + '</span>' +
-                        '<span style="font-size:12px;color:#94a3b8;">' + courseName + '</span>' +
+            html += '<div style="margin-bottom:20px;">' +
+                '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(102,126,234,0.08);border-left:3px solid #667eea;border-radius:8px;margin-bottom:8px;">' +
+                    '<div style="display:flex;align-items:center;gap:8px;">' +
+                        '<i class="fas fa-folder" style="color:#667eea;font-size:14px;"></i>' +
+                        '<strong style="font-size:14px;color:#e2e8f0;">' + ch.name + '</strong>' +
+                        '<span style="padding:2px 8px;font-size:10px;background:rgba(102,126,234,0.2);color:#a5b4fc;border-radius:10px;">' + chVideos.length + '</span>' +
+                        '<span style="font-size:11px;color:#94a3b8;">' + courseName + '</span>' +
                     '</div>' +
-                    '<div style="display:flex;gap:6px;">' +
-                        '<button onclick="addVideoToChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:6px;cursor:pointer;"><i class="fas fa-plus" style="margin-right:4px;"></i>Video</button>' +
-                        '<button onclick="editChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;"><i class="fas fa-edit" style="margin-right:4px;"></i>Edit</button>' +
-                        '<button onclick="deleteChapter(' + ch.id + ')" style="padding:5px 12px;font-size:12px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:6px;cursor:pointer;"><i class="fas fa-trash" style="margin-right:4px;"></i>Delete</button>' +
+                    '<div style="display:flex;gap:5px;">' +
+                        '<button onclick="addVideoToChapter(' + ch.id + ')" style="padding:4px 10px;font-size:11px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:6px;cursor:pointer;"><i class="fas fa-plus" style="margin-right:3px;"></i>Video</button>' +
+                        '<button onclick="editChapter(' + ch.id + ')" style="padding:4px 10px;font-size:11px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;"><i class="fas fa-edit"></i></button>' +
+                        '<button onclick="deleteChapter(' + ch.id + ')" style="padding:4px 10px;font-size:11px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:6px;cursor:pointer;"><i class="fas fa-trash"></i></button>' +
                     '</div>' +
                 '</div>' +
-                '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 4px;">' +
+                '<div style="display:flex;flex-direction:column;gap:6px;padding:0 4px;">' +
                     chVideos.map((v, vi) => renderVideoCard(v, _videoCourseMap, ch.id, vi, chVideos.length)).join('') +
                 '</div>' +
             '</div>';
@@ -6420,13 +6420,13 @@ function renderVideoTabContent() {
 
         // Ungrouped videos section
         if (ungroupedVideos.length > 0) {
-            html += '<div style="margin-bottom:24px;">' +
-                '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(255,255,255,0.03);border-left:3px solid #64748b;border-radius:8px;margin-bottom:12px;">' +
-                    '<i class="fas fa-folder-open" style="color:#64748b;font-size:16px;"></i>' +
-                    '<strong style="font-size:15px;color:#94a3b8;">Ungrouped Videos</strong>' +
-                    '<span style="padding:3px 10px;font-size:11px;background:rgba(100,116,139,0.2);color:#94a3b8;border-radius:12px;">' + ungroupedVideos.length + ' video' + (ungroupedVideos.length !== 1 ? 's' : '') + '</span>' +
+            html += '<div style="margin-bottom:20px;">' +
+                '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,255,255,0.03);border-left:3px solid #64748b;border-radius:8px;margin-bottom:8px;">' +
+                    '<i class="fas fa-folder-open" style="color:#64748b;font-size:14px;"></i>' +
+                    '<strong style="font-size:14px;color:#94a3b8;">Ungrouped Videos</strong>' +
+                    '<span style="padding:2px 8px;font-size:10px;background:rgba(100,116,139,0.2);color:#94a3b8;border-radius:10px;">' + ungroupedVideos.length + '</span>' +
                 '</div>' +
-                '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 4px;">' +
+                '<div style="display:flex;flex-direction:column;gap:6px;padding:0 4px;">' +
                     ungroupedVideos.map((v, vi) => renderVideoCard(v, _videoCourseMap, null, vi, ungroupedVideos.length)).join('') +
                 '</div>' +
             '</div>';
@@ -6446,36 +6446,32 @@ function renderVideoCard(v, courseMap, chapterId, idx, total) {
     const safeTitle = (v.title || '').replace(/'/g, "\\'");
     let thumbHtml = '';
     if (v.thumbnail) {
-        thumbHtml = '<img src="' + v.thumbnail + '" style="width:100%;height:140px;object-fit:cover;border-radius:8px 8px 0 0;">';
+        thumbHtml = '<img src="' + v.thumbnail + '" style="width:56px;height:40px;object-fit:cover;border-radius:4px;flex-shrink:0;">';
     } else {
-        thumbHtml = '<div style="width:100%;height:140px;background:linear-gradient(135deg,rgba(102,126,234,0.15),rgba(167,139,250,0.15));border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;"><i class="fas fa-video" style="font-size:36px;color:rgba(255,255,255,0.2);"></i></div>';
+        thumbHtml = '<div style="width:56px;height:40px;background:rgba(102,126,234,0.15);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;"><i class="fas fa-video" style="font-size:14px;color:rgba(255,255,255,0.2);"></i></div>';
     }
     const canMoveUp = idx > 0;
     const canMoveDown = idx < total - 1;
     const reorderHtml = (chapterId !== null && chapterId !== undefined) ?
-        '<button onclick="moveVideoOrder(' + v.id + ',' + chapterId + ',\'up\')" style="flex:0.7;padding:6px;font-size:11px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:6px;cursor:pointer;' + (canMoveUp ? '' : 'opacity:0.35;pointer-events:none;') + '" title="Move Up"><i class="fas fa-arrow-up"></i></button>' +
-        '<button onclick="moveVideoOrder(' + v.id + ',' + chapterId + ',\'down\')" style="flex:0.7;padding:6px;font-size:11px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:6px;cursor:pointer;' + (canMoveDown ? '' : 'opacity:0.35;pointer-events:none;') + '" title="Move Down"><i class="fas fa-arrow-down"></i></button>'
+        '<button onclick="moveVideoOrder(' + v.id + ',' + chapterId + ',\'up\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:5px;cursor:pointer;' + (canMoveUp ? '' : 'opacity:0.3;pointer-events:none;') + '" title="Move Up"><i class="fas fa-arrow-up"></i></button>' +
+        '<button onclick="moveVideoOrder(' + v.id + ',' + chapterId + ',\'down\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:5px;cursor:pointer;' + (canMoveDown ? '' : 'opacity:0.3;pointer-events:none;') + '" title="Move Down"><i class="fas fa-arrow-down"></i></button>'
         : '';
-    return '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform=\'translateY(-3px)\';this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.3)\';" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\';">' +
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;transition:background 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.06)\';" onmouseout="this.style.background=\'rgba(255,255,255,0.03)\';">' +
         thumbHtml +
-        '<div style="padding:14px;flex:1;display:flex;flex-direction:column;gap:8px;">' +
-            '<div style="font-size:14px;font-weight:600;color:#e2e8f0;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">' + v.title + '</div>' +
-            '<div style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:6px;">' +
-                '<i class="fas fa-book" style="font-size:10px;"></i>' +
+        '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:13px;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + v.title + '</div>' +
+            '<div style="font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:8px;margin-top:2px;">' +
                 '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (courseNames.length > 0 ? courseNames.join(', ') : 'N/A') + '</span>' +
+                (v.duration ? '<span style="display:flex;align-items:center;gap:2px;"><i class="fas fa-clock" style="font-size:8px;"></i>' + v.duration + 'm</span>' : '') +
+                '<span style="display:flex;align-items:center;gap:2px;"><i class="fas fa-eye" style="font-size:8px;"></i>' + (v.views || 0) + '</span>' +
             '</div>' +
-            '<div style="display:flex;gap:10px;font-size:11px;color:#94a3b8;flex-wrap:wrap;">' +
-                (v.category ? '<span style="display:flex;align-items:center;gap:3px;"><i class="fas fa-tag" style="font-size:9px;"></i>' + v.category + '</span>' : '') +
-                (v.duration ? '<span style="display:flex;align-items:center;gap:3px;"><i class="fas fa-clock" style="font-size:9px;"></i>' + v.duration + ' min</span>' : '') +
-                '<span style="display:flex;align-items:center;gap:3px;"><i class="fas fa-eye" style="font-size:9px;"></i>' + (v.views || 0) + ' views</span>' +
-            '</div>' +
-            '<div style="display:flex;gap:6px;margin-top:auto;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">' +
-                reorderHtml +
-                '<button onclick="editVideo(' + v.id + ')" style="flex:1;padding:6px;font-size:11px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:6px;cursor:pointer;" title="Edit"><i class="fas fa-edit"></i></button>' +
-                '<button onclick="openQuizManager(' + v.id + ',\'' + safeTitle + '\')" style="flex:1;padding:6px;font-size:11px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#c4b5fd;border-radius:6px;cursor:pointer;" title="Quiz"><i class="fas fa-question-circle"></i></button>' +
-                '<button onclick="openResourcesManager(' + v.id + ',\'' + safeTitle + '\')" style="flex:1;padding:6px;font-size:11px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:6px;cursor:pointer;" title="Files"><i class="fas fa-paperclip"></i></button>' +
-                '<button onclick="deleteVideo(' + v.id + ')" style="flex:1;padding:6px;font-size:11px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:6px;cursor:pointer;" title="Delete"><i class="fas fa-trash"></i></button>' +
-            '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">' +
+            reorderHtml +
+            '<button onclick="editVideo(' + v.id + ')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:5px;cursor:pointer;" title="Edit"><i class="fas fa-edit"></i></button>' +
+            '<button onclick="openQuizManager(' + v.id + ',\'' + safeTitle + '\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#c4b5fd;border-radius:5px;cursor:pointer;" title="Quiz"><i class="fas fa-question-circle"></i></button>' +
+            '<button onclick="openResourcesManager(' + v.id + ',\'' + safeTitle + '\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:5px;cursor:pointer;" title="Files"><i class="fas fa-paperclip"></i></button>' +
+            '<button onclick="deleteVideo(' + v.id + ')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:5px;cursor:pointer;" title="Delete"><i class="fas fa-trash"></i></button>' +
         '</div>' +
     '</div>';
 }
