@@ -6489,8 +6489,11 @@ async function moveVideoOrder(videoId, chapterId, direction) {
             body: JSON.stringify({ videoId, chapterId, direction })
         });
         if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.error || 'Failed to reorder video');
+            const errText = await res.text();
+            let errMsg;
+            try { errMsg = JSON.parse(errText).error || JSON.parse(errText).message; }
+            catch { errMsg = errText || `HTTP ${res.status}`; }
+            throw new Error(errMsg);
         }
         await loadVideosWithChapters();
     } catch (e) {
