@@ -5238,7 +5238,23 @@ function playYTVideo(id, url, title, duration) {
         loadComments(); // Load comments automatically
     }, 100);
 
-    video.play().catch(e => console.error('Play error:', e));
+    function tryPlayVideo() {
+        if (video.paused) {
+            video.play().catch(e => {
+                if (e.name === 'NotSupportedError' || e.name === 'NotAllowedError') {
+                    // Autoplay blocked or media not supported; user can use controls
+                    return;
+                }
+                console.error('Play error:', e);
+            });
+        }
+    }
+
+    if (video.readyState >= 3) {
+        tryPlayVideo();
+    } else {
+        video.addEventListener('canplay', tryPlayVideo, { once: true });
+    }
 
     if (videoProgressInterval) clearInterval(videoProgressInterval);
     videoProgressInterval = setInterval(() => {
