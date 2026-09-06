@@ -7674,6 +7674,32 @@ app.post('/api/videos', uploadVideo.fields([{ name: 'video', maxCount: 1 }, { na
     };
     videos.push(video);
     writeData('videos.json', videos);
+
+    // Auto-detect duration from the uploaded video file using ffprobe
+    if (finalVideoUrl) {
+        const filePath = path.join(__dirname, finalVideoUrl.replace(/^\//, ''));
+        if (fs.existsSync(filePath)) {
+            const { execFile } = require('child_process');
+            execFile('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', filePath], (err, stdout, stderr) => {
+                if (!err) {
+                    const durationSec = parseFloat(stdout.trim());
+                    if (!isNaN(durationSec) && durationSec > 0) {
+                        const durationMin = Math.round(durationSec / 60 * 100) / 100;
+                        const latestVideos = readData('videos.json') || [];
+                        const vIdx = latestVideos.findIndex(v => v.id === video.id);
+                        if (vIdx !== -1) {
+                            latestVideos[vIdx].duration = durationMin;
+                            writeData('videos.json', latestVideos);
+                            console.log(`Auto-detected duration for video ${video.id}: ${durationMin} min (${durationSec}s)`);
+                        }
+                    }
+                } else {
+                    console.error('ffprobe auto-detect error:', err.message);
+                }
+            });
+        }
+    }
+
     res.json({ success: true, video });
 });
 

@@ -6527,7 +6527,6 @@ function renderVideoCard(v, courseMap, chapterId, idx, total) {
             '<button onclick="openQuizManager(' + v.id + ',\'' + safeTitle + '\')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#c4b5fd;border-radius:4px;cursor:pointer;" title="Quiz"><i class="fas fa-question-circle"></i></button>' +
             '<button onclick="openResourcesManager(' + v.id + ',\'' + safeTitle + '\')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:4px;cursor:pointer;" title="Files"><i class="fas fa-paperclip"></i></button>' +
             '<button onclick="openVideoWatchers(' + v.id + ',\'' + safeTitle + '\')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:4px;cursor:pointer;" title="Watched Students"><i class="fas fa-users"></i></button>' +
-            (!v.duration ? '<button onclick="detectDuration(' + v.id + ')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(251,146,60,0.3);background:rgba(251,146,60,0.1);color:#fdba74;border-radius:4px;cursor:pointer;" title="Detect Duration"><i class="fas fa-stopwatch"></i></button>' : '') +
             '<button onclick="deleteVideo(' + v.id + ')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:4px;cursor:pointer;" title="Delete"><i class="fas fa-trash"></i></button>' +
         '</div>' +
     '</div>';
@@ -7098,23 +7097,6 @@ async function saveVideo() {
     } catch (e) {
         console.error('Error saving video:', e);
         showNotification('Error saving video!', 'error');
-    }
-}
-
-async function detectDuration(videoId) {
-    try {
-        showNotification('Detecting duration...', 'info');
-        const res = await fetch('/api/videos/' + videoId + '/detect-duration', { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-            showNotification('Duration detected: ' + data.durationFormatted, 'success');
-            loadVideosWithChapters();
-        } else {
-            showNotification(data.message || 'Failed to detect duration', 'error');
-        }
-    } catch (e) {
-        console.error('Error detecting duration:', e);
-        showNotification('Error detecting duration', 'error');
     }
 }
 
