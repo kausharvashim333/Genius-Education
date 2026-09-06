@@ -4891,18 +4891,20 @@ app.post('/api/videos/upload-chunk', videoChunkUpload.single('chunk'), (req, res
         }
         const videosDir = path.join(__dirname, 'uploads', 'videos');
         if (!fs.existsSync(videosDir)) fs.mkdirSync(videosDir, { recursive: true });
-        const finalName = Date.now() + '-' + fileName;
-        const tempPath = path.join(videosDir, finalName + '.uploading');
-        const finalPath = path.join(videosDir, finalName);
+
+        // Use a stable temp name based on fileName so all chunks append to the same file
+        const tempPath = path.join(videosDir, fileName + '.uploading');
 
         // First chunk: start fresh temp file
         if (chunkIndex === 0 && fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
         fs.appendFileSync(tempPath, req.file.buffer);
 
-        // Last chunk: finalize
+        // Last chunk: finalize — rename temp to final with timestamp prefix
         if (chunkIndex === totalChunks - 1) {
-            if (fs.existsSync(finalPath)) fs.unlinkSync(finalPath);
-            fs.renameSync(tempPath, finalPath);
+            const finalName = Date.now() + '-' + fileName;
+            const finalFullPath = path.join(videosDir, finalName);
+            if (fs.existsSync(finalFullPath)) fs.unlinkSync(finalFullPath);
+            fs.renameSync(tempPath, finalFullPath);
             return res.json({ success: true, completed: true, fileName: finalName });
         }
         res.json({ success: true, completed: false, chunkIndex });
@@ -8593,27 +8595,8 @@ app.get('/api/videos/student/:studentId', (req, res) => {
     const studentCourseId = studentCourse ? studentCourse.id : null;
     
     const isVideoAvailableForStudent = (video, studentId) => {
-        const now = Date.now();
-
-        if (video.availabilityStart) {
-            const startAt = new Date(video.availabilityStart).getTime();
-            if (!Number.isNaN(startAt) && now < startAt) return false;
-        }
-
-        if (video.availabilityEnd) {
-            const endAt = new Date(video.availabilityEnd).getTime();
-            if (!Number.isNaN(endAt) && now > endAt) return false;
-        }
-
-        const expiryDays = parseInt(video.expiryDays) || 0;
-        if (expiryDays > 0) {
-            const p = video.progress && video.progress[studentId] ? video.progress[studentId] : null;
-            if (p && p.firstWatchedAt) {
-                const expiresAt = new Date(p.firstWatchedAt).getTime() + (expiryDays * 24 * 60 * 60 * 1000);
-                if (!Number.isNaN(expiresAt) && now > expiresAt) return false;
-            }
-        }
-
+        // Per admin request: videos are always available to students unless explicitly blocked.
+        // Availability start/end and expiry days are ignored.
         return true;
     };
 
