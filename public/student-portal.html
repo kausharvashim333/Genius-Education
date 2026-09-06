@@ -996,7 +996,7 @@
 
                     <!-- Video Player -->
                     <div class="yt-player-wrap">
-                        <video id="videoPlayer" controls playsinline></video>
+                        <video id="videoPlayer" controls playsinline preload="auto"></video>
                         <div id="videoWatermark" class="video-watermark" style="display:none;"></div>
                         <div id="videoHotspotPopup" class="video-hotspot-popup"></div>
                     </div>
@@ -5151,13 +5151,16 @@ function playYTVideo(id, url, title, duration) {
     const hotspotPopup = document.getElementById('videoHotspotPopup');
     const descText = document.getElementById('ytDescText');
 
+    // Pause and clear existing source first
+    video.pause();
+    video.removeAttribute('src');
+    while (video.firstChild) video.removeChild(video.firstChild);
+
     video.src = url;
     infoTitle.textContent = title;
     hotspotPopup.classList.remove('show');
     currentVideoHotspots = [];
     triggeredHotspots = new Set();
-
-    while (video.firstChild) video.removeChild(video.firstChild);
 
     let selectedVideo = null;
     if (allVideosData) {
@@ -5238,6 +5241,26 @@ function playYTVideo(id, url, title, duration) {
         loadComments(); // Load comments automatically
     }, 100);
 
+    // Explicitly load the video after all attributes and child elements are set
+    video.load();
+
+    // Error handling for video loading
+    video.onerror = function() {
+        console.error('Video loading error:', video.error);
+        const err = video.error;
+        if (err) {
+            let msg = 'Unable to load video. ';
+            switch (err.code) {
+                case 1: msg += 'Loading was aborted.'; break;
+                case 2: msg += 'Network error occurred.'; break;
+                case 3: msg += 'Video decoding failed.'; break;
+                case 4: msg += 'Video source not supported or not found.'; break;
+                default: msg += 'Unknown error.'; break;
+            }
+            console.error('Video error details:', { code: err.code, message: err.message, src: video.src });
+        }
+    };
+
     function tryPlayVideo() {
         if (video.paused) {
             video.play().catch(e => {
@@ -5254,6 +5277,13 @@ function playYTVideo(id, url, title, duration) {
         tryPlayVideo();
     } else {
         video.addEventListener('canplay', tryPlayVideo, { once: true });
+        // Fallback: if canplay doesn't fire within 10s, try playing anyway
+        setTimeout(() => {
+            if (video.readyState < 3 && video.paused) {
+                console.warn('Video canplay event timeout, attempting play anyway');
+                tryPlayVideo();
+            }
+        }, 10000);
     }
 
     if (videoProgressInterval) clearInterval(videoProgressInterval);
