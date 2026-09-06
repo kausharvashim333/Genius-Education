@@ -8393,6 +8393,48 @@ app.get('/api/admin/video-analytics', (req, res) => {
     res.json({ success: true, analytics });
 });
 
+app.get('/api/admin/videos/:id/watchers', (req, res) => {
+    const videos = readData('videos.json') || [];
+    const students = readData('students.json') || [];
+    const video = videos.find(v => v.id == req.params.id);
+    if (!video) return res.status(404).json({ success: false, message: 'Video not found' });
+
+    const progress = video.progress || {};
+    const watchers = Object.entries(progress)
+        .filter(([sid, p]) => (p.currentTime || 0) > 0 || p.completed)
+        .map(([sid, p]) => {
+            const student = students.find(s => String(s.id) === String(sid));
+            return {
+                studentId: sid,
+                studentName: student ? student.name : 'Unknown',
+                studentEmail: student ? (student.email || student.phone || '') : '',
+                studentCourse: student ? (student.course || '') : '',
+                currentTime: p.currentTime || 0,
+                completed: !!p.completed,
+                firstWatchedAt: p.firstWatchedAt || null,
+                lastWatched: p.lastWatched || null
+            };
+        })
+        .sort((a, b) => {
+            if (a.completed !== b.completed) return b.completed - a.completed;
+            return (b.currentTime || 0) - (a.currentTime || 0);
+        });
+
+    const totalStudents = students.length;
+    const watchedCount = watchers.length;
+    const completedCount = watchers.filter(w => w.completed).length;
+
+    res.json({
+        success: true,
+        videoTitle: video.title,
+        videoDuration: video.duration || 0,
+        totalStudents,
+        watchedCount,
+        completedCount,
+        watchers
+    });
+});
+
 app.post('/api/admin/videos/:id/notify-availability', async (req, res) => {
     const videos = readData('videos.json') || [];
     const video = videos.find(v => v.id == req.params.id);

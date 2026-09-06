@@ -6526,9 +6526,86 @@ function renderVideoCard(v, courseMap, chapterId, idx, total) {
             '<button onclick="editVideo(' + v.id + ')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(102,126,234,0.3);background:rgba(102,126,234,0.1);color:#a5b4fc;border-radius:4px;cursor:pointer;" title="Edit"><i class="fas fa-edit"></i></button>' +
             '<button onclick="openQuizManager(' + v.id + ',\'' + safeTitle + '\')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#c4b5fd;border-radius:4px;cursor:pointer;" title="Quiz"><i class="fas fa-question-circle"></i></button>' +
             '<button onclick="openResourcesManager(' + v.id + ',\'' + safeTitle + '\')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:4px;cursor:pointer;" title="Files"><i class="fas fa-paperclip"></i></button>' +
+            '<button onclick="openVideoWatchers(' + v.id + ',\'' + safeTitle + '\')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:4px;cursor:pointer;" title="Watched Students"><i class="fas fa-users"></i></button>' +
             '<button onclick="deleteVideo(' + v.id + ')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:4px;cursor:pointer;" title="Delete"><i class="fas fa-trash"></i></button>' +
         '</div>' +
     '</div>';
+}
+
+// ===== Video Watchers (which students watched) =====
+async function openVideoWatchers(videoId, videoTitle) {
+    let modal = document.getElementById('videoWatchersModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'videoWatchersModal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+        modal.innerHTML = `
+            <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:12px;width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <div>
+                        <h3 style="margin:0;font-size:16px;color:#f1f5f9;display:flex;align-items:center;gap:8px;"><i class="fas fa-users" style="color:#fcd34d;"></i> <span id="vwTitle">Watched Students</span></h3>
+                        <div id="vwStats" style="font-size:11px;color:#94a3b8;margin-top:4px;"></div>
+                    </div>
+                    <button onclick="document.getElementById('videoWatchersModal').remove()" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:rgba(245,87,108,0.15);border:1px solid rgba(245,87,108,0.3);color:#fca5a5;border-radius:6px;cursor:pointer;font-size:14px;"><i class="fas fa-times"></i></button>
+                </div>
+                <div id="vwBody" style="flex:1;overflow-y:auto;padding:16px 20px;"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    }
+
+    document.getElementById('vwTitle').textContent = videoTitle;
+    const body = document.getElementById('vwBody');
+    const stats = document.getElementById('vwStats');
+    body.innerHTML = '<div style="text-align:center;padding:40px 0;color:#94a3b8;"><i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:12px;"></i><br>Loading...</div>';
+    stats.textContent = '';
+
+    try {
+        const res = await fetch('/api/admin/videos/' + videoId + '/watchers');
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Failed to load');
+
+        const pct = data.totalStudents > 0 ? Math.round((data.watchedCount / data.totalStudents) * 100) : 0;
+        stats.innerHTML = '<span style="color:#fcd34d;">' + data.watchedCount + '</span> of <span style="color:#e2e8f0;">' + data.totalStudents + '</span> students watched (' + pct + '%) &bull; <span style="color:#6ee7b7;">' + data.completedCount + '</span> completed';
+
+        if (data.watchers.length === 0) {
+            body.innerHTML = '<div style="text-align:center;padding:40px 0;color:#64748b;"><i class="fas fa-user-slash" style="font-size:32px;margin-bottom:12px;opacity:0.5;"></i><br>No students have watched this video yet.</div>';
+            return;
+        }
+
+        let html = '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
+            '<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1);">' +
+                '<th style="text-align:left;padding:8px 6px;color:#94a3b8;font-weight:600;">#</th>' +
+                '<th style="text-align:left;padding:8px 6px;color:#94a3b8;font-weight:600;">Student</th>' +
+                '<th style="text-align:left;padding:8px 6px;color:#94a3b8;font-weight:600;">Course</th>' +
+                '<th style="text-align:center;padding:8px 6px;color:#94a3b8;font-weight:600;">Progress</th>' +
+                '<th style="text-align:center;padding:8px 6px;color:#94a3b8;font-weight:600;">Status</th>' +
+                '<th style="text-align:left;padding:8px 6px;color:#94a3b8;font-weight:600;">Last Watched</th>' +
+            '</tr></thead><tbody>';
+
+        data.watchers.forEach((w, i) => {
+            const mins = Math.floor((w.currentTime || 0) / 60);
+            const secs = Math.round((w.currentTime || 0) % 60);
+            const timeStr = mins > 0 ? mins + 'm ' + secs + 's' : secs + 's';
+            const statusBadge = w.completed
+                ? '<span style="background:rgba(16,185,129,0.15);color:#6ee7b7;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;">Completed</span>'
+                : '<span style="background:rgba(251,191,36,0.15);color:#fcd34d;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;">In Progress</span>';
+            const lastWatched = w.lastWatched ? new Date(w.lastWatched).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+            html += '<tr style="border-bottom:1px solid rgba(255,255,255,0.04);" onmouseover="this.style.background=\'rgba(255,255,255,0.03)\';" onmouseout="this.style.background=\'\';">' +
+                '<td style="padding:8px 6px;color:#64748b;">' + (i + 1) + '</td>' +
+                '<td style="padding:8px 6px;"><div style="color:#e2e8f0;font-weight:600;">' + (w.studentName || 'Unknown') + '</div><div style="font-size:10px;color:#64748b;">' + (w.studentEmail || '') + '</div></td>' +
+                '<td style="padding:8px 6px;color:#94a3b8;font-size:11px;">' + (w.studentCourse || '-') + '</td>' +
+                '<td style="padding:8px 6px;text-align:center;color:#cbd5e1;">' + timeStr + '</td>' +
+                '<td style="padding:8px 6px;text-align:center;">' + statusBadge + '</td>' +
+                '<td style="padding:8px 6px;color:#94a3b8;font-size:11px;">' + lastWatched + '</td>' +
+            '</tr>';
+        });
+        html += '</tbody></table>';
+        body.innerHTML = html;
+    } catch (e) {
+        body.innerHTML = '<div style="text-align:center;padding:30px;color:#fca5a5;"><i class="fas fa-exclamation-circle" style="font-size:24px;margin-bottom:10px;"></i><br>Failed to load: ' + e.message + '</div>';
+    }
 }
 
 // Wrapper for backward compatibility
