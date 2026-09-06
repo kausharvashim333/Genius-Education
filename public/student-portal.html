@@ -511,6 +511,10 @@
         .yt-chapter-header:hover { border-bottom-color: #444; }
         .yt-chapter-title { font-size: 18px; font-weight: 600; color: #f1f1f1; display: flex; align-items: center; gap: 10px; }
         .yt-chapter-count { font-size: 13px; color: #aaa; font-weight: 400; }
+        .yt-chapter-duration { font-size: 12px; color: #aaa; font-weight: 400; display: flex; align-items: center; gap: 4px; }
+        .yt-chapter-progress { font-size: 12px; color: #3ea6ff; font-weight: 500; }
+        .yt-chapter-progress-bar { width: 80px; height: 4px; background: #333; border-radius: 2px; overflow: hidden; }
+        .yt-chapter-progress-fill { height: 100%; background: #3ea6ff; border-radius: 2px; transition: width .3s; }
         .yt-chapter-chevron { color: #aaa; font-size: 14px; transition: transform .3s; }
         .yt-chapter-open .yt-chapter-chevron { transform: rotate(180deg); }
         .yt-chapter-body { display: none; margin-bottom: 24px; }
@@ -4902,14 +4906,20 @@ async function loadStudentVideos() {
 
         filteredChapters.forEach((ch, idx) => {
             const isOpen = idx === 0 ? 'yt-chapter-open' : '';
+            const chInfo = getChapterStats(ch.videos);
             html += `
                 <div class="yt-chapter-section ${isOpen}">
                     <div class="yt-chapter-header" onclick="this.parentElement.classList.toggle('yt-chapter-open')">
                         <div class="yt-chapter-title">
                             ${esc(ch.name)}
                             <span class="yt-chapter-count">${ch.videos.length} videos</span>
+                            <span class="yt-chapter-duration"><i class="fas fa-clock" style="font-size:10px;"></i> ${chInfo.totalFmt}</span>
+                            ${chInfo.watchedSeconds > 0 ? `<span class="yt-chapter-progress">${chInfo.watchedFmt} watched</span>` : ''}
                         </div>
-                        <i class="fas fa-chevron-down yt-chapter-chevron"></i>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            ${chInfo.totalSeconds > 0 && chInfo.watchedSeconds > 0 ? `<div class="yt-chapter-progress-bar"><div class="yt-chapter-progress-fill" style="width:${chInfo.pct}%"></div></div>` : ''}
+                            <i class="fas fa-chevron-down yt-chapter-chevron"></i>
+                        </div>
                     </div>
                     <div class="yt-chapter-body">
                         <div class="yt-grid">
@@ -4921,14 +4931,20 @@ async function loadStudentVideos() {
         });
 
         if (filteredUngrouped.length > 0) {
+            const chInfo = getChapterStats(filteredUngrouped);
             html += `
                 <div class="yt-chapter-section yt-chapter-open">
                     <div class="yt-chapter-header" onclick="this.parentElement.classList.toggle('yt-chapter-open')">
                         <div class="yt-chapter-title">
                             Other Videos
                             <span class="yt-chapter-count">${filteredUngrouped.length} videos</span>
+                            <span class="yt-chapter-duration"><i class="fas fa-clock" style="font-size:10px;"></i> ${chInfo.totalFmt}</span>
+                            ${chInfo.watchedSeconds > 0 ? `<span class="yt-chapter-progress">${chInfo.watchedFmt} watched</span>` : ''}
                         </div>
-                        <i class="fas fa-chevron-down yt-chapter-chevron"></i>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            ${chInfo.totalSeconds > 0 && chInfo.watchedSeconds > 0 ? `<div class="yt-chapter-progress-bar"><div class="yt-chapter-progress-fill" style="width:${chInfo.pct}%"></div></div>` : ''}
+                            <i class="fas fa-chevron-down yt-chapter-chevron"></i>
+                        </div>
                     </div>
                     <div class="yt-chapter-body">
                         <div class="yt-grid">
@@ -4997,6 +5013,35 @@ async function loadVideoStudySchedule(student) {
 function esc(str) {
     if (!str) return '';
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function formatDuration(seconds) {
+    if (!seconds || seconds <= 0) return '0:00';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (h > 0) return h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function getChapterStats(videos) {
+    let totalSeconds = 0;
+    let watchedSeconds = 0;
+    videos.forEach(v => {
+        const durSec = (v.duration || 0) * 60;
+        totalSeconds += durSec;
+        if (v.progress && v.progress.currentTime) {
+            watchedSeconds += Math.min(v.progress.currentTime, durSec);
+        }
+    });
+    const pct = totalSeconds > 0 ? Math.min(100, Math.round((watchedSeconds / totalSeconds) * 100)) : 0;
+    return {
+        totalSeconds,
+        watchedSeconds,
+        totalFmt: formatDuration(totalSeconds),
+        watchedFmt: formatDuration(watchedSeconds),
+        pct
+    };
 }
 
 function renderYTVideoCard(v, channelName) {

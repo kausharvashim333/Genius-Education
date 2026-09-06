@@ -6518,7 +6518,7 @@ function renderVideoCard(v, courseMap, chapterId, idx, total) {
             '<div style="font-size:12px;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + v.title + '</div>' +
             '<div style="font-size:10px;color:#94a3b8;display:flex;align-items:center;gap:6px;margin-top:1px;">' +
                 '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (courseNames.length > 0 ? courseNames.join(', ') : 'N/A') + '</span>' +
-                (v.duration ? '<span style="display:flex;align-items:center;gap:2px;"><i class="fas fa-clock" style="font-size:7px;"></i>' + v.duration + 'm</span>' : '') +
+                (v.duration ? '<span style="display:flex;align-items:center;gap:2px;"><i class="fas fa-clock" style="font-size:7px;"></i>' + v.duration + 'm</span>' : '<span style="color:#f59e0b;display:flex;align-items:center;gap:2px;"><i class="fas fa-clock" style="font-size:7px;"></i>No duration</span>') +
                 '<span style="display:flex;align-items:center;gap:2px;"><i class="fas fa-eye" style="font-size:7px;"></i>' + (v.views || 0) + '</span>' +
             '</div>' +
         '</div>' +
@@ -6527,6 +6527,7 @@ function renderVideoCard(v, courseMap, chapterId, idx, total) {
             '<button onclick="openQuizManager(' + v.id + ',\'' + safeTitle + '\')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#c4b5fd;border-radius:4px;cursor:pointer;" title="Quiz"><i class="fas fa-question-circle"></i></button>' +
             '<button onclick="openResourcesManager(' + v.id + ',\'' + safeTitle + '\')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.1);color:#6ee7b7;border-radius:4px;cursor:pointer;" title="Files"><i class="fas fa-paperclip"></i></button>' +
             '<button onclick="openVideoWatchers(' + v.id + ',\'' + safeTitle + '\')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:#fcd34d;border-radius:4px;cursor:pointer;" title="Watched Students"><i class="fas fa-users"></i></button>' +
+            (!v.duration ? '<button onclick="detectDuration(' + v.id + ')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(251,146,60,0.3);background:rgba(251,146,60,0.1);color:#fdba74;border-radius:4px;cursor:pointer;" title="Detect Duration"><i class="fas fa-stopwatch"></i></button>' : '') +
             '<button onclick="deleteVideo(' + v.id + ')" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:9px;border:1px solid rgba(245,87,108,0.3);background:rgba(245,87,108,0.1);color:#fca5a5;border-radius:4px;cursor:pointer;" title="Delete"><i class="fas fa-trash"></i></button>' +
         '</div>' +
     '</div>';
@@ -6856,6 +6857,24 @@ async function uploadVideoFile(file) {
             previewPlayer.src = URL.createObjectURL(file);
             previewContainer.style.display = 'block';
         }
+        // Auto-detect video duration from file metadata
+        const durationInput = document.getElementById('videoDuration');
+        if (durationInput && !durationInput.value) {
+            const tempVideo = document.createElement('video');
+            tempVideo.preload = 'metadata';
+            tempVideo.src = URL.createObjectURL(file);
+            tempVideo.onloadedmetadata = function() {
+                const durationMin = Math.round(tempVideo.duration / 60 * 100) / 100;
+                if (durationMin > 0) {
+                    durationInput.value = durationMin;
+                    showNotification('Duration auto-detected: ' + durationMin + ' minutes', 'info');
+                }
+                URL.revokeObjectURL(tempVideo.src);
+            };
+            tempVideo.onerror = function() {
+                URL.revokeObjectURL(tempVideo.src);
+            };
+        }
         showNotification('Video uploaded successfully!', 'success');
     } catch (e) {
         console.error('Video chunk upload error:', e);
@@ -7060,12 +7079,42 @@ async function saveVideo() {
             closeModal('videoModal');
             loadVideosWithChapters();
             showNotification(videoId ? 'Video updated!' : 'Video added!', 'success');
+            // Auto-detect duration if not set
+            const savedId = data.video ? data.video.id : videoId;
+            const savedDur = data.video ? data.video.duration : 0;
+            if (savedId && (!savedDur || savedDur === 0)) {
+                try {
+                    const dr = await fetch('/api/videos/' + savedId + '/detect-duration', { method: 'POST' });
+                    const dd = await dr.json();
+                    if (dd.success) {
+                        showNotification('Duration auto-detected: ' + dd.durationFormatted, 'info');
+                        loadVideosWithChapters();
+                    }
+                } catch (e) { /* non-critical */ }
+            }
         } else {
             showNotification((data && data.message) || 'Error saving video!', 'error');
         }
     } catch (e) {
         console.error('Error saving video:', e);
         showNotification('Error saving video!', 'error');
+    }
+}
+
+async function detectDuration(videoId) {
+    try {
+        showNotification('Detecting duration...', 'info');
+        const res = await fetch('/api/videos/' + videoId + '/detect-duration', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Duration detected: ' + data.durationFormatted, 'success');
+            loadVideosWithChapters();
+        } else {
+            showNotification(data.message || 'Failed to detect duration', 'error');
+        }
+    } catch (e) {
+        console.error('Error detecting duration:', e);
+        showNotification('Error detecting duration', 'error');
     }
 }
 

@@ -523,6 +523,14 @@ function writeData(file, data) {
     fs.renameSync(tempPath, filePath);
 }
 
+function formatDurationFromSeconds(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (h > 0) return h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
 // ===================== EMAIL TEMPLATE SYSTEM =====================
 // Editable email templates. Defaults live here; admin overrides are stored in data/email-templates.json.
 // Templates use {{placeholder}} syntax which is replaced at send time.
@@ -7667,6 +7675,34 @@ app.post('/api/videos', uploadVideo.fields([{ name: 'video', maxCount: 1 }, { na
     videos.push(video);
     writeData('videos.json', videos);
     res.json({ success: true, video });
+});
+
+// Auto-detect and update video duration from file using ffprobe
+app.post('/api/videos/:id/detect-duration', (req, res) => {
+    const videos = readData('videos.json') || [];
+    const video = videos.find(v => v.id == req.params.id);
+    if (!video) return res.status(404).json({ success: false, message: 'Video not found' });
+    if (!video.videoUrl) return res.status(400).json({ success: false, message: 'No video file' });
+
+    const filePath = path.join(__dirname, video.videoUrl.replace(/^\//, ''));
+    if (!fs.existsSync(filePath)) return res.status(404).json({ success: false, message: 'Video file not found on disk' });
+
+    const { execFile } = require('child_process');
+    execFile('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', filePath], (err, stdout, stderr) => {
+        if (err) {
+            console.error('ffprobe error:', err.message);
+            return res.status(500).json({ success: false, message: 'Could not detect duration: ' + err.message });
+        }
+        const durationSec = parseFloat(stdout.trim());
+        if (isNaN(durationSec) || durationSec <= 0) {
+            return res.status(500).json({ success: false, message: 'Invalid duration detected' });
+        }
+        const durationMin = Math.round(durationSec / 60 * 100) / 100;
+        const idx = videos.findIndex(v => v.id == req.params.id);
+        videos[idx].duration = durationMin;
+        writeData('videos.json', videos);
+        res.json({ success: true, duration: durationMin, durationFormatted: formatDurationFromSeconds(durationSec) });
+    });
 });
 
 // Reorder videos within a chapter (must be before /:id route)
