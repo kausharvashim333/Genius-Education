@@ -8074,24 +8074,10 @@ app.delete('/api/videos/resources/:resourceId', (req, res) => {
 // All documents attached to a student's course videos, grouped chapter-wise.
 // Powers the "Study Material" section in the student portal.
 app.get('/api/video-resources/student/:studentId', (req, res) => {
-    const students = readData('students.json') || [];
-    const student = students.find(s => s.id == req.params.studentId);
-    if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
+    const data = getStudentChapterVideos(req.params.studentId);
+    if (!data) return res.status(404).json({ success: false, message: 'Student not found' });
 
-    const courses = readData('courses.json') || [];
-    const videos = readData('videos.json') || [];
-    const chapters = readData('chapters.json') || [];
     const resources = readData('video-resources.json') || [];
-
-    const studentCourse = courses.find(c => c.name == student.course);
-    if (!studentCourse) return res.json({ success: true, chapters: [] });
-    const studentCourseId = String(studentCourse.id);
-
-    const courseVideos = videos.filter(v => {
-        const ids = (v.courseIds && Array.isArray(v.courseIds)) ? v.courseIds.map(String) : [String(v.courseId)];
-        return ids.includes(studentCourseId);
-    });
-
     const resourcesByVideo = {};
     resources.forEach(r => {
         const key = String(r.videoId);
@@ -8099,38 +8085,32 @@ app.get('/api/video-resources/student/:studentId', (req, res) => {
         resourcesByVideo[key].push(r);
     });
 
-    // Chapters are duplicated per course, so group by name to keep siblings together
-    const chapterOf = video => chapters.find(c => String(c.id) === String(video.chapterId)) || null;
-
-    const groups = new Map();
-    courseVideos.forEach(v => {
-        const docs = resourcesByVideo[String(v.id)];
-        if (!docs || !docs.length) return;
-
-        const chapter = chapterOf(v);
-        const name = chapter ? chapter.name : 'General';
-        const order = chapter && chapter.order != null ? Number(chapter.order) : Number.MAX_SAFE_INTEGER;
-
-        if (!groups.has(name)) groups.set(name, { name, order, videos: [] });
-        const group = groups.get(name);
-        group.order = Math.min(group.order, order);
-        group.videos.push({
+    // Walk the chapters and videos in the exact catalog sequence, keeping only the
+    // ones that actually carry documents. Reordering a video therefore moves its
+    // documents too, with no separate sorting rules to drift out of sync.
+    const docsOf = videos => videos
+        .map(v => ({
             id: v.id,
             title: v.title,
-            order: v.order != null ? Number(v.order) : Number.MAX_SAFE_INTEGER,
-            resources: docs
+            resources: (resourcesByVideo[String(v.id)] || [])
                 .slice()
                 .sort((a, b) => String(a.uploadedAt || '').localeCompare(String(b.uploadedAt || '')))
-        });
+        }))
+        .filter(v => v.resources.length > 0);
+
+    const toGroup = (name, videos) => ({
+        name,
+        videos,
+        totalDocs: videos.reduce((sum, v) => sum + v.resources.length, 0)
     });
 
-    const grouped = Array.from(groups.values())
-        .sort((a, b) => (a.order - b.order) || a.name.localeCompare(b.name))
-        .map(g => ({
-            name: g.name,
-            videos: g.videos.sort((a, b) => (a.order - b.order) || String(a.title || '').localeCompare(String(b.title || ''))),
-            totalDocs: g.videos.reduce((sum, v) => sum + v.resources.length, 0)
-        }));
+    const grouped = data.chapters
+        .map(ch => toGroup(ch.name, docsOf(ch.videos)))
+        .filter(ch => ch.videos.length > 0);
+
+    // Videos with no chapter sit last, same as the catalog's ungrouped bucket
+    const generalVideos = docsOf(data.ungrouped);
+    if (generalVideos.length) grouped.push(toGroup('General', generalVideos));
 
     res.json({ success: true, chapters: grouped });
 });
@@ -8718,68 +8698,76 @@ app.get('/api/students/:studentId/video-study-schedule', (req, res) => {
 // End of Batch 2 APIs
 // =========================================
 
-// Student video endpoint with chapter grouping (read-only; no hard session gate
-// so stale tokens don't block the catalog view — progress/write endpoints remain guarded)
-app.get('/api/videos/student/:studentId', (req, res) => {
+// Canonical chapter/video sequence for a student's course.
+// Both the video catalog and the study-material list are built from this, so the
+// two always appear in the same series — including after an admin reorders videos.
+function getStudentChapterVideos(studentId) {
     const students = readData('students.json') || [];
-    const student = students.find(s => s.id == req.params.studentId);
-    if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
+    const student = students.find(s => s.id == studentId);
+    if (!student) return null;
 
     const videos = readData('videos.json') || [];
     const chapters = readData('chapters.json') || [];
     const courses = readData('courses.json') || [];
-    
+
     // Find course by name to get ID for matching
     const studentCourse = courses.find(c => c.name == student.course);
     const studentCourseId = studentCourse ? studentCourse.id : null;
-    
-    const isVideoAvailableForStudent = (video, studentId) => {
-        // Per admin request: videos are always available to students unless explicitly blocked.
-        // Availability start/end and expiry days are ignored.
-        return true;
+    if (!studentCourseId) return { student, chapters: [], ungrouped: [] };
+
+    // Filter videos by courseIds array (or backward compat courseId).
+    // Availability start/end and expiry days are ignored per admin request:
+    // videos stay available unless the student is explicitly blocked.
+    const courseVideos = videos.filter(v => (v.courseIds && Array.isArray(v.courseIds))
+        ? v.courseIds.includes(String(studentCourseId))
+        : v.courseId == studentCourseId);
+
+    // Same comparator as GET /api/videos (the admin listing), so the sequence an
+    // admin arranges is exactly what students get: explicit order first, then id.
+    const bySequence = (a, b) => ((a.order ?? 999999) - (b.order ?? 999999)) || ((a.id || 0) - (b.id || 0));
+
+    const courseChapters = chapters
+        .filter(c => c.courseId == studentCourseId)
+        .sort((a, b) => a.order - b.order);
+
+    // Match by exact chapterId OR a sibling chapter (same name) whose courseId is in the video's courseIds
+    const belongsTo = (v, ch) => {
+        if (v.chapterId == ch.id) return true;
+        if (!v.chapterId) return false;
+        const origChapter = chapters.find(c => c.id == v.chapterId);
+        if (!origChapter || origChapter.name !== ch.name) return false;
+        const vCourseIds = (v.courseIds && Array.isArray(v.courseIds)) ? v.courseIds.map(String) : [String(v.courseId)];
+        return vCourseIds.includes(String(studentCourseId));
     };
 
-    // Filter videos by courseIds array (or backward compat courseId) + scheduling/expiry conditions
-    const courseVideos = studentCourseId
-        ? videos.filter(v => {
-            const matchesCourse = (v.courseIds && Array.isArray(v.courseIds))
-                ? v.courseIds.includes(String(studentCourseId))
-                : v.courseId == studentCourseId;
-            return matchesCourse && isVideoAvailableForStudent(v, req.params.studentId);
-        })
-        : [];
-    const courseChapters = studentCourseId ? chapters.filter(c => c.courseId == studentCourseId).sort((a, b) => a.order - b.order) : [];
-
-    // Group videos by chapter — match by exact chapterId OR sibling chapter (same name) whose courseId is in video's courseIds
     const grouped = courseChapters.map(ch => ({
         id: ch.id,
         name: ch.name,
         order: ch.order,
-        videos: courseVideos.filter(v => {
-            if (v.chapterId == ch.id) return true;
-            // Check if video's chapterId points to a sibling chapter with the same name
-            if (v.chapterId) {
-                const origChapter = chapters.find(c => c.id == v.chapterId);
-                if (origChapter && origChapter.name === ch.name) {
-                    // Verify the video's courseIds includes this student's course
-                    const vCourseIds = (v.courseIds && Array.isArray(v.courseIds)) ? v.courseIds.map(String) : [String(v.courseId)];
-                    return vCourseIds.includes(String(studentCourseId));
-                }
-            }
-            return false;
-        }).map(v => ({
-            ...v,
-            progress: v.progress && v.progress[req.params.studentId] ? v.progress[req.params.studentId] : { currentTime: 0, completed: false }
-        }))
+        videos: courseVideos.filter(v => belongsTo(v, ch)).sort(bySequence)
     })).filter(ch => ch.videos.length > 0);
 
-    // Ungrouped videos
-    const ungrouped = courseVideos.filter(v => !v.chapterId).map(v => ({
+    const ungrouped = courseVideos.filter(v => !v.chapterId).sort(bySequence);
+
+    return { student, chapters: grouped, ungrouped };
+}
+
+// Student video endpoint with chapter grouping (read-only; no hard session gate
+// so stale tokens don't block the catalog view — progress/write endpoints remain guarded)
+app.get('/api/videos/student/:studentId', (req, res) => {
+    const data = getStudentChapterVideos(req.params.studentId);
+    if (!data) return res.status(404).json({ success: false, message: 'Student not found' });
+
+    const withProgress = v => ({
         ...v,
         progress: v.progress && v.progress[req.params.studentId] ? v.progress[req.params.studentId] : { currentTime: 0, completed: false }
-    }));
+    });
 
-    res.json({ success: true, chapters: grouped, ungrouped });
+    res.json({
+        success: true,
+        chapters: data.chapters.map(ch => ({ ...ch, videos: ch.videos.map(withProgress) })),
+        ungrouped: data.ungrouped.map(withProgress)
+    });
 });
 
 // --- Assignments (Assignment Management) ---
