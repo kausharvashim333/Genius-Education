@@ -378,11 +378,36 @@
         .vdoc-item-info strong { display: block; font-size: 12.5px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .vdoc-item-info small { font-size: 10.5px; color: rgba(255,255,255,0.5); }
         .vdoc-item-info p { margin: 3px 0 0; font-size: 11px; color: rgba(255,255,255,0.6); display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .vdoc-item-btn { width: 30px; height: 30px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 11.5px; text-decoration: none; background: rgba(37,99,235,0.28); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; transition: background 0.18s; }
-        .vdoc-item-btn:hover { background: rgba(37,99,235,0.45); color: #fff; }
+        .vdoc-item-btns { display: flex; gap: 5px; flex-shrink: 0; }
+        .vdoc-item-btn { width: 30px; height: 30px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 11.5px; text-decoration: none; cursor: pointer; transition: background 0.18s; }
+        .vdoc-item-btn-view { background: rgba(16,185,129,0.28); border: 1px solid rgba(16,185,129,0.4); color: #6ee7b7; }
+        .vdoc-item-btn-view:hover { background: rgba(16,185,129,0.45); color: #fff; }
+        .vdoc-item-btn-download { background: rgba(37,99,235,0.28); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; }
+        .vdoc-item-btn-download:hover { background: rgba(37,99,235,0.45); color: #fff; }
         @media (max-width: 560px) {
             .vdoc-list { grid-template-columns: 1fr; }
         }
+
+        /* Document Preview Modal */
+        .doc-preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .doc-preview-overlay.active { display: flex; }
+        .doc-preview-modal { background: #1e293b; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,0.6); }
+        .doc-preview-header { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .doc-preview-header .dp-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .doc-preview-header .dp-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .doc-preview-header .dp-btn { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 13px; cursor: pointer; transition: background 0.18s; text-decoration: none; }
+        .doc-preview-header .dp-btn-download { background: rgba(37,99,235,0.25); border: 1px solid rgba(59,130,246,0.35); color: #93c5fd; }
+        .doc-preview-header .dp-btn-download:hover { background: rgba(37,99,235,0.45); color: #fff; }
+        .doc-preview-header .dp-btn-close { background: rgba(245,87,108,0.15); border: 1px solid rgba(245,87,108,0.3); color: #fca5a5; }
+        .doc-preview-header .dp-btn-close:hover { background: rgba(245,87,108,0.35); color: #fff; }
+        .doc-preview-body { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.25); min-height: 200px; }
+        .doc-preview-body iframe { width: 100%; height: 100%; min-height: 400px; border: none; }
+        .doc-preview-body img { max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px; }
+        .doc-preview-unsupported { text-align: center; padding: 50px 20px; color: rgba(255,255,255,0.6); }
+        .doc-preview-unsupported i { font-size: 48px; margin-bottom: 16px; display: block; color: rgba(255,255,255,0.3); }
+        .doc-preview-unsupported p { font-size: 14px; margin-bottom: 20px; }
+        .doc-preview-unsupported a { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; background: rgba(37,99,235,0.3); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; transition: background 0.18s; }
+        .doc-preview-unsupported a:hover { background: rgba(37,99,235,0.5); color: #fff; }
         
         /* Exam Results */
         .result-item { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 16px; border-radius: 8px; margin-bottom: 10px; }
@@ -2340,7 +2365,10 @@ function renderVideoDocChapters(chapters) {
                                                 <small>${t.label} &middot; ${formatVdocSize(r.fileSize)}</small>
                                                 ${r.description ? `<p>${escVdoc(r.description)}</p>` : ''}
                                             </div>
-                                            <a class="vdoc-item-btn" href="${escVdoc(r.fileUrl)}" target="_blank" rel="noopener" download title="Download"><i class="fas fa-download"></i></a>
+                                            <div class="vdoc-item-btns">
+                                                <button class="vdoc-item-btn vdoc-item-btn-view" onclick="previewDocument('${escVdoc(r.fileUrl)}','${escVdoc(r.title)}','${escVdoc(r.fileName)}')" title="View"><i class="fas fa-eye"></i></button>
+                                                <a class="vdoc-item-btn vdoc-item-btn-download" href="${escVdoc(r.fileUrl)}" target="_blank" rel="noopener" download title="Download"><i class="fas fa-download"></i></a>
+                                            </div>
                                         </div>`;
                                     }).join('')}
                                 </div>
@@ -2351,6 +2379,63 @@ function renderVideoDocChapters(chapters) {
             `).join('')}
         </div>
     `;
+}
+
+function previewDocument(fileUrl, title, fileName) {
+    let overlay = document.getElementById('docPreviewOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'docPreviewOverlay';
+        overlay.className = 'doc-preview-overlay';
+        overlay.innerHTML = `
+            <div class="doc-preview-modal">
+                <div class="doc-preview-header">
+                    <div class="dp-title" id="docPreviewTitle"></div>
+                    <div class="dp-actions">
+                        <a id="docPreviewDownload" class="dp-btn dp-btn-download" target="_blank" rel="noopener" download title="Download"><i class="fas fa-download"></i></a>
+                        <button class="dp-btn dp-btn-close" onclick="closeDocPreview()" title="Close"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                <div class="doc-preview-body" id="docPreviewBody"></div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeDocPreview(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDocPreview(); });
+    }
+
+    document.getElementById('docPreviewTitle').textContent = title || fileName || 'Document';
+    document.getElementById('docPreviewDownload').href = fileUrl;
+
+    const ext = String(fileName || fileUrl || '').split('.').pop().toLowerCase();
+    const body = document.getElementById('docPreviewBody');
+
+    if (ext === 'pdf') {
+        body.innerHTML = `<iframe src="${fileUrl}" title="${escVdoc(title)}"></iframe>`;
+    } else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext)) {
+        body.innerHTML = `<img src="${fileUrl}" alt="${escVdoc(title)}" />`;
+    } else if (['txt'].includes(ext)) {
+        body.innerHTML = `<iframe src="${fileUrl}" title="${escVdoc(title)}"></iframe>`;
+    } else {
+        body.innerHTML = `
+            <div class="doc-preview-unsupported">
+                <i class="fas fa-file"></i>
+                <p>This file type (${ext.toUpperCase()}) can't be previewed in the browser.<br>Download it to view on your device.</p>
+                <a href="${fileUrl}" target="_blank" rel="noopener" download><i class="fas fa-download"></i> Download File</a>
+            </div>
+        `;
+    }
+
+    overlay.classList.add('active');
+}
+
+function closeDocPreview() {
+    const overlay = document.getElementById('docPreviewOverlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+        const body = document.getElementById('docPreviewBody');
+        if (body) body.innerHTML = '';
+    }
 }
 
 function renderStudyMaterials(materials, chapters) {
