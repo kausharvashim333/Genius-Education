@@ -8085,9 +8085,9 @@ app.get('/api/video-resources/student/:studentId', (req, res) => {
         resourcesByVideo[key].push(r);
     });
 
-    // Walk the chapters and videos in the exact catalog sequence, keeping only the
-    // ones that actually carry documents. Reordering a video therefore moves its
-    // documents too, with no separate sorting rules to drift out of sync.
+    // Walk the chapters and videos in the exact catalog sequence.
+    // ALL videos are included (even with zero documents) so the study-material
+    // tab mirrors the video tab's sequence exactly — no gaps, no reordering.
     const docsOf = videos => videos
         .map(v => ({
             id: v.id,
@@ -8095,8 +8095,7 @@ app.get('/api/video-resources/student/:studentId', (req, res) => {
             resources: (resourcesByVideo[String(v.id)] || [])
                 .slice()
                 .sort((a, b) => String(a.uploadedAt || '').localeCompare(String(b.uploadedAt || '')))
-        }))
-        .filter(v => v.resources.length > 0);
+        }));
 
     const toGroup = (name, videos) => ({
         name,
@@ -8105,12 +8104,10 @@ app.get('/api/video-resources/student/:studentId', (req, res) => {
     });
 
     const grouped = data.chapters
-        .map(ch => toGroup(ch.name, docsOf(ch.videos)))
-        .filter(ch => ch.videos.length > 0);
+        .map(ch => toGroup(ch.name, docsOf(ch.videos)));
 
-    // Videos with no chapter sit last, same as the catalog's ungrouped bucket
-    const generalVideos = docsOf(data.ungrouped);
-    if (generalVideos.length) grouped.push(toGroup('General', generalVideos));
+    // Videos with no chapter sit last, same as the video tab's ungrouped bucket
+    if (data.ungrouped.length) grouped.push(toGroup('Other Videos', docsOf(data.ungrouped)));
 
     res.json({ success: true, chapters: grouped });
 });
