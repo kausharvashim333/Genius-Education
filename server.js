@@ -8013,11 +8013,12 @@ const uploadResource = multer({
     }),
     limits: { fileSize: 50 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-        const types = /pdf|doc|docx|ppt|pptx|xls|xlsx|jpg|jpeg|png|zip|rar/;
-        const ext = types.test(path.extname(file.originalname).toLowerCase());
-        const mime = types.test(file.mimetype) || file.mimetype === 'application/pdf' || file.mimetype === 'application/msword' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'application/vnd.ms-powerpoint' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' || file.mimetype === 'application/vnd.ms-excel' || file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.mimetype === 'application/zip' || file.mimetype === 'application/x-rar-compressed';
-        if (ext && mime) cb(null, true);
-        else cb(new Error('Only documents, images, and archives allowed!'));
+        // Extension is the authority here: browsers report inconsistent mime types
+        // (a .docx often arrives as application/octet-stream), which caused valid
+        // documents to be rejected.
+        const allowed = /\.(pdf|docx?|pptx?|xlsx?|jpe?g|png|zip|rar|txt)$/i;
+        if (allowed.test(file.originalname)) return cb(null, true);
+        cb(new Error('Only PDF, Word, Excel, PowerPoint, TXT, image and archive files are allowed'));
     }
 });
 
@@ -8027,7 +8028,19 @@ app.get('/api/videos/:id/resources', (req, res) => {
     res.json({ success: true, resources: list });
 });
 
-app.post('/api/videos/:id/resources', uploadResource.single('file'), (req, res) => {
+// Multer rejections (bad type / too large) must come back as JSON, otherwise the
+// admin panel gets an HTML error page and can only show a generic "Upload failed".
+const handleResourceUpload = (req, res, next) => {
+    uploadResource.single('file')(req, res, (err) => {
+        if (!err) return next();
+        const message = err.code === 'LIMIT_FILE_SIZE'
+            ? 'File is too large. Maximum size is 50 MB.'
+            : (err.message || 'Upload failed');
+        res.status(400).json({ success: false, message });
+    });
+};
+
+app.post('/api/videos/:id/resources', handleResourceUpload, (req, res) => {
     const resources = readData('video-resources.json') || [];
     const { title, description } = req.body;
     if (!req.file) return res.status(400).json({ success: false, message: 'File required' });
@@ -8056,6 +8069,70 @@ app.delete('/api/videos/resources/:resourceId', (req, res) => {
     const filtered = resources.filter(r => r.id != req.params.resourceId);
     writeData('video-resources.json', filtered);
     res.json({ success: true });
+});
+
+// All documents attached to a student's course videos, grouped chapter-wise.
+// Powers the "Study Material" section in the student portal.
+app.get('/api/video-resources/student/:studentId', (req, res) => {
+    const students = readData('students.json') || [];
+    const student = students.find(s => s.id == req.params.studentId);
+    if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
+
+    const courses = readData('courses.json') || [];
+    const videos = readData('videos.json') || [];
+    const chapters = readData('chapters.json') || [];
+    const resources = readData('video-resources.json') || [];
+
+    const studentCourse = courses.find(c => c.name == student.course);
+    if (!studentCourse) return res.json({ success: true, chapters: [] });
+    const studentCourseId = String(studentCourse.id);
+
+    const courseVideos = videos.filter(v => {
+        const ids = (v.courseIds && Array.isArray(v.courseIds)) ? v.courseIds.map(String) : [String(v.courseId)];
+        return ids.includes(studentCourseId);
+    });
+
+    const resourcesByVideo = {};
+    resources.forEach(r => {
+        const key = String(r.videoId);
+        if (!resourcesByVideo[key]) resourcesByVideo[key] = [];
+        resourcesByVideo[key].push(r);
+    });
+
+    // Chapters are duplicated per course, so group by name to keep siblings together
+    const chapterOf = video => chapters.find(c => String(c.id) === String(video.chapterId)) || null;
+
+    const groups = new Map();
+    courseVideos.forEach(v => {
+        const docs = resourcesByVideo[String(v.id)];
+        if (!docs || !docs.length) return;
+
+        const chapter = chapterOf(v);
+        const name = chapter ? chapter.name : 'General';
+        const order = chapter && chapter.order != null ? Number(chapter.order) : Number.MAX_SAFE_INTEGER;
+
+        if (!groups.has(name)) groups.set(name, { name, order, videos: [] });
+        const group = groups.get(name);
+        group.order = Math.min(group.order, order);
+        group.videos.push({
+            id: v.id,
+            title: v.title,
+            order: v.order != null ? Number(v.order) : Number.MAX_SAFE_INTEGER,
+            resources: docs
+                .slice()
+                .sort((a, b) => String(a.uploadedAt || '').localeCompare(String(b.uploadedAt || '')))
+        });
+    });
+
+    const grouped = Array.from(groups.values())
+        .sort((a, b) => (a.order - b.order) || a.name.localeCompare(b.name))
+        .map(g => ({
+            name: g.name,
+            videos: g.videos.sort((a, b) => (a.order - b.order) || String(a.title || '').localeCompare(String(b.title || ''))),
+            totalDocs: g.videos.reduce((sum, v) => sum + v.resources.length, 0)
+        }));
+
+    res.json({ success: true, chapters: grouped });
 });
 
 // --- Quiz ---

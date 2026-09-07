@@ -15834,11 +15834,12 @@ function initResourceDropZone() {
     zone.dataset.bound = '1';
 
     zone.addEventListener('click', (e) => {
+        if (e.target === input) return;
         if (e.target.closest('.res-file-clear')) return;
-        if (!input.files.length) input.click();
+        input.click();
     });
     zone.addEventListener('keydown', (e) => {
-        if ((e.key === 'Enter' || e.key === ' ') && !input.files.length) { e.preventDefault(); input.click(); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
     });
     input.addEventListener('change', () => renderResourceFilePreview(input.files[0]));
 
@@ -15868,6 +15869,11 @@ function renderResourceFilePreview(file) {
         zone.classList.remove('has-file');
         empty.hidden = false;
         preview.hidden = true;
+        // Wipe the stale text too, so a previously staged file can never be
+        // shown again if this row becomes visible later.
+        document.getElementById('resourceFileName').textContent = '';
+        document.getElementById('resourceFileSize').textContent = '';
+        document.getElementById('resourceFileIcon').innerHTML = '<i class="fas fa-file"></i>';
         return;
     }
     const type = getResourceFileType(file.name);
@@ -15946,7 +15952,7 @@ async function uploadResource() {
     if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...'; }
     try {
         const res = await fetch('/api/videos/' + currentResourceVideoId + '/resources', { method: 'POST', body: formData });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({ success: false }));
         if (data.success) {
             titleInput.value = '';
             descInput.value = '';
@@ -15957,7 +15963,8 @@ async function uploadResource() {
             showNotification(data.message || 'Upload failed', 'error');
         }
     } catch (e) {
-        showNotification('Upload failed', 'error');
+        console.error('Resource upload failed:', e);
+        showNotification('Upload failed. Please check your connection and try again.', 'error');
     } finally {
         if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
     }

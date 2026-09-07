@@ -557,7 +557,10 @@
             background: rgba(16,185,129,0.1);
             transform: scale(1.01);
         }
-        #resourcesManagerModal .res-drop.has-file { padding: 12px; cursor: default; border-style: solid; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+        #resourcesManagerModal .res-drop.has-file { padding: 12px; border-style: solid; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+        /* [hidden] must beat the author display rules below */
+        #resourcesManagerModal .res-drop-empty[hidden],
+        #resourcesManagerModal .res-drop-file[hidden] { display: none; }
         #resourcesManagerModal .res-drop-empty {
             display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
         }
@@ -6221,11 +6224,11 @@
 
                     <div class="res-drop" id="resourceDropZone" tabindex="0" role="button"
                          aria-label="Choose or drop a file to upload">
-                        <input type="file" id="resourceFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt" hidden>
+                        <input type="file" id="resourceFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar,.txt,.jpg,.jpeg,.png" hidden>
                         <div class="res-drop-empty" id="resourceDropEmpty">
                             <i class="fas fa-file-arrow-up"></i>
                             <strong>Drop file here or click to browse</strong>
-                            <small>PDF, Word, Excel, PowerPoint, ZIP, TXT &middot; up to 50&nbsp;MB</small>
+                            <small>PDF, Word, Excel, PowerPoint, ZIP, TXT, Images &middot; up to 50&nbsp;MB</small>
                         </div>
                         <div class="res-drop-file" id="resourceDropFile" hidden>
                             <span class="res-file-ic" id="resourceFileIcon"><i class="fas fa-file"></i></span>
@@ -7476,7 +7479,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script src="js/admin.js?v=20260906b"></script>
+    <script src="js/admin.js?v=20260907a"></script>
     <script src="js/entrance-admin.js"></script>
     <script>
     // Select all declaration checkboxes (toggle)
