@@ -15786,64 +15786,180 @@ async function deleteQuiz() {
 // ===== Resources Manager =====
 let currentResourceVideoId = null;
 
+const RESOURCE_FILE_TYPES = {
+    pdf:  { icon: 'fa-file-pdf',        color: '#f87171', bg: 'rgba(248,113,113,0.14)', label: 'PDF' },
+    doc:  { icon: 'fa-file-word',       color: '#60a5fa', bg: 'rgba(96,165,250,0.14)',  label: 'Word' },
+    docx: { icon: 'fa-file-word',       color: '#60a5fa', bg: 'rgba(96,165,250,0.14)',  label: 'Word' },
+    xls:  { icon: 'fa-file-excel',      color: '#6ee7b7', bg: 'rgba(110,231,183,0.14)', label: 'Excel' },
+    xlsx: { icon: 'fa-file-excel',      color: '#6ee7b7', bg: 'rgba(110,231,183,0.14)', label: 'Excel' },
+    ppt:  { icon: 'fa-file-powerpoint', color: '#fdba74', bg: 'rgba(253,186,116,0.14)', label: 'PowerPoint' },
+    pptx: { icon: 'fa-file-powerpoint', color: '#fdba74', bg: 'rgba(253,186,116,0.14)', label: 'PowerPoint' },
+    zip:  { icon: 'fa-file-zipper',     color: '#c4b5fd', bg: 'rgba(196,181,253,0.14)', label: 'Archive' },
+    txt:  { icon: 'fa-file-lines',      color: '#cbd5e1', bg: 'rgba(203,213,225,0.14)', label: 'Text' }
+};
+
+function getResourceFileType(fileName) {
+    const ext = String(fileName || '').split('.').pop().toLowerCase();
+    return RESOURCE_FILE_TYPES[ext] || { icon: 'fa-file', color: '#94a3b8', bg: 'rgba(148,163,184,0.14)', label: ext.toUpperCase() || 'File' };
+}
+
+function formatResourceSize(bytes) {
+    const b = Number(bytes) || 0;
+    if (b < 1024) return b + ' B';
+    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+    return (b / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function escapeResourceHtml(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 async function openResourcesManager(videoId, videoTitle) {
     currentResourceVideoId = videoId;
     document.getElementById('resourceVideoTitle').textContent = videoTitle;
     document.getElementById('resourceTitle').value = '';
     document.getElementById('resourceDescription').value = '';
-    document.getElementById('resourceFile').value = '';
+    clearResourceFile();
+    initResourceDropZone();
     await loadResourcesList();
     document.getElementById('resourcesManagerModal').classList.add('active');
 }
 
+function initResourceDropZone() {
+    const zone = document.getElementById('resourceDropZone');
+    const input = document.getElementById('resourceFile');
+    if (!zone || !input || zone.dataset.bound === '1') return;
+    zone.dataset.bound = '1';
+
+    zone.addEventListener('click', (e) => {
+        if (e.target.closest('.res-file-clear')) return;
+        if (!input.files.length) input.click();
+    });
+    zone.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !input.files.length) { e.preventDefault(); input.click(); }
+    });
+    input.addEventListener('change', () => renderResourceFilePreview(input.files[0]));
+
+    ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, (e) => {
+        e.preventDefault(); zone.classList.add('dragover');
+    }));
+    ['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, (e) => {
+        e.preventDefault(); zone.classList.remove('dragover');
+    }));
+    zone.addEventListener('drop', (e) => {
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (!file) return;
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        renderResourceFilePreview(file);
+    });
+}
+
+function renderResourceFilePreview(file) {
+    const zone = document.getElementById('resourceDropZone');
+    const empty = document.getElementById('resourceDropEmpty');
+    const preview = document.getElementById('resourceDropFile');
+    if (!zone || !empty || !preview) return;
+
+    if (!file) {
+        zone.classList.remove('has-file');
+        empty.hidden = false;
+        preview.hidden = true;
+        return;
+    }
+    const type = getResourceFileType(file.name);
+    document.getElementById('resourceFileIcon').innerHTML = '<i class="fas ' + type.icon + '"></i>';
+    document.getElementById('resourceFileName').textContent = file.name;
+    document.getElementById('resourceFileSize').textContent = type.label + ' \u00b7 ' + formatResourceSize(file.size);
+    zone.classList.add('has-file');
+    empty.hidden = true;
+    preview.hidden = false;
+
+    const titleInput = document.getElementById('resourceTitle');
+    if (titleInput && !titleInput.value.trim()) {
+        titleInput.value = file.name.replace(/\.[^.]+$/, '');
+    }
+}
+
+function clearResourceFile(event) {
+    if (event) event.stopPropagation();
+    const input = document.getElementById('resourceFile');
+    if (input) input.value = '';
+    renderResourceFilePreview(null);
+}
+
 async function loadResourcesList() {
+    const container = document.getElementById('resourcesList');
+    const countEl = document.getElementById('resourceCount');
+    if (!container) return;
+    container.innerHTML = '<div class="res-empty"><i class="fas fa-spinner fa-spin"></i><p>Loading resources...</p></div>';
     try {
         const res = await fetch('/api/videos/' + currentResourceVideoId + '/resources');
         const data = await res.json();
-        const container = document.getElementById('resourcesList');
-        if (!data.resources || data.resources.length === 0) {
-            container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px;">No resources yet.</p>';
+        const resources = data.resources || [];
+        if (countEl) countEl.textContent = resources.length;
+        if (resources.length === 0) {
+            container.innerHTML = '<div class="res-empty"><i class="fas fa-folder-open"></i><p>No resources attached yet.</p></div>';
             return;
         }
-        container.innerHTML = data.resources.map(r => `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:6px;margin-bottom:8px;background:#f8fafc;">
-                <div>
-                    <strong>${r.title}</strong>
-                    <div style="font-size:12px;color:#64748b;">${(r.fileSize/1024).toFixed(1)} KB · ${r.fileName}</div>
-                    ${r.description ? '<div style="font-size:12px;color:#475569;margin-top:4px;">' + r.description + '</div>' : ''}
-                </div>
-                <div style="display:flex;gap:6px;">
-                    <a href="${r.fileUrl}" target="_blank" class="action-btn" style="background:#3b82f6;color:#fff;text-decoration:none;">View</a>
-                    <button class="action-btn delete-btn" onclick="deleteResource(${r.id})">Delete</button>
-                </div>
-            </div>
-        `).join('');
+        container.innerHTML = resources.map(r => {
+            const type = getResourceFileType(r.fileName);
+            return '<div class="res-item">' +
+                '<span class="res-item-ic" style="background:' + type.bg + ';color:' + type.color + ';"><i class="fas ' + type.icon + '"></i></span>' +
+                '<div class="res-item-info">' +
+                    '<strong>' + escapeResourceHtml(r.title) + '</strong>' +
+                    '<div class="res-item-sub">' +
+                        '<span style="color:' + type.color + ';font-weight:600;">' + type.label + '</span>' +
+                        '<span>&bull;</span><span>' + formatResourceSize(r.fileSize) + '</span>' +
+                    '</div>' +
+                    (r.description ? '<div class="res-item-desc">' + escapeResourceHtml(r.description) + '</div>' : '') +
+                '</div>' +
+                '<div class="res-item-acts">' +
+                    '<a class="res-act res-act-view" href="' + escapeResourceHtml(r.fileUrl) + '" target="_blank" rel="noopener" title="View / Download"><i class="fas fa-eye"></i></a>' +
+                    '<button class="res-act res-act-del" onclick="deleteResource(' + r.id + ')" title="Delete"><i class="fas fa-trash"></i></button>' +
+                '</div>' +
+            '</div>';
+        }).join('');
     } catch (e) {
         console.error(e);
+        container.innerHTML = '<div class="res-empty" style="color:#fca5a5;"><i class="fas fa-exclamation-circle"></i><p>Failed to load resources.</p></div>';
     }
 }
 
 async function uploadResource() {
-    const title = document.getElementById('resourceTitle').value.trim();
-    const description = document.getElementById('resourceDescription').value.trim();
-    const file = document.getElementById('resourceFile').files[0];
-    if (!file) { showNotification('Select a file', 'error'); return; }
+    const titleInput = document.getElementById('resourceTitle');
+    const descInput = document.getElementById('resourceDescription');
+    const fileInput = document.getElementById('resourceFile');
+    const btn = document.getElementById('resourceUploadBtn');
+    const file = fileInput.files[0];
+    if (!file) { showNotification('Please choose a file first', 'error'); return; }
+
     const formData = new FormData();
-    formData.append('title', title || file.name);
-    formData.append('description', description);
+    formData.append('title', titleInput.value.trim() || file.name);
+    formData.append('description', descInput.value.trim());
     formData.append('file', file);
+
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...'; }
     try {
         const res = await fetch('/api/videos/' + currentResourceVideoId + '/resources', { method: 'POST', body: formData });
         const data = await res.json();
         if (data.success) {
-            document.getElementById('resourceTitle').value = '';
-            document.getElementById('resourceDescription').value = '';
-            document.getElementById('resourceFile').value = '';
-            loadResourcesList();
+            titleInput.value = '';
+            descInput.value = '';
+            clearResourceFile();
+            await loadResourcesList();
             showNotification('Resource uploaded', 'success');
+        } else {
+            showNotification(data.message || 'Upload failed', 'error');
         }
     } catch (e) {
         showNotification('Upload failed', 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
     }
 }
 
