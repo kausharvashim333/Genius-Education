@@ -4882,14 +4882,19 @@
 
             <!-- Study Materials Page -->
             <div id="page-study-materials" class="page-content hidden">
-                <div class="page-toolbar" style="display:flex;gap:10px;">
+                <div class="page-toolbar" style="display:flex;gap:10px;flex-wrap:wrap;">
                         <button class="btn btn-primary" onclick="openStudyMaterialModal()"><i class="fas fa-plus"></i> Add Material</button>
                         <button class="btn btn-danger" onclick="deleteSelectedStudyMaterials()"><i class="fas fa-trash"></i> Delete Selected</button>
                         <button class="btn btn-success" onclick="exportStudyMaterialsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                     </div>
+                <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn" onclick="filterStudyMaterialsBySource('all')" id="filterAllBtn" style="background:#667eea;color:#fff;font-size:12px;padding:6px 14px;">All</button>
+                    <button class="btn" onclick="filterStudyMaterialsBySource('standalone')" id="filterStandaloneBtn" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);font-size:12px;padding:6px 14px;">Standalone Materials</button>
+                    <button class="btn" onclick="filterStudyMaterialsBySource('video')" id="filterVideoBtn" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);font-size:12px;padding:6px 14px;">Video Documents</button>
+                </div>
                 <div class="data-table">
                     <table id="studyMaterialsTable">
-                        <thead><tr><th><input type="checkbox" id="selectAllStudyMaterials" onchange="toggleAllStudyMaterialCheckboxes()"></th><th>Title</th><th>Course</th><th>Category</th><th>Type</th><th>Author</th><th>Status</th><th>Views</th><th>Downloads</th><th>Actions</th></tr></thead>
+                        <thead><tr><th><input type="checkbox" id="selectAllStudyMaterials" onchange="toggleAllStudyMaterialCheckboxes()"></th><th>Title</th><th>Source</th><th>Course</th><th>Category</th><th>Type</th><th>Author</th><th>Status</th><th>Views</th><th>Downloads</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>

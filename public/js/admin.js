@@ -5910,51 +5910,166 @@ async function saveAllAttendance() {
 }
 
 // ===== Study Materials =====
+let _allStudyMaterialsRows = []; // unified list for filtering
+let _studyMaterialFilter = 'all';
+
 async function loadStudyMaterialsTable() {
     const tbody = document.getElementById('studyMaterialsTable').querySelector('tbody');
     renderLoadingSpinner(tbody, 'Loading study materials...');
     try {
-        const res = await fetch('/api/study-materials');
-        const data = await res.json();
-        if (data.success && data.materials) {
-            tbody.innerHTML = data.materials.map(m => {
-                let html = '';
-                html += '<tr>';
-                html += '<td><input type="checkbox" class="study-material-checkbox" data-id="' + m.id + '"></td>';
-                html += '<td><strong>' + m.title + '</strong>';
-                if (m.submittedBy) html += '<br><small style="color:#64748b;">by ' + m.submittedBy + '</small>';
-                html += '</td>';
-                const courseList = Array.isArray(m.courses) && m.courses.length > 0 ? m.courses : (m.course ? m.course.split(',').map(c => c.trim()) : []);
-                html += '<td>' + courseList.map(c => '<span style="display:inline-block;background:rgba(102,126,234,0.2);color:#a5b4fc;padding:2px 8px;border-radius:10px;font-size:11px;margin:2px;">' + c + '</span>').join('') + '</td>';
-                html += '<td>' + (m.category || 'General') + '</td>';
-                html += '<td>' + m.type.toUpperCase() + '</td>';
-                html += '<td>' + (m.author || 'Admin') + '</td>';
-                html += '<td>';
-                const status = m.status || 'approved';
-                if (status === 'pending') {
-                    html += '<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Pending</span>';
-                } else if (status === 'rejected') {
-                    html += '<span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Rejected</span>';
-                } else {
-                    html += '<span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Approved</span>';
-                }
-                html += '</td>';
-                html += '<td>' + (m.viewCount || 0) + '</td>';
-                html += '<td>' + (m.downloadCount || 0) + '</td>';
-                html += '<td>';
-                if (status === 'pending') {
-                    html += '<button class="btn btn-success" onclick="approveStudyMaterial(\'' + m.id + '\')" title="Approve" style="padding:5px 8px;font-size:12px;background:#16a34a;"><i class="fas fa-check"></i></button> ';
-                    html += '<button class="btn btn-danger" onclick="rejectStudyMaterial(\'' + m.id + '\')" title="Reject" style="padding:5px 8px;font-size:12px;"><i class="fas fa-times"></i></button> ';
-                }
-                html += '<button class="btn" onclick="viewStudyMaterial(\'' + m.id + '\')" title="View" style="padding:5px 8px;font-size:12px;background:#0ea5e9;color:#fff;"><i class="fas fa-eye"></i></button> ';
-                html += '<button class="btn" onclick="editStudyMaterial(\'' + m.id + '\')" title="Edit" style="padding:5px 8px;font-size:12px;background:#f59e0b;color:#fff;"><i class="fas fa-edit"></i></button> ';
-                html += '<button class="btn" onclick="deleteStudyMaterial(\'' + m.id + '\')" title="Delete" style="padding:5px 8px;font-size:12px;"><i class="fas fa-trash"></i></button>';
-                html += '</td>';
-                html += '</tr>';
-                return html;
-            }).join('');
+        const [matRes, vidRes] = await Promise.all([
+            fetch('/api/study-materials').then(r => r.json()).catch(() => ({ materials: [] })),
+            fetch('/api/video-resources/all').then(r => r.json()).catch(() => ({ resources: [] }))
+        ]);
+
+        const materials = (matRes && matRes.success && Array.isArray(matRes.materials)) ? matRes.materials : [];
+        const vidResources = (vidRes && vidRes.success && Array.isArray(vidRes.resources)) ? vidRes.resources : [];
+
+        _allStudyMaterialsRows = [];
+
+        // Standalone materials
+        materials.forEach(m => {
+            const courseList = Array.isArray(m.courses) && m.courses.length > 0 ? m.courses : (m.course ? m.course.split(',').map(c => c.trim()) : []);
+            _allStudyMaterialsRows.push({
+                type: 'standalone',
+                id: m.id,
+                title: m.title,
+                source: 'Standalone',
+                courseList,
+                category: m.category || 'General',
+                fileType: (m.type || '').toUpperCase(),
+                author: m.author || 'Admin',
+                status: m.status || 'approved',
+                viewCount: m.viewCount || 0,
+                downloadCount: m.downloadCount || 0,
+                url: m.url,
+                submittedBy: m.submittedBy
+            });
+        });
+
+        // Video resources (documents attached to videos)
+        vidResources.forEach(r => {
+            _allStudyMaterialsRows.push({
+                type: 'video',
+                id: r.id,
+                title: r.title || r.fileName,
+                source: 'Video: ' + (r.videoTitle || 'Unknown'),
+                courseList: r.courseNames || [],
+                category: r.chapterName || 'Ungrouped',
+                fileType: getFileExt(r.fileName),
+                author: 'Video Document',
+                status: 'approved',
+                viewCount: 0,
+                downloadCount: 0,
+                url: r.fileUrl,
+                fileName: r.fileName,
+                fileSize: r.fileSize,
+                videoTitle: r.videoTitle
+            });
+        });
+
+        renderStudyMaterialsRows();
+    } catch (e) {
+        console.error('Error loading study materials:', e);
+    }
+}
+
+function getFileExt(fileName) {
+    const ext = String(fileName || '').split('.').pop();
+    return ext ? ext.toUpperCase() : 'FILE';
+}
+
+function renderStudyMaterialsRows() {
+    const tbody = document.getElementById('studyMaterialsTable').querySelector('tbody');
+    const rows = _allStudyMaterialsRows.filter(r => {
+        if (_studyMaterialFilter === 'all') return true;
+        if (_studyMaterialFilter === 'standalone') return r.type === 'standalone';
+        if (_studyMaterialFilter === 'video') return r.type === 'video';
+        return true;
+    });
+
+    if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:30px;color:#94a3b8;">No study materials found</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = rows.map(m => {
+        let html = '<tr>';
+        html += '<td><input type="checkbox" class="study-material-checkbox" data-id="' + m.id + '" data-type="' + m.type + '"></td>';
+        html += '<td><strong>' + (m.title || '') + '</strong>';
+        if (m.submittedBy) html += '<br><small style="color:#64748b;">by ' + m.submittedBy + '</small>';
+        html += '</td>';
+        // Source column
+        if (m.type === 'video') {
+            html += '<td><span style="display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,0.15);color:#fbbf24;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;"><i class="fas fa-video"></i> Video Doc</span>';
+            if (m.videoTitle) html += '<br><small style="color:#94a3b8;">' + m.videoTitle + '</small>';
+            html += '</td>';
+        } else {
+            html += '<td><span style="display:inline-flex;align-items:center;gap:5px;background:rgba(102,126,234,0.15);color:#a5b4fc;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;"><i class="fas fa-file-alt"></i> Material</span></td>';
         }
-    } catch (e) {}
+        html += '<td>' + (m.courseList && m.courseList.length > 0 ? m.courseList.map(c => '<span style="display:inline-block;background:rgba(102,126,234,0.2);color:#a5b4fc;padding:2px 8px;border-radius:10px;font-size:11px;margin:2px;">' + c + '</span>').join('') : '<span style="color:#64748b;font-size:12px;">—</span>') + '</td>';
+        html += '<td>' + (m.category || 'General') + '</td>';
+        html += '<td>' + m.fileType + '</td>';
+        html += '<td>' + (m.author || 'Admin') + '</td>';
+        html += '<td>';
+        const status = m.status || 'approved';
+        if (status === 'pending') {
+            html += '<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Pending</span>';
+        } else if (status === 'rejected') {
+            html += '<span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Rejected</span>';
+        } else {
+            html += '<span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Approved</span>';
+        }
+        html += '</td>';
+        html += '<td>' + (m.viewCount || 0) + '</td>';
+        html += '<td>' + (m.downloadCount || 0) + '</td>';
+        html += '<td style="white-space:nowrap;">';
+        if (status === 'pending') {
+            html += '<button class="btn btn-success" onclick="approveStudyMaterial(\'' + m.id + '\')" title="Approve" style="padding:5px 8px;font-size:12px;background:#16a34a;"><i class="fas fa-check"></i></button> ';
+            html += '<button class="btn btn-danger" onclick="rejectStudyMaterial(\'' + m.id + '\')" title="Reject" style="padding:5px 8px;font-size:12px;"><i class="fas fa-times"></i></button> ';
+        }
+        html += '<button class="btn" onclick="viewStudyMaterialItem(\'' + m.id + '\',\'' + m.type + '\')" title="View" style="padding:5px 8px;font-size:12px;background:#0ea5e9;color:#fff;"><i class="fas fa-eye"></i></button> ';
+        if (m.type === 'standalone') {
+            html += '<button class="btn" onclick="editStudyMaterial(\'' + m.id + '\')" title="Edit" style="padding:5px 8px;font-size:12px;background:#f59e0b;color:#fff;"><i class="fas fa-edit"></i></button> ';
+        }
+        html += '<button class="btn" onclick="deleteStudyMaterialItem(\'' + m.id + '\',\'' + m.type + '\')" title="Delete" style="padding:5px 8px;font-size:12px;"><i class="fas fa-trash"></i></button>';
+        html += '</td>';
+        html += '</tr>';
+        return html;
+    }).join('');
+}
+
+function filterStudyMaterialsBySource(filter) {
+    _studyMaterialFilter = filter;
+    document.getElementById('filterAllBtn').style.background = filter === 'all' ? '#667eea' : 'rgba(255,255,255,0.1)';
+    document.getElementById('filterAllBtn').style.color = filter === 'all' ? '#fff' : 'rgba(255,255,255,0.7)';
+    document.getElementById('filterStandaloneBtn').style.background = filter === 'standalone' ? '#667eea' : 'rgba(255,255,255,0.1)';
+    document.getElementById('filterStandaloneBtn').style.color = filter === 'standalone' ? '#fff' : 'rgba(255,255,255,0.7)';
+    document.getElementById('filterVideoBtn').style.background = filter === 'video' ? '#667eea' : 'rgba(255,255,255,0.1)';
+    document.getElementById('filterVideoBtn').style.color = filter === 'video' ? '#fff' : 'rgba(255,255,255,0.7)';
+    renderStudyMaterialsRows();
+}
+
+function viewStudyMaterialItem(id, type) {
+    const row = _allStudyMaterialsRows.find(r => r.id == id && r.type === type);
+    if (row && row.url) {
+        window.open(row.url, '_blank');
+    } else {
+        showNotification('File not found!', 'error');
+    }
+}
+
+async function deleteStudyMaterialItem(id, type) {
+    if (!confirm('Delete this ' + (type === 'video' ? 'video document' : 'material') + '?')) return;
+    try {
+        if (type === 'video') {
+            await fetch('/api/videos/resources/' + id, { method: 'DELETE' });
+        } else {
+            await fetch('/api/study-materials/' + id, { method: 'DELETE' });
+        }
+        loadStudyMaterialsTable();
+        showNotification('Deleted successfully!', 'success');
+    } catch (e) { showNotification('Error deleting!', 'error'); }
 }
 
 function toggleAllStudyMaterialCheckboxes() {
@@ -5972,22 +6087,27 @@ async function deleteSelectedStudyMaterials() {
     
     if (!confirm(`Are you sure you want to delete ${checkboxes.length} study material(s)?`)) return;
     
-    const materialIds = Array.from(checkboxes).map(cb => cb.dataset.id);
     let deletedCount = 0;
     
     try {
-        for (const materialId of materialIds) {
-            const res = await fetch('/api/study-materials/' + materialId, { method: 'DELETE' });
-            const data = await res.json();
-            if (data.success) {
-                deletedCount++;
+        for (const cb of checkboxes) {
+            const id = cb.dataset.id;
+            const type = cb.dataset.type || 'standalone';
+            if (type === 'video') {
+                const res = await fetch('/api/videos/resources/' + id, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) deletedCount++;
+            } else {
+                const res = await fetch('/api/study-materials/' + id, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) deletedCount++;
             }
         }
         
-        if (deletedCount === materialIds.length) {
+        if (deletedCount === checkboxes.length) {
             showNotification(`${deletedCount} study material(s) deleted successfully!`, 'success');
         } else {
-            showNotification(`${deletedCount}/${materialIds.length} study material(s) deleted`, 'warning');
+            showNotification(`${deletedCount}/${checkboxes.length} study material(s) deleted`, 'warning');
         }
         
         document.getElementById('selectAllStudyMaterials').checked = false;

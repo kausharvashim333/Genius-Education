@@ -8059,6 +8059,37 @@ app.post('/api/videos/:id/resources', handleResourceUpload, (req, res) => {
     res.json({ success: true, resource });
 });
 
+// All video resources with video/course context — for admin panel study materials
+app.get('/api/video-resources/all', (req, res) => {
+    const resources = readData('video-resources.json') || [];
+    const videos = readData('videos.json') || [];
+    const chapters = readData('chapters.json') || [];
+    const courses = readData('courses.json') || [];
+
+    const videoMap = {};
+    videos.forEach(v => { videoMap[v.id] = v; });
+    const chapterMap = {};
+    chapters.forEach(c => { chapterMap[c.id] = c; });
+    const courseMap = {};
+    courses.forEach(c => { courseMap[c.name] = c; });
+
+    const enriched = resources.map(r => {
+        const video = videoMap[r.videoId] || {};
+        const chapter = video.chapterId ? (chapterMap[video.chapterId] || {}) : {};
+        const courseNames = Array.isArray(video.courseIds) && video.courseIds.length > 0
+            ? video.courseIds
+            : (video.courseId ? [video.courseId] : []);
+        return {
+            ...r,
+            videoTitle: video.title || 'Unknown Video',
+            chapterName: chapter.name || 'Ungrouped',
+            courseNames
+        };
+    });
+
+    res.json({ success: true, resources: enriched });
+});
+
 app.delete('/api/videos/resources/:resourceId', (req, res) => {
     const resources = readData('video-resources.json') || [];
     const resource = resources.find(r => r.id == req.params.resourceId);
