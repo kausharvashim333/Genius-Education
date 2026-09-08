@@ -6113,7 +6113,7 @@ function renderStudyMaterialsRows() {
                 // Document rows under this video
                 html += vInfo.docs.map(m => {
                     const rowHtml = renderStudyMaterialRow(m);
-                    return rowHtml.replace('<tr ', '<tr class="sm-video-body-row" data-chapter="' + chKey + '" data-video="' + vidKey + '" style="display:none;" ');
+                    return rowHtml.replace('<tr>', '<tr class="sm-video-body-row" data-chapter="' + chKey + '" data-video="' + vidKey + '" style="display:none;">');
                 }).join('');
             });
         });
