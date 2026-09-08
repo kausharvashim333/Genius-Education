@@ -7303,6 +7303,188 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
     background: rgba(255, 255, 255, 0.5);
 }
 
+/* ===== 3D Marquee Testimonials ===== */
+.testimonials-3d-wrapper {
+    position: relative;
+    height: 500px;
+    max-width: 1000px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    perspective: 1000px;
+}
+
+.testimonials-3d-stage {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transform: rotateX(15deg) rotateY(-8deg);
+    transform-style: preserve-3d;
+}
+
+.testimonials-3d-marquee {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+    height: 600px;
+    padding: 6px;
+    --duration: 40s;
+    --gap: 12px;
+}
+
+.testimonials-3d-marquee-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    flex-shrink: 0;
+    animation: marquee-vertical var(--duration) linear infinite;
+}
+
+.testimonials-3d-marquee.reverse .testimonials-3d-marquee-inner {
+    animation-direction: reverse;
+}
+
+.testimonials-3d-marquee:hover .testimonials-3d-marquee-inner {
+    animation-play-state: paused;
+}
+
+@keyframes marquee-vertical {
+    from { transform: translateY(0); }
+    to { transform: translateY(calc(-100% - var(--gap))); }
+}
+
+.testimonial-3d-card {
+    width: 220px;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 14px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.testimonial-3d-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.testimonial-3d-card-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.2);
+    flex-shrink: 0;
+}
+
+.testimonial-3d-card-avatar-fallback {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(102,126,234,0.3);
+    color: #a5b4fc;
+    font-size: 16px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.testimonial-3d-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.testimonial-3d-card-username {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    margin: 2px 0 0 0;
+}
+
+.testimonial-3d-card-rating {
+    display: flex;
+    gap: 2px;
+    margin: 4px 0 8px 0;
+}
+
+.testimonial-3d-card-rating .star {
+    color: #fbbf24;
+    font-size: 12px;
+}
+
+.testimonial-3d-card-rating .star.empty {
+    color: rgba(255,255,255,0.2);
+}
+
+.testimonial-3d-card-body {
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.testimonials-3d-fade {
+    position: absolute;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.testimonials-3d-fade-top {
+    top: 0; left: 0; right: 0; height: 25%;
+    background: linear-gradient(to bottom, #0f0f23, transparent);
+}
+
+.testimonials-3d-fade-bottom {
+    bottom: 0; left: 0; right: 0; height: 25%;
+    background: linear-gradient(to top, #0f0f23, transparent);
+}
+
+.testimonials-3d-fade-left {
+    top: 0; bottom: 0; left: 0; width: 15%;
+    background: linear-gradient(to right, #0f0f23, transparent);
+}
+
+.testimonials-3d-fade-right {
+    top: 0; bottom: 0; right: 0; width: 15%;
+    background: linear-gradient(to left, #0f0f23, transparent);
+}
+
+@media (max-width: 768px) {
+    .testimonials-3d-wrapper {
+        height: 400px;
+    }
+    .testimonials-3d-stage {
+        transform: rotateX(10deg) rotateY(-5deg);
+        gap: 6px;
+    }
+    .testimonials-3d-marquee {
+        height: 480px;
+    }
+    .testimonial-3d-card {
+        width: 180px;
+        padding: 10px;
+    }
+    .testimonials-3d-fade-left,
+    .testimonials-3d-fade-right {
+        width: 8%;
+    }
+}
+
 /* ===== Floating Animation ===== */
 @keyframes float {
     0%, 100% { transform: translateY(0px); }

@@ -1040,136 +1040,63 @@ function viewBlogDetail(id) {
     }
 }
 
-function toggleReadMore(id) {
-    // Show testimonial in modal
-    const cards = document.querySelectorAll(`.testimonial-card[data-id="${id}"]`);
-    if (cards.length === 0) return;
-    
-    const card = cards[0];
-    const name = card.querySelector('.testimonial-name').textContent;
-    const position = card.querySelector('.testimonial-position')?.textContent || '';
-    const comment = card.querySelector('.testimonial-comment').getAttribute('data-full');
-    const imageSrc = card.querySelector('.testimonial-avatar').src;
-    const rating = card.querySelector('.testimonial-rating').innerHTML;
-    const date = card.querySelector('.testimonial-date').textContent;
-    
-    // Create modal
-    const modal = document.createElement('div');
-    modal.className = 'testimonial-modal';
-    modal.innerHTML = `
-        <div class="testimonial-modal-content">
-            <button class="testimonial-modal-close" onclick="this.closest('.testimonial-modal').remove()">&times;</button>
-            <div class="testimonial-modal-header">
-                <img src="${imageSrc}" alt="${name}" class="testimonial-modal-avatar">
+let testimonialsData = [];
+
+function buildTestimonialCard(testimonial) {
+    const stars = Array(5).fill(0).map((_, i) =>
+        `<span class="star ${i < testimonial.rating ? '' : 'empty'}">★</span>`
+    ).join('');
+    const imageSrc = testimonial.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=667eea&color=fff&size=100`;
+    const fallback = (testimonial.name || '?')[0] || '?';
+    const comment = (testimonial.comment || '').length > 120
+        ? testimonial.comment.substring(0, 117) + '...'
+        : (testimonial.comment || '');
+    return `
+        <div class="testimonial-3d-card" data-id="${testimonial.id}">
+            <div class="testimonial-3d-card-header">
+                <img src="${imageSrc}" alt="${testimonial.name}" class="testimonial-3d-card-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div class="testimonial-3d-card-avatar-fallback" style="display:none">${fallback}</div>
                 <div>
-                    <h4 class="testimonial-modal-name">${name}</h4>
-                    ${position ? `<p class="testimonial-modal-position">${position}</p>` : ''}
-                    <div class="testimonial-modal-rating">${rating}</div>
+                    <p class="testimonial-3d-card-name">${testimonial.name}</p>
+                    <p class="testimonial-3d-card-username">${testimonial.position || 'Student'}</p>
                 </div>
             </div>
-            <p class="testimonial-modal-comment">${comment}</p>
-            <p class="testimonial-modal-date">${date}</p>
+            <div class="testimonial-3d-card-rating">${stars}</div>
+            <p class="testimonial-3d-card-body">${comment}</p>
         </div>
     `;
-    
-    document.body.appendChild(modal);
-    
-    // Close modal on background click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
-    
-    // Close modal on escape key
-    document.addEventListener('keydown', function closeOnEscape(e) {
-        if (e.key === 'Escape') {
-            modal.remove();
-            document.removeEventListener('keydown', closeOnEscape);
-        }
-    });
 }
-
-let currentTestimonialSlide = 0;
-let testimonialSlideInterval;
-let testimonialsData = [];
 
 async function loadTestimonials() {
     try {
         const res = await fetch('/api/testimonials');
         const data = await res.json();
         const container = document.getElementById('testimonialsContainer');
-        const dotsContainer = document.getElementById('carouselDots');
-        
+
         if (data.success && data.testimonials && data.testimonials.length > 0) {
             testimonialsData = data.testimonials;
-            
-            // Create testimonials HTML
-            const testimonialsHTML = testimonialsData.map(testimonial => {
-                const stars = Array(5).fill(0).map((_, i) => 
-                    `<span class="star ${i < testimonial.rating ? '' : 'empty'}">★</span>`
-                ).join('');
-                
-                const formattedDate = testimonial.date ? new Date(testimonial.date).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
-                }) : '';
-                
-                const imageSrc = testimonial.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=667eea&color=fff&size=100`;
-                
-                // Truncate long comments
-                const maxChars = 150;
-                const isLongComment = testimonial.comment.length > maxChars;
-                const words = testimonial.comment.split(' ');
-                const shortComment = isLongComment ? words.slice(0, 15).join(' ') + '...' : testimonial.comment;
-                
-                return `
-                    <div class="testimonial-card" data-id="${testimonial.id}">
-                        <div class="testimonial-header">
-                            <img src="${imageSrc}" alt="${testimonial.name}" class="testimonial-avatar" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=667eea&color=fff&size=100'">
-                            <div>
-                                <h4 class="testimonial-name">${testimonial.name}</h4>
-                                ${testimonial.position ? `<p class="testimonial-position">${testimonial.position}</p>` : ''}
-                                <div class="testimonial-rating">${stars}</div>
-                            </div>
-                        </div>
-                        <p class="testimonial-comment" data-full="${testimonial.comment}" data-short="${shortComment}">${shortComment}</p>
-                        ${isLongComment ? `<button class="read-more-btn" onclick="toggleReadMore(${testimonial.id})">Read More</button>` : ''}
-                        <p class="testimonial-date">${formattedDate}</p>
+            const cardsHTML = testimonialsData.map(buildTestimonialCard).join('');
+
+            // Split into 4 columns for the 3D marquee effect
+            const isMobile = window.innerWidth <= 768;
+            const numColumns = isMobile ? 2 : 4;
+            const perCol = Math.ceil(testimonialsData.length / numColumns);
+
+            let columnsHTML = '';
+            for (let c = 0; c < numColumns; c++) {
+                const colData = testimonialsData.slice(c * perCol, (c + 1) * perCol);
+                if (colData.length === 0) continue;
+                const colCards = colData.map(buildTestimonialCard).join('');
+                const reverse = (c % 2 === 1) ? ' reverse' : '';
+                columnsHTML += `
+                    <div class="testimonials-3d-marquee${reverse}">
+                        <div class="testimonials-3d-marquee-inner">${colCards}</div>
+                        <div class="testimonials-3d-marquee-inner">${colCards}</div>
                     </div>
                 `;
-            }).join('');
-            
-            // Check if mobile view for card stack
-            const isMobile = window.innerWidth <= 769;
-            
-            if (isMobile) {
-                // Student names horizontal scroll for mobile with photos and ratings
-                const studentNamesHTML = testimonialsData.map(testimonial => {
-                    const stars = Array(5).fill(0).map((_, i) => 
-                        `<span class="star ${i < testimonial.rating ? '' : 'empty'}">★</span>`
-                    ).join('');
-                    
-                    const imageSrc = testimonial.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=667eea&color=fff&size=50`;
-                    
-                    return `<div class="student-name-item" data-id="${testimonial.id}">
-                        <img src="${imageSrc}" alt="${testimonial.name}" class="student-avatar">
-                        <div class="student-info">
-                            <span class="student-name">${testimonial.name}</span>
-                            <span class="student-rating">${stars}</span>
-                        </div>
-                    </div>`;
-                }).join('');
-                
-                container.innerHTML = studentNamesHTML;
-                initMobileStudentNames(container, testimonialsData);
-            } else {
-                // Carousel for desktop
-                container.innerHTML = testimonialsHTML + testimonialsHTML + testimonialsHTML;
-                currentTestimonialSlide = testimonialsData.length;
-                initTestimonialCarousel();
             }
+
+            container.innerHTML = columnsHTML;
         } else {
             container.innerHTML = '<p style="text-align:center;color:#94a3b8;padding:30px;">No testimonials available.</p>';
         }
@@ -1179,338 +1106,11 @@ async function loadTestimonials() {
     }
 }
 
-function initCardStack(container) {
-    // Swipe animation for mobile with dots
-    const cards = Array.from(container.children);
-    let currentIndex = 0;
-    let autoSlideInterval;
-    
-    // Create dots container
-    const dotsContainer = document.createElement('div');
-    dotsContainer.className = 'carousel-dots';
-    container.parentElement.appendChild(dotsContainer);
-    
-    // Create dots
-    cards.forEach((_, index) => {
-        const dot = document.createElement('div');
-        dot.className = 'carousel-dot' + (index === 0 ? ' active' : '');
-        dot.addEventListener('click', () => {
-            goToSlide(index);
-            resetAutoSlide();
-        });
-        dotsContainer.appendChild(dot);
-    });
-    
-    const dots = Array.from(dotsContainer.children);
-    
-    function updateDots() {
-        dots.forEach((dot, index) => {
-            dot.classList.toggle('active', index === currentIndex);
-        });
-    }
-    
-    function goToSlide(index) {
-        currentIndex = index;
-        updateCards();
-        updateDots();
-    }
-    
-    function updateCards(direction = null) {
-        cards.forEach((card, index) => {
-            card.classList.remove('active', 'swipe-left', 'swipe-right');
-            
-            if (index === currentIndex) {
-                card.classList.add('active');
-            }
-        });
-    }
-    
-    function nextSlide() {
-        currentIndex++;
-        if (currentIndex >= cards.length) {
-            currentIndex = 0;
-        }
-        updateCards();
-        updateDots();
-    }
-    
-    function prevSlide() {
-        currentIndex--;
-        if (currentIndex < 0) {
-            currentIndex = cards.length - 1;
-        }
-        updateCards();
-        updateDots();
-    }
-    
-    function startAutoSlide() {
-        if (autoSlideInterval) clearInterval(autoSlideInterval);
-        autoSlideInterval = setInterval(nextSlide, 5000);
-    }
-    
-    function resetAutoSlide() {
-        if (autoSlideInterval) clearInterval(autoSlideInterval);
-        startAutoSlide();
-    }
-    
-    // Touch swipe handling
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    container.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
-    
-    container.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    }, { passive: true });
-    
-    function handleSwipe() {
-        const swipeThreshold = 50;
-        const diff = touchStartX - touchEndX;
-        
-        if (Math.abs(diff) > swipeThreshold) {
-            if (diff > 0) {
-                nextSlide();
-            } else {
-                prevSlide();
-            }
-            resetAutoSlide();
-        }
-    }
-    
-    // Initialize
-    updateCards();
-    updateDots();
-    startAutoSlide();
-}
-
-function initMobileStudentNames(container, testimonialsData) {
-    const nameItems = Array.from(container.children);
-    let autoScrollInterval;
-    
-    // Click handler for student names
-    nameItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const id = parseInt(item.getAttribute('data-id'));
-            const testimonial = testimonialsData.find(t => t.id === id);
-            if (testimonial) {
-                showTestimonialModal(testimonial);
-            }
-        });
-    });
-    
-    // Auto-scroll functionality
-    function autoScroll() {
-        const scrollAmount = 200;
-        const maxScroll = container.scrollWidth - container.clientWidth;
-        
-        if (container.scrollLeft >= maxScroll) {
-            container.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-            container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-        }
-    }
-    
-    function startAutoScroll() {
-        if (autoScrollInterval) clearInterval(autoScrollInterval);
-        autoScrollInterval = setInterval(autoScroll, 3000);
-    }
-    
-    function resetAutoScroll() {
-        if (autoScrollInterval) clearInterval(autoScrollInterval);
-        startAutoScroll();
-    }
-    
-    // Pause auto-scroll on user interaction
-    container.addEventListener('touchstart', () => {
-        if (autoScrollInterval) clearInterval(autoScrollInterval);
-    }, { passive: true });
-    
-    container.addEventListener('touchend', () => {
-        startAutoScroll();
-    }, { passive: true });
-    
-    // Start auto-scroll
-    startAutoScroll();
-}
-
-function showTestimonialModal(testimonial) {
-    const stars = Array(5).fill(0).map((_, i) => 
-        `<span class="star ${i < testimonial.rating ? '' : 'empty'}">★</span>`
-    ).join('');
-    
-    const formattedDate = testimonial.date ? new Date(testimonial.date).toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-    }) : '';
-    
-    const imageSrc = testimonial.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=667eea&color=fff&size=100`;
-    
-    // Create modal
-    const modal = document.createElement('div');
-    modal.className = 'testimonial-modal';
-    modal.innerHTML = `
-        <div class="testimonial-modal-content">
-            <button class="testimonial-modal-close" onclick="this.closest('.testimonial-modal').remove()">&times;</button>
-            <div class="testimonial-modal-header">
-                <img src="${imageSrc}" alt="${testimonial.name}" class="testimonial-modal-avatar">
-                <div>
-                    <h4 class="testimonial-modal-name">${testimonial.name}</h4>
-                    ${testimonial.position ? `<p class="testimonial-modal-position">${testimonial.position}</p>` : ''}
-                    <div class="testimonial-modal-rating">${stars}</div>
-                </div>
-            </div>
-            <p class="testimonial-modal-comment">${testimonial.comment}</p>
-            <p class="testimonial-modal-date">${formattedDate}</p>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Close modal on background click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
-    
-    // Close modal on escape key
-    document.addEventListener('keydown', function closeOnEscape(e) {
-        if (e.key === 'Escape') {
-            modal.remove();
-            document.removeEventListener('keydown', closeOnEscape);
-        }
-    });
-}
-
 function initTestimonialCarousel() {
-    // Existing carousel logic for desktop
-    if (testimonialSlideInterval) clearInterval(testimonialSlideInterval);
-    
-    const container = document.getElementById('testimonialsContainer');
-    const sideCardWidth = 280;
-    const activeCardWidth = 650;
-    const gap = 30;
-    
-    function updateCarousel() {
-        const cards = container.querySelectorAll('.testimonial-card');
-        const totalCards = cards.length;
-        
-        // Calculate the offset to center the active card
-        let offset = 0;
-        cards.forEach((card, index) => {
-            const isActive = (index % testimonialsData.length) === (currentTestimonialSlide % testimonialsData.length);
-            const cardWidth = isActive ? activeCardWidth : sideCardWidth;
-            if (index < currentTestimonialSlide) {
-                offset -= cardWidth + gap;
-            }
-        });
-        
-        const carouselWidth = container.parentElement.offsetWidth;
-        const centerOffset = (carouselWidth / 2) - (activeCardWidth / 2);
-        offset += centerOffset;
-        
-        container.style.transform = `translateX(${offset}px)`;
-        updateCardStyles();
-    }
-    
-    function updateCardStyles() {
-        const cards = container.querySelectorAll('.testimonial-card');
-        cards.forEach((card, index) => {
-            card.classList.remove('active', 'prev', 'next');
-            
-            const realIndex = index % testimonialsData.length;
-            const activeIndex = currentTestimonialSlide % testimonialsData.length;
-            
-            if (realIndex === activeIndex) {
-                card.classList.add('active');
-            } else if (realIndex === (activeIndex - 1 + testimonialsData.length) % testimonialsData.length) {
-                card.classList.add('prev');
-            } else if (realIndex === (activeIndex + 1) % testimonialsData.length) {
-                card.classList.add('next');
-            }
-        });
-    }
-    
-    function nextSlide() {
-        currentTestimonialSlide++;
-        if (currentTestimonialSlide >= testimonialsData.length * 2) {
-            currentTestimonialSlide = testimonialsData.length;
-        }
-        updateCarousel();
-    }
-    
-    function prevSlide() {
-        currentTestimonialSlide--;
-        if (currentTestimonialSlide < testimonialsData.length) {
-            currentTestimonialSlide = testimonialsData.length * 2 - 1;
-        }
-        updateCarousel();
-    }
-    
-    // Auto-slide
-    testimonialSlideInterval = setInterval(nextSlide, 5000);
-    
-    // Button handlers
-    const prevBtn = document.getElementById('prevTestimonial');
-    const nextBtn = document.getElementById('nextTestimonial');
-    
-    if (prevBtn) prevBtn.onclick = prevSlide;
-    if (nextBtn) nextBtn.onclick = nextSlide;
-    
-    updateCarousel();
+    // Deprecated: 3D marquee replaces old carousel
 }
 
 function toggleReadMore(id) {
-    // Show testimonial in modal
-    const cards = document.querySelectorAll(`.testimonial-card[data-id="${id}"]`);
-    if (cards.length === 0) return;
-    
-    const card = cards[0];
-    const name = card.querySelector('.testimonial-name').textContent;
-    const position = card.querySelector('.testimonial-position')?.textContent || '';
-    const comment = card.querySelector('.testimonial-comment').getAttribute('data-full');
-    const imageSrc = card.querySelector('.testimonial-avatar').src;
-    const rating = card.querySelector('.testimonial-rating').innerHTML;
-    const date = card.querySelector('.testimonial-date').textContent;
-    
-    // Create modal
-    const modal = document.createElement('div');
-    modal.className = 'testimonial-modal';
-    modal.innerHTML = `
-        <div class="testimonial-modal-content">
-            <button class="testimonial-modal-close" onclick="this.closest('.testimonial-modal').remove()">&times;</button>
-            <div class="testimonial-modal-header">
-                <img src="${imageSrc}" alt="${name}" class="testimonial-modal-avatar">
-                <div>
-                    <h4 class="testimonial-modal-name">${name}</h4>
-                    ${position ? `<p class="testimonial-modal-position">${position}</p>` : ''}
-                    <div class="testimonial-modal-rating">${rating}</div>
-                </div>
-            </div>
-            <p class="testimonial-modal-comment">${comment}</p>
-            <p class="testimonial-modal-date">${date}</p>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Close modal on background click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
-    
-    // Close modal on escape key
-    document.addEventListener('keydown', function closeOnEscape(e) {
-        if (e.key === 'Escape') {
-            modal.remove();
-            document.removeEventListener('keydown', closeOnEscape);
-        }
-    });
+    // Deprecated: 3D marquee cards don't use read-more
 }
 
