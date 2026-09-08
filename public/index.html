@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Genius Computer Education</title>
-    <link rel="stylesheet" href="css/style.css?v=20260719">
+    <link rel="stylesheet" href="css/style.css?v=20260908">
     <link rel="stylesheet" href="css/premium.css?v=20260830">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -339,9 +339,17 @@
         </a>
     </div>
 
-    <footer class="footer">
+    <footer class="footer footer-redesign">
+        <div class="footer-bg-gradient"></div>
         <div class="container">
             <div class="footer-content">
+                <div class="footer-section footer-brand">
+                    <div class="footer-brand-logo">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Genius Computer Education</span>
+                    </div>
+                    <p class="footer-brand-desc">Empowering students with quality computer education and skills training.</p>
+                </div>
                 <div class="footer-section">
                     <h3 class="footer-accordion-toggle"><i class="fas fa-link"></i> Quick Links <i class="fas fa-chevron-down accordion-icon"></i></h3>
                     <ul class="footer-accordion-content">
@@ -377,10 +385,19 @@
                     <span class="app-btn-text">Download App <small>Android APK</small></span>
                 </a>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 Genius Computer Education. All rights reserved.</p>
+            <hr class="footer-divider">
+            <div class="footer-bottom-row">
+                <div class="footer-social">
+                    <a href="https://facebook.com" target="_blank" class="footer-social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://instagram.com" target="_blank" class="footer-social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="https://whatsapp.com" target="_blank" class="footer-social-icon" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                    <a href="https://youtube.com" target="_blank" class="footer-social-icon" title="YouTube"><i class="fab fa-youtube"></i></a>
+                    <a href="https://linkedin.com" target="_blank" class="footer-social-icon" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+                <p class="footer-bottom">&copy; 2026 Genius Computer Education. All rights reserved.</p>
             </div>
         </div>
+        <div class="footer-hover-text" data-text="GENIUS"></div>
     </footer>
 
     <!-- Floating Enquiry Button -->
@@ -647,6 +664,16 @@
                         
                         // Update mobile social bar links
                         document.querySelectorAll('.mobile-social-icon').forEach(icon => {
+                            const title = icon.getAttribute('title');
+                            if (title === 'Facebook') icon.href = sm.facebookUrl || 'https://facebook.com';
+                            if (title === 'Instagram') icon.href = sm.instagramUrl || 'https://instagram.com';
+                            if (title === 'WhatsApp') icon.href = sm.whatsappUrl || 'https://whatsapp.com';
+                            if (title === 'YouTube') icon.href = sm.youtubeUrl || 'https://youtube.com';
+                            if (title === 'LinkedIn') icon.href = sm.linkedinUrl || 'https://linkedin.com';
+                        });
+
+                        // Update footer social links
+                        document.querySelectorAll('.footer-social-icon').forEach(icon => {
                             const title = icon.getAttribute('title');
                             if (title === 'Facebook') icon.href = sm.facebookUrl || 'https://facebook.com';
                             if (title === 'Instagram') icon.href = sm.instagramUrl || 'https://instagram.com';
@@ -1004,5 +1031,6 @@
         });
     </script>
     <script src="/js/footer-app.js"></script>
+    <script src="/js/footer-hover.js"></script>
 </body>
 </html>
