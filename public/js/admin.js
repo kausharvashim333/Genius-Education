@@ -5983,22 +5983,33 @@ function getFileExt(fileName) {
 
 function renderStudyMaterialRow(m) {
     let html = '<tr>';
+    // Col 1: Checkbox
     html += '<td><input type="checkbox" class="study-material-checkbox" data-id="' + m.id + '" data-type="' + m.type + '"></td>';
-    html += '<td><strong>' + (m.title || '') + '</strong>';
-    if (m.submittedBy) html += '<br><small style="color:#64748b;">by ' + m.submittedBy + '</small>';
-    html += '</td>';
-    // Source column
+    // Col 2: Title + Source badge + Author
+    html += '<td><div style="display:flex;align-items:center;gap:8px;">';
     if (m.type === 'video') {
-        html += '<td><span style="display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,0.15);color:#fbbf24;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;"><i class="fas fa-video"></i> Video Doc</span>';
-        if (m.videoTitle) html += '<br><small style="color:#94a3b8;">' + m.videoTitle + '</small>';
-        html += '</td>';
+        html += '<span style="flex-shrink:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:7px;background:rgba(245,158,11,0.15);color:#fbbf24;font-size:12px;"><i class="fas fa-video"></i></span>';
     } else {
-        html += '<td><span style="display:inline-flex;align-items:center;gap:5px;background:rgba(102,126,234,0.15);color:#a5b4fc;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;"><i class="fas fa-file-alt"></i> Material</span></td>';
+        html += '<span style="flex-shrink:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:7px;background:rgba(102,126,234,0.15);color:#a5b4fc;font-size:12px;"><i class="fas fa-file-alt"></i></span>';
     }
+    html += '<div style="min-width:0;">';
+    html += '<strong style="font-size:13px;">' + (m.title || '') + '</strong>';
+    html += '<div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap;">';
+    if (m.type === 'video') {
+        html += '<span style="background:rgba(245,158,11,0.15);color:#fbbf24;padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;">Video Doc</span>';
+        if (m.videoTitle) html += '<span style="color:#94a3b8;font-size:11px;"><i class="fas fa-play-circle" style="font-size:9px;"></i> ' + m.videoTitle + '</span>';
+    } else {
+        html += '<span style="background:rgba(102,126,234,0.15);color:#a5b4fc;padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;">Material</span>';
+    }
+    html += '<span style="color:#64748b;font-size:11px;">by ' + (m.author || 'Admin') + '</span>';
+    if (m.submittedBy) html += '<span style="color:#64748b;font-size:11px;">&middot; ' + m.submittedBy + '</span>';
+    html += '</div></div></div></td>';
+    // Col 3: Course badges
     html += '<td>' + (m.courseList && m.courseList.length > 0 ? m.courseList.map(c => '<span style="display:inline-block;background:rgba(102,126,234,0.2);color:#a5b4fc;padding:2px 8px;border-radius:10px;font-size:11px;margin:2px;">' + c + '</span>').join('') : '<span style="color:#64748b;font-size:12px;">—</span>') + '</td>';
-    html += '<td>' + (m.category || 'General') + '</td>';
-    html += '<td>' + m.fileType + '</td>';
-    html += '<td>' + (m.author || 'Admin') + '</td>';
+    // Col 4: Category / Type combined
+    html += '<td><div style="font-size:12px;">' + (m.category || 'General') + '</div>';
+    html += '<span style="display:inline-block;background:rgba(255,255,255,0.08);color:#cbd5e1;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-top:2px;">' + m.fileType + '</span></td>';
+    // Col 5: Status
     html += '<td>';
     const status = m.status || 'approved';
     if (status === 'pending') {
@@ -6009,9 +6020,13 @@ function renderStudyMaterialRow(m) {
         html += '<span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Approved</span>';
     }
     html += '</td>';
-    html += '<td>' + (m.viewCount || 0) + '</td>';
-    html += '<td>' + (m.downloadCount || 0) + '</td>';
-    html += '<td style="white-space:nowrap;">';
+    // Col 6: Stats (Views + Downloads combined)
+    html += '<td style="text-align:center;white-space:nowrap;">';
+    html += '<div style="font-size:12px;color:#cbd5e1;"><i class="fas fa-eye" style="color:#64748b;font-size:10px;"></i> ' + (m.viewCount || 0) + '</div>';
+    html += '<div style="font-size:12px;color:#cbd5e1;margin-top:2px;"><i class="fas fa-download" style="color:#64748b;font-size:10px;"></i> ' + (m.downloadCount || 0) + '</div>';
+    html += '</td>';
+    // Col 7: Actions
+    html += '<td style="white-space:nowrap;text-align:center;">';
     if (status === 'pending') {
         html += '<button class="btn btn-success" onclick="approveStudyMaterial(\'' + m.id + '\')" title="Approve" style="padding:5px 8px;font-size:12px;background:#16a34a;"><i class="fas fa-check"></i></button> ';
         html += '<button class="btn btn-danger" onclick="rejectStudyMaterial(\'' + m.id + '\')" title="Reject" style="padding:5px 8px;font-size:12px;"><i class="fas fa-times"></i></button> ';
@@ -6036,7 +6051,7 @@ function renderStudyMaterialsRows() {
     });
 
     if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:30px;color:#94a3b8;">No study materials found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:#94a3b8;">No study materials found</td></tr>';
         return;
     }
 
@@ -6070,7 +6085,7 @@ function renderStudyMaterialsRows() {
             const chKey = 'smch-' + chIdx + '-' + chName.replace(/[^a-zA-Z0-9]/g, '_');
             // Chapter header row
             html += '<tr class="sm-chapter-header" onclick="toggleSmChapter(this,\'' + chKey + '\')" style="cursor:pointer;background:rgba(245,158,11,0.08);border-bottom:2px solid rgba(245,158,11,0.2);">';
-            html += '<td colspan="11" style="padding:10px 14px;">';
+            html += '<td colspan="7" style="padding:10px 14px;">';
             html += '<div style="display:flex;align-items:center;gap:10px;">';
             html += '<span style="width:28px;height:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(135deg,#f59e0b,#d97706);">' + (chIdx + 1) + '</span>';
             html += '<strong style="color:#fbbf24;font-size:14px;">' + chName + '</strong>';
@@ -6086,7 +6101,7 @@ function renderStudyMaterialsRows() {
                 const vidKey = chKey + '-vid-' + vIdx;
                 // Video sub-header row
                 html += '<tr class="sm-video-header" data-chapter="' + chKey + '" onclick="toggleSmVideo(this,\'' + vidKey + '\')" style="cursor:pointer;display:none;background:rgba(245,158,11,0.04);">';
-                html += '<td colspan="11" style="padding:8px 14px 8px 42px;">';
+                html += '<td colspan="7" style="padding:8px 14px 8px 42px;">';
                 html += '<div style="display:flex;align-items:center;gap:8px;">';
                 html += '<i class="fas fa-play-circle" style="color:#f59e0b;font-size:14px;"></i>';
                 html += '<strong style="color:#e2e8f0;font-size:13px;">' + vInfo.title + '</strong>';
