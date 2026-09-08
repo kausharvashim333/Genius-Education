@@ -8071,14 +8071,15 @@ app.get('/api/video-resources/all', (req, res) => {
     const chapterMap = {};
     chapters.forEach(c => { chapterMap[c.id] = c; });
     const courseMap = {};
-    courses.forEach(c => { courseMap[c.name] = c; });
+    courses.forEach(c => { courseMap[c.id] = c; });
 
     const enriched = resources.map(r => {
         const video = videoMap[r.videoId] || {};
         const chapter = video.chapterId ? (chapterMap[video.chapterId] || {}) : {};
-        const courseNames = Array.isArray(video.courseIds) && video.courseIds.length > 0
+        const courseIds = Array.isArray(video.courseIds) && video.courseIds.length > 0
             ? video.courseIds
             : (video.courseId ? [video.courseId] : []);
+        const courseNames = courseIds.map(id => (courseMap[id] || courseMap[String(id)] || {}).name).filter(Boolean);
         return {
             ...r,
             videoTitle: video.title || 'Unknown Video',
