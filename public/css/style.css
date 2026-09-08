@@ -9294,6 +9294,7 @@ a.ticker-item:hover { color: #fde68a; text-decoration: underline; }
 }
 .footer-brand-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .footer-brand-logo i { font-size: 28px; color: #3ca2fa; }
+.footer-brand-logo .footer-logo { height: 40px; width: auto; border-radius: 8px; }
 .footer-brand-logo span { font-size: 20px; font-weight: 700; color: #fff; }
 .footer-brand-desc { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.55); }
 .footer-divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 0; }
