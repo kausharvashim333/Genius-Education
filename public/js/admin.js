@@ -5964,7 +5964,9 @@ async function loadStudyMaterialsTable() {
                 url: r.fileUrl,
                 fileName: r.fileName,
                 fileSize: r.fileSize,
-                videoTitle: r.videoTitle
+                videoTitle: r.videoTitle || 'Unknown Video',
+                videoId: r.videoId,
+                chapterName: r.chapterName || 'Ungrouped'
             });
         });
 
@@ -5977,6 +5979,51 @@ async function loadStudyMaterialsTable() {
 function getFileExt(fileName) {
     const ext = String(fileName || '').split('.').pop();
     return ext ? ext.toUpperCase() : 'FILE';
+}
+
+function renderStudyMaterialRow(m) {
+    let html = '<tr>';
+    html += '<td><input type="checkbox" class="study-material-checkbox" data-id="' + m.id + '" data-type="' + m.type + '"></td>';
+    html += '<td><strong>' + (m.title || '') + '</strong>';
+    if (m.submittedBy) html += '<br><small style="color:#64748b;">by ' + m.submittedBy + '</small>';
+    html += '</td>';
+    // Source column
+    if (m.type === 'video') {
+        html += '<td><span style="display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,0.15);color:#fbbf24;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;"><i class="fas fa-video"></i> Video Doc</span>';
+        if (m.videoTitle) html += '<br><small style="color:#94a3b8;">' + m.videoTitle + '</small>';
+        html += '</td>';
+    } else {
+        html += '<td><span style="display:inline-flex;align-items:center;gap:5px;background:rgba(102,126,234,0.15);color:#a5b4fc;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;"><i class="fas fa-file-alt"></i> Material</span></td>';
+    }
+    html += '<td>' + (m.courseList && m.courseList.length > 0 ? m.courseList.map(c => '<span style="display:inline-block;background:rgba(102,126,234,0.2);color:#a5b4fc;padding:2px 8px;border-radius:10px;font-size:11px;margin:2px;">' + c + '</span>').join('') : '<span style="color:#64748b;font-size:12px;">—</span>') + '</td>';
+    html += '<td>' + (m.category || 'General') + '</td>';
+    html += '<td>' + m.fileType + '</td>';
+    html += '<td>' + (m.author || 'Admin') + '</td>';
+    html += '<td>';
+    const status = m.status || 'approved';
+    if (status === 'pending') {
+        html += '<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Pending</span>';
+    } else if (status === 'rejected') {
+        html += '<span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Rejected</span>';
+    } else {
+        html += '<span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Approved</span>';
+    }
+    html += '</td>';
+    html += '<td>' + (m.viewCount || 0) + '</td>';
+    html += '<td>' + (m.downloadCount || 0) + '</td>';
+    html += '<td style="white-space:nowrap;">';
+    if (status === 'pending') {
+        html += '<button class="btn btn-success" onclick="approveStudyMaterial(\'' + m.id + '\')" title="Approve" style="padding:5px 8px;font-size:12px;background:#16a34a;"><i class="fas fa-check"></i></button> ';
+        html += '<button class="btn btn-danger" onclick="rejectStudyMaterial(\'' + m.id + '\')" title="Reject" style="padding:5px 8px;font-size:12px;"><i class="fas fa-times"></i></button> ';
+    }
+    html += '<button class="btn" onclick="viewStudyMaterialItem(\'' + m.id + '\',\'' + m.type + '\')" title="View" style="padding:5px 8px;font-size:12px;background:#0ea5e9;color:#fff;"><i class="fas fa-eye"></i></button> ';
+    if (m.type === 'standalone') {
+        html += '<button class="btn" onclick="editStudyMaterial(\'' + m.id + '\')" title="Edit" style="padding:5px 8px;font-size:12px;background:#f59e0b;color:#fff;"><i class="fas fa-edit"></i></button> ';
+    }
+    html += '<button class="btn" onclick="deleteStudyMaterialItem(\'' + m.id + '\',\'' + m.type + '\')" title="Delete" style="padding:5px 8px;font-size:12px;"><i class="fas fa-trash"></i></button>';
+    html += '</td>';
+    html += '</tr>';
+    return html;
 }
 
 function renderStudyMaterialsRows() {
@@ -5993,50 +6040,98 @@ function renderStudyMaterialsRows() {
         return;
     }
 
-    tbody.innerHTML = rows.map(m => {
-        let html = '<tr>';
-        html += '<td><input type="checkbox" class="study-material-checkbox" data-id="' + m.id + '" data-type="' + m.type + '"></td>';
-        html += '<td><strong>' + (m.title || '') + '</strong>';
-        if (m.submittedBy) html += '<br><small style="color:#64748b;">by ' + m.submittedBy + '</small>';
-        html += '</td>';
-        // Source column
-        if (m.type === 'video') {
-            html += '<td><span style="display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,0.15);color:#fbbf24;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;"><i class="fas fa-video"></i> Video Doc</span>';
-            if (m.videoTitle) html += '<br><small style="color:#94a3b8;">' + m.videoTitle + '</small>';
+    const standalone = rows.filter(r => r.type === 'standalone');
+    const videoDocs = rows.filter(r => r.type === 'video');
+
+    let html = '';
+
+    // Standalone materials first
+    if (standalone.length) {
+        html += standalone.map(m => renderStudyMaterialRow(m)).join('');
+    }
+
+    // Video documents grouped by chapter → video → documents
+    if (videoDocs.length) {
+        // Group by chapterName
+        const chapterMap = {};
+        const chapterOrder = [];
+        videoDocs.forEach(r => {
+            const ch = r.chapterName || 'Ungrouped';
+            if (!chapterMap[ch]) { chapterMap[ch] = {}; chapterOrder.push(ch); }
+            const vidKey = String(r.videoId || r.videoTitle || 'unknown');
+            if (!chapterMap[ch][vidKey]) { chapterMap[ch][vidKey] = { title: r.videoTitle, docs: [] }; }
+            chapterMap[ch][vidKey].docs.push(r);
+        });
+
+        chapterOrder.forEach((chName, chIdx) => {
+            const chVideos = chapterMap[chName];
+            const videoKeys = Object.keys(chVideos);
+            const totalDocs = videoKeys.reduce((sum, vk) => sum + chVideos[vk].docs.length, 0);
+            const chKey = 'smch-' + chIdx + '-' + chName.replace(/[^a-zA-Z0-9]/g, '_');
+            // Chapter header row
+            html += '<tr class="sm-chapter-header" onclick="toggleSmChapter(this,\'' + chKey + '\')" style="cursor:pointer;background:rgba(245,158,11,0.08);border-bottom:2px solid rgba(245,158,11,0.2);">';
+            html += '<td colspan="11" style="padding:10px 14px;">';
+            html += '<div style="display:flex;align-items:center;gap:10px;">';
+            html += '<span style="width:28px;height:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(135deg,#f59e0b,#d97706);">' + (chIdx + 1) + '</span>';
+            html += '<strong style="color:#fbbf24;font-size:14px;">' + chName + '</strong>';
+            html += '<span style="background:rgba(245,158,11,0.2);color:#fbbf24;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600;">' + videoKeys.length + ' video' + (videoKeys.length === 1 ? '' : 's') + ' &middot; ' + totalDocs + ' doc' + (totalDocs === 1 ? '' : 's') + '</span>';
+            html += '<i class="fas fa-chevron-down sm-chapter-arrow" style="margin-left:auto;color:#fbbf24;font-size:12px;transition:transform 0.2s;"></i>';
+            html += '</div>';
             html += '</td>';
-        } else {
-            html += '<td><span style="display:inline-flex;align-items:center;gap:5px;background:rgba(102,126,234,0.15);color:#a5b4fc;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;"><i class="fas fa-file-alt"></i> Material</span></td>';
-        }
-        html += '<td>' + (m.courseList && m.courseList.length > 0 ? m.courseList.map(c => '<span style="display:inline-block;background:rgba(102,126,234,0.2);color:#a5b4fc;padding:2px 8px;border-radius:10px;font-size:11px;margin:2px;">' + c + '</span>').join('') : '<span style="color:#64748b;font-size:12px;">—</span>') + '</td>';
-        html += '<td>' + (m.category || 'General') + '</td>';
-        html += '<td>' + m.fileType + '</td>';
-        html += '<td>' + (m.author || 'Admin') + '</td>';
-        html += '<td>';
-        const status = m.status || 'approved';
-        if (status === 'pending') {
-            html += '<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Pending</span>';
-        } else if (status === 'rejected') {
-            html += '<span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Rejected</span>';
-        } else {
-            html += '<span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Approved</span>';
-        }
-        html += '</td>';
-        html += '<td>' + (m.viewCount || 0) + '</td>';
-        html += '<td>' + (m.downloadCount || 0) + '</td>';
-        html += '<td style="white-space:nowrap;">';
-        if (status === 'pending') {
-            html += '<button class="btn btn-success" onclick="approveStudyMaterial(\'' + m.id + '\')" title="Approve" style="padding:5px 8px;font-size:12px;background:#16a34a;"><i class="fas fa-check"></i></button> ';
-            html += '<button class="btn btn-danger" onclick="rejectStudyMaterial(\'' + m.id + '\')" title="Reject" style="padding:5px 8px;font-size:12px;"><i class="fas fa-times"></i></button> ';
-        }
-        html += '<button class="btn" onclick="viewStudyMaterialItem(\'' + m.id + '\',\'' + m.type + '\')" title="View" style="padding:5px 8px;font-size:12px;background:#0ea5e9;color:#fff;"><i class="fas fa-eye"></i></button> ';
-        if (m.type === 'standalone') {
-            html += '<button class="btn" onclick="editStudyMaterial(\'' + m.id + '\')" title="Edit" style="padding:5px 8px;font-size:12px;background:#f59e0b;color:#fff;"><i class="fas fa-edit"></i></button> ';
-        }
-        html += '<button class="btn" onclick="deleteStudyMaterialItem(\'' + m.id + '\',\'' + m.type + '\')" title="Delete" style="padding:5px 8px;font-size:12px;"><i class="fas fa-trash"></i></button>';
-        html += '</td>';
-        html += '</tr>';
-        return html;
-    }).join('');
+            html += '</tr>';
+
+            // Video sub-headers and their document rows
+            videoKeys.forEach((vk, vIdx) => {
+                const vInfo = chVideos[vk];
+                const vidKey = chKey + '-vid-' + vIdx;
+                // Video sub-header row
+                html += '<tr class="sm-video-header" data-chapter="' + chKey + '" onclick="toggleSmVideo(this,\'' + vidKey + '\')" style="cursor:pointer;display:none;background:rgba(245,158,11,0.04);">';
+                html += '<td colspan="11" style="padding:8px 14px 8px 42px;">';
+                html += '<div style="display:flex;align-items:center;gap:8px;">';
+                html += '<i class="fas fa-play-circle" style="color:#f59e0b;font-size:14px;"></i>';
+                html += '<strong style="color:#e2e8f0;font-size:13px;">' + vInfo.title + '</strong>';
+                html += '<span style="background:rgba(245,158,11,0.15);color:#fbbf24;padding:1px 8px;border-radius:8px;font-size:10px;font-weight:600;">' + vInfo.docs.length + ' doc' + (vInfo.docs.length === 1 ? '' : 's') + '</span>';
+                html += '<i class="fas fa-chevron-down sm-video-arrow" style="margin-left:auto;color:#94a3b8;font-size:11px;transition:transform 0.2s;"></i>';
+                html += '</div>';
+                html += '</td>';
+                html += '</tr>';
+                // Document rows under this video
+                html += vInfo.docs.map(m => {
+                    const rowHtml = renderStudyMaterialRow(m);
+                    return rowHtml.replace('<tr ', '<tr class="sm-video-body-row" data-chapter="' + chKey + '" data-video="' + vidKey + '" style="display:none;" ');
+                }).join('');
+            });
+        });
+    }
+
+    tbody.innerHTML = html;
+}
+
+function toggleSmChapter(headerRow, chKey) {
+    const parent = headerRow.parentNode;
+    const videoHeaders = parent.querySelectorAll('tr.sm-video-header[data-chapter="' + chKey + '"]');
+    const isHidden = videoHeaders.length > 0 && videoHeaders[0].style.display === 'none';
+    videoHeaders.forEach(r => r.style.display = isHidden ? '' : 'none');
+    // Also show/hide video body rows
+    const videoBodies = parent.querySelectorAll('tr.sm-video-body-row[data-chapter="' + chKey + '"]');
+    if (isHidden) {
+        // When opening chapter, show video headers but keep video bodies hidden
+        videoBodies.forEach(r => r.style.display = 'none');
+    } else {
+        // When closing chapter, hide everything
+        videoBodies.forEach(r => r.style.display = 'none');
+    }
+    const arrow = headerRow.querySelector('.sm-chapter-arrow');
+    if (arrow) arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function toggleSmVideo(headerRow, vidKey) {
+    const parent = headerRow.parentNode;
+    const bodyRows = parent.querySelectorAll('tr.sm-video-body-row[data-video="' + vidKey + '"]');
+    const isHidden = bodyRows.length > 0 && bodyRows[0].style.display === 'none';
+    bodyRows.forEach(r => r.style.display = isHidden ? '' : 'none');
+    const arrow = headerRow.querySelector('.sm-video-arrow');
+    if (arrow) arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
 }
 
 function filterStudyMaterialsBySource(filter) {
