@@ -669,6 +669,39 @@
         }
         #studentsTable tbody tr:last-child td { border-bottom: none; }
 
+        /* Materials Table — same glassmorphism as studentsTable */
+        #materialsTable thead th {
+            position: sticky; top: 0; z-index: 10;
+            background: rgba(102,126,234,0.25);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            color: #fff;
+            font-weight: 600;
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        #materialsTable tbody tr {
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.2s ease;
+        }
+        #materialsTable tbody tr:hover {
+            background: rgba(102,126,234,0.12);
+        }
+        #materialsTable tbody td {
+            color: rgba(255,255,255,0.9);
+            padding: 12px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        #materialsTable tbody tr:last-child td { border-bottom: none; }
+        #materialsTable .sm-chapter-header, #materialsTable .sm-video-header { cursor: pointer; }
+        #materialsTable .sm-video-header { display: none; }
+        #materialsTable .sm-video-body-row { display: none; }
+
         /* Pagination */
         .pagination-container { display: flex; align-items: center; gap: 6px; padding: 14px 8px; flex-wrap: wrap; }
         .pagination-btn {
@@ -1212,13 +1245,20 @@
 
                 <div id="materialsContent" class="faculty-content-section">
                     <h3>Study Materials</h3>
-                    <div style="margin-bottom:15px;">
+                    <div style="margin-bottom:15px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
                         <button class="btn btn-primary" onclick="openFacultyMaterialModal()"><i class="fas fa-plus"></i> Add Study Material</button>
                     </div>
-                    <table class="data-table" id="materialsTable">
-                        <thead><tr><th>Title</th><th>Course</th><th>Type</th><th>Author</th><th>Status</th><th>Action</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+                    <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="btn" onclick="filterFacultyMaterialsBySource('all')" id="facultyFilterAllBtn" style="background:#667eea;color:#fff;font-size:12px;padding:6px 14px;">All</button>
+                        <button class="btn" onclick="filterFacultyMaterialsBySource('standalone')" id="facultyFilterStandaloneBtn" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);font-size:12px;padding:6px 14px;">Standalone Materials</button>
+                        <button class="btn" onclick="filterFacultyMaterialsBySource('video')" id="facultyFilterVideoBtn" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);font-size:12px;padding:6px 14px;">Video Documents</button>
+                    </div>
+                    <div class="table-scroll-wrapper">
+                        <table id="materialsTable" style="width:100%;border-collapse:separate;border-spacing:0;">
+                            <thead><tr><th>Title</th><th>Course</th><th>Category / Type</th><th>Status</th><th style="text-align:center;">Stats</th><th style="text-align:center;">Actions</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <div id="resultsContent" class="faculty-content-section">

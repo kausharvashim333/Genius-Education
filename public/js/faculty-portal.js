@@ -810,39 +810,237 @@ async function loadNotices() {
     }
 }
 
+// ===== Study Materials (Admin-style: standalone + video documents) =====
+let _facultyAllMaterials = [];
+let _facultyMaterialFilter = 'all';
+
+function _getFileExt(fileName) {
+    const ext = String(fileName || '').split('.').pop();
+    return ext ? ext.toUpperCase() : 'FILE';
+}
+
 async function loadMaterials() {
+    const tbody = document.getElementById('materialsTable').querySelector('tbody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#94a3b8;">Loading study materials...</td></tr>';
     try {
-        const response = await fetch('/api/study-materials').then(r => r.json());
-        const materials = response.materials || [];
-        const materialsTable = document.getElementById('materialsTable');
-        
-        if (materials.length === 0) {
-            materialsTable.querySelector('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">No study materials found.</td></tr>';
-            return;
-        }
-        
-        materialsTable.querySelector('tbody').innerHTML = materials.map(material => {
-            const status = material.status || 'approved';
-            const statusBadge = status === 'pending' 
-                ? '<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Pending</span>'
-                : status === 'rejected'
-                ? '<span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Rejected</span>'
-                : '<span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Approved</span>';
-            return `
-            <tr>
-                <td>${material.title}</td>
-                <td>${material.course || 'N/A'}</td>
-                <td>${material.type || 'N/A'}</td>
-                <td>${material.author || 'N/A'}</td>
-                <td>${statusBadge}</td>
-                <td>
-                    <a href="${material.url}" target="_blank" class="btn btn-primary" style="padding:6px 12px;font-size:12px;">View</a>
-                </td>
-            </tr>`;
-        }).join('');
+        const [matRes, vidRes] = await Promise.all([
+            fetch('/api/study-materials').then(r => r.json()).catch(() => ({ materials: [] })),
+            fetch('/api/video-resources/all').then(r => r.json()).catch(() => ({ resources: [] }))
+        ]);
+
+        const materials = (matRes && matRes.success && Array.isArray(matRes.materials)) ? matRes.materials : [];
+        const vidResources = (vidRes && vidRes.success && Array.isArray(vidRes.resources)) ? vidRes.resources : [];
+
+        _facultyAllMaterials = [];
+
+        // Standalone materials
+        materials.forEach(m => {
+            const courseList = Array.isArray(m.courses) && m.courses.length > 0 ? m.courses : (m.course ? m.course.split(',').map(c => c.trim()) : []);
+            _facultyAllMaterials.push({
+                type: 'standalone',
+                id: m.id,
+                title: m.title,
+                courseList,
+                category: m.category || 'General',
+                fileType: (m.type || '').toUpperCase(),
+                author: m.author || 'Admin',
+                status: m.status || 'approved',
+                viewCount: m.viewCount || 0,
+                downloadCount: m.downloadCount || 0,
+                url: m.url,
+                submittedBy: m.submittedBy
+            });
+        });
+
+        // Video resources
+        vidResources.forEach(r => {
+            _facultyAllMaterials.push({
+                type: 'video',
+                id: r.id,
+                title: r.title || r.fileName,
+                courseList: r.courseNames || [],
+                category: r.chapterName || 'Ungrouped',
+                fileType: _getFileExt(r.fileName),
+                author: 'Video Document',
+                status: 'approved',
+                viewCount: 0,
+                downloadCount: 0,
+                url: r.fileUrl,
+                fileName: r.fileName,
+                videoTitle: r.videoTitle || 'Unknown Video',
+                videoId: r.videoId,
+                chapterName: r.chapterName || 'Ungrouped'
+            });
+        });
+
+        renderFacultyMaterials();
     } catch (e) {
         console.error('Error loading materials:', e);
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#94a3b8;">Error loading study materials</td></tr>';
     }
+}
+
+function _renderFacultyMaterialRow(m) {
+    let html = '<tr>';
+    // Col 1: Title + Source badge + Author
+    html += '<td><div style="display:flex;align-items:center;gap:8px;">';
+    if (m.type === 'video') {
+        html += '<span style="flex-shrink:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:7px;background:rgba(245,158,11,0.15);color:#fbbf24;font-size:12px;"><i class="fas fa-video"></i></span>';
+    } else {
+        html += '<span style="flex-shrink:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:7px;background:rgba(102,126,234,0.15);color:#a5b4fc;font-size:12px;"><i class="fas fa-file-alt"></i></span>';
+    }
+    html += '<div style="min-width:0;">';
+    html += '<strong style="font-size:13px;">' + (m.title || '') + '</strong>';
+    html += '<div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap;">';
+    if (m.type === 'video') {
+        html += '<span style="background:rgba(245,158,11,0.15);color:#fbbf24;padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;">Video Doc</span>';
+        if (m.videoTitle) html += '<span style="color:#94a3b8;font-size:11px;"><i class="fas fa-play-circle" style="font-size:9px;"></i> ' + m.videoTitle + '</span>';
+    } else {
+        html += '<span style="background:rgba(102,126,234,0.15);color:#a5b4fc;padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;">Material</span>';
+    }
+    html += '<span style="color:#64748b;font-size:11px;">by ' + (m.author || 'Admin') + '</span>';
+    if (m.submittedBy) html += '<span style="color:#64748b;font-size:11px;">&middot; ' + m.submittedBy + '</span>';
+    html += '</div></div></div></td>';
+    // Col 2: Course badges
+    html += '<td>' + (m.courseList && m.courseList.length > 0 ? m.courseList.map(c => '<span style="display:inline-block;background:rgba(102,126,234,0.2);color:#a5b4fc;padding:2px 8px;border-radius:10px;font-size:11px;margin:2px;">' + c + '</span>').join('') : '<span style="color:#64748b;font-size:12px;">—</span>') + '</td>';
+    // Col 3: Category / Type
+    html += '<td><div style="font-size:12px;">' + (m.category || 'General') + '</div>';
+    html += '<span style="display:inline-block;background:rgba(255,255,255,0.08);color:#cbd5e1;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-top:2px;">' + m.fileType + '</span></td>';
+    // Col 4: Status
+    html += '<td>';
+    const status = m.status || 'approved';
+    if (status === 'pending') {
+        html += '<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Pending</span>';
+    } else if (status === 'rejected') {
+        html += '<span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Rejected</span>';
+    } else {
+        html += '<span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">Approved</span>';
+    }
+    html += '</td>';
+    // Col 5: Stats
+    html += '<td style="text-align:center;white-space:nowrap;">';
+    html += '<div style="font-size:12px;color:#cbd5e1;"><i class="fas fa-eye" style="color:#64748b;font-size:10px;"></i> ' + (m.viewCount || 0) + '</div>';
+    html += '<div style="font-size:12px;color:#cbd5e1;margin-top:2px;"><i class="fas fa-download" style="color:#64748b;font-size:10px;"></i> ' + (m.downloadCount || 0) + '</div>';
+    html += '</td>';
+    // Col 6: Actions
+    html += '<td style="white-space:nowrap;text-align:center;">';
+    if (m.url) {
+        html += '<a href="' + m.url + '" target="_blank" class="btn" title="View" style="padding:5px 8px;font-size:12px;background:#0ea5e9;color:#fff;text-decoration:none;display:inline-block;">View</a> ';
+    }
+    html += '</td>';
+    html += '</tr>';
+    return html;
+}
+
+function renderFacultyMaterials() {
+    const tbody = document.getElementById('materialsTable').querySelector('tbody');
+    const rows = _facultyAllMaterials.filter(r => {
+        if (_facultyMaterialFilter === 'all') return true;
+        if (_facultyMaterialFilter === 'standalone') return r.type === 'standalone';
+        if (_facultyMaterialFilter === 'video') return r.type === 'video';
+        return true;
+    });
+
+    if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#94a3b8;">No study materials found</td></tr>';
+        return;
+    }
+
+    const standalone = rows.filter(r => r.type === 'standalone');
+    const videoDocs = rows.filter(r => r.type === 'video');
+
+    let html = '';
+
+    // Standalone materials first
+    if (standalone.length) {
+        html += standalone.map(m => _renderFacultyMaterialRow(m)).join('');
+    }
+
+    // Video documents grouped by chapter → video → documents
+    if (videoDocs.length) {
+        const chapterMap = {};
+        const chapterOrder = [];
+        videoDocs.forEach(r => {
+            const ch = r.chapterName || 'Ungrouped';
+            if (!chapterMap[ch]) { chapterMap[ch] = {}; chapterOrder.push(ch); }
+            const vidKey = String(r.videoId || r.videoTitle || 'unknown');
+            if (!chapterMap[ch][vidKey]) { chapterMap[ch][vidKey] = { title: r.videoTitle, docs: [] }; }
+            chapterMap[ch][vidKey].docs.push(r);
+        });
+
+        chapterOrder.forEach((chName, chIdx) => {
+            const chVideos = chapterMap[chName];
+            const videoKeys = Object.keys(chVideos);
+            const totalDocs = videoKeys.reduce((sum, vk) => sum + chVideos[vk].docs.length, 0);
+            const chKey = 'fsmch-' + chIdx + '-' + chName.replace(/[^a-zA-Z0-9]/g, '_');
+            // Chapter header row
+            html += '<tr class="sm-chapter-header" onclick="toggleFsmChapter(this,\'' + chKey + '\')" style="cursor:pointer;background:rgba(245,158,11,0.08);border-bottom:2px solid rgba(245,158,11,0.2);">';
+            html += '<td colspan="6" style="padding:10px 14px;">';
+            html += '<div style="display:flex;align-items:center;gap:10px;">';
+            html += '<span style="width:28px;height:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(135deg,#f59e0b,#d97706);">' + (chIdx + 1) + '</span>';
+            html += '<strong style="color:#fbbf24;font-size:14px;">' + chName + '</strong>';
+            html += '<span style="background:rgba(245,158,11,0.2);color:#fbbf24;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600;">' + videoKeys.length + ' video' + (videoKeys.length === 1 ? '' : 's') + ' &middot; ' + totalDocs + ' doc' + (totalDocs === 1 ? '' : 's') + '</span>';
+            html += '<i class="fas fa-chevron-down sm-chapter-arrow" style="margin-left:auto;color:#fbbf24;font-size:12px;transition:transform 0.2s;"></i>';
+            html += '</div>';
+            html += '</td>';
+            html += '</tr>';
+
+            // Video sub-headers and their document rows
+            videoKeys.forEach((vk, vIdx) => {
+                const vInfo = chVideos[vk];
+                const vidKey = chKey + '-vid-' + vIdx;
+                // Video sub-header row
+                html += '<tr class="sm-video-header" data-chapter="' + chKey + '" onclick="toggleFsmVideo(this,\'' + vidKey + '\')" style="cursor:pointer;display:none;background:rgba(245,158,11,0.04);">';
+                html += '<td colspan="6" style="padding:8px 14px 8px 42px;">';
+                html += '<div style="display:flex;align-items:center;gap:8px;">';
+                html += '<i class="fas fa-play-circle" style="color:#f59e0b;font-size:14px;"></i>';
+                html += '<strong style="color:#e2e8f0;font-size:13px;">' + vInfo.title + '</strong>';
+                html += '<span style="background:rgba(245,158,11,0.15);color:#fbbf24;padding:1px 8px;border-radius:8px;font-size:10px;font-weight:600;">' + vInfo.docs.length + ' doc' + (vInfo.docs.length === 1 ? '' : 's') + '</span>';
+                html += '<i class="fas fa-chevron-down sm-video-arrow" style="margin-left:auto;color:#94a3b8;font-size:11px;transition:transform 0.2s;"></i>';
+                html += '</div>';
+                html += '</td>';
+                html += '</tr>';
+                // Document rows under this video
+                html += vInfo.docs.map(m => {
+                    const rowHtml = _renderFacultyMaterialRow(m);
+                    return rowHtml.replace('<tr>', '<tr class="sm-video-body-row" data-chapter="' + chKey + '" data-video="' + vidKey + '" style="display:none;">');
+                }).join('');
+            });
+        });
+    }
+
+    tbody.innerHTML = html;
+}
+
+function toggleFsmChapter(headerRow, chKey) {
+    const parent = headerRow.parentNode;
+    const videoHeaders = parent.querySelectorAll('tr.sm-video-header[data-chapter="' + chKey + '"]');
+    const isHidden = videoHeaders.length > 0 && videoHeaders[0].style.display === 'none';
+    videoHeaders.forEach(r => r.style.display = isHidden ? '' : 'none');
+    const videoBodies = parent.querySelectorAll('tr.sm-video-body-row[data-chapter="' + chKey + '"]');
+    videoBodies.forEach(r => r.style.display = 'none');
+    const arrow = headerRow.querySelector('.sm-chapter-arrow');
+    if (arrow) arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function toggleFsmVideo(headerRow, vidKey) {
+    const parent = headerRow.parentNode;
+    const bodyRows = parent.querySelectorAll('tr.sm-video-body-row[data-video="' + vidKey + '"]');
+    const isHidden = bodyRows.length > 0 && bodyRows[0].style.display === 'none';
+    bodyRows.forEach(r => r.style.display = isHidden ? '' : 'none');
+    const arrow = headerRow.querySelector('.sm-video-arrow');
+    if (arrow) arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function filterFacultyMaterialsBySource(filter) {
+    _facultyMaterialFilter = filter;
+    const allBtn = document.getElementById('facultyFilterAllBtn');
+    const standaloneBtn = document.getElementById('facultyFilterStandaloneBtn');
+    const videoBtn = document.getElementById('facultyFilterVideoBtn');
+    if (allBtn) { allBtn.style.background = filter === 'all' ? '#667eea' : 'rgba(255,255,255,0.1)'; allBtn.style.color = filter === 'all' ? '#fff' : 'rgba(255,255,255,0.7)'; }
+    if (standaloneBtn) { standaloneBtn.style.background = filter === 'standalone' ? '#667eea' : 'rgba(255,255,255,0.1)'; standaloneBtn.style.color = filter === 'standalone' ? '#fff' : 'rgba(255,255,255,0.7)'; }
+    if (videoBtn) { videoBtn.style.background = filter === 'video' ? '#667eea' : 'rgba(255,255,255,0.1)'; videoBtn.style.color = filter === 'video' ? '#fff' : 'rgba(255,255,255,0.7)'; }
+    renderFacultyMaterials();
 }
 
 async function openFacultyMaterialModal() {
