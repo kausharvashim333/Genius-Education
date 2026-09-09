@@ -7,6 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "test": "node --test lead-assignment.test.js",
+    "test:browser": "RUN_BROWSER_TESTS=1 node --test lead-assignment.test.js",
     "electron": "electron .",
     "electron:dev": "electron .",
     "build:mac": "electron-builder --mac",

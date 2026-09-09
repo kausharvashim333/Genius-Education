@@ -104,10 +104,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const password = document.getElementById('facultyPassword').value;
             
             try {
-                const res = await fetch('/api/faculty-login', {
+                const res = await fetch('/api/faculty/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email, password, totpToken: document.getElementById('facultyTotpToken').value.trim() })
                 });
                 const data = await res.json();
                 
@@ -116,7 +116,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     localStorage.setItem('facultySession', JSON.stringify(currentFaculty));
                     showDashboard();
                 } else {
-                    alert('Invalid credentials!');
+                    if (data.requiresTwoFactor) {
+                        document.getElementById('facultyTotpGroup').hidden = false;
+                        document.getElementById('facultyTotpToken').focus();
+                    }
+                    alert(data.message || 'Invalid credentials!');
                 }
             } catch (err) {
                 console.error('Login error:', err);
@@ -127,18 +131,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if already logged in
     const savedSession = localStorage.getItem('facultySession');
-    if (savedSession) {
-        currentFaculty = JSON.parse(savedSession);
-        showDashboard();
-    }
+    if (savedSession && !new URLSearchParams(window.location.search).has('auth')) showDashboard();
     
     // Check for OAuth callback
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('auth') === 'success') {
-        const facultyData = JSON.parse(decodeURIComponent(urlParams.get('data')));
-        currentFaculty = facultyData;
-        localStorage.setItem('facultySession', JSON.stringify(currentFaculty));
-        window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
         showDashboard();
     }
 });
@@ -211,11 +209,10 @@ async function verifyOTP() {
 }
 
 async function showDashboard() {
+    // Refresh faculty data from server to get latest permissions
+    if (!await refreshFacultyData()) return;
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('dashboardSection').classList.remove('hidden');
-    
-    // Refresh faculty data from server to get latest permissions
-    await refreshFacultyData();
     
     document.getElementById('facultyName').textContent = currentFaculty.name;
     document.getElementById('facultyRole').textContent = 'Role: ' + currentFaculty.role;
@@ -227,21 +224,26 @@ async function showDashboard() {
     
     loadFacultyMenu();
     loadFacultyStats();
+    if (window.location.hash === '#leads') showSection('leads');
 }
 
 async function refreshFacultyData() {
-    if (!currentFaculty || !currentFaculty.id) return;
     try {
-        const res = await fetch('/api/faculty/' + currentFaculty.id + '/me');
+        const res = await fetch('/api/faculty-auth/me');
         const data = await res.json();
-        if (data.success && data.user) {
+        if (res.ok && data.success && data.user) {
             // Merge new data, preserve any client-only fields
             currentFaculty = { ...currentFaculty, ...data.user };
             localStorage.setItem('facultySession', JSON.stringify(currentFaculty));
+            return true;
         }
+        resetFacultySession();
+        alert(data.message || 'Please log in again.');
     } catch (err) {
         console.warn('Could not refresh faculty data:', err);
+        alert('Unable to verify your session. Please try again.');
     }
+    return false;
 }
 
 function showPasswordChangeModal() {
@@ -303,12 +305,30 @@ async function handlePasswordChange(event) {
     }
 }
 
-function logout() {
+async function logout() {
+    try {
+        const res = await fetch('/api/faculty-auth/logout', { method: 'POST' });
+        if (!res.ok) throw new Error('Logout failed');
+        resetFacultySession();
+    } catch (err) {
+        alert('Unable to log out. Please try again.');
+    }
+}
+
+function resetFacultySession() {
     localStorage.removeItem('facultySession');
     currentFaculty = null;
+    facultyLeads = [];
+    facultyLeadLoadVersion++;
+    closeFacultyLead();
+    document.querySelector('#facultyLeadsTable tbody').replaceChildren();
+    document.getElementById('facultyLeadSummary').replaceChildren();
+    document.getElementById('facultyLeadsPagination').replaceChildren();
+    document.getElementById('facultyLeadMessage').textContent = '';
     document.getElementById('loginSection').classList.remove('hidden');
     document.getElementById('dashboardSection').classList.add('hidden');
     document.getElementById('facultyLoginForm').reset();
+    document.getElementById('facultyTotpGroup').hidden = true;
 }
 
 // ===== Forgot Password Functions =====
@@ -423,6 +443,7 @@ function loadFacultyMenu() {
 
     // Dashboard - always visible
     menuHTML += '<li><a href="#" onclick="showSection(\'dashboard\')"><i class="fas fa-home"></i> Dashboard</a></li>';
+    menuHTML += '<li><a href="#leads" onclick="showSection(\'leads\'); return false;"><i class="fas fa-user-tag"></i> My Leads</a></li>';
 
     // Permission-based menu items
     if (hasPermission('students')) {
@@ -548,6 +569,7 @@ function showSection(section) {
         'materials': 'Study Materials',
         'results': 'Exam Results',
         'enquiries': 'Enquiries',
+        'leads': 'My Leads',
         'notices': 'Notices',
         'fees': 'Fee Collection',
         'documents': 'Student Documents',
@@ -560,6 +582,7 @@ function showSection(section) {
     document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
 
     // Load section-specific data
+    if (section === 'leads') loadFacultyLeads();
     if (section === 'students') loadStudents();
     if (section === 'assignments') loadAssignments();
     if (section === 'attendance') {
@@ -575,6 +598,193 @@ function showSection(section) {
     if (section === 'pendingBlogs') loadPendingBlogs();
     if (section === 'blogComments') loadBlogComments();
     if (section === 'entranceStudentRegistration') loadEntranceStudentRegistration();
+}
+
+let facultyLeads = [];
+let facultyLeadPage = 1;
+let facultyLeadLoadVersion = 0;
+let facultyLeadDetailVersion = 0;
+const FACULTY_LEAD_STATUSES = ['New', 'Contacted', 'Interested', 'Visit Scheduled', 'Application Submitted', 'Admitted', 'Lost'];
+
+function escapeFacultyLead(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+}
+
+function facultyLeadToday() {
+    const date = new Date();
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function facultyLeadCourses(lead) {
+    return lead.courses || (Array.isArray(lead.interestedCourses) ? lead.interestedCourses.join(', ') : '') || '-';
+}
+
+async function facultyLeadRequest(url, options) {
+    const res = await fetch(url, options);
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+        const error = new Error(data.error || data.message || 'Unable to load leads');
+        error.status = res.status;
+        if (res.status === 401) {
+            resetFacultySession();
+            alert(error.message);
+        }
+        throw error;
+    }
+    return data;
+}
+
+async function loadFacultyLeads() {
+    if (!currentFaculty) return;
+    const version = ++facultyLeadLoadVersion;
+    closeFacultyLead();
+    document.getElementById('facultyLeadMessage').textContent = 'Loading your leads...';
+    const filter = document.getElementById('facultyLeadStatusFilter');
+    if (filter.options.length === 1) FACULTY_LEAD_STATUSES.forEach(status => filter.add(new Option(status, status)));
+    try {
+        const data = await facultyLeadRequest('/api/faculty-leads');
+        if (version !== facultyLeadLoadVersion || !currentFaculty) return;
+        facultyLeads = data.leads;
+        renderFacultyLeads();
+        document.getElementById('facultyLeadMessage').textContent = `${facultyLeads.length} assigned lead(s).`;
+    } catch (err) {
+        if (version !== facultyLeadLoadVersion || !currentFaculty) return;
+        facultyLeads = [];
+        renderFacultyLeads();
+        document.getElementById('facultyLeadMessage').textContent = err.message + ' Use Refresh to retry.';
+    }
+}
+
+function renderFacultyLeads(resetPage = true) {
+    if (resetPage) facultyLeadPage = 1;
+    const today = facultyLeadToday();
+    const active = lead => !['Admitted', 'Lost'].includes(lead.status);
+    const summary = [
+        ['Assigned Leads', facultyLeads.length],
+        ['Open Leads', facultyLeads.filter(active).length],
+        ['Due Today', facultyLeads.filter(l => active(l) && l.followUpDate === today).length],
+        ['Overdue', facultyLeads.filter(l => active(l) && l.followUpDate && l.followUpDate < today).length]
+    ];
+    document.getElementById('facultyLeadSummary').innerHTML = summary.map(([label, count]) => `<div><strong>${count}</strong><span>${label}</span></div>`).join('');
+    const search = document.getElementById('facultyLeadSearch').value.trim().toLowerCase();
+    const status = document.getElementById('facultyLeadStatusFilter').value;
+    const due = document.getElementById('facultyLeadDueFilter').value;
+    const filtered = facultyLeads.filter(lead => {
+        if (status && lead.status !== status) return false;
+        if (search && ![lead.name, lead.phone, lead.email, facultyLeadCourses(lead)].join(' ').toLowerCase().includes(search)) return false;
+        if (due && (!active(lead) || !lead.followUpDate)) return false;
+        if (due === 'today' && lead.followUpDate !== today) return false;
+        if (due === 'overdue' && lead.followUpDate >= today) return false;
+        if (due === 'upcoming' && lead.followUpDate <= today) return false;
+        return true;
+    }).sort((a, b) => (a.followUpDate || '9999').localeCompare(b.followUpDate || '9999'));
+    const pages = Math.max(1, Math.ceil(filtered.length / 25));
+    facultyLeadPage = Math.min(facultyLeadPage, pages);
+    const visible = filtered.slice((facultyLeadPage - 1) * 25, facultyLeadPage * 25);
+    const tbody = document.querySelector('#facultyLeadsTable tbody');
+    tbody.innerHTML = visible.map((lead, index) => {
+        const phone = String(lead.phone || '').replace(/[^\d+]/g, '');
+        const dueLabel = active(lead) && lead.followUpDate ? lead.followUpDate < today ? ' · Overdue' : lead.followUpDate === today ? ' · Today' : '' : '';
+        return `<tr>
+            <td><strong>${escapeFacultyLead(lead.name)}</strong><br><small>${escapeFacultyLead(facultyLeadCourses(lead))}</small></td>
+            <td>${phone ? `<a href="tel:${escapeFacultyLead(phone)}">${escapeFacultyLead(lead.phone)}</a>` : '-'}<br><small>${escapeFacultyLead(lead.email)}</small></td>
+            <td>${escapeFacultyLead(lead.status || 'New')}</td><td>${escapeFacultyLead(lead.priority || 'Warm')}</td>
+            <td>${escapeFacultyLead((lead.followUpDate || '-') + ' ' + (lead.followUpTime || '') + dueLabel)}</td>
+            <td><button class="btn btn-primary" data-lead-index="${index}">View / Update</button></td>
+        </tr>`;
+    }).join('') || '<tr><td colspan="6">No assigned leads match these filters.</td></tr>';
+    tbody.querySelectorAll('[data-lead-index]').forEach(button => {
+        button.onclick = () => openFacultyLead(visible[Number(button.dataset.leadIndex)].id);
+    });
+    document.getElementById('facultyLeadsPagination').innerHTML = `<button class="btn btn-secondary" ${facultyLeadPage <= 1 ? 'disabled' : ''} onclick="changeFacultyLeadPage(-1)">Previous</button><span>Page ${facultyLeadPage} of ${pages} · ${filtered.length} leads</span><button class="btn btn-secondary" ${facultyLeadPage >= pages ? 'disabled' : ''} onclick="changeFacultyLeadPage(1)">Next</button>`;
+}
+
+function changeFacultyLeadPage(delta) {
+    facultyLeadPage = Math.max(1, facultyLeadPage + delta);
+    renderFacultyLeads(false);
+}
+
+function closeFacultyLead() {
+    facultyLeadDetailVersion++;
+    document.getElementById('facultyLeadEditor').hidden = true;
+    document.getElementById('facultyLeadForm').reset();
+    document.getElementById('facultyLeadId').value = '';
+    document.getElementById('facultyLeadHistory').replaceChildren();
+    document.getElementById('facultyLeadContact').replaceChildren();
+    document.getElementById('facultyLeadTitle').textContent = 'Lead Details';
+}
+
+async function openFacultyLead(id) {
+    closeFacultyLead();
+    const version = facultyLeadDetailVersion;
+    document.getElementById('facultyLeadMessage').textContent = 'Loading lead details...';
+    try {
+        const data = await facultyLeadRequest('/api/faculty-leads/' + encodeURIComponent(id));
+        if (version !== facultyLeadDetailVersion || !currentFaculty) return;
+        displayFacultyLead(data.lead);
+        document.getElementById('facultyLeadMessage').textContent = '';
+        document.getElementById('facultyLeadTitle').focus();
+    } catch (err) {
+        if (err.status === 404) await loadFacultyLeads();
+        document.getElementById('facultyLeadMessage').textContent = err.message;
+    }
+}
+
+function displayFacultyLead(lead) {
+    document.getElementById('facultyLeadEditor').hidden = false;
+    document.getElementById('facultyLeadId').value = lead.id;
+    document.getElementById('facultyLeadTitle').textContent = lead.name || 'Lead Details';
+    const contact = document.getElementById('facultyLeadContact');
+    const phone = String(lead.phone || '').replace(/[^\d+]/g, '');
+    contact.innerHTML = `<p>Course: ${escapeFacultyLead(facultyLeadCourses(lead))} · Source: ${escapeFacultyLead(lead.source || '-')}</p><p>Phone: ${escapeFacultyLead(lead.phone || '-')} · Email: ${escapeFacultyLead(lead.email || '-')}</p>${phone ? `<p><a href="tel:${escapeFacultyLead(phone)}">Call Lead</a></p>` : ''}`;
+    const status = document.getElementById('facultyLeadStatus');
+    status.replaceChildren();
+    FACULTY_LEAD_STATUSES.filter(s => s !== 'Admitted' || lead.status === 'Admitted').forEach(s => status.add(new Option(s, s)));
+    status.value = lead.status || 'New';
+    status.disabled = lead.status === 'Admitted';
+    document.getElementById('facultyLeadPriority').value = lead.priority || 'Warm';
+    document.getElementById('facultyLeadDate').value = lead.followUpDate || '';
+    document.getElementById('facultyLeadTime').value = lead.followUpTime || '';
+    document.getElementById('facultyLeadLostReason').value = lead.lostReason || '';
+    document.getElementById('facultyLeadNote').value = '';
+    document.getElementById('facultyLeadSaveBtn').disabled = false;
+    const history = [
+        ...(lead.notes || []).map(note => ({ ...note, action: 'Note Added', note: note.text })),
+        ...(lead.activities || []).filter(activity => activity.action !== 'Note Added')
+    ].sort((a, b) => new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0));
+    document.getElementById('facultyLeadHistory').innerHTML = history.map(item => `<article><strong>${escapeFacultyLead(item.action)}</strong><p>${escapeFacultyLead(item.by || 'Admin')} · ${escapeFacultyLead(item.timestamp ? new Date(item.timestamp).toLocaleString('en-IN') : item.date || '')}</p>${item.from || item.to ? `<p>${escapeFacultyLead(item.from || 'None')} → ${escapeFacultyLead(item.to || 'None')}</p>` : ''}<p>${escapeFacultyLead(item.note || '')}</p></article>`).join('') || '<p>No activity yet.</p>';
+}
+
+async function saveFacultyLead(event) {
+    event.preventDefault();
+    const id = document.getElementById('facultyLeadId').value;
+    if (!id || !currentFaculty) return;
+    const version = facultyLeadDetailVersion;
+    const status = document.getElementById('facultyLeadStatus');
+    const body = {
+        ...(status.disabled ? {} : { status: status.value }),
+        priority: document.getElementById('facultyLeadPriority').value,
+        followUpDate: document.getElementById('facultyLeadDate').value,
+        followUpTime: document.getElementById('facultyLeadTime').value,
+        lostReason: document.getElementById('facultyLeadLostReason').value.trim(),
+        note: document.getElementById('facultyLeadNote').value.trim()
+    };
+    const button = document.getElementById('facultyLeadSaveBtn');
+    button.disabled = true;
+    document.getElementById('facultyLeadMessage').textContent = 'Saving update...';
+    try {
+        const data = await facultyLeadRequest('/api/faculty-leads/' + encodeURIComponent(id), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (!currentFaculty || version !== facultyLeadDetailVersion) return;
+        facultyLeads = facultyLeads.map(lead => String(lead.id) === id ? data.lead : lead);
+        renderFacultyLeads(false);
+        displayFacultyLead(data.lead);
+        document.getElementById('facultyLeadMessage').textContent = 'Lead updated successfully.';
+    } catch (err) {
+        if (err.status === 404) await loadFacultyLeads();
+        document.getElementById('facultyLeadMessage').textContent = err.message;
+    } finally {
+        button.disabled = false;
+    }
 }
 
 async function loadFacultyStats() {

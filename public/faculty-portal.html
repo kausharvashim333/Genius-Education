@@ -1065,6 +1065,28 @@
             opacity: 1;
             background: rgba(255, 255, 255, 0.1);
         }
+        .faculty-lead-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+        #leadsContent h3 { margin:0 0 8px; }
+        #leadsContent p { color:#cbd5e1; font-size:13px; margin:8px 0; }
+        #leadsContent input, #leadsContent select, #leadsContent textarea { padding:10px 12px; border:1px solid #64748b; border-radius:8px; background:#1e293b; color:#fff; font:inherit; max-width:100%; }
+        #leadsContent select option { background:#1e293b; color:#fff; }
+        #leadsContent .form-group input, #leadsContent .form-group select, #leadsContent textarea { width:100%; box-sizing:border-box; }
+        #leadsContent label { display:block; margin-bottom:7px; color:#e2e8f0; }
+        .faculty-lead-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-bottom:20px; }
+        .faculty-lead-summary > div { padding:16px; border-radius:12px; background:rgba(102,126,234,.18); border:1px solid rgba(255,255,255,.15); }
+        .faculty-lead-summary strong { display:block; font-size:26px; color:#fff; }
+        .faculty-lead-summary span { color:#cbd5e1; font-size:13px; }
+        .faculty-lead-table-wrap { overflow-x:auto; }
+        #facultyLeadsTable { width:100%; border-collapse:collapse; min-width:640px; }
+        #facultyLeadsTable th, #facultyLeadsTable td { text-align:left; padding:12px; border-bottom:1px solid rgba(255,255,255,.15); color:#e2e8f0; }
+        #leadsContent a { color:#93c5fd; }
+        .faculty-lead-editor { margin-top:24px; padding:20px; border:1px solid #64748b; border-radius:12px; background:rgba(15,23,42,.55); }
+        .faculty-lead-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; }
+        .faculty-lead-history { max-height:360px; overflow:auto; }
+        .faculty-lead-history article { border-left:3px solid #818cf8; padding:10px 12px; margin:12px 0; background:rgba(255,255,255,.06); overflow-wrap:anywhere; }
+        .faculty-lead-history article p { white-space:pre-wrap; }
+        #leadsContent button:disabled { opacity:.5; cursor:not-allowed; }
+        @media(max-width:600px) { #leadsContent { padding:15px; } .faculty-lead-editor { padding:12px; } .faculty-lead-toolbar > input { width:100%; } }
     </style>
 </head>
 <body>
@@ -1124,6 +1146,10 @@
                         <div class="form-group">
                             <label>Password</label>
                             <input type="password" id="facultyPassword" required>
+                        </div>
+                        <div id="facultyTotpGroup" class="form-group" hidden>
+                            <label for="facultyTotpToken">Authenticator Code</label>
+                            <input id="facultyTotpToken" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}">
                         </div>
                         <button type="submit" class="btn btn-primary" style="width:100%">Login</button>
                         <p style="text-align:center;margin-top:15px;color:rgba(255,255,255,0.6);">
@@ -1264,6 +1290,48 @@
                 <div id="resultsContent" class="faculty-content-section">
                     <h3>Exam Results</h3>
                     <p>Exam results coming soon...</p>
+                </div>
+
+                <div id="leadsContent" class="faculty-content-section">
+                    <div class="faculty-lead-toolbar">
+                        <div><h3>My Leads</h3><p>Only leads assigned to your staff account appear here.</p></div>
+                        <button class="btn btn-primary" onclick="loadFacultyLeads()"><i class="fas fa-sync"></i> Refresh</button>
+                    </div>
+                    <div id="facultyLeadSummary" class="faculty-lead-summary"></div>
+                    <div class="faculty-lead-toolbar">
+                        <input id="facultyLeadSearch" type="search" placeholder="Search name, phone, course..." aria-label="Search my leads" oninput="renderFacultyLeads()">
+                        <select id="facultyLeadStatusFilter" aria-label="Filter by lead status" onchange="renderFacultyLeads()"><option value="">All Statuses</option></select>
+                        <select id="facultyLeadDueFilter" aria-label="Filter follow-ups" onchange="renderFacultyLeads()">
+                            <option value="">All Follow-ups</option><option value="today">Due Today</option><option value="overdue">Overdue</option><option value="upcoming">Upcoming</option>
+                        </select>
+                    </div>
+                    <p id="facultyLeadMessage" role="status" aria-live="polite"></p>
+                    <div class="faculty-lead-table-wrap">
+                        <table class="data-table" id="facultyLeadsTable">
+                            <thead><tr><th>Name / Course</th><th>Contact</th><th>Status</th><th>Priority</th><th>Follow-up</th><th>Action</th></tr></thead>
+                            <tbody><tr><td colspan="6">Open My Leads to load your assignments.</td></tr></tbody>
+                        </table>
+                    </div>
+                    <div id="facultyLeadsPagination" class="faculty-lead-toolbar"></div>
+                    <div id="facultyLeadEditor" class="faculty-lead-editor" hidden>
+                        <div class="faculty-lead-toolbar"><h3 id="facultyLeadTitle" tabindex="-1">Lead Details</h3><button type="button" class="btn btn-secondary" onclick="closeFacultyLead()">Close</button></div>
+                        <div id="facultyLeadContact"></div>
+                        <form id="facultyLeadForm" onsubmit="saveFacultyLead(event)">
+                            <input type="hidden" id="facultyLeadId">
+                            <div class="faculty-lead-fields">
+                                <div class="form-group"><label for="facultyLeadStatus">Status</label><select id="facultyLeadStatus"></select></div>
+                                <div class="form-group"><label for="facultyLeadPriority">Priority</label><select id="facultyLeadPriority"><option>Hot</option><option>Warm</option><option>Cold</option></select></div>
+                                <div class="form-group"><label for="facultyLeadDate">Next Follow-up Date</label><input id="facultyLeadDate" type="date"></div>
+                                <div class="form-group"><label for="facultyLeadTime">Follow-up Time</label><input id="facultyLeadTime" type="time"></div>
+                            </div>
+                            <div class="form-group"><label for="facultyLeadLostReason">Lost Reason</label><input id="facultyLeadLostReason" type="text" maxlength="5000" placeholder="If the lead is lost, record the reason"></div>
+                            <div class="form-group"><label for="facultyLeadNote">Add Follow-up Note</label><textarea id="facultyLeadNote" rows="3" maxlength="5000" placeholder="Call outcome, next steps, or discussion details"></textarea></div>
+                            <button id="facultyLeadSaveBtn" type="submit" class="btn btn-primary">Save Update</button>
+                            <p>Assignment and admission conversion are managed by admin.</p>
+                        </form>
+                        <h4>Notes &amp; Activity History</h4>
+                        <div id="facultyLeadHistory" class="faculty-lead-history"></div>
+                    </div>
                 </div>
 
                 <div id="enquiriesContent" class="faculty-content-section">

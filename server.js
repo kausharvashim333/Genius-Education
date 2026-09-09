@@ -2191,16 +2191,65 @@ app.delete('/api/courses/:id', verifyAdminSessionMiddleware, (req, res) => {
     res.json({ success: true });
 });
 
+function facultySessionUser(user) {
+    return {
+        id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject,
+        passwordChanged: user.passwordChanged || false, twoFactorEnabled: user.twoFactorEnabled || false,
+        canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false,
+        canManageEntranceExam: user.canManageEntranceExam || false,
+        permissions: user.permissions?.length ? user.permissions : getRolePermissions(user.role)
+    };
+}
+
+function facultyDirectoryUser({ password, totpSecret, tempTotpSecret, ...user }) {
+    return user;
+}
+
+function startFacultySession(req, res, user) {
+    req.session.regenerate(err => {
+        if (err) return res.status(500).json({ success: false, message: 'Unable to create session' });
+        req.session.facultyId = user.id;
+        req.session.facultyExpiresAt = Date.now() + 24 * 60 * 60 * 1000;
+        req.session.save(err => {
+            if (err) return res.status(500).json({ success: false, message: 'Unable to save session' });
+            res.json({ success: true, user: facultySessionUser(user) });
+        });
+    });
+}
+
+function verifyFacultySessionMiddleware(req, res, next) {
+    const facultyId = req.session?.facultyId;
+    if (!facultyId || !(req.session.facultyExpiresAt > Date.now())) {
+        return res.status(401).json({ success: false, message: 'Session expired. Please log in again.' });
+    }
+    const user = (readData('faculty.json') || []).find(f => String(f.id) === String(facultyId));
+    if (!user) return res.status(401).json({ success: false, message: 'Staff account no longer exists' });
+    req.faculty = user;
+    res.set('Cache-Control', 'no-store');
+    next();
+}
+
+app.get('/api/faculty-auth/me', verifyFacultySessionMiddleware, (req, res) => {
+    res.json({ success: true, user: facultySessionUser(req.faculty) });
+});
+
+app.post('/api/faculty-auth/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) return res.status(500).json({ success: false, message: 'Unable to log out' });
+        res.json({ success: true });
+    });
+});
+
 // --- Faculty ---
 app.get('/api/faculty', (req, res) => {
-    res.json(readData('faculty.json') || []);
+    res.json((readData('faculty.json') || []).map(facultyDirectoryUser));
 });
 
 app.get('/api/faculty/:id', (req, res) => {
     const faculty = readData('faculty.json') || [];
     const facultyMember = faculty.find(f => f.id == req.params.id);
     if (!facultyMember) return res.status(404).json({ success: false, message: 'Faculty not found' });
-    res.json(facultyMember);
+    res.json(facultyDirectoryUser(facultyMember));
 });
 
 app.post('/api/faculty', verifyAdminSessionMiddleware, async (req, res) => {
@@ -2292,9 +2341,10 @@ app.put('/api/faculty/:id', verifyAdminSessionMiddleware, (req, res) => {
 
 app.post('/api/faculty/login', async (req, res) => {
     const { email, password, totpToken } = req.body;
+    if (typeof email !== 'string' || typeof password !== 'string') return res.status(400).json({ success: false, message: 'Email and password are required' });
     const faculty = readData('faculty.json') || [];
     const user = faculty.find(f => f.email === email);
-    if (!user) return res.json({ success: false, message: 'Invalid credentials' });
+    if (!user || typeof user.password !== 'string') return res.json({ success: false, message: 'Invalid credentials' });
 
     // Verify password (compare with hash if hashed, or plain text for existing users)
     let passwordMatch;
@@ -2336,7 +2386,7 @@ app.post('/api/faculty/login', async (req, res) => {
     // Use user-specific permissions, fallback to role permissions if empty
     const userPermissions = user.permissions && user.permissions.length > 0 ? user.permissions : getRolePermissions(user.role);
 
-    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false, canManageEntranceExam: user.canManageEntranceExam || false, twoFactorEnabled: user.twoFactorEnabled || false, permissions: userPermissions } });
+    startFacultySession(req, res, { ...user, permissions: userPermissions });
 });
 
 // Helper function: Get permissions array for a role
@@ -2523,7 +2573,7 @@ app.post('/api/faculty/send-otp', async (req, res) => {
         res.json({ success: true, message: 'OTP sent successfully' });
     } catch (e) {
         logEmailFailure('faculty-otp', email, e);
-        res.json({ success: true, message: 'OTP generated but email not sent', otp: otp });
+        res.status(503).json({ success: false, message: 'Unable to send OTP email. Please try again later.' });
     }
 });
 
@@ -2552,10 +2602,7 @@ app.post('/api/faculty/verify-otp', (req, res) => {
     // Use user-specific permissions, fallback to role permissions if empty
     const userPermissions = user.permissions && user.permissions.length > 0 ? user.permissions : getRolePermissions(user.role);
 
-    res.json({
-        success: true,
-        user: { id: user.id, name: user.name, email: user.email, role: user.role, subject: user.subject, passwordChanged: user.passwordChanged || false, canWriteBlogs: user.canWriteBlogs || false, canSubmitAdmission: user.canSubmitAdmission || false, canManageEntranceExam: user.canManageEntranceExam || false, permissions: userPermissions }
-    });
+    startFacultySession(req, res, { ...user, permissions: userPermissions });
 });
 
 // Faculty Password Change
@@ -2655,7 +2702,7 @@ app.post('/api/faculty/forgot-password', async (req, res) => {
         res.json({ success: true, message: 'OTP sent successfully' });
     } catch (e) {
         logEmailFailure('faculty-password-reset', email, e);
-        res.json({ success: true, message: 'OTP generated but email not sent', otp: otp });
+        res.status(503).json({ success: false, message: 'Unable to send OTP email. Please try again later.' });
     }
 });
 
@@ -4126,12 +4173,14 @@ async function sendLeadNotificationEmail(lead) {
 
 async function sendLeadAssignedEmail(lead) {
     try {
+        const staff = (readData('faculty.json') || []).find(f => String(f.id) === String(lead.assignedToId));
+        if (!staff?.email) return;
         const settings = readData('settings.json') || {};
         const { smtpUser, smtpPass, smtpHost, smtpPort, smtpSecure } = getSMTPConfig();
         if (!smtpUser || !smtpPass) return;
         const inst = settings.name || 'Genius Computer Education';
         const logo = getEmailLogo(settings);
-        const adminEmail = settings.email || smtpUser;
+        const escape = value => sanitizeHTML(String(value || '-'));
 
         const html = `
         <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
@@ -4142,13 +4191,13 @@ async function sendLeadAssignedEmail(lead) {
             </div>
             <div style="padding:24px 30px;">
                 <table style="width:100%;border-collapse:collapse;font-size:14px;">
-                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;width:130px;">Name</td><td style="padding:8px 0;color:#1e293b;">${lead.name || '-'}</td></tr>
-                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Phone</td><td style="padding:8px 0;color:#1e293b;">${lead.phone || '-'}</td></tr>
-                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Assigned To</td><td style="padding:8px 0;color:#1e293b;">${lead.assignedTo || '-'}</td></tr>
-                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Status</td><td style="padding:8px 0;color:#1e293b;">${lead.status || '-'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;width:130px;">Name</td><td style="padding:8px 0;color:#1e293b;">${escape(lead.name)}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Phone</td><td style="padding:8px 0;color:#1e293b;">${escape(lead.phone)}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Assigned To</td><td style="padding:8px 0;color:#1e293b;">${escape(staff.name)}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Status</td><td style="padding:8px 0;color:#1e293b;">${escape(lead.status)}</td></tr>
                 </table>
                 <div style="margin-top:20px;text-align:center;">
-                    <a href="${settings.websiteUrl || 'http://localhost:3000'}/admin" style="display:inline-block;background:#667eea;color:#fff;text-decoration:none;padding:10px 28px;border-radius:8px;font-weight:600;font-size:14px;">View in Admin Panel</a>
+                    <a href="${escape(settings.websiteUrl || 'http://localhost:3001')}/faculty-portal.html#leads" style="display:inline-block;background:#667eea;color:#fff;text-decoration:none;padding:10px 28px;border-radius:8px;font-weight:600;font-size:14px;">View My Leads</a>
                 </div>
             </div>
             <div style="background:#f1f5f9;padding:16px 30px;text-align:center;font-size:12px;color:#94a3b8;">
@@ -4159,12 +4208,12 @@ async function sendLeadAssignedEmail(lead) {
         const transporter = nodemailer.createTransport({ host: smtpHost, port: smtpPort, secure: smtpSecure, auth: { user: smtpUser, pass: smtpPass } });
         await transporter.sendMail({
             from: `"${inst}" <${smtpUser}>`,
-            to: adminEmail,
-            subject: `Lead Assigned: ${lead.name || 'Unknown'} → ${lead.assignedTo || '-'}`,
+            to: staff.email,
+            subject: `Lead Assigned: ${lead.name || 'Unknown'} → ${staff.name || '-'}`,
             html,
             attachments: logo.attachments || []
         });
-        console.log(`Lead assigned email sent to ${adminEmail}`);
+        console.log('Lead assignment email sent');
     } catch (err) {
         console.error('Lead assigned email error:', err.message);
     }
@@ -4216,12 +4265,106 @@ async function sendLeadConvertedEmail(lead) {
     }
 }
 
+function getLeadAssignment(id) {
+    if (id === null || id === '') return { assignedToId: null, assignedTo: '' };
+    if (typeof id !== 'string' && typeof id !== 'number') return { error: 'Select a valid staff member' };
+    const staff = (readData('faculty.json') || []).find(f => String(f.id) === String(id));
+    if (!staff) return { error: 'Staff account not found. Refresh the staff list.' };
+    return { assignedToId: String(staff.id), assignedTo: staff.name };
+}
+
+function applyLeadAssignment(lead, assignment) {
+    if (String(lead.assignedToId || '') === String(assignment.assignedToId || '') && (lead.assignedTo || '') === assignment.assignedTo) return false;
+    lead.activities = lead.activities || [];
+    lead.activities.push({
+        action: 'Assignment Changed', from: lead.assignedTo || 'Unassigned', to: assignment.assignedTo || 'Unassigned',
+        fromId: lead.assignedToId || null, toId: assignment.assignedToId,
+        timestamp: new Date().toISOString(), by: 'Admin', note: ''
+    });
+    Object.assign(lead, assignment);
+    return true;
+}
+
+function validateLeadUpdate(data, staff = false) {
+    const statuses = ['New', 'Contacted', 'Interested', 'Visit Scheduled', 'Application Submitted', 'Lost'];
+    if (!staff) statuses.push('Admitted');
+    if (data.status !== undefined && !statuses.includes(data.status)) return 'Invalid lead status';
+    if (data.priority !== undefined && !['Hot', 'Warm', 'Cold'].includes(data.priority)) return 'Invalid lead priority';
+    if (data.followUpDate !== undefined && data.followUpDate !== '') {
+        const date = data.followUpDate;
+        if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date)) || new Date(date).toISOString().slice(0, 10) !== date) return 'Invalid follow-up date';
+    }
+    if (data.followUpTime !== undefined && (typeof data.followUpTime !== 'string' || (data.followUpTime !== '' && !/^([01]\d|2[0-3]):[0-5]\d$/.test(data.followUpTime)))) return 'Invalid follow-up time';
+    for (const field of ['note', 'lostReason']) {
+        if (data[field] !== undefined && (typeof data[field] !== 'string' || data[field].length > 5000)) return `${field} must be text of at most 5000 characters`;
+    }
+    return '';
+}
+
+function recordLeadChanges(lead, data, by, facultyId) {
+    lead.activities = lead.activities || [];
+    for (const field of ['status', 'priority', 'followUpDate', 'followUpTime', 'lostReason']) {
+        if (data[field] === undefined || data[field] === lead[field]) continue;
+        const actions = { status: 'Status Changed', priority: 'Priority Changed', followUpDate: 'Follow-up Date Changed', followUpTime: 'Follow-up Time Changed', lostReason: 'Lost Reason Changed' };
+        lead.activities.push({ action: actions[field], from: lead[field] || '', to: data[field], timestamp: new Date().toISOString(), by, facultyId, note: '' });
+        lead[field] = data[field];
+    }
+    if (data.note?.trim()) {
+        const note = { id: crypto.randomUUID(), text: data.note.trim(), by, facultyId, timestamp: new Date().toISOString() };
+        lead.notes = lead.notes || [];
+        lead.notes.push(note);
+        lead.activities.push({ action: 'Note Added', timestamp: note.timestamp, by, facultyId, note: note.text });
+    }
+}
+
+function findFacultyLead(req) {
+    const leads = readData('leads.json') || [];
+    const lead = leads.find(l => String(l.id) === String(req.params.id) && l.assignedToId != null && String(l.assignedToId) === String(req.faculty.id));
+    return { leads, lead };
+}
+
+app.get('/api/lead-assignees', verifyAdminSessionMiddleware, (req, res) => {
+    const staff = (readData('faculty.json') || []).map(({ id, name, email, role }) => ({ id: String(id), name, email, role }));
+    res.json({ success: true, staff });
+});
+
+app.get('/api/faculty-leads', verifyFacultySessionMiddleware, (req, res) => {
+    const leads = (readData('leads.json') || []).filter(l => l.assignedToId != null && String(l.assignedToId) === String(req.faculty.id));
+    res.json({ success: true, leads });
+});
+
+app.get('/api/faculty-leads/:id', verifyFacultySessionMiddleware, (req, res) => {
+    const { lead } = findFacultyLead(req);
+    if (!lead) return res.status(404).json({ success: false, error: 'Lead not found or no longer assigned to you' });
+    res.json({ success: true, lead });
+});
+
+app.put('/api/faculty-leads/:id', verifyFacultySessionMiddleware, (req, res) => {
+    const { leads, lead } = findFacultyLead(req);
+    if (!lead) return res.status(404).json({ success: false, error: 'Lead not found or no longer assigned to you' });
+    const fields = ['status', 'priority', 'followUpDate', 'followUpTime', 'lostReason', 'note'];
+    if (!Object.keys(req.body).length || Object.keys(req.body).some(key => !fields.includes(key))) {
+        return res.status(400).json({ success: false, error: 'Only status, priority, follow-up, lost reason and notes can be updated' });
+    }
+    const error = validateLeadUpdate(req.body, true);
+    if (error) return res.status(400).json({ success: false, error });
+    if (lead.status === 'Admitted' && req.body.status !== undefined) return res.status(400).json({ success: false, error: 'Only admin can change admitted leads' });
+    recordLeadChanges(lead, req.body, req.faculty.name, req.faculty.id);
+    lead.updatedAt = new Date().toISOString();
+    writeData('leads.json', leads);
+    res.json({ success: true, lead });
+});
+
 // --- Leads Management ---
 app.get('/api/leads', verifyAdminSessionMiddleware, (req, res) => {
     res.json(readData('leads.json') || []);
 });
 
 app.post('/api/leads', verifyAdminSessionMiddleware, (req, res) => {
+    const assignment = getLeadAssignment(req.body.assignedToId ?? null);
+    const error = assignment.error || validateLeadUpdate(req.body);
+    if (error) return res.status(400).json({ success: false, error });
+    if (typeof req.body.name !== 'string' || !req.body.name.trim() || typeof req.body.phone !== 'string' || !req.body.phone.trim()) return res.status(400).json({ success: false, error: 'Name and phone are required' });
     const leads = readData('leads.json') || [];
     const lead = {
         id: Date.now(),
@@ -4232,10 +4375,11 @@ app.post('/api/leads', verifyAdminSessionMiddleware, (req, res) => {
         email: req.body.email || '',
         whatsapp: req.body.whatsapp || '',
         interestedCourses: req.body.interestedCourses || [],
+        courses: req.body.courses || '',
         source: req.body.source || 'Website',
         status: req.body.status || 'New',
         priority: req.body.priority || 'Warm',
-        assignedTo: req.body.assignedTo || '',
+        ...assignment,
         followUpDate: req.body.followUpDate || '',
         followUpTime: req.body.followUpTime || '',
         notes: req.body.notes || [],
@@ -4251,6 +4395,7 @@ app.post('/api/leads', verifyAdminSessionMiddleware, (req, res) => {
     leads.unshift(lead);
     writeData('leads.json', leads);
     sendLeadNotificationEmail(lead).catch(() => {});
+    if (lead.assignedToId) sendLeadAssignedEmail(lead).catch(() => {});
     res.json({ success: true, lead });
 });
 
@@ -4259,30 +4404,18 @@ app.put('/api/leads/:id', verifyAdminSessionMiddleware, (req, res) => {
     const idx = leads.findIndex(l => l.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, error: 'Lead not found' });
     
-    const allowedFields = ['name', 'phone', 'email', 'whatsapp', 'interestedCourses', 'source', 'status', 'priority', 'assignedTo', 'followUpDate', 'followUpTime', 'lostReason', 'convertedStudentId'];
+    const assignment = req.body.assignedToId !== undefined ? getLeadAssignment(req.body.assignedToId) : null;
+    const error = assignment?.error || validateLeadUpdate(req.body);
+    if (error) return res.status(400).json({ success: false, error });
+    recordLeadChanges(leads[idx], req.body, 'Admin');
+    const assignmentChanged = assignment ? applyLeadAssignment(leads[idx], assignment) : false;
+    const allowedFields = ['name', 'phone', 'email', 'whatsapp', 'interestedCourses', 'courses', 'source', 'convertedStudentId'];
     allowedFields.forEach(field => {
-        if (req.body[field] !== undefined) {
-            leads[idx][field] = req.body[field];
-        }
+        if (req.body[field] !== undefined) leads[idx][field] = req.body[field];
     });
-    
-    if (req.body.status && req.body.status !== leads[idx].status) {
-        leads[idx].activities = leads[idx].activities || [];
-        leads[idx].activities.push({
-            action: 'Status Changed',
-            from: leads[idx].status,
-            to: req.body.status,
-            timestamp: new Date().toISOString(),
-            by: req.body.updatedBy || 'Admin',
-            note: ''
-        });
-    }
-    
-    if (req.body.assignedTo && req.body.assignedTo !== leads[idx].assignedTo) {
-        sendLeadAssignedEmail(leads[idx]).catch(() => {});
-    }
-    
+    leads[idx].updatedAt = new Date().toISOString();
     writeData('leads.json', leads);
+    if (assignmentChanged && leads[idx].assignedToId) sendLeadAssignedEmail(leads[idx]).catch(() => {});
     res.json({ success: true, lead: leads[idx] });
 });
 
@@ -4298,21 +4431,10 @@ app.post('/api/leads/:id/notes', verifyAdminSessionMiddleware, (req, res) => {
     const idx = leads.findIndex(l => l.id == req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, error: 'Lead not found' });
     
-    leads[idx].notes = leads[idx].notes || [];
-    leads[idx].notes.push({
-        id: Date.now(),
-        text: req.body.note || '',
-        by: req.body.by || 'Admin',
-        timestamp: new Date().toISOString()
-    });
-    
-    leads[idx].activities = leads[idx].activities || [];
-    leads[idx].activities.push({
-        action: 'Note Added',
-        timestamp: new Date().toISOString(),
-        by: req.body.by || 'Admin',
-        note: req.body.note || ''
-    });
+    const note = req.body.text ?? req.body.note;
+    const error = validateLeadUpdate({ note });
+    if (error || !note?.trim()) return res.status(400).json({ success: false, error: error || 'Note text is required' });
+    recordLeadChanges(leads[idx], { note }, 'Admin');
     
     writeData('leads.json', leads);
     res.json({ success: true, lead: leads[idx] });
@@ -4366,27 +4488,33 @@ app.post('/api/leads/bulk-action', verifyAdminSessionMiddleware, (req, res) => {
         return res.status(400).json({ success: false, error: 'No leads selected' });
     }
     
+    if (!['delete', 'status', 'priority', 'assign'].includes(action)) return res.status(400).json({ success: false, error: 'Invalid bulk action' });
+    if (ids.some(id => !leads.some(l => String(l.id) === String(id)))) return res.status(400).json({ success: false, error: 'Some selected leads no longer exist. Refresh and try again.' });
+    const assignment = action === 'assign' ? getLeadAssignment(value) : null;
+    const error = assignment?.error || validateLeadUpdate(action === 'status' ? { status: value } : action === 'priority' ? { priority: value } : {});
+    if (error) return res.status(400).json({ success: false, error });
+    const assignedLeads = [];
+    const selectedIds = new Set(ids.map(String));
     leads.forEach(l => {
-        if (ids.includes(l.id) || ids.includes(String(l.id))) {
+        if (selectedIds.has(String(l.id))) {
             if (action === 'delete') {
                 // handled below
-            } else if (action === 'status') {
-                l.status = value;
-            } else if (action === 'priority') {
-                l.priority = value;
+            } else if (action === 'status' || action === 'priority') {
+                recordLeadChanges(l, { [action]: value }, 'Admin');
             } else if (action === 'assign') {
-                l.assignedTo = value;
+                if (applyLeadAssignment(l, assignment) && l.assignedToId) assignedLeads.push(l);
             }
         }
     });
     
     if (action === 'delete') {
-        const filtered = leads.filter(l => !ids.includes(l.id) && !ids.includes(String(l.id)));
+        const filtered = leads.filter(l => !selectedIds.has(String(l.id)));
         writeData('leads.json', filtered);
     } else {
         writeData('leads.json', leads);
     }
     
+    assignedLeads.forEach(lead => sendLeadAssignedEmail(lead).catch(() => {}));
     res.json({ success: true });
 });
 
@@ -12659,8 +12787,12 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
     });
 
     app.get('/auth/google/faculty/callback', passport.authenticate('google-faculty', { failureRedirect: '/faculty-portal.html?error=google_auth_failed' }), (req, res) => {
-        const facultyData = { id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role, subject: req.user.subject };
-        res.redirect(`/faculty-portal.html?auth=success&data=${encodeURIComponent(JSON.stringify(facultyData))}`);
+        req.session.facultyId = req.user.id;
+        req.session.facultyExpiresAt = Date.now() + 24 * 60 * 60 * 1000;
+        req.session.save(err => {
+            if (err) return res.redirect('/faculty-portal.html?error=session_failed');
+            res.redirect('/faculty-portal.html?auth=success');
+        });
     });
 } else {
     app.get('/auth/google', (req, res) => res.redirect('/student-portal.html?error=google_auth_not_configured'));

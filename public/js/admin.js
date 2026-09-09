@@ -13655,6 +13655,82 @@ async function loadEnquiries() {
 
 // ===== Leads Management =====
 let allLeads = [];
+let leadStaff = [];
+let leadAssignmentLoadVersion = 0;
+
+async function loadLeadStaff() {
+    const res = await fetch('/api/lead-assignees');
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || data.message || 'Unable to load staff');
+    leadStaff = data.staff;
+    const options = leadStaff.map(staff => `<option value="${escapeHtml(staff.id)}">${escapeHtml(staff.name || 'Staff')} — ${escapeHtml(staff.email || staff.role || '')}</option>`).join('');
+    const filter = document.getElementById('leadsAssigneeFilter');
+    const previous = filter.value;
+    filter.innerHTML = '<option value="">All Staff</option><option value="__unassigned__">Unassigned</option><option value="__unlinked__">Not linked / removed staff</option>' + options;
+    filter.value = previous;
+    const bulk = document.getElementById('bulkLeadAssignee');
+    bulk.innerHTML = '<option value="__choose__">Select staff for assignment</option><option value="">Unassign selected leads</option>' + options;
+    bulk.disabled = false;
+    document.getElementById('bulkAssignLeadsBtn').disabled = false;
+}
+
+async function prepareLeadAssignment(lead) {
+    const version = ++leadAssignmentLoadVersion;
+    const select = document.getElementById('leadAssignedTo');
+    const save = document.getElementById('saveLeadBtn');
+    select.disabled = true;
+    save.disabled = true;
+    try {
+        await loadLeadStaff();
+        if (version !== leadAssignmentLoadVersion) return;
+        select.replaceChildren(new Option('Unassigned', ''));
+        leadStaff.forEach(staff => select.add(new Option(`${staff.name} — ${staff.email || staff.role || 'Staff'}`, staff.id)));
+        const linked = lead?.assignedToId && leadStaff.some(staff => staff.id === String(lead.assignedToId));
+        const keepExisting = lead && !linked && (lead.assignedTo || lead.assignedToId);
+        if (keepExisting) select.add(new Option(`${lead.assignedTo || 'Removed staff'} (keep existing; not linked)`, '__keep__'));
+        select.value = keepExisting ? '__keep__' : linked ? String(lead.assignedToId) : '';
+        document.getElementById('leadAssignmentHelp').textContent = keepExisting
+            ? 'This assignment is not linked to an existing account. Select staff to enable My Leads access, or choose Unassigned.'
+            : leadStaff.length ? 'Only the selected staff account can access this lead in My Leads.' : 'No staff accounts yet. Add a staff member under Faculty first.';
+        select.disabled = false;
+        save.disabled = false;
+    } catch (err) {
+        if (version !== leadAssignmentLoadVersion) return;
+        document.getElementById('leadAssignmentHelp').textContent = 'Unable to load staff. Close and reopen this form to retry.';
+        showNotification(err.message, 'error');
+    }
+}
+
+function leadAssigneeLabel(lead) {
+    const staff = leadStaff.find(staff => staff.id === String(lead.assignedToId));
+    if (staff) return staff.name;
+    if (lead.assignedToId) return `${lead.assignedTo || 'Staff'} (removed account)`;
+    return lead.assignedTo ? `${lead.assignedTo} (not linked)` : 'Unassigned';
+}
+
+async function assignSelectedLeads() {
+    if (leadsCurrentView !== 'table') return showNotification('Switch to Table view to select and assign leads.', 'error');
+    const ids = Array.from(document.querySelectorAll('.lead-checkbox:checked')).map(cb => cb.value);
+    const select = document.getElementById('bulkLeadAssignee');
+    if (!ids.length) return showNotification('Select leads using the table checkboxes first.', 'error');
+    if (select.value === '__choose__') return showNotification('Select a staff member or Unassign.', 'error');
+    const value = select.value;
+    if (!confirm(`${value ? 'Assign' : 'Unassign'} ${ids.length} selected lead(s)${value ? ' to ' + select.selectedOptions[0].textContent : ''}?`)) return;
+    const button = document.getElementById('bulkAssignLeadsBtn');
+    button.disabled = true;
+    try {
+        const res = await fetch('/api/leads/bulk-action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids, action: 'assign', value }) });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || data.message || 'Assignment failed');
+        showNotification(`${ids.length} lead(s) ${value ? 'assigned' : 'unassigned'} successfully`, 'success');
+        await loadLeads();
+    } catch (err) {
+        showNotification(err.message, 'error');
+    } finally {
+        button.disabled = false;
+    }
+}
+
 let leadsCurrentPage = 1;
 let leadsPerPage = 25;
 let leadsFiltered = [];
@@ -13689,11 +13765,13 @@ function switchLeadsTab(tab) {
 
 async function loadLeads() {
     try {
-        const res = await fetch('/api/leads');
+        const [res] = await Promise.all([fetch('/api/leads'), loadLeadStaff()]);
         const result = await res.json();
+        if (!res.ok) throw new Error(result.error || result.message || 'Unable to load leads');
         allLeads = Array.isArray(result) ? result : (result.leads || []);
         leadsCurrentPage = 1;
-        ['leadsStatusFilter','leadsSourceFilter','leadsPriorityFilter','leadsSearchInput'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+        const selectAll = document.getElementById('selectAllLeads');
+        if (selectAll) selectAll.checked = false;
         updateLeadsStats();
         filterLeads();
     } catch (err) {
@@ -13718,7 +13796,11 @@ function filterLeads() {
     const source = document.getElementById('leadsSourceFilter') ? document.getElementById('leadsSourceFilter').value : '';
     const priority = document.getElementById('leadsPriorityFilter') ? document.getElementById('leadsPriorityFilter').value : '';
     const search = document.getElementById('leadsSearchInput') ? document.getElementById('leadsSearchInput').value.toLowerCase().trim() : '';
+    const assignee = document.getElementById('leadsAssigneeFilter')?.value || '';
     leadsFiltered = allLeads.filter(l => {
+        if (assignee === '__unassigned__' && (l.assignedToId || l.assignedTo)) return false;
+        if (assignee === '__unlinked__' && (!(l.assignedToId || l.assignedTo) || leadStaff.some(staff => staff.id === String(l.assignedToId)))) return false;
+        if (assignee && !assignee.startsWith('__') && String(l.assignedToId) !== assignee) return false;
         if (status && l.status !== status) return false;
         if (source && l.source !== source) return false;
         if (priority && l.priority !== priority) return false;
@@ -13763,7 +13845,7 @@ function renderLeadsTable() {
             <td>${escapeHtml(l.source||'-')}</td>
             <td><span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:${LEAD_STATUS_COLORS[l.status]||'#667eea'};color:#fff;">${l.status||'New'}</span></td>
             <td><span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:${LEAD_PRIORITY_COLORS[l.priority]||'#667eea'};color:#fff;">${l.priority||'Warm'}</span></td>
-            <td>${escapeHtml(l.assignedTo||'-')}</td>
+            <td>${escapeHtml(leadAssigneeLabel(l))}</td>
             <td>${fd}</td>
             <td onclick="event.stopPropagation();">
                 <div style="display:flex;gap:4px;">
@@ -13854,9 +13936,9 @@ async function kanbanDrop(event, status) {
     const lead = allLeads.find(l => l.id === leadId);
     if (!lead || lead.status === status) return;
     try {
-        const res = await fetch(`/api/leads/${leadId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...lead, status}) });
+        const res = await fetch(`/api/leads/${leadId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status }) });
         const data = await res.json();
-        if (data.success) { lead.status = status; updateLeadsStats(); filterLeads(); showNotification(`Lead moved to ${status}`, 'success'); }
+        if (data.success) { Object.assign(lead, data.lead); updateLeadsStats(); filterLeads(); showNotification(`Lead moved to ${status}`, 'success'); }
         else showNotification(data.error || 'Failed to update lead', 'error');
     } catch (err) { console.error('Error:', err); showNotification('Error updating lead status', 'error'); }
 }
@@ -13871,6 +13953,7 @@ function openAddLeadModal() {
     document.getElementById('leadLostReasonGroup').style.display = 'none';
     document.getElementById('leadStatus').onchange = function() { document.getElementById('leadLostReasonGroup').style.display = this.value === 'Lost' ? '' : 'none'; };
     openModal('leadModal');
+    prepareLeadAssignment(allLeads.find(l => String(l.id) === document.getElementById('leadEditId').value));
 }
 
 function openEditLeadModal(id) {
@@ -13886,12 +13969,13 @@ function openEditLeadModal(id) {
     document.getElementById('leadSource').value = lead.source || 'Website';
     document.getElementById('leadStatus').value = lead.status || 'New';
     document.getElementById('leadPriority').value = lead.priority || 'Warm';
-    document.getElementById('leadAssignedTo').value = lead.assignedTo || '';
+    document.getElementById('leadAssignedTo').value = lead.assignedToId || '';
     document.getElementById('leadFollowUpDate').value = lead.followUpDate || '';
     document.getElementById('leadLostReason').value = lead.lostReason || '';
     document.getElementById('leadLostReasonGroup').style.display = lead.status === 'Lost' ? '' : 'none';
     document.getElementById('leadStatus').onchange = function() { document.getElementById('leadLostReasonGroup').style.display = this.value === 'Lost' ? '' : 'none'; };
     openModal('leadModal');
+    prepareLeadAssignment(allLeads.find(l => String(l.id) === document.getElementById('leadEditId').value));
 }
 
 async function saveLead() {
@@ -13907,7 +13991,7 @@ async function saveLead() {
         source: document.getElementById('leadSource').value,
         status: document.getElementById('leadStatus').value,
         priority: document.getElementById('leadPriority').value,
-        assignedTo: document.getElementById('leadAssignedTo').value.trim(),
+        ...(document.getElementById('leadAssignedTo').value === '__keep__' ? {} : { assignedToId: document.getElementById('leadAssignedTo').value }),
         followUpDate: document.getElementById('leadFollowUpDate').value,
         lostReason: document.getElementById('leadLostReason').value.trim()
     };
@@ -13967,7 +14051,7 @@ function openLeadDetail(id) {
     if (priorityEl) { priorityEl.textContent = lead.priority || 'Warm'; priorityEl.style.background = priorityColor; }
     const sourceEl = document.getElementById('detailLeadSource');
     if (sourceEl) sourceEl.textContent = lead.source || '-';
-    document.getElementById('detailLeadAssigned').textContent = lead.assignedTo || '-';
+    document.getElementById('detailLeadAssigned').textContent = leadAssigneeLabel(lead);
     const today = new Date().toISOString().slice(0, 10);
     let followupHtml = lead.followUpDate || '-';
     if (lead.followUpDate === today) followupHtml += ' <span style="background:#fbbf24;color:#000;padding:2px 6px;border-radius:6px;font-size:10px;font-weight:700;">TODAY</span>';
@@ -13997,7 +14081,10 @@ function renderLeadNotes(id) {
     if (!lead) return;
     const container = document.getElementById('leadNotesTimeline');
     if (!container) return;
-    const notes = lead.notes || [];
+    const notes = [
+        ...(lead.notes || []),
+        ...(lead.activities || []).filter(a => a.action !== 'Note Added').map(a => ({ ...a, text: `${a.action}${a.from || a.to ? ': ' + (a.from || 'None') + ' → ' + (a.to || 'None') : ''}${a.note ? ' — ' + a.note : ''}` }))
+    ].sort((a, b) => new Date(a.timestamp || a.date || 0) - new Date(b.timestamp || b.date || 0));
     if (notes.length === 0) {
         container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.4);padding:20px;">No notes yet. Add the first note below.</div>';
         return;
@@ -14006,7 +14093,7 @@ function renderLeadNotes(id) {
         const noteColor = n.type === 'follow-up' ? '#fbbf24' : (n.type === 'status-change' ? '#4facfe' : '#667eea');
         return `<div style="background:rgba(255,255,255,0.08);border-left:3px solid ${noteColor};border-radius:6px;padding:10px 12px;margin-bottom:8px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                <span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;">${escapeHtml(n.by || 'Admin')} · ${escapeHtml(n.date || '')}</span>
+                <span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;">${escapeHtml(n.by || 'Admin')} · ${escapeHtml(n.timestamp ? new Date(n.timestamp).toLocaleString('en-IN') : n.date || '')}</span>
                 ${n.type ? `<span style="font-size:10px;padding:2px 6px;border-radius:6px;background:${noteColor};color:#fff;">${n.type}</span>` : ''}
             </div>
             <div style="color:rgba(255,255,255,0.9);font-size:13px;">${escapeHtml(n.text || '')}</div>
@@ -14024,7 +14111,7 @@ async function addLeadNote() {
         if (data.success) {
             document.getElementById('leadNoteInput').value = '';
             const lead = allLeads.find(l => l.id === id);
-            if (lead) lead.notes = data.lead.notes;
+            if (lead) Object.assign(lead, data.lead);
             renderLeadNotes(id);
             showNotification('Note added!', 'success');
         } else showNotification(data.error || 'Failed to add note', 'error');
@@ -14035,14 +14122,11 @@ async function quickUpdateLead(id, field, value) {
     const lead = allLeads.find(l => l.id === id);
     if (!lead) return;
     try {
-        const res = await fetch(`/api/leads/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...lead, [field]: value}) });
+        const res = await fetch(`/api/leads/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ [field]: value }) });
         const data = await res.json();
         if (data.success) {
-            lead[field] = value;
-            if (field === 'status' && value === 'Lost') {
-                lead.notes = data.lead.notes;
-                renderLeadNotes(id);
-            }
+            Object.assign(lead, data.lead);
+            renderLeadNotes(id);
             updateLeadsStats();
             filterLeads();
             showNotification(`${field} updated!`, 'success');

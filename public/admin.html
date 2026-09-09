@@ -2634,6 +2634,8 @@
                 <div class="page-toolbar" style="margin-bottom:20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
                     <button class="btn btn-primary" onclick="openAddLeadModal()"><i class="fas fa-plus"></i> Add Lead</button>
                     <button class="btn btn-danger" onclick="deleteSelectedLeads()"><i class="fas fa-trash"></i> Delete Selected</button>
+                    <select id="bulkLeadAssignee" aria-label="Staff for selected leads" style="padding:9px;border-radius:8px;background:#1e293b;color:#fff;max-width:240px;" disabled><option value="__choose__">Select staff for assignment</option></select>
+                    <button id="bulkAssignLeadsBtn" class="btn btn-primary" onclick="assignSelectedLeads()" disabled><i class="fas fa-user-check"></i> Assign Selected</button>
                     <button class="btn btn-success" onclick="exportLeadsToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export Excel</button>
                     <div style="flex:1;display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;">
                         <div style="display:flex;gap:4px;background:rgba(255,255,255,0.1);border-radius:8px;padding:3px;">
@@ -2667,6 +2669,7 @@
                             <option value="Warm">Warm</option>
                             <option value="Cold">Cold</option>
                         </select>
+                        <select id="leadsAssigneeFilter" aria-label="Filter leads by staff" onchange="filterLeads()" style="padding:9px;border-radius:8px;background:#1e293b;color:#fff;max-width:220px;"><option value="">All Staff</option></select>
                         <input type="text" id="leadsSearchInput" oninput="filterLeads()" placeholder="Search name, phone, email..." style="padding:9px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:8px;width:200px;height:40px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;">
                     </div>
                 </div>
@@ -2895,8 +2898,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Assigned To</label>
-                            <input type="text" id="leadAssignedTo" placeholder="Staff name" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                            <label for="leadAssignedTo" style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Assigned To</label>
+                            <select id="leadAssignedTo" aria-describedby="leadAssignmentHelp" style="width:100%;padding:10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:14px;">
+                                <option value="">Unassigned</option>
+                            </select>
+                            <small id="leadAssignmentHelp" style="display:block;margin-top:6px;color:#cbd5e1;">Select a staff account to enable access in My Leads.</small>
                         </div>
                         <div class="form-group">
                             <label style="font-weight:600;color:#fff;margin-bottom:6px;display:block;">Follow-up Date</label>
