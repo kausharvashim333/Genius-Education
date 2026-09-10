@@ -11868,19 +11868,21 @@ function filterStudentsByBatch() {
     studentsCurrentPage = 1;
     const selectedBatch = document.getElementById('studentBatchFilter').value;
     const selectedCourse = document.getElementById('studentCourseFilter').value;
-    
+
     let filtered = allStudents;
-    
+
     // Filter by course
     if (selectedCourse) {
         filtered = filtered.filter(s => s.course === selectedCourse);
     }
-    
+
     // Filter by batch (using batchId for consistency with batch page)
     if (selectedBatch) {
         filtered = filtered.filter(s => s.batchId == selectedBatch);
+        // Exclude dropped students from batch count
+        filtered = filtered.filter(s => s.status !== 'Dropped');
     }
-    
+
     renderStudentsTable(filtered);
 }
 
