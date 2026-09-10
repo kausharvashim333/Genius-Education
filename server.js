@@ -4751,7 +4751,10 @@ app.get('/api/batches/seats', (req, res) => {
     const batches  = readData('batches.json') || [];
     const students = readData('students.json') || [];
     const result = batches.map(b => {
-        const enrolled = students.filter(s => s.batchId == b.id && s.status !== 'Dropped').length;
+        const enrolled = students.filter(s =>
+            (s.batchId ? String(s.batchId) === String(b.id) : s.batch === b.name) &&
+            s.status !== 'Dropped'
+        ).length;
         return { ...b, enrolled, available: Math.max(0, b.totalSeats - enrolled) };
     });
     res.json(result);
@@ -7238,6 +7241,13 @@ app.post('/api/attendance', (req, res) => {
     const { studentId, date, status, course, batch } = req.body;
     if (!studentId || !date || !status) return res.status(400).json({ success: false, message: 'Student ID, date, and status required' });
     
+    // Reject attendance for dropped students
+    const students = readData('students.json') || [];
+    const student = students.find(s => s.id === parseInt(studentId));
+    if (student && student.status === 'Dropped') {
+        return res.status(400).json({ success: false, message: 'Cannot mark attendance for a dropped student' });
+    }
+
     const attendance = readData('attendance.json') || [];
     const record = {
         id: Date.now(),

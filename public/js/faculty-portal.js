@@ -1350,12 +1350,15 @@ async function loadAttendance() {
         const attendance = await fetch('/api/attendance').then(r => r.json());
         const tbody = document.getElementById('attendanceTable').querySelector('tbody');
         
-        if (students.length === 0) {
+        // Exclude dropped students from attendance list
+        const activeStudents = students.filter(s => s.status !== 'Dropped');
+
+        if (activeStudents.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No students found</td></tr>';
             return;
         }
         
-        tbody.innerHTML = students.map(student => {
+        tbody.innerHTML = activeStudents.map(student => {
             const attendanceRecord = attendance.attendance.find(a => a.studentId === student.id && a.date === date);
             const status = attendanceRecord ? attendanceRecord.status : '';
             
@@ -1392,6 +1395,12 @@ async function saveAttendance(studentId) {
         const students = await fetch('/api/students').then(r => r.json());
         const student = students.find(s => s.id === studentId);
         
+        // Prevent saving attendance for dropped students
+        if (student && student.status === 'Dropped') {
+            alert('Cannot save attendance for a dropped student');
+            return;
+        }
+
         const data = {
             studentId: studentId,
             date: date,

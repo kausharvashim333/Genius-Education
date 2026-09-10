@@ -138,7 +138,10 @@ function setupAttendance() {
             if (url.pathname === '/api/batches' || url.pathname === '/api/batches/seats') {
                 const students = fixture.db['students.json'] || [];
                 const batches = (fixture.db['batches.json'] || []).map(b => {
-                    const enrolled = students.filter(s => s.batchId == b.id && s.status !== 'Dropped').length;
+                    const enrolled = students.filter(s =>
+                        (s.batchId ? String(s.batchId) === String(b.id) : s.batch === b.name) &&
+                        s.status !== 'Dropped'
+                    ).length;
                     return { ...b, enrolled, available: Math.max(0, (b.totalSeats || 30) - enrolled) };
                 });
                 response = { status: 200, body: batches };
@@ -344,6 +347,14 @@ test('attendance saves do not report success for failed requests or without a ba
     assert.equal(db['attendance.json'].length, 4);
 });
 
+test('attendance cannot be saved for dropped students', async () => {
+    const { request, db } = setupAttendance();
+    const result = await request('post', '/api/attendance', { body: { studentId: 26, date: '2026-09-10', status: 'present', course: 'DCA', batch: 'Morning' } });
+    assert.equal(result.status, 400);
+    assert.match(result.body.message, /dropped/i);
+    assert.ok(!db['attendance.json'].some(a => a.studentId === 26));
+});
+
 test('staff list contains only own ID-linked leads; legacy names grant no access', async () => {
     const { request } = setup();
     const res = await request('get', '/api/faculty-leads', { facultyId: 1 });
@@ -506,7 +517,10 @@ async function startTestServer(t, setupFn = setup) {
     app.get('/api/batches/seats', (req, res) => {
         const students = fixture.db['students.json'] || [];
         const batches = (fixture.db['batches.json'] || []).map(b => {
-            const enrolled = students.filter(s => s.batchId == b.id && s.status !== 'Dropped').length;
+            const enrolled = students.filter(s =>
+                (s.batchId ? String(s.batchId) === String(b.id) : s.batch === b.name) &&
+                s.status !== 'Dropped'
+            ).length;
             return { ...b, enrolled, available: Math.max(0, (b.totalSeats || 30) - enrolled) };
         });
         res.json(batches);
