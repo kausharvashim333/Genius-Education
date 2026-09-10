@@ -5120,13 +5120,17 @@ const uploadStudyMaterial = multer({
 
 app.get('/api/students', (req, res) => {
     const students = readData('students.json') || [];
-    const { course, batch } = req.query;
+    const { course, batch, batchId } = req.query;
+    const selectedBatch = batchId ? (readData('batches.json') || []).find(b => String(b.id) === String(batchId)) : null;
     
-    if (course || batch) {
+    if (course || batch || batchId) {
         const filtered = students.filter(s => {
             const matchCourse = !course || s.course === course;
             const matchBatch = !batch || s.batch === batch;
-            return matchCourse && matchBatch;
+            const matchBatchId = !batchId || (selectedBatch && (s.batchId
+                ? String(s.batchId) === String(batchId)
+                : s.batch === selectedBatch.name));
+            return matchCourse && matchBatch && matchBatchId;
         });
         res.json(filtered);
     } else {

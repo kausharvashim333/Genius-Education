@@ -4492,35 +4492,34 @@ function formatDate(dateStr) {
 // ===== Attendance =====
 async function loadAttendancePage() {
     try {
-        const courses = await fetch('/api/courses').then(r => r.json());
-        const courseSelect = document.getElementById('attendanceCourse');
-        courseSelect.innerHTML = '<option value="">Select Course</option>' + courses.map(c => '<option>' + c.name + '</option>').join('');
+        const res = await fetch('/api/batches');
+        if (!res.ok) throw new Error('Unable to load batches');
+        const batches = await res.json();
+        const batchSelect = document.getElementById('attendanceBatch');
+        const selectedBatch = batchSelect.value;
+        batchSelect.innerHTML = '<option value="">Select Batch</option>' + batches.map(b => '<option value="' + escapeHtml(b.id) + '">' + escapeHtml(b.name + (b.timing ? ' (' + b.timing + ')' : '')) + '</option>').join('');
         
-        // Add onchange event to load batches when course is selected
-        courseSelect.onchange = async function() {
-            const course = courseSelect.value;
-            const batchSelect = document.getElementById('attendanceBatch');
-            if (course) {
-                const batches = await fetch('/api/batches?course=' + encodeURIComponent(course)).then(r => r.json());
-                batchSelect.innerHTML = '<option value="">All Batches</option>' + batches.map(b => '<option value="' + b.name + '">' + b.name + '</option>').join('');
-            } else {
-                batchSelect.innerHTML = '<option value="">All Batches</option>';
-            }
-        };
+        // Add onchange event to load attendance when batch is selected
+        batchSelect.onchange = loadAttendanceTable;
+        if (batches.some(b => String(b.id) === selectedBatch)) batchSelect.value = selectedBatch;
         
-        document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
+        const dateInput = document.getElementById('attendanceDate');
+        if (!dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
         
         // Clear stats and table initially
         document.getElementById('attendanceStats').innerHTML = '';
         document.getElementById('attendanceTable').querySelector('tbody').innerHTML = '';
-        document.getElementById('attendanceBatch').innerHTML = '<option value="">All Batches</option>';
         
         // Add event listener to date input
-        document.getElementById('attendanceDate').addEventListener('change', loadHolidaysForDate);
+        dateInput.onchange = async function() {
+            await Promise.all([loadHolidaysForDate(), loadAttendanceTable()]);
+        };
         
         // Load holidays for the selected date
-        loadHolidaysForDate();
-    } catch (e) {}
+        await dateInput.onchange();
+    } catch (e) {
+        showNotification('Error loading attendance batches!', 'error');
+    }
 }
 
 async function loadHolidaysForDate() {
@@ -4564,27 +4563,19 @@ async function markAllAsHoliday(date) {
     if (!confirm('Are you sure you want to mark all students as holiday for this date?')) return;
     
     try {
-        const course = document.getElementById('attendanceCourse').value;
         const batch = document.getElementById('attendanceBatch').value;
         
-        if (!course || !date) {
-            showNotification('Please select course and date!', 'error');
+        if (!batch || !date) {
+            showNotification('Please select batch and date!', 'error');
             return;
         }
         
-        const res = await fetch('/api/students?course=' + encodeURIComponent(course) + '&batch=' + encodeURIComponent(batch || ''));
-        const data = await res.json();
-        
-        const students = Array.isArray(data) ? data : (data.students || []);
+        const students = await getAttendanceStudents(batch);
         
         if (students.length > 0) {
             let savedCount = 0;
             for (const student of students) {
-                await fetch('/api/attendance', { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ studentId: student.id, date, status: 'holiday', course, batch }) 
-                });
+                await saveAttendanceRecord(student, date, 'holiday');
                 savedCount++;
             }
             showNotification('Marked ' + savedCount + ' students as holiday!', 'success');
@@ -5662,49 +5653,47 @@ async function deleteBlog(blogId) {
 
 async function loadAttendanceTable() {
     try {
-        const course = document.getElementById('attendanceCourse').value;
         const batch = document.getElementById('attendanceBatch').value;
         const date = document.getElementById('attendanceDate').value;
         
-        if (!course) {
-            // Clear if no course selected
+        if (!batch || !date) {
+            // Clear if no batch or date selected
             document.getElementById('attendanceStats').innerHTML = '';
-            document.getElementById('attendanceTable').querySelector('tbody').innerHTML = '';
+            renderEmptyState(document.getElementById('attendanceTable').querySelector('tbody'), 'calendar-check', 'Select a batch and date to view attendance.');
             return;
         }
         
-        // Load batches for selected course
-        const batches = await fetch('/api/batches?course=' + encodeURIComponent(course)).then(r => r.json());
-        const batchSelect = document.getElementById('attendanceBatch');
-        batchSelect.innerHTML = '<option value="">All Batches</option>' + batches.map(b => '<option value="' + b.name + '">' + b.name + '</option>').join('');
+        // Load students for selected batch
+        document.getElementById('attendanceStats').innerHTML = '';
+        renderEmptyState(document.getElementById('attendanceTable').querySelector('tbody'), 'calendar-check', 'Loading attendance...');
+        const students = await getAttendanceStudents(batch);
         
-        // If batch was previously selected, restore the selection
-        if (batch) {
-            batchSelect.value = batch;
-        }
+        // If selection changed while loading, ignore the old response
+        if (batch !== document.getElementById('attendanceBatch').value || date !== document.getElementById('attendanceDate').value) return;
         
-        // Load students (course-wise, filtered by batch if selected)
-        const res = await fetch('/api/students?course=' + encodeURIComponent(course) + '&batch=' + encodeURIComponent(batch || ''));
-        const data = await res.json();
+        // Display students across all courses in the batch
         const tbody = document.getElementById('attendanceTable').querySelector('tbody');
-        
-        const students = Array.isArray(data) ? data : (data.students || []);
         
         if (students.length > 0) {
             // Load existing attendance for this date
             const attendanceRes = await fetch('/api/attendance');
             const attendanceData = await attendanceRes.json();
+            if (!attendanceRes.ok || !attendanceData.success) throw new Error('Unable to load attendance');
+            if (batch !== document.getElementById('attendanceBatch').value || date !== document.getElementById('attendanceDate').value) return;
             const attendanceMap = {};
+            const attendanceIds = {};
+            const studentIds = new Set(students.map(s => String(s.id)));
             if (attendanceData.success && attendanceData.attendance) {
                 attendanceData.attendance.forEach(a => {
-                    if (a.date === date) {
+                    if (a.date === date && studentIds.has(String(a.studentId))) {
                         attendanceMap[a.studentId] = a.status;
+                        attendanceIds[a.studentId] = a.id;
                     }
                 });
             }
             
             tbody.innerHTML = students.map(s => {
-                const attendanceId = attendanceMap[s.id] ? attendanceData.attendance.find(a => a.studentId == s.id && a.date === date)?.id : null;
+                const attendanceId = attendanceIds[s.id];
                 let html = '';
                 html += '<tr>';
                 html += '<td>' + s.rollNo + '</td>';
@@ -5717,6 +5706,7 @@ async function loadAttendanceTable() {
                 html += '<option value="present" ' + (attendanceMap[s.id] === 'present' ? 'selected' : '') + '>Present</option>';
                 html += '<option value="absent" ' + (attendanceMap[s.id] === 'absent' ? 'selected' : '') + '>Absent</option>';
                 html += '<option value="late" ' + (attendanceMap[s.id] === 'late' ? 'selected' : '') + '>Late</option>';
+                html += '<option value="holiday" ' + (attendanceMap[s.id] === 'holiday' ? 'selected' : '') + '>Holiday</option>';
                 html += '</select>';
                 html += '</td>';
                 html += '<td>';
@@ -5755,27 +5745,48 @@ async function loadAttendanceTable() {
             statsHtml += '</div>';
             document.getElementById('attendanceStats').innerHTML = statsHtml;
         } else {
-            renderEmptyState(tbody, 'user-graduate', 'No students found for this course/batch.');
+            renderEmptyState(tbody, 'user-graduate', 'No students found for this batch.');
             document.getElementById('attendanceStats').innerHTML = '';
         }
-    } catch (e) {}
+    } catch (e) {
+        document.getElementById('attendanceStats').innerHTML = '';
+        renderEmptyState(document.getElementById('attendanceTable').querySelector('tbody'), 'calendar-check', 'Unable to load attendance. Please try again.');
+        showNotification('Error loading attendance!', 'error');
+    }
+}
+
+async function getAttendanceStudents(batch) {
+    if (!batch) throw new Error('Please select a batch');
+    const res = await fetch('/api/students?batchId=' + encodeURIComponent(batch));
+    if (!res.ok) throw new Error('Unable to load batch students');
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data.students || []);
+}
+
+async function saveAttendanceRecord(student, date, status) {
+    const res = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId: student.id, date, status, course: student.course || '', batch: student.batch || '' })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error('Unable to save attendance');
 }
 
 async function saveAttendance(studentId, date) {
     const status = document.getElementById('att_' + studentId).value;
     if (!status) return;
     
-    const course = document.getElementById('attendanceCourse').value;
     const batch = document.getElementById('attendanceBatch').value;
+    if (!batch || !date) return showNotification('Please select batch and date!', 'error');
     
     try {
-        await fetch('/api/attendance', { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ studentId, date, status, course, batch }) 
-        });
+        const students = await getAttendanceStudents(batch);
+        const student = students.find(s => String(s.id) === String(studentId));
+        if (!student) throw new Error('Student not found in selected batch');
+        await saveAttendanceRecord(student, date, status);
         showNotification('Attendance saved!', 'success');
-        loadAttendanceTable(); // Refresh to update stats
+        await loadAttendanceTable(); // Refresh to update stats
     } catch (e) { showNotification('Error!', 'error'); }
 }
 
@@ -5798,27 +5809,21 @@ async function deleteAttendance(attendanceId, date) {
 }
 
 async function markAllPresent() {
-    const course = document.getElementById('attendanceCourse').value;
     const batch = document.getElementById('attendanceBatch').value;
     const date = document.getElementById('attendanceDate').value;
     
-    if (!course || !date) {
-        showNotification('Please select course and date!', 'error');
+    if (!batch || !date) {
+        showNotification('Please select batch and date!', 'error');
         return;
     }
     
     try {
-        const res = await fetch('/api/students?course=' + encodeURIComponent(course) + '&batch=' + encodeURIComponent(batch || ''));
-        const students = await res.json();
+        const students = await getAttendanceStudents(batch);
         
         if (students && students.length > 0) {
             let savedCount = 0;
             for (const student of students) {
-                await fetch('/api/attendance', { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ studentId: student.id, date, status: 'present' }) 
-                });
+                await saveAttendanceRecord(student, date, 'present');
                 savedCount++;
             }
             showNotification('Marked ' + savedCount + ' students as present!', 'success');
@@ -5828,20 +5833,19 @@ async function markAllPresent() {
 }
 
 async function downloadAttendanceReport() {
-    const course = document.getElementById('attendanceCourse').value;
     const batch = document.getElementById('attendanceBatch').value;
     const date = document.getElementById('attendanceDate').value;
     
-    if (!course || !date) {
-        showNotification('Please select course and date!', 'error');
+    if (!batch || !date) {
+        showNotification('Please select batch and date!', 'error');
         return;
     }
     
     try {
-        const res = await fetch('/api/students?course=' + encodeURIComponent(course) + '&batch=' + encodeURIComponent(batch || ''));
-        const students = await res.json();
+        const students = await getAttendanceStudents(batch);
         const attendanceRes = await fetch('/api/attendance');
         const attendanceData = await attendanceRes.json();
+        if (!attendanceRes.ok || !attendanceData.success) throw new Error('Unable to load attendance');
         
         if (students && students.length > 0) {
             const attendanceMap = {};
@@ -5863,7 +5867,7 @@ async function downloadAttendanceReport() {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'attendance_' + course + '_' + date + '.csv';
+            a.download = 'attendance_batch_' + batch + '_' + date + '.csv';
             a.click();
             window.URL.revokeObjectURL(url);
             showNotification('Attendance report downloaded!', 'success');
@@ -5872,18 +5876,16 @@ async function downloadAttendanceReport() {
 }
 
 async function saveAllAttendance() {
-    const course = document.getElementById('attendanceCourse').value;
     const batch = document.getElementById('attendanceBatch').value;
     const date = document.getElementById('attendanceDate').value;
     
-    if (!course || !date) {
-        showNotification('Please select course and date!', 'error');
+    if (!batch || !date) {
+        showNotification('Please select batch and date!', 'error');
         return;
     }
     
     try {
-        const res = await fetch('/api/students?course=' + encodeURIComponent(course) + '&batch=' + encodeURIComponent(batch || ''));
-        const students = await res.json();
+        const students = await getAttendanceStudents(batch);
         
         if (students && students.length > 0) {
             let savedCount = 0;
@@ -5892,11 +5894,7 @@ async function saveAllAttendance() {
             for (const student of students) {
                 const status = document.getElementById('att_' + student.id).value;
                 if (status) {
-                    await fetch('/api/attendance', { 
-                        method: 'POST', 
-                        headers: { 'Content-Type': 'application/json' }, 
-                        body: JSON.stringify({ studentId: student.id, date, status }) 
-                    });
+                    await saveAttendanceRecord(student, date, status);
                     savedCount++;
                 } else {
                     errorCount++;
@@ -17013,25 +17011,34 @@ async function exportExamReportsToExcel() {
 }
 
 async function exportAttendanceToExcel() {
+    const batch = document.getElementById('attendanceBatch').value;
+    const date = document.getElementById('attendanceDate').value;
+    if (!batch || !date) return showNotification('Please select batch and date!', 'error');
     try {
-        const res = await fetch('/api/attendance').then(r => r.json());
-        const attendance = res.attendance || res || [];
-        if (!attendance || attendance.length === 0) {
-            showNotification('No attendance records to export!', 'error');
+        const students = await getAttendanceStudents(batch);
+        if (students.length === 0) {
+            showNotification('No students found for this batch!', 'error');
             return;
         }
-        const data = attendance.map(a => ({
-            'Roll No': a.rollNo || '',
-            'Name': a.studentName || a.name || '',
-            'Course': a.course || '',
-            'Batch': a.batch || '',
-            'Date': a.date || '',
-            'Status': a.status || ''
+        const res = await fetch('/api/attendance');
+        const result = await res.json();
+        if (!res.ok || !result.success) throw new Error('Unable to load attendance');
+        const attendanceMap = {};
+        result.attendance.forEach(a => {
+            if (a.date === date) attendanceMap[a.studentId] = a.status;
+        });
+        const data = students.map(s => ({
+            'Roll No': s.rollNo || '',
+            'Name': s.name || '',
+            'Course': s.course || '',
+            'Batch': s.batch || '',
+            'Date': date,
+            'Status': attendanceMap[s.id] || 'Not Marked'
         }));
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
-        XLSX.writeFile(wb, 'Attendance_Export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        XLSX.writeFile(wb, 'Attendance_Batch_' + batch + '_' + date + '.xlsx');
         showNotification('Attendance exported successfully!', 'success');
     } catch (err) {
         console.error('Export error:', err);

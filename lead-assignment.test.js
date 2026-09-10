@@ -37,9 +37,9 @@ function setup() {
     assert.ok(authStart >= 0 && leadStart >= 0, 'Secure faculty sessions and linked assignments must exist');
     vm.runInContext(source.slice(authStart, source.indexOf('// --- Faculty ---', authStart)), context);
     vm.runInContext(source.slice(leadStart, source.indexOf('// Public endpoint for creating leads', leadStart)), context);
-    async function request(method, path, { body = {}, id, facultyId, admin = false, expired = false } = {}) {
+    async function request(method, path, { body = {}, query = {}, id, facultyId, admin = false, expired = false } = {}) {
         const req = {
-            body, params: { id }, headers: admin ? { 'x-admin-session': 'admin' } : {},
+            body, query, params: { id }, headers: admin ? { 'x-admin-session': 'admin' } : {},
             session: facultyId ? { facultyId, facultyExpiresAt: Date.now() + (expired ? -1000 : 60000) } : {}
         };
         let status = 200;
@@ -54,6 +54,158 @@ function setup() {
     }
     return { db, emails, request, context, routes };
 }
+
+function setupAttendance() {
+    const fixture = setup();
+    vm.runInContext(source.slice(source.indexOf("app.get('/api/students',"), source.indexOf("app.get('/api/students/:id',")), fixture.context);
+    vm.runInContext(source.slice(source.indexOf("app.get('/api/attendance',"), source.indexOf('// --- Razorpay Payment Gateway ---')), fixture.context);
+    fixture.db['batches.json'] = [
+        { id: 101, name: 'Morning', timing: '09:00' },
+        { id: 102, name: 'Evening', timing: '17:00' }
+    ];
+    fixture.db['students.json'] = [
+        { id: 21, name: 'DCA Student', rollNo: 'R21', course: 'DCA', batchId: '101', batch: 'Morning' },
+        { id: 22, name: 'Tally Student', rollNo: 'R22', course: 'Tally', batchId: 101, batch: 'Morning' },
+        { id: 23, name: 'Evening Student', rollNo: 'R23', course: 'DCA', batchId: 102, batch: 'Evening' },
+        { id: 24, name: 'Legacy Student', rollNo: 'R24', course: 'Excel', batch: 'Morning' },
+        { id: 25, name: 'Moved Student', rollNo: 'R25', course: 'DCA', batchId: 102, batch: 'Morning' }
+    ];
+    fixture.db['attendance.json'] = [
+        { id: 31, studentId: 21, date: '2026-09-10', status: 'present' },
+        { id: 32, studentId: 22, date: '2026-09-10', status: 'absent' },
+        { id: 33, studentId: 23, date: '2026-09-10', status: 'present' },
+        { id: 34, studentId: 21, date: '2026-09-09', status: 'absent' }
+    ];
+    const tbody = { innerHTML: '' };
+    const elements = {
+        attendanceBatch: { value: '101', innerHTML: '' },
+        attendanceDate: { value: '2026-09-10' },
+        attendanceStats: { innerHTML: '' },
+        attendanceTable: { querySelector: () => tbody },
+        att_21: { value: 'late' }, att_22: { value: 'present' }, att_24: { value: '' }
+    };
+    const messages = [];
+    const downloads = [];
+    const spreadsheets = [];
+    const blobs = [];
+    let rejectSaves = false;
+    const adminContext = vm.createContext({
+        document: {
+            getElementById: id => elements[id] || null,
+            createElement: () => ({ click() { downloads.push(this.download); } })
+        },
+        fetch: async (path, options = {}) => {
+            const url = new URL(path, 'http://localhost');
+            let response;
+            if (url.pathname === '/api/batches') response = { status: 200, body: fixture.db['batches.json'] };
+            else if (rejectSaves && options.method === 'POST') response = { status: 500, body: { success: false } };
+            else response = await fixture.request((options.method || 'get').toLowerCase(), url.pathname, {
+                query: Object.fromEntries(url.searchParams), body: options.body ? JSON.parse(options.body) : {}
+            });
+            return { ok: response.status === 200, json: async () => response.body };
+        },
+        showNotification: (message, type) => messages.push({ message, type }),
+        confirm: () => true,
+        Blob,
+        XLSX: { utils: require('xlsx').utils, writeFile: (book, filename) => spreadsheets.push({ book, filename }) },
+        window: { URL: { createObjectURL: blob => { blobs.push(blob); return 'blob:test'; }, revokeObjectURL() {} } },
+        console
+    });
+    const adminSource = fs.readFileSync(require.resolve('./public/js/admin.js'), 'utf8');
+    vm.runInContext(adminSource.slice(0, adminSource.indexOf('let currentPage')), adminContext);
+    vm.runInContext(adminSource.slice(adminSource.indexOf('function renderEmptyState('), adminSource.indexOf('// ===== Loading Spinner Helper =====')), adminContext);
+    vm.runInContext(adminSource.slice(adminSource.indexOf('async function loadAttendancePage('), adminSource.indexOf('// Holiday Management Functions')), adminContext);
+    vm.runInContext(adminSource.slice(adminSource.indexOf('async function loadAttendanceTable('), adminSource.indexOf('// ===== Study Materials =====')), adminContext);
+    vm.runInContext(adminSource.slice(adminSource.indexOf('async function exportAttendanceToExcel('), adminSource.indexOf('async function exportExamCalendarToExcel(')), adminContext);
+    adminContext.loadHolidaysForDate = async () => {};
+    return { ...fixture, adminContext, elements, tbody, messages, downloads, spreadsheets, blobs, rejectSaves: () => { rejectSaves = true; } };
+}
+
+test('batch filtering includes different courses and legacy names but prioritizes linked batch IDs', async () => {
+    const { request } = setupAttendance();
+    const result = await request('get', '/api/students', { query: { batchId: '101' } });
+    assert.deepEqual(result.body.map(s => s.id), [21, 22, 24]);
+    assert.deepEqual((await request('get', '/api/students', { query: { batchId: 'missing' } })).body, []);
+    assert.deepEqual((await request('get', '/api/students', { query: { course: 'Tally' } })).body.map(s => s.id), [22]);
+});
+
+test('admin attendance loads batches without a course field and refreshes on batch/date changes', async () => {
+    const { adminContext, elements, tbody } = setupAttendance();
+    await adminContext.loadAttendancePage();
+    assert.match(elements.attendanceBatch.innerHTML, /Morning/);
+    assert.match(elements.attendanceBatch.innerHTML, /Evening/);
+    assert.equal(typeof elements.attendanceBatch.onchange, 'function');
+    assert.equal(typeof elements.attendanceDate.onchange, 'function');
+    elements.attendanceDate.value = '2026-09-10';
+    await elements.attendanceBatch.onchange();
+    assert.match(tbody.innerHTML, /DCA Student/);
+    assert.match(tbody.innerHTML, /Tally Student/);
+    assert.doesNotMatch(tbody.innerHTML, /Evening Student|Moved Student/);
+    elements.attendanceDate.value = '2026-09-09';
+    await elements.attendanceDate.onchange();
+    assert.match(tbody.innerHTML, /value="absent" selected/);
+});
+
+test('batch attendance shows staff saves and counts only displayed students for the selected date', async () => {
+    const { adminContext, request, tbody, elements } = setupAttendance();
+    await request('post', '/api/attendance', { body: { studentId: 24, date: '2026-09-10', status: 'late', course: 'Excel', batch: 'Morning' } });
+    await adminContext.loadAttendanceTable();
+    assert.match(tbody.innerHTML, /value="present" selected/);
+    assert.match(tbody.innerHTML, /value="absent" selected/);
+    assert.match(tbody.innerHTML, /value="late" selected/);
+    assert.deepEqual(Array.from(elements.attendanceStats.innerHTML.matchAll(/font-weight:700[^>]*>(\d+)</g), m => Number(m[1])), [3, 1, 1, 1]);
+    elements.attendanceBatch.value = '';
+    await adminContext.loadAttendanceTable();
+    assert.doesNotMatch(tbody.innerHTML, /DCA Student/);
+});
+
+test('batch attendance single save, bulk save, mark present and holiday preserve student course and batch', async () => {
+    for (const action of ['saveAttendance', 'saveAllAttendance', 'markAllPresent', 'markAllAsHoliday']) {
+        const { adminContext, db } = setupAttendance();
+        if (action === 'saveAttendance') await adminContext[action](21, '2026-09-10');
+        else await adminContext[action]('2026-09-10');
+        const saved = db['attendance.json'].slice(4);
+        assert.deepEqual(saved.map(a => a.studentId), action === 'saveAttendance' ? [21] : action === 'saveAllAttendance' ? [21, 22] : [21, 22, 24]);
+        for (const record of saved) {
+            const student = db['students.json'].find(s => s.id === record.studentId);
+            assert.equal(record.course, student.course);
+            assert.equal(record.batch, student.batch);
+            assert.equal(record.date, '2026-09-10');
+        }
+    }
+});
+
+test('batch attendance report contains only the selected batch across courses', async () => {
+    const { adminContext, blobs, downloads } = setupAttendance();
+    await adminContext.downloadAttendanceReport();
+    assert.equal(downloads.length, 1);
+    const csv = await blobs[0].text();
+    assert.match(csv, /DCA Student/);
+    assert.match(csv, /Tally Student/);
+    assert.doesNotMatch(csv, /Evening Student|Moved Student/);
+});
+
+test('batch Excel export includes names and current statuses for the selected date only', async () => {
+    const { adminContext, spreadsheets } = setupAttendance();
+    await adminContext.exportAttendanceToExcel();
+    assert.equal(spreadsheets.length, 1);
+    assert.equal(spreadsheets[0].filename, 'Attendance_Batch_101_2026-09-10.xlsx');
+    const rows = require('xlsx').utils.sheet_to_json(spreadsheets[0].book.Sheets.Attendance);
+    assert.deepEqual(rows.map(r => r.Name), ['DCA Student', 'Tally Student', 'Legacy Student']);
+    assert.deepEqual(rows.map(r => r.Status), ['present', 'absent', 'Not Marked']);
+    assert.ok(rows.every(r => r.Date === '2026-09-10'));
+});
+
+test('attendance saves do not report success for failed requests or without a batch', async () => {
+    const { adminContext, messages, rejectSaves, elements, db } = setupAttendance();
+    rejectSaves();
+    await adminContext.saveAllAttendance();
+    assert.ok(messages.some(m => m.type === 'error'));
+    assert.ok(!messages.some(m => m.type === 'success'));
+    elements.attendanceBatch.value = '';
+    await adminContext.markAllPresent();
+    assert.equal(db['attendance.json'].length, 4);
+});
 
 test('staff list contains only own ID-linked leads; legacy names grant no access', async () => {
     const { request } = setup();
@@ -198,8 +350,8 @@ test('assignment email targets the selected staff account and escapes lead conte
     assert.equal(messages.length, 1);
 });
 
-async function startTestServer(t) {
-    const fixture = setup();
+async function startTestServer(t, setupFn = setup) {
+    const fixture = setupFn();
     fixture.db['faculty.json'].forEach(staff => { staff.password = 'private'; staff.passwordChanged = true; });
     const loginStart = source.indexOf("app.post('/api/faculty/login'");
     vm.runInContext(source.slice(loginStart, source.indexOf('// Helper function: Get permissions', loginStart)), fixture.context);
@@ -213,6 +365,7 @@ async function startTestServer(t) {
         const [method, path] = route.split(' ');
         app[method](path, ...handlers);
     }
+    app.get('/api/batches', (req, res) => res.json(fixture.db['batches.json'] || []));
     app.get('/api/settings', (req, res) => res.json({}));
     for (const path of ['/api/students', '/api/courses', '/api/assignments']) app.get(path, (req, res) => res.json([]));
     app.get('/test-admin', (req, res) => {
@@ -252,6 +405,47 @@ test('password and OTP login establish real sessions; logout revokes access', as
     assert.deepEqual(second.leads.map(l => l.id), [12]);
     const reused = await post('/api/faculty/verify-otp', { email: 'two@example.test', otp: '123456' });
     assert.equal((await reused.json()).success, false);
+});
+
+test('browser: attendance filters by batch and date without a course selector', { skip: process.env.RUN_BROWSER_TESTS !== '1' }, async t => {
+    const { url, db } = await startTestServer(t, setupAttendance);
+    const browser = await require('puppeteer').launch({ headless: true });
+    t.after(() => browser.close());
+    const page = await browser.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.setRequestInterception(true);
+    page.on('request', request => request.url().startsWith(url) ? request.continue() : request.abort());
+    await page.goto(url + '/test-admin');
+    const adminSource = fs.readFileSync(require.resolve('./public/js/admin.js'), 'utf8');
+    await page.addScriptTag({ content: adminSource.slice(0, adminSource.indexOf('let currentPage'))
+        + adminSource.slice(adminSource.indexOf('function renderEmptyState('), adminSource.indexOf('// ===== Loading Spinner Helper ====='))
+        + adminSource.slice(adminSource.indexOf('async function loadAttendancePage('), adminSource.indexOf('// Holiday Management Functions'))
+        + adminSource.slice(adminSource.indexOf('async function loadAttendanceTable('), adminSource.indexOf('// ===== Study Materials =====')) });
+    await page.evaluate(() => {
+        window.showNotification = () => {};
+        window.loadHolidaysForDate = async () => {};
+        document.querySelectorAll('.page-content').forEach(el => { el.style.display = 'none'; });
+        for (let el = document.getElementById('page-attendance'); el && el.tagName !== 'HTML'; el = el.parentElement) { el.classList.remove('hidden'); el.style.display = 'block'; }
+        document.getElementById('attendanceDate').value = '2026-09-10';
+        return loadAttendancePage();
+    });
+    assert.equal(await page.$('#attendanceCourse'), null);
+    await page.select('#attendanceBatch', '101');
+    await page.waitForSelector('#att_21');
+    assert.equal(await page.$$eval('#attendanceTable tbody tr', rows => rows.length), 3);
+    assert.equal(await page.$eval('#att_21', el => el.value), 'present');
+    assert.equal(await page.$eval('#att_22', el => el.value), 'absent');
+    await page.evaluate(() => {
+        document.getElementById('attendanceDate').value = '2026-09-09';
+        return document.getElementById('attendanceDate').onchange();
+    });
+    assert.equal(await page.$eval('#att_21', el => el.value), 'absent');
+    await page.select('#attendanceBatch', '102');
+    await page.waitForSelector('#att_23');
+    assert.equal(await page.$('#att_21'), null);
+    assert.equal(await page.$$eval('#attendanceTable tbody tr', rows => rows.length), 2);
+    assert.deepEqual(errors, []);
 });
 
 test('browser: admin assignment, staff follow-up, reassignment, legacy links and mobile UI', { skip: process.env.RUN_BROWSER_TESTS !== '1' }, async t => {
