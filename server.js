@@ -7278,6 +7278,84 @@ app.delete('/api/attendance/:id', (req, res) => {
     res.json({ success: true });
 });
 
+// --- Auto-absent marking after batch time expires ---
+// Parse end time from batch timing string like "9:00 AM - 11:00 AM" or "09:00"
+function parseBatchEndTime(timing) {
+    if (!timing || typeof timing !== 'string') return null;
+    // Match patterns like "9:00 AM - 11:00 AM" or "11:00 AM" or "17:00"
+    const match = timing.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/gi);
+    if (!match || match.length === 0) return null;
+    // Take the last time match as the end time
+    const last = match[match.length - 1];
+    const parts = last.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!parts) return null;
+    let hour = parseInt(parts[1]);
+    const minute = parseInt(parts[2]);
+    const period = parts[3] ? parts[3].toUpperCase() : null;
+    if (period === 'PM' && hour !== 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0;
+    return { hour, minute };
+}
+
+function isBatchTimeOver(timing, now) {
+    const endTime = parseBatchEndTime(timing);
+    if (!endTime) return false;
+    const today = new Date(now);
+    const batchEnd = new Date(today);
+    batchEnd.setHours(endTime.hour, endTime.minute, 0, 0);
+    return today >= batchEnd;
+}
+
+// Auto-mark unmarked students as absent after batch time expires
+function autoMarkAbsent() {
+    const now = Date.now();
+    const today = new Date().toISOString().split('T')[0];
+    const batches = readData('batches.json') || [];
+    const students = readData('students.json') || [];
+    const attendance = readData('attendance.json') || [];
+    let changed = false;
+
+    for (const batch of batches) {
+        if (!isBatchTimeOver(batch.timing, now)) continue;
+
+        // Get active students in this batch
+        const batchStudents = students.filter(s =>
+            (s.batchId ? String(s.batchId) === String(batch.id) : s.batch === batch.name) &&
+            s.status !== 'Dropped'
+        );
+
+        // Find students without attendance for today
+        for (const student of batchStudents) {
+            const hasAttendance = attendance.some(a =>
+                a.studentId === student.id && a.date === today
+            );
+            if (!hasAttendance) {
+                attendance.push({
+                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    studentId: student.id,
+                    date: today,
+                    status: 'absent',
+                    course: student.course || '',
+                    batch: student.batch || '',
+                    timestamp: new Date().toISOString(),
+                    autoMarked: true
+                });
+                changed = true;
+            }
+        }
+    }
+
+    if (changed) {
+        writeData('attendance.json', attendance);
+        console.log(`[Auto-absent] Marked unmarked students as absent for ${today}`);
+    }
+}
+
+// Run auto-absent check every 10 minutes
+setInterval(autoMarkAbsent, 10 * 60 * 1000);
+// Also run once on startup (after 30 seconds to let server initialize)
+setTimeout(autoMarkAbsent, 30 * 1000);
+
 // --- Razorpay Payment Gateway ---
 
 // Create Razorpay Order

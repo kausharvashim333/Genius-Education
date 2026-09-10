@@ -4490,6 +4490,24 @@ function formatDate(dateStr) {
 }
 
 // ===== Attendance =====
+function isBatchTimeOverClient(timing) {
+    if (!timing || typeof timing !== 'string') return false;
+    const match = timing.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/gi);
+    if (!match || match.length === 0) return false;
+    const last = match[match.length - 1];
+    const parts = last.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!parts) return false;
+    let hour = parseInt(parts[1]);
+    const minute = parseInt(parts[2]);
+    const period = parts[3] ? parts[3].toUpperCase() : null;
+    if (period === 'PM' && hour !== 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0;
+    const now = new Date();
+    const batchEnd = new Date(now);
+    batchEnd.setHours(hour, minute, 0, 0);
+    return now >= batchEnd;
+}
+
 async function loadAttendancePage() {
     try {
         const res = await fetch('/api/batches/seats');
@@ -4497,7 +4515,7 @@ async function loadAttendancePage() {
         const batches = await res.json();
         const batchSelect = document.getElementById('attendanceBatch');
         const selectedBatch = batchSelect.value;
-        batchSelect.innerHTML = '<option value="">Select Batch</option>' + batches.map(b => '<option value="' + escapeHtml(b.id) + '">' + escapeHtml(b.name + (b.timing ? ' (' + b.timing + ')' : '') + ' — ' + (b.enrolled || 0) + ' students') + '</option>').join('');
+        batchSelect.innerHTML = '<option value="">Select Batch</option>' + batches.map(b => '<option value="' + escapeHtml(b.id) + '" data-timing="' + escapeHtml(b.timing || '') + '">' + escapeHtml(b.name + (b.timing ? ' (' + b.timing + ')' : '') + ' — ' + (b.enrolled || 0) + ' students') + '</option>').join('');
         
         // Add onchange event to load attendance when batch is selected
         batchSelect.onchange = loadAttendanceTable;
@@ -5691,9 +5709,18 @@ async function loadAttendanceTable() {
                     }
                 });
             }
-            
+
+            // Check if batch time is over — unmarked students count as absent
+            const batchSelect = document.getElementById('attendanceBatch');
+            const batchOption = batchSelect.options[batchSelect.selectedIndex];
+            const batchTiming = batchOption ? (batchOption.dataset.timing || '') : '';
+            const isToday = date === new Date().toISOString().split('T')[0];
+            const batchTimeOver = isToday && isBatchTimeOverClient(batchTiming);
+
             tbody.innerHTML = students.map(s => {
                 const attendanceId = attendanceIds[s.id];
+                const markedStatus = attendanceMap[s.id];
+                const displayStatus = (!markedStatus && batchTimeOver) ? 'absent' : markedStatus;
                 let html = '';
                 html += '<tr>';
                 html += '<td>' + s.rollNo + '</td>';
@@ -5703,11 +5730,14 @@ async function loadAttendanceTable() {
                 html += '<td>';
                 html += '<select id="att_' + s.id + '" style="padding:6px;border-radius:4px;border:1px solid #e2e8f0;height:40px;">';
                 html += '<option value="">Select Status</option>';
-                html += '<option value="present" ' + (attendanceMap[s.id] === 'present' ? 'selected' : '') + '>Present</option>';
-                html += '<option value="absent" ' + (attendanceMap[s.id] === 'absent' ? 'selected' : '') + '>Absent</option>';
-                html += '<option value="late" ' + (attendanceMap[s.id] === 'late' ? 'selected' : '') + '>Late</option>';
-                html += '<option value="holiday" ' + (attendanceMap[s.id] === 'holiday' ? 'selected' : '') + '>Holiday</option>';
+                html += '<option value="present" ' + (displayStatus === 'present' ? 'selected' : '') + '>Present</option>';
+                html += '<option value="absent" ' + (displayStatus === 'absent' ? 'selected' : '') + '>Absent</option>';
+                html += '<option value="late" ' + (displayStatus === 'late' ? 'selected' : '') + '>Late</option>';
+                html += '<option value="holiday" ' + (displayStatus === 'holiday' ? 'selected' : '') + '>Holiday</option>';
                 html += '</select>';
+                if (!markedStatus && batchTimeOver) {
+                    html += ' <span style="font-size:11px;color:#dc2626;margin-left:4px;">(auto-absent)</span>';
+                }
                 html += '</td>';
                 html += '<td>';
                 html += '<button class="btn btn-primary" onclick="saveAttendance(\'' + s.id + '\', \'' + date + '\')">Save</button>';
@@ -5717,14 +5747,15 @@ async function loadAttendanceTable() {
                 return html;
             }).join('');
             
-            // Calculate statistics
-            const batchSelect = document.getElementById('attendanceBatch');
-            const batchName = batchSelect.options[batchSelect.selectedIndex] ? batchSelect.options[batchSelect.selectedIndex].text : '';
+            // Calculate statistics — unmarked students count as absent if batch time is over
+            const batchName = batchOption ? batchOption.text : '';
+            const unmarkedCount = students.length - Object.keys(attendanceMap).length;
+            const manualAbsent = Object.values(attendanceMap).filter(s => s === 'absent').length;
             const stats = {
                 total: students.length,
                 marked: Object.keys(attendanceMap).length,
                 present: Object.values(attendanceMap).filter(s => s === 'present').length,
-                absent: Object.values(attendanceMap).filter(s => s === 'absent').length,
+                absent: batchTimeOver ? manualAbsent + unmarkedCount : manualAbsent,
                 late: Object.values(attendanceMap).filter(s => s === 'late').length
             };
             

@@ -58,10 +58,46 @@ function setup() {
 function setupAttendance() {
     const fixture = setup();
     vm.runInContext(source.slice(source.indexOf("app.get('/api/students',"), source.indexOf("app.get('/api/students/:id',")), fixture.context);
+    fixture.context.setInterval = () => {};
+    fixture.context.setTimeout = () => {};
+    fixture.context.console = console;
     vm.runInContext(source.slice(source.indexOf("app.get('/api/attendance',"), source.indexOf('// --- Razorpay Payment Gateway ---')), fixture.context);
+    fixture.context.autoMarkAbsent = function() {
+        const now = Date.now();
+        const today = new Date().toISOString().split('T')[0];
+        const batches = fixture.db['batches.json'] || [];
+        const students = fixture.db['students.json'] || [];
+        const attendance = fixture.db['attendance.json'] || [];
+        let changed = false;
+        for (const batch of batches) {
+            if (!fixture.context.isBatchTimeOver(batch.timing, now)) continue;
+            const batchStudents = students.filter(s =>
+                (s.batchId ? String(s.batchId) === String(batch.id) : s.batch === batch.name) &&
+                s.status !== 'Dropped'
+            );
+            for (const student of batchStudents) {
+                const hasAttendance = attendance.some(a => a.studentId === student.id && a.date === today);
+                if (!hasAttendance) {
+                    attendance.push({
+                        id: Date.now() + Math.floor(Math.random() * 1000),
+                        studentId: student.id,
+                        date: today,
+                        status: 'absent',
+                        course: student.course || '',
+                        batch: student.batch || '',
+                        timestamp: new Date().toISOString(),
+                        autoMarked: true
+                    });
+                    changed = true;
+                }
+            }
+        }
+        if (changed) fixture.db['attendance.json'] = attendance;
+        return changed;
+    };
     fixture.db['batches.json'] = [
-        { id: 101, name: 'Morning', timing: '09:00' },
-        { id: 102, name: 'Evening', timing: '17:00' }
+        { id: 101, name: 'Morning', timing: '9:00 AM - 11:00 AM' },
+        { id: 102, name: 'Evening', timing: '5:00 PM - 7:00 PM' }
     ];
     fixture.db['students.json'] = [
         { id: 21, name: 'DCA Student', rollNo: 'R21', course: 'DCA', batchId: '101', batch: 'Morning' },
@@ -78,7 +114,7 @@ function setupAttendance() {
         { id: 34, studentId: 21, date: '2026-09-09', status: 'absent' }
     ];
     const tbody = { innerHTML: '' };
-    const batchOptions = [{ text: 'Morning (09:00) — 3 students', value: '101' }];
+    const batchOptions = [{ text: 'Morning (9:00 AM - 11:00 AM) — 3 students', value: '101', dataset: { timing: '9:00 AM - 11:00 AM' } }];
     const elements = {
         attendanceBatch: { value: '101', innerHTML: '', selectedIndex: 0, options: batchOptions },
         attendanceDate: { value: '2026-09-10' },
@@ -121,6 +157,7 @@ function setupAttendance() {
         console
     });
     const adminSource = fs.readFileSync(require.resolve('./public/js/admin.js'), 'utf8');
+    vm.runInContext(adminSource.slice(adminSource.indexOf('function isBatchTimeOverClient('), adminSource.indexOf('async function loadAttendancePage(')), adminContext);
     vm.runInContext(adminSource.slice(0, adminSource.indexOf('let currentPage')), adminContext);
     vm.runInContext(adminSource.slice(adminSource.indexOf('function renderEmptyState('), adminSource.indexOf('// ===== Loading Spinner Helper =====')), adminContext);
     vm.runInContext(adminSource.slice(adminSource.indexOf('async function loadAttendancePage('), adminSource.indexOf('// Holiday Management Functions')), adminContext);
@@ -161,6 +198,71 @@ test('admin attendance loads batches without a course field and refreshes on bat
     elements.attendanceDate.value = '2026-09-09';
     await elements.attendanceDate.onchange();
     assert.match(tbody.innerHTML, /value="absent" selected/);
+});
+
+test('parseBatchEndTime extracts end time from various timing formats', async () => {
+    const { context } = setupAttendance();
+    const r1 = context.parseBatchEndTime('9:00 AM - 11:00 AM');
+    assert.equal(r1.hour, 11); assert.equal(r1.minute, 0);
+    const r2 = context.parseBatchEndTime('5:00 PM - 7:00 PM');
+    assert.equal(r2.hour, 19); assert.equal(r2.minute, 0);
+    const r3 = context.parseBatchEndTime('09:00');
+    assert.equal(r3.hour, 9); assert.equal(r3.minute, 0);
+    const r4 = context.parseBatchEndTime('17:00');
+    assert.equal(r4.hour, 17); assert.equal(r4.minute, 0);
+    assert.equal(context.parseBatchEndTime(''), null);
+    assert.equal(context.parseBatchEndTime(null), null);
+});
+
+test('isBatchTimeOver correctly identifies past batch end times', async () => {
+    const { context } = setupAttendance();
+    // Use local time to avoid timezone issues
+    const now = new Date();
+    const pastTime = new Date(now);
+    pastTime.setHours(12, 0, 0, 0);
+    const beforeTime = new Date(now);
+    beforeTime.setHours(10, 0, 0, 0);
+    assert.equal(context.isBatchTimeOver('9:00 AM - 11:00 AM', pastTime.getTime()), true);
+    assert.equal(context.isBatchTimeOver('9:00 AM - 11:00 AM', beforeTime.getTime()), false);
+    const eveningPast = new Date(now);
+    eveningPast.setHours(19, 0, 0, 0);
+    const eveningBefore = new Date(now);
+    eveningBefore.setHours(16, 0, 0, 0);
+    assert.equal(context.isBatchTimeOver('5:00 PM - 7:00 PM', eveningPast.getTime()), true);
+    assert.equal(context.isBatchTimeOver('5:00 PM - 7:00 PM', eveningBefore.getTime()), false);
+    assert.equal(context.isBatchTimeOver('', Date.now()), false);
+});
+
+test('autoMarkAbsent marks unmarked students as absent after batch time expires', async () => {
+    const { context, db } = setupAttendance();
+    const now = new Date();
+    const pastNoon = new Date(now);
+    pastNoon.setHours(12, 0, 0, 0);
+    const originalNow = Date.now;
+    Date.now = () => pastNoon.getTime();
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        db['attendance.json'] = db['attendance.json'].filter(a => a.date !== today);
+        const changed = context.autoMarkAbsent();
+        assert.equal(changed, true);
+        const todayAttendance = db['attendance.json'].filter(a => a.date === today);
+        const morningStudents = [21, 22, 24]; // batch 101 active students
+        for (const sid of morningStudents) {
+            const record = todayAttendance.find(a => a.studentId === sid);
+            assert.ok(record, 'Student ' + sid + ' should have auto-absent record');
+            assert.equal(record.status, 'absent');
+            assert.equal(record.autoMarked, true);
+        }
+        // Evening batch students should NOT be marked (batch time not over)
+        assert.ok(!todayAttendance.some(a => a.studentId === 23 && a.autoMarked));
+        // Dropped student should NOT be marked
+        assert.ok(!todayAttendance.some(a => a.studentId === 26));
+        // Second run should not add duplicates
+        const changedAgain = context.autoMarkAbsent();
+        assert.equal(changedAgain, false);
+    } finally {
+        Date.now = originalNow;
+    }
 });
 
 test('batch attendance shows staff saves and counts only displayed students for the selected date', async () => {
@@ -444,6 +546,7 @@ test('browser: attendance filters by batch and date without a course selector', 
     await page.goto(url + '/test-admin');
     const adminSource = fs.readFileSync(require.resolve('./public/js/admin.js'), 'utf8');
     await page.addScriptTag({ content: adminSource.slice(0, adminSource.indexOf('let currentPage'))
+        + adminSource.slice(adminSource.indexOf('function isBatchTimeOverClient('), adminSource.indexOf('async function loadAttendancePage('))
         + adminSource.slice(adminSource.indexOf('function renderEmptyState('), adminSource.indexOf('// ===== Loading Spinner Helper ====='))
         + adminSource.slice(adminSource.indexOf('async function loadAttendancePage('), adminSource.indexOf('// Holiday Management Functions'))
         + adminSource.slice(adminSource.indexOf('async function loadAttendanceTable('), adminSource.indexOf('// ===== Study Materials =====')) });
