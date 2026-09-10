@@ -78,8 +78,9 @@ function setupAttendance() {
         { id: 34, studentId: 21, date: '2026-09-09', status: 'absent' }
     ];
     const tbody = { innerHTML: '' };
+    const batchOptions = [{ text: 'Morning (09:00) — 3 students', value: '101' }];
     const elements = {
-        attendanceBatch: { value: '101', innerHTML: '' },
+        attendanceBatch: { value: '101', innerHTML: '', selectedIndex: 0, options: batchOptions },
         attendanceDate: { value: '2026-09-10' },
         attendanceStats: { innerHTML: '' },
         attendanceTable: { querySelector: () => tbody },
@@ -98,7 +99,14 @@ function setupAttendance() {
         fetch: async (path, options = {}) => {
             const url = new URL(path, 'http://localhost');
             let response;
-            if (url.pathname === '/api/batches') response = { status: 200, body: fixture.db['batches.json'] };
+            if (url.pathname === '/api/batches' || url.pathname === '/api/batches/seats') {
+                const students = fixture.db['students.json'] || [];
+                const batches = (fixture.db['batches.json'] || []).map(b => {
+                    const enrolled = students.filter(s => s.batchId == b.id && s.status !== 'Dropped').length;
+                    return { ...b, enrolled, available: Math.max(0, (b.totalSeats || 30) - enrolled) };
+                });
+                response = { status: 200, body: batches };
+            }
             else if (rejectSaves && options.method === 'POST') response = { status: 500, body: { success: false } };
             else response = await fixture.request((options.method || 'get').toLowerCase(), url.pathname, {
                 query: Object.fromEntries(url.searchParams), body: options.body ? JSON.parse(options.body) : {}
@@ -375,6 +383,14 @@ async function startTestServer(t, setupFn = setup) {
         app[method](path, ...handlers);
     }
     app.get('/api/batches', (req, res) => res.json(fixture.db['batches.json'] || []));
+    app.get('/api/batches/seats', (req, res) => {
+        const students = fixture.db['students.json'] || [];
+        const batches = (fixture.db['batches.json'] || []).map(b => {
+            const enrolled = students.filter(s => s.batchId == b.id && s.status !== 'Dropped').length;
+            return { ...b, enrolled, available: Math.max(0, (b.totalSeats || 30) - enrolled) };
+        });
+        res.json(batches);
+    });
     app.get('/api/settings', (req, res) => res.json({}));
     for (const path of ['/api/students', '/api/courses', '/api/assignments']) app.get(path, (req, res) => res.json([]));
     app.get('/test-admin', (req, res) => {

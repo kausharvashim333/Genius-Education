@@ -4492,12 +4492,12 @@ function formatDate(dateStr) {
 // ===== Attendance =====
 async function loadAttendancePage() {
     try {
-        const res = await fetch('/api/batches');
+        const res = await fetch('/api/batches/seats');
         if (!res.ok) throw new Error('Unable to load batches');
         const batches = await res.json();
         const batchSelect = document.getElementById('attendanceBatch');
         const selectedBatch = batchSelect.value;
-        batchSelect.innerHTML = '<option value="">Select Batch</option>' + batches.map(b => '<option value="' + escapeHtml(b.id) + '">' + escapeHtml(b.name + (b.timing ? ' (' + b.timing + ')' : '')) + '</option>').join('');
+        batchSelect.innerHTML = '<option value="">Select Batch</option>' + batches.map(b => '<option value="' + escapeHtml(b.id) + '">' + escapeHtml(b.name + (b.timing ? ' (' + b.timing + ')' : '') + ' — ' + (b.enrolled || 0) + ' students') + '</option>').join('');
         
         // Add onchange event to load attendance when batch is selected
         batchSelect.onchange = loadAttendanceTable;
@@ -5718,6 +5718,8 @@ async function loadAttendanceTable() {
             }).join('');
             
             // Calculate statistics
+            const batchSelect = document.getElementById('attendanceBatch');
+            const batchName = batchSelect.options[batchSelect.selectedIndex] ? batchSelect.options[batchSelect.selectedIndex].text : '';
             const stats = {
                 total: students.length,
                 marked: Object.keys(attendanceMap).length,
@@ -5729,7 +5731,7 @@ async function loadAttendanceTable() {
             let statsHtml = '';
             statsHtml += '<div style="background:#f0f9ff;padding:16px;border-radius:8px;text-align:center;">';
             statsHtml += '<div style="font-size:24px;font-weight:700;color:#2563eb;">' + stats.total + '</div>';
-            statsHtml += '<div style="font-size:13px;color:#64748b;">Total Students</div>';
+            statsHtml += '<div style="font-size:13px;color:#64748b;">Total Students' + (batchName ? ' (' + escapeHtml(batchName) + ')' : '') + '</div>';
             statsHtml += '</div>';
             statsHtml += '<div style="background:#dcfce7;padding:16px;border-radius:8px;text-align:center;">';
             statsHtml += '<div style="font-size:24px;font-weight:700;color:#16a34a;">' + stats.present + '</div>';
