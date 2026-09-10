@@ -5130,7 +5130,8 @@ app.get('/api/students', (req, res) => {
             const matchBatchId = !batchId || (selectedBatch && (s.batchId
                 ? String(s.batchId) === String(batchId)
                 : s.batch === selectedBatch.name));
-            return matchCourse && matchBatch && matchBatchId;
+            const notDropped = s.status !== 'Dropped';
+            return matchCourse && matchBatch && matchBatchId && notDropped;
         });
         res.json(filtered);
     } else {

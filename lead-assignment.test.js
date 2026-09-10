@@ -68,7 +68,8 @@ function setupAttendance() {
         { id: 22, name: 'Tally Student', rollNo: 'R22', course: 'Tally', batchId: 101, batch: 'Morning' },
         { id: 23, name: 'Evening Student', rollNo: 'R23', course: 'DCA', batchId: 102, batch: 'Evening' },
         { id: 24, name: 'Legacy Student', rollNo: 'R24', course: 'Excel', batch: 'Morning' },
-        { id: 25, name: 'Moved Student', rollNo: 'R25', course: 'DCA', batchId: 102, batch: 'Morning' }
+        { id: 25, name: 'Moved Student', rollNo: 'R25', course: 'DCA', batchId: 102, batch: 'Morning' },
+        { id: 26, name: 'Dropped Student', rollNo: 'R26', course: 'DCA', batchId: '101', batch: 'Morning', status: 'Dropped' }
     ];
     fixture.db['attendance.json'] = [
         { id: 31, studentId: 21, date: '2026-09-10', status: 'present' },
@@ -127,6 +128,14 @@ test('batch filtering includes different courses and legacy names but prioritize
     assert.deepEqual(result.body.map(s => s.id), [21, 22, 24]);
     assert.deepEqual((await request('get', '/api/students', { query: { batchId: 'missing' } })).body, []);
     assert.deepEqual((await request('get', '/api/students', { query: { course: 'Tally' } })).body.map(s => s.id), [22]);
+});
+
+test('dropped students are excluded from batch attendance views', async () => {
+    const { request } = setupAttendance();
+    const result = await request('get', '/api/students', { query: { batchId: '101' } });
+    assert.ok(!result.body.some(s => s.name === 'Dropped Student'));
+    const allStudents = await request('get', '/api/students', {});
+    assert.ok(allStudents.body.some(s => s.name === 'Dropped Student'));
 });
 
 test('admin attendance loads batches without a course field and refreshes on batch/date changes', async () => {
@@ -436,6 +445,7 @@ test('browser: attendance filters by batch and date without a course selector', 
     assert.equal(await page.$$eval('#attendanceTable tbody tr', rows => rows.length), 3);
     assert.equal(await page.$eval('#att_21', el => el.value), 'present');
     assert.equal(await page.$eval('#att_22', el => el.value), 'absent');
+    assert.equal(await page.$('#att_26'), null); // dropped student excluded
     await page.evaluate(() => {
         document.getElementById('attendanceDate').value = '2026-09-09';
         return document.getElementById('attendanceDate').onchange();
