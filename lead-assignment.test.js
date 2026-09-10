@@ -157,7 +157,7 @@ function setupAttendance() {
         console
     });
     const adminSource = fs.readFileSync(require.resolve('./public/js/admin.js'), 'utf8');
-    vm.runInContext(adminSource.slice(adminSource.indexOf('function isBatchTimeOverClient('), adminSource.indexOf('async function loadAttendancePage(')), adminContext);
+    vm.runInContext(adminSource.slice(adminSource.indexOf('function parseBatchTime('), adminSource.indexOf('async function loadAttendancePage(')), adminContext);
     vm.runInContext(adminSource.slice(0, adminSource.indexOf('let currentPage')), adminContext);
     vm.runInContext(adminSource.slice(adminSource.indexOf('function renderEmptyState('), adminSource.indexOf('// ===== Loading Spinner Helper =====')), adminContext);
     vm.runInContext(adminSource.slice(adminSource.indexOf('async function loadAttendancePage('), adminSource.indexOf('// Holiday Management Functions')), adminContext);
@@ -231,6 +231,24 @@ test('isBatchTimeOver correctly identifies past batch end times', async () => {
     assert.equal(context.isBatchTimeOver('5:00 PM - 7:00 PM', eveningPast.getTime()), true);
     assert.equal(context.isBatchTimeOver('5:00 PM - 7:00 PM', eveningBefore.getTime()), false);
     assert.equal(context.isBatchTimeOver('', Date.now()), false);
+});
+
+test('isBatchTimeOver returns false for batches that have not started yet', async () => {
+    const { context } = setupAttendance();
+    const now = new Date();
+    const morning = new Date(now);
+    morning.setHours(8, 0, 0, 0); // 8 AM — before 9 AM batch starts
+    assert.equal(context.isBatchTimeOver('9:00 AM - 11:00 AM', morning.getTime()), false);
+    const earlyMorning = new Date(now);
+    earlyMorning.setHours(6, 0, 0, 0); // 6 AM — before 7 AM batch starts
+    assert.equal(context.isBatchTimeOver('07:00 AM - 09:00 AM', earlyMorning.getTime()), false);
+    const noon = new Date(now);
+    noon.setHours(12, 0, 0, 0); // noon — after 11 AM batch ends
+    assert.equal(context.isBatchTimeOver('9:00 AM - 11:00 AM', noon.getTime()), true);
+    const afternoon = new Date(now);
+    afternoon.setHours(14, 0, 0, 0); // 2 PM — 11 AM-1 PM batch is over, 1 PM-3 PM is ongoing
+    assert.equal(context.isBatchTimeOver('11:00 AM - 01:00 PM', afternoon.getTime()), true);
+    assert.equal(context.isBatchTimeOver('01:00 PM - 03:00 PM', afternoon.getTime()), false);
 });
 
 test('autoMarkAbsent marks unmarked students as absent after batch time expires', async () => {
@@ -546,7 +564,7 @@ test('browser: attendance filters by batch and date without a course selector', 
     await page.goto(url + '/test-admin');
     const adminSource = fs.readFileSync(require.resolve('./public/js/admin.js'), 'utf8');
     await page.addScriptTag({ content: adminSource.slice(0, adminSource.indexOf('let currentPage'))
-        + adminSource.slice(adminSource.indexOf('function isBatchTimeOverClient('), adminSource.indexOf('async function loadAttendancePage('))
+        + adminSource.slice(adminSource.indexOf('function parseBatchTime('), adminSource.indexOf('async function loadAttendancePage('))
         + adminSource.slice(adminSource.indexOf('function renderEmptyState('), adminSource.indexOf('// ===== Loading Spinner Helper ====='))
         + adminSource.slice(adminSource.indexOf('async function loadAttendancePage('), adminSource.indexOf('// Holiday Management Functions'))
         + adminSource.slice(adminSource.indexOf('async function loadAttendanceTable('), adminSource.indexOf('// ===== Study Materials =====')) });

@@ -4490,22 +4490,39 @@ function formatDate(dateStr) {
 }
 
 // ===== Attendance =====
-function isBatchTimeOverClient(timing) {
-    if (!timing || typeof timing !== 'string') return false;
+function parseBatchTime(timing, which) {
+    if (!timing || typeof timing !== 'string') return null;
     const match = timing.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/gi);
-    if (!match || match.length === 0) return false;
-    const last = match[match.length - 1];
-    const parts = last.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-    if (!parts) return false;
+    if (!match || match.length === 0) return null;
+    const idx = which === 'start' ? 0 : match.length - 1;
+    const str = match[idx];
+    const parts = str.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!parts) return null;
     let hour = parseInt(parts[1]);
     const minute = parseInt(parts[2]);
     const period = parts[3] ? parts[3].toUpperCase() : null;
     if (period === 'PM' && hour !== 12) hour += 12;
     if (period === 'AM' && hour === 12) hour = 0;
+    return { hour, minute };
+}
+
+function isBatchTimeOverClient(timing) {
+    if (!timing || typeof timing !== 'string') return false;
+    const startTime = parseBatchTime(timing, 'start');
+    const endTime = parseBatchTime(timing, 'end');
+    if (!endTime) return false;
     const now = new Date();
     const batchEnd = new Date(now);
-    batchEnd.setHours(hour, minute, 0, 0);
-    return now >= batchEnd;
+    batchEnd.setHours(endTime.hour, endTime.minute, 0, 0);
+    // Batch is over only if current time is past the END time
+    if (now < batchEnd) return false;
+    // If we have a start time, also make sure the batch has STARTED
+    if (startTime) {
+        const batchStart = new Date(now);
+        batchStart.setHours(startTime.hour, startTime.minute, 0, 0);
+        if (now < batchStart) return false;
+    }
+    return true;
 }
 
 async function loadAttendancePage() {

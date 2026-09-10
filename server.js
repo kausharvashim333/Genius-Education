@@ -7280,14 +7280,13 @@ app.delete('/api/attendance/:id', (req, res) => {
 
 // --- Auto-absent marking after batch time expires ---
 // Parse end time from batch timing string like "9:00 AM - 11:00 AM" or "09:00"
-function parseBatchEndTime(timing) {
+function parseBatchTime(timing, which) {
     if (!timing || typeof timing !== 'string') return null;
-    // Match patterns like "9:00 AM - 11:00 AM" or "11:00 AM" or "17:00"
     const match = timing.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/gi);
     if (!match || match.length === 0) return null;
-    // Take the last time match as the end time
-    const last = match[match.length - 1];
-    const parts = last.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    const idx = which === 'start' ? 0 : match.length - 1;
+    const str = match[idx];
+    const parts = str.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
     if (!parts) return null;
     let hour = parseInt(parts[1]);
     const minute = parseInt(parts[2]);
@@ -7297,13 +7296,26 @@ function parseBatchEndTime(timing) {
     return { hour, minute };
 }
 
+function parseBatchEndTime(timing) {
+    return parseBatchTime(timing, 'end');
+}
+
 function isBatchTimeOver(timing, now) {
-    const endTime = parseBatchEndTime(timing);
+    const startTime = parseBatchTime(timing, 'start');
+    const endTime = parseBatchTime(timing, 'end');
     if (!endTime) return false;
     const today = new Date(now);
     const batchEnd = new Date(today);
     batchEnd.setHours(endTime.hour, endTime.minute, 0, 0);
-    return today >= batchEnd;
+    // Batch is over only if current time is past the END time
+    if (today < batchEnd) return false;
+    // If we have a start time, also make sure the batch has STARTED
+    if (startTime) {
+        const batchStart = new Date(today);
+        batchStart.setHours(startTime.hour, startTime.minute, 0, 0);
+        if (today < batchStart) return false;
+    }
+    return true;
 }
 
 // Auto-mark unmarked students as absent after batch time expires
