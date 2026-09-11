@@ -10,6 +10,100 @@
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
     <style>
+        /* ===== 7-Day Weekly Attendance Register — Modern Redesign ===== */
+        .weekly-sheet-card {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .weekly-sheet-header {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .weekly-date-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 10px;
+            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 62px;
+        }
+        .weekly-date-card:hover {
+            border-color: #cbd5e1;
+            background: #f1f5f9;
+        }
+        .weekly-date-card.active-day {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+            border-color: #1d4ed8 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        }
+        .weekly-date-card.active-day span {
+            color: #ffffff !important;
+        }
+        .weekly-status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+        .weekly-status-badge:hover {
+            transform: translateY(-2px) scale(1.12);
+            box-shadow: 0 6px 14px -2px rgba(0, 0, 0, 0.15);
+        }
+        .weekly-table-row {
+            transition: background-color 0.15s ease;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .weekly-table-row:hover {
+            background-color: #f8fafc !important;
+        }
+        .weekly-progress-bar {
+            height: 6px;
+            width: 100%;
+            background: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .weekly-progress-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+        .weekly-legend-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+
         /* ===== Blog Modal — Glassmorphism ===== */
         #blogModal {
             background: rgba(10, 15, 25, 0.85);
@@ -4765,25 +4859,56 @@
                     </table>
                 </div>
 
-                <!-- 7-Day Weekly Register View -->
-                <div id="attendanceWeeklyContainer" class="data-table" style="display:none;overflow-x:auto;">
-                    <div style="background:#f8fafc;padding:12px 16px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-                        <div style="font-weight:600;color:#1e293b;font-size:14px;display:flex;align-items:center;gap:8px;">
-                            <i class="fas fa-calendar-alt" style="color:#2563eb;"></i>
-                            <span>7-Day Attendance Register</span>
-                            <span id="weeklyDateRangeBadge" style="font-size:12px;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:12px;font-weight:500;"></span>
+                <!-- 7-Day Weekly Register View (Redesigned) -->
+                <div id="attendanceWeeklyContainer" class="weekly-sheet-card" style="display:none;margin-bottom:20px;">
+                    <!-- Top Bar: Title, Badges, Search & Legends -->
+                    <div class="weekly-sheet-header">
+                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                            <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 10px rgba(37,99,235,0.25);">
+                                <i class="fas fa-calendar-week" style="font-size:18px;"></i>
+                            </div>
+                            <div>
+                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                    <h3 style="margin:0;font-size:16px;font-weight:700;color:#0f172a;letter-spacing:-0.2px;">Weekly Attendance Matrix</h3>
+                                    <span id="weeklyDateRangeBadge" style="font-size:12px;background:#e0f2fe;color:#0284c7;padding:3px 10px;border-radius:12px;font-weight:600;border:1px solid #bae6fd;"></span>
+                                    <span id="weeklyBatchNameBadge" style="font-size:12px;background:#f1f5f9;color:#334155;padding:3px 10px;border-radius:12px;font-weight:600;border:1px solid #cbd5e1;"></span>
+                                </div>
+                                <div style="font-size:12px;color:#64748b;margin-top:2px;">Full 7-day student attendance register with auto-absent tracking & analytics</div>
+                            </div>
                         </div>
-                        <div style="font-size:12px;color:#64748b;display:flex;align-items:center;gap:12px;">
-                            <span><span style="display:inline-block;width:10px;height:10px;background:#22c55e;border-radius:50%;margin-right:4px;"></span>Present</span>
-                            <span><span style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:50%;margin-right:4px;"></span>Absent (Auto/Unmarked)</span>
-                            <span><span style="display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:50%;margin-right:4px;"></span>Late</span>
-                            <span><span style="display:inline-block;width:10px;height:10px;background:#fb923c;border-radius:50%;margin-right:4px;"></span>Holiday</span>
+
+                        <!-- Right Controls: Live Search & Batch Avg -->
+                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                            <div style="position:relative;min-width:220px;">
+                                <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;"></i>
+                                <input type="text" id="weeklySearchInput" oninput="filterWeeklyAttendanceTable(this.value)" placeholder="Search student or roll..." style="width:100%;box-sizing:border-box;padding:8px 12px 8px 34px;border:1px solid #cbd5e1;border-radius:20px;font-size:12px;background:#ffffff;outline:none;transition:all 0.2s;box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                            </div>
+                            <div id="weeklyBatchAvgChip" style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;display:inline-flex;align-items:center;gap:6px;">
+                                <i class="fas fa-chart-line"></i> Batch Avg: --%
+                            </div>
                         </div>
                     </div>
-                    <table id="weeklyAttendanceTable" style="width:100%;">
-                        <thead id="weeklyAttendanceThead"></thead>
-                        <tbody id="weeklyAttendanceTbody"></tbody>
-                    </table>
+
+                    <!-- Legend Bar -->
+                    <div style="padding:10px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <span style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Status Legend:</span>
+                            <span class="weekly-legend-pill"><span style="width:9px;height:9px;background:#10b981;border-radius:50%;"></span> Present (P)</span>
+                            <span class="weekly-legend-pill"><span style="width:9px;height:9px;background:#ef4444;border-radius:50%;"></span> Absent / Unmarked (A)</span>
+                            <span class="weekly-legend-pill"><span style="width:9px;height:9px;background:#f59e0b;border-radius:50%;"></span> Late (L)</span>
+                            <span class="weekly-legend-pill"><span style="width:9px;height:9px;background:#f97316;border-radius:50%;"></span> Holiday (H)</span>
+                        </div>
+                        <div id="weeklyStudentCountBadge" style="font-size:12px;color:#64748b;font-weight:500;"></div>
+                    </div>
+
+                    <!-- Modern Weekly Sheet Table -->
+                    <div style="overflow-x:auto;">
+                        <table id="weeklyAttendanceTable" style="width:100%;border-collapse:collapse;font-size:13px;min-width:880px;">
+                            <thead id="weeklyAttendanceThead"></thead>
+                            <tbody id="weeklyAttendanceTbody"></tbody>
+                            <tfoot id="weeklyAttendanceTfoot"></tfoot>
+                        </table>
+                    </div>
                 </div>
             </div>
 

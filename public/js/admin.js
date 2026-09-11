@@ -5834,53 +5834,136 @@ function renderLast7DaysStrip(student, last7Dates, attendanceMapByStudentAndDate
     `;
 }
 
+// Quick avatar initials & colors
+function getAvatarColor(name) {
+    const colors = [
+        { bg: '#e0f2fe', text: '#0284c7' }, // sky
+        { bg: '#dcfce7', text: '#16a34a' }, // green
+        { bg: '#fef3c7', text: '#d97706' }, // amber
+        { bg: '#ede9fe', text: '#7c3aed' }, // violet
+        { bg: '#fce7f3', text: '#db2777' }, // pink
+        { bg: '#fee2e2', text: '#dc2626' }, // rose
+        { bg: '#ccfbf1', text: '#0d9488' }  // teal
+    ];
+    if (!name) return colors[0];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function getInitials(name) {
+    if (!name) return 'ST';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function filterWeeklyAttendanceTable(query) {
+    const q = (query || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('#weeklyAttendanceTbody tr.weekly-student-row');
+    let visibleCount = 0;
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    const countBadge = document.getElementById('weeklyStudentCountBadge');
+    if (countBadge) {
+        countBadge.textContent = q ? `Showing ${visibleCount} of ${rows.length} students` : `Total Active Students: ${rows.length}`;
+    }
+}
+
 function renderWeeklyAttendanceTable(students, last7Dates, attendanceMapByStudentAndDate, batchTimeOver, todayDate) {
     const thead = document.getElementById('weeklyAttendanceThead');
     const tbody = document.getElementById('weeklyAttendanceTbody');
-    const badge = document.getElementById('weeklyDateRangeBadge');
-    if (badge && last7Dates.length > 0) {
-        badge.textContent = `${last7Dates[0].shortLabel} — ${last7Dates[last7Dates.length - 1].shortLabel}`;
+    const tfoot = document.getElementById('weeklyAttendanceTfoot');
+    const rangeBadge = document.getElementById('weeklyDateRangeBadge');
+    const batchBadge = document.getElementById('weeklyBatchNameBadge');
+    const avgChip = document.getElementById('weeklyBatchAvgChip');
+    const countBadge = document.getElementById('weeklyStudentCountBadge');
+
+    const batchSelect = document.getElementById('attendanceBatch');
+    const batchOption = batchSelect && batchSelect.selectedIndex >= 0 ? batchSelect.options[batchSelect.selectedIndex] : null;
+    const batchName = batchOption ? batchOption.text.split('—')[0].trim() : 'Batch';
+
+    if (rangeBadge && last7Dates.length > 0) {
+        rangeBadge.textContent = `${last7Dates[0].shortLabel} – ${last7Dates[last7Dates.length - 1].shortLabel}`;
+    }
+    if (batchBadge) {
+        batchBadge.textContent = batchName;
     }
 
     if (!thead || !tbody) return;
 
-    let headHtml = '<tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;text-align:left;">';
-    headHtml += '<th style="padding:10px 12px;font-weight:600;">Roll No</th>';
-    headHtml += '<th style="padding:10px 12px;font-weight:600;">Name</th>';
-    headHtml += '<th style="padding:10px 12px;font-weight:600;">Course</th>';
+    // Redesigned Table Header with Mini Calendar Cards
+    let headHtml = '<tr style="background:#ffffff;border-bottom:2px solid #e2e8f0;text-align:left;">';
+    headHtml += '<th style="padding:14px 16px;font-weight:700;color:#334155;width:80px;">Roll No</th>';
+    headHtml += '<th style="padding:14px 16px;font-weight:700;color:#334155;min-width:180px;">Student Name</th>';
+    headHtml += '<th style="padding:14px 14px;font-weight:700;color:#334155;min-width:140px;">Course</th>';
+
     last7Dates.forEach(d => {
         const isCurrent = d.isRefDate;
-        headHtml += `<th style="padding:10px 8px;text-align:center;font-weight:600;min-width:65px;${isCurrent ? 'background:#e0f2fe;color:#0369a1;' : ''}">
-            <div style="font-size:12px;">${escapeHtml(d.shortLabel)}</div>
-            <div style="font-size:11px;font-weight:normal;opacity:0.8;">${escapeHtml(d.dayName)}</div>
-        </th>`;
+        const activeClass = isCurrent ? ' active-day' : '';
+        headHtml += `
+            <th style="padding:10px 6px;text-align:center;min-width:72px;">
+                <div class="weekly-date-card${activeClass}">
+                    <span class="weekly-day-name" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;">${escapeHtml(d.dayName)}</span>
+                    <span class="weekly-day-num" style="font-size:16px;font-weight:800;line-height:1.2;color:#0f172a;">${escapeHtml(d.dayNum)}</span>
+                    <span class="weekly-day-month" style="font-size:10px;font-weight:600;color:#94a3b8;">${escapeHtml(d.shortLabel.split(' ')[1] || '')}</span>
+                    ${isCurrent ? '<span style="font-size:9px;background:rgba(255,255,255,0.25);color:#fff;padding:1px 5px;border-radius:6px;margin-top:2px;font-weight:700;">Selected</span>' : ''}
+                </div>
+            </th>
+        `;
     });
-    headHtml += '<th style="padding:10px 12px;text-align:center;font-weight:600;">Present / 7</th>';
-    headHtml += '<th style="padding:10px 12px;text-align:center;font-weight:600;">7-Day %</th>';
-    headHtml += '<th style="padding:10px 12px;text-align:center;font-weight:600;">Actions</th>';
+
+    headHtml += '<th style="padding:14px 12px;text-align:center;font-weight:700;color:#334155;width:95px;">Present / 7</th>';
+    headHtml += '<th style="padding:14px 14px;text-align:center;font-weight:700;color:#334155;width:120px;">7-Day %</th>';
+    headHtml += '<th style="padding:14px 16px;text-align:center;font-weight:700;color:#334155;width:90px;">Action</th>';
     headHtml += '</tr>';
     thead.innerHTML = headHtml;
 
     if (!students || students.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="' + (last7Dates.length + 5) + '" style="text-align:center;padding:30px;color:#64748b;">No students found for this batch.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="' + (last7Dates.length + 6) + '" style="text-align:center;padding:40px;color:#64748b;font-size:14px;"><i class="fas fa-users-slash" style="font-size:24px;margin-bottom:8px;display:block;opacity:0.5;"></i>No students found for this batch.</td></tr>';
+        if (tfoot) tfoot.innerHTML = '';
+        if (avgChip) avgChip.innerHTML = '<i class="fas fa-chart-line"></i> Batch Avg: 0%';
+        if (countBadge) countBadge.textContent = '0 students';
         return;
     }
 
     const dayPresentTotals = {};
     last7Dates.forEach(d => { dayPresentTotals[d.date] = 0; });
+    let totalBatchPossible = students.length * (last7Dates.length || 7);
+    let totalBatchPresents = 0;
 
     let bodyHtml = students.map(s => {
         const studentRecords = attendanceMapByStudentAndDate[s.id] || {};
         let presentCount = 0;
+        const avatar = getAvatarColor(s.name);
+        const initials = getInitials(s.name);
 
-        let rowHtml = '<tr style="border-bottom:1px solid #f1f5f9;">';
-        rowHtml += `<td style="padding:10px 12px;font-weight:600;">${escapeHtml(s.rollNo || '-')}</td>`;
-        rowHtml += `<td style="padding:10px 12px;">
-            <a href="#" onclick="openStudentAttendanceHistoryModal('${escapeHtml(s.id)}', '${escapeHtml(s.name || '')}', '${escapeHtml(s.rollNo || '')}', '${escapeHtml(s.course || '')}'); return false;" style="font-weight:600;color:#2563eb;text-decoration:none;">
-                ${escapeHtml(s.name || '-')}
-            </a>
-        </td>`;
-        rowHtml += `<td style="padding:10px 12px;font-size:13px;color:#475569;">${escapeHtml(s.course || '-')}</td>`;
+        let rowHtml = '<tr class="weekly-table-row weekly-student-row">';
+        rowHtml += `<td style="padding:12px 16px;font-weight:700;color:#475569;font-family:monospace;font-size:13px;">${escapeHtml(s.rollNo || '-')}</td>`;
+        
+        rowHtml += `
+            <td style="padding:12px 16px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:32px;height:32px;border-radius:50%;background:${avatar.bg};color:${avatar.text};font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        ${initials}
+                    </div>
+                    <div>
+                        <a href="#" onclick="openStudentAttendanceHistoryModal('${escapeHtml(s.id)}', '${escapeHtml(s.name || '')}', '${escapeHtml(s.rollNo || '')}', '${escapeHtml(s.course || '')}'); return false;" style="font-weight:600;color:#1e293b;text-decoration:none;font-size:13px;display:block;transition:color 0.15s;" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#1e293b'">
+                            ${escapeHtml(s.name || '-')}
+                        </a>
+                    </div>
+                </div>
+            </td>
+        `;
+
+        rowHtml += `<td style="padding:12px 14px;color:#64748b;font-size:12px;"><span style="display:inline-block;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(s.course || '')}">${escapeHtml(s.course || '-')}</span></td>`;
 
         last7Dates.forEach(d => {
             let status = studentRecords[d.date];
@@ -5896,44 +5979,124 @@ function renderWeeklyAttendanceTable(students, last7Dates, attendanceMapByStuden
 
             if (status === 'present') {
                 presentCount++;
+                totalBatchPresents++;
                 dayPresentTotals[d.date] = (dayPresentTotals[d.date] || 0) + 1;
             }
             const meta = getAttendanceStatusMeta(status);
             const isCurrent = d.isRefDate;
 
-            rowHtml += `<td style="padding:8px;text-align:center;${isCurrent ? 'background:#f0f9ff;' : ''}">
-                <span title="${escapeHtml(s.name)} - ${d.fullLabel}: ${meta.label}${isAuto ? ' (auto-absent)' : ''}" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;font-size:12px;font-weight:700;background:${meta.bg};color:${meta.color};border:1px solid ${meta.border};">
-                    ${meta.letter}
-                </span>
-            </td>`;
+            // Soft glow styling for badges
+            let badgeStyle = `background:${meta.bg};color:${meta.color};border:1px solid ${meta.border};`;
+            let iconHtml = '';
+            if (status === 'present') iconHtml = '<i class="fas fa-check" style="font-size:9px;margin-right:2px;"></i>';
+            else if (status === 'absent') iconHtml = '<i class="fas fa-times" style="font-size:9px;margin-right:2px;"></i>';
+            else if (status === 'late') iconHtml = '<i class="fas fa-clock" style="font-size:9px;margin-right:2px;"></i>';
+            else if (status === 'holiday') iconHtml = '<i class="fas fa-umbrella-beach" style="font-size:9px;margin-right:2px;"></i>';
+
+            rowHtml += `
+                <td style="padding:8px 4px;text-align:center;${isCurrent ? 'background:rgba(37,99,235,0.03);' : ''}">
+                    <span class="weekly-status-badge" style="${badgeStyle}" title="${escapeHtml(s.name)} • ${d.fullLabel} (${d.dayName}): ${meta.label}${isAuto ? ' (auto-absent)' : ''}">
+                        ${iconHtml}${meta.letter}
+                    </span>
+                </td>
+            `;
         });
 
         const totalDays = last7Dates.length || 7;
         const pct = Math.round((presentCount / totalDays) * 100);
-        const pctColor = pct >= 75 ? '#16a34a' : (pct >= 50 ? '#d97706' : '#dc2626');
+        const pctColor = pct >= 75 ? '#059669' : (pct >= 50 ? '#d97706' : '#dc2626');
+        const pctBg = pct >= 75 ? '#ecfdf5' : (pct >= 50 ? '#fffbeb' : '#fef2f2');
+        const pctBorder = pct >= 75 ? '#a7f3d0' : (pct >= 50 ? '#fde68a' : '#fecaca');
 
-        rowHtml += `<td style="padding:10px 12px;text-align:center;font-weight:700;color:#1e293b;">${presentCount} / ${totalDays}</td>`;
-        rowHtml += `<td style="padding:10px 12px;text-align:center;"><span style="font-weight:700;color:${pctColor};">${pct}%</span></td>`;
-        rowHtml += `<td style="padding:10px 12px;text-align:center;">
-            <button type="button" class="btn btn-sm" style="padding:4px 10px;font-size:12px;background:#e0f2fe;color:#0284c7;border:none;border-radius:4px;cursor:pointer;" onclick="openStudentAttendanceHistoryModal('${escapeHtml(s.id)}', '${escapeHtml(s.name || '')}', '${escapeHtml(s.rollNo || '')}', '${escapeHtml(s.course || '')}')">
-                <i class="fas fa-eye"></i> Details
-            </button>
-        </td>`;
+        rowHtml += `
+            <td style="padding:12px;text-align:center;">
+                <span style="font-weight:700;font-size:13px;color:#1e293b;background:#f8fafc;padding:3px 8px;border-radius:8px;border:1px solid #e2e8f0;">
+                    ${presentCount} <span style="color:#94a3b8;font-weight:normal;">/</span> ${totalDays}
+                </span>
+            </td>
+        `;
+
+        rowHtml += `
+            <td style="padding:12px 14px;text-align:center;">
+                <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                    <span style="font-size:12px;font-weight:700;padding:2px 8px;border-radius:12px;background:${pctBg};color:${pctColor};border:1px solid ${pctBorder};">
+                        ${pct}%
+                    </span>
+                </div>
+                <div class="weekly-progress-bar">
+                    <div class="weekly-progress-fill" style="width:${pct}%;background:${pctColor};"></div>
+                </div>
+            </td>
+        `;
+
+        rowHtml += `
+            <td style="padding:12px 16px;text-align:center;">
+                <button type="button" class="btn" style="padding:5px 10px;font-size:11px;font-weight:600;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.background='#2563eb';this.style.color='#fff';this.style.borderColor='#2563eb';" onmouseout="this.style.background='#f1f5f9';this.style.color='#334155';this.style.borderColor='#cbd5e1';" onclick="openStudentAttendanceHistoryModal('${escapeHtml(s.id)}', '${escapeHtml(s.name || '')}', '${escapeHtml(s.rollNo || '')}', '${escapeHtml(s.course || '')}')" title="View Full Attendance Details">
+                    Details <i class="fas fa-chevron-right" style="font-size:9px;"></i>
+                </button>
+            </td>
+        `;
+
         rowHtml += '</tr>';
         return rowHtml;
     }).join('');
 
-    // Summary footer row showing batch total presents each day
-    bodyHtml += '<tr style="background:#f1f5f9;font-weight:700;border-top:2px solid #cbd5e1;">';
-    bodyHtml += '<td colspan="3" style="padding:10px 12px;color:#1e293b;">Batch Daily Total Present</td>';
-    last7Dates.forEach(d => {
-        const count = dayPresentTotals[d.date] || 0;
-        bodyHtml += `<td style="padding:10px 8px;text-align:center;color:#15803d;background:#dcfce7;font-size:13px;">${count}</td>`;
-    });
-    bodyHtml += `<td colspan="3" style="padding:10px 12px;text-align:center;color:#64748b;font-size:12px;">Total Students: ${students.length}</td>`;
-    bodyHtml += '</tr>';
-
     tbody.innerHTML = bodyHtml;
+
+    // Update Live Batch Average & Count
+    const batchAvgPct = totalBatchPossible > 0 ? Math.round((totalBatchPresents / totalBatchPossible) * 100) : 0;
+    if (avgChip) {
+        const avgColor = batchAvgPct >= 75 ? '#059669' : (batchAvgPct >= 50 ? '#d97706' : '#dc2626');
+        const avgBg = batchAvgPct >= 75 ? '#ecfdf5' : (batchAvgPct >= 50 ? '#fffbeb' : '#fef2f2');
+        const avgBorder = batchAvgPct >= 75 ? '#a7f3d0' : (batchAvgPct >= 50 ? '#fde68a' : '#fecaca');
+        avgChip.style.background = avgBg;
+        avgChip.style.color = avgColor;
+        avgChip.style.borderColor = avgBorder;
+        avgChip.innerHTML = `<i class="fas fa-chart-line"></i> Batch 7-Day Avg: <strong>${batchAvgPct}%</strong>`;
+    }
+    if (countBadge) {
+        countBadge.textContent = `Total Active Students: ${students.length}`;
+    }
+
+    // Redesigned Rich Footer
+    if (tfoot) {
+        let footHtml = '<tr style="background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);border-top:2px solid #cbd5e1;font-weight:700;">';
+        footHtml += '<td colspan="3" style="padding:14px 16px;color:#0f172a;font-size:13px;">';
+        footHtml += '<div style="display:flex;align-items:center;gap:6px;"><i class="fas fa-chart-pie" style="color:#2563eb;"></i> <span>Daily Batch Attendance Rate</span></div>';
+        footHtml += '</td>';
+
+        last7Dates.forEach(d => {
+            const count = dayPresentTotals[d.date] || 0;
+            const dayPct = students.length > 0 ? Math.round((count / students.length) * 100) : 0;
+            const isCurrent = d.isRefDate;
+
+            footHtml += `
+                <td style="padding:10px 4px;text-align:center;${isCurrent ? 'background:rgba(37,99,235,0.06);' : ''}">
+                    <div style="font-size:13px;font-weight:800;color:#059669;">${count} <span style="font-size:11px;color:#64748b;font-weight:normal;">/ ${students.length}</span></div>
+                    <div style="font-size:11px;font-weight:700;color:${dayPct >= 75 ? '#059669' : (dayPct >= 50 ? '#d97706' : '#dc2626')};margin-top:2px;">${dayPct}%</div>
+                </td>
+            `;
+        });
+
+        footHtml += `
+            <td style="padding:14px 12px;text-align:center;font-size:13px;color:#1e293b;">
+                ${totalBatchPresents} <span style="font-size:11px;color:#94a3b8;">total</span>
+            </td>
+        `;
+
+        footHtml += `
+            <td style="padding:14px 14px;text-align:center;">
+                <span style="font-size:13px;font-weight:800;color:${batchAvgPct >= 75 ? '#059669' : (batchAvgPct >= 50 ? '#d97706' : '#dc2626')};">
+                    ${batchAvgPct}%
+                </span>
+            </td>
+        `;
+
+        footHtml += '<td style="padding:14px 16px;text-align:center;color:#64748b;font-size:11px;">Overall</td>';
+        footHtml += '</tr>';
+
+        tfoot.innerHTML = footHtml;
+    }
 }
 
 async function openStudentAttendanceHistoryModal(studentId, studentName, rollNo, course) {
