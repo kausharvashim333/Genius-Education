@@ -5766,15 +5766,15 @@ function getLast7Dates(refDateStr) {
 function getAttendanceStatusMeta(status) {
     switch (status) {
         case 'present':
-            return { letter: 'P', label: 'Present', bg: '#dcfce7', color: '#15803d', border: '#86efac' };
+            return { letter: 'P', label: 'Present', bg: 'rgba(220, 252, 231, 0.85)', color: '#15803d', border: 'rgba(134, 239, 172, 0.95)', glow: '0 2px 8px rgba(22, 163, 74, 0.2)' };
         case 'absent':
-            return { letter: 'A', label: 'Absent', bg: '#fee2e2', color: '#b91c1c', border: '#fca5a5' };
+            return { letter: 'A', label: 'Absent', bg: 'rgba(254, 226, 226, 0.85)', color: '#b91c1c', border: 'rgba(252, 165, 165, 0.95)', glow: '0 2px 8px rgba(220, 38, 38, 0.2)' };
         case 'late':
-            return { letter: 'L', label: 'Late', bg: '#fef3c7', color: '#b45309', border: '#fde68a' };
+            return { letter: 'L', label: 'Late', bg: 'rgba(254, 243, 199, 0.85)', color: '#b45309', border: 'rgba(253, 230, 138, 0.95)', glow: '0 2px 8px rgba(217, 119, 6, 0.2)' };
         case 'holiday':
-            return { letter: 'H', label: 'Holiday', bg: '#ffedd5', color: '#c2410c', border: '#fdba74' };
+            return { letter: 'H', label: 'Holiday', bg: 'rgba(255, 237, 213, 0.85)', color: '#c2410c', border: 'rgba(253, 186, 116, 0.95)', glow: '0 2px 8px rgba(234, 88, 12, 0.2)' };
         default:
-            return { letter: '-', label: 'Not Marked', bg: '#f1f5f9', color: '#94a3b8', border: '#e2e8f0' };
+            return { letter: '-', label: 'Not Marked', bg: 'rgba(241, 245, 249, 0.85)', color: '#94a3b8', border: 'rgba(226, 232, 240, 0.95)', glow: 'none' };
     }
 }
 
@@ -5806,14 +5806,18 @@ function renderLast7DaysStrip(student, last7Dates, attendanceMapByStudentAndDate
 
         const meta = getAttendanceStatusMeta(status);
         const isCurrent = d.isRefDate;
-        const currentStyle = isCurrent ? 'box-shadow:0 0 0 2px #2563eb;font-weight:800;' : '';
+        const currentStyle = isCurrent ? 'box-shadow:0 0 0 2px #2563eb, ' + meta.glow + ';font-weight:800;' : 'box-shadow:' + meta.glow + ';';
 
-        return `<span title="${d.fullLabel} (${d.dayName}): ${meta.label}${isAutoAbsent ? ' (auto-absent)' : ''}" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:700;background:${meta.bg};color:${meta.color};border:1px solid ${meta.border};cursor:pointer;user-select:none;transition:transform 0.15s;${currentStyle}" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">${meta.letter}</span>`;
+        return `<span title="${d.fullLabel} (${d.dayName}): ${meta.label}${isAutoAbsent ? ' (auto-absent)' : ''}" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:700;background:${meta.bg};color:${meta.color};border:1px solid ${meta.border};backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;user-select:none;transition:transform 0.15s,box-shadow 0.15s;${currentStyle}" onmouseover="this.style.transform='scale(1.22)'" onmouseout="this.style.transform='scale(1)'">${meta.letter}</span>`;
     }).join('');
 
     const totalDays = last7Dates.length || 7;
     const pct = Math.round((presentCount / totalDays) * 100);
-    const pctBadgeColor = pct >= 75 ? 'background:#dcfce7;color:#15803d;border:1px solid #86efac;' : (pct >= 50 ? 'background:#fef3c7;color:#b45309;border:1px solid #fde68a;' : 'background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;');
+    const pctBadgeColor = pct >= 75 
+        ? 'background:rgba(220,252,231,0.85);color:#15803d;border:1px solid rgba(134,239,172,0.9);box-shadow:0 2px 6px rgba(22,163,74,0.12);' 
+        : (pct >= 50 
+            ? 'background:rgba(254,243,199,0.85);color:#b45309;border:1px solid rgba(253,230,138,0.9);box-shadow:0 2px 6px rgba(217,119,6,0.12);' 
+            : 'background:rgba(254,226,226,0.85);color:#b91c1c;border:1px solid rgba(252,165,165,0.9);box-shadow:0 2px 6px rgba(220,38,38,0.12);');
 
     const escapedName = escapeHtml(student.name || '');
     const escapedRoll = escapeHtml(student.rollNo || '');
@@ -5824,10 +5828,10 @@ function renderLast7DaysStrip(student, last7Dates, attendanceMapByStudentAndDate
             <div style="display:inline-flex;gap:4px;align-items:center;" onclick="openStudentAttendanceHistoryModal('${escapeHtml(student.id)}', '${escapedName}', '${escapedRoll}', '${escapedCourse}')" title="Click to view full attendance history">
                 ${badgesHtml}
             </div>
-            <span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:10px;${pctBadgeColor}white-space:nowrap;" title="7-Day attendance: ${presentCount} present of ${totalDays} days (${pct}%). Unmarked counted as absent.">
+            <span style="font-size:11px;font-weight:600;padding:2px 7px;border-radius:12px;backdrop-filter:blur(6px);${pctBadgeColor}white-space:nowrap;" title="7-Day attendance: ${presentCount} present of ${totalDays} days (${pct}%). Unmarked counted as absent.">
                 ${presentCount}/7 (${pct}%)
             </span>
-            <button type="button" class="btn" style="padding:2px 6px;font-size:11px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:4px;cursor:pointer;" onclick="openStudentAttendanceHistoryModal('${escapeHtml(student.id)}', '${escapedName}', '${escapedRoll}', '${escapedCourse}')" title="View Student History">
+            <button type="button" class="btn" style="padding:2px 7px;font-size:11px;background:rgba(241,245,249,0.85);backdrop-filter:blur(6px);color:#475569;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='#2563eb';this.style.color='#fff';" onmouseout="this.style.background='rgba(241,245,249,0.85)';this.style.color='#475569';" onclick="openStudentAttendanceHistoryModal('${escapeHtml(student.id)}', '${escapedName}', '${escapedRoll}', '${escapedCourse}')" title="View Student History">
                 <i class="fas fa-history"></i>
             </button>
         </div>
@@ -5986,7 +5990,7 @@ function renderWeeklyAttendanceTable(students, last7Dates, attendanceMapByStuden
             const isCurrent = d.isRefDate;
 
             // Soft glow styling for badges
-            let badgeStyle = `background:${meta.bg};color:${meta.color};border:1px solid ${meta.border};`;
+            let badgeStyle = `background:${meta.bg};color:${meta.color};border:1px solid ${meta.border};box-shadow:${meta.glow};`;
             let iconHtml = '';
             if (status === 'present') iconHtml = '<i class="fas fa-check" style="font-size:9px;margin-right:2px;"></i>';
             else if (status === 'absent') iconHtml = '<i class="fas fa-times" style="font-size:9px;margin-right:2px;"></i>';
@@ -6005,12 +6009,12 @@ function renderWeeklyAttendanceTable(students, last7Dates, attendanceMapByStuden
         const totalDays = last7Dates.length || 7;
         const pct = Math.round((presentCount / totalDays) * 100);
         const pctColor = pct >= 75 ? '#059669' : (pct >= 50 ? '#d97706' : '#dc2626');
-        const pctBg = pct >= 75 ? '#ecfdf5' : (pct >= 50 ? '#fffbeb' : '#fef2f2');
-        const pctBorder = pct >= 75 ? '#a7f3d0' : (pct >= 50 ? '#fde68a' : '#fecaca');
+        const pctBg = pct >= 75 ? 'rgba(236,253,245,0.85)' : (pct >= 50 ? 'rgba(255,251,235,0.85)' : 'rgba(254,242,242,0.85)');
+        const pctBorder = pct >= 75 ? 'rgba(167,243,208,0.9)' : (pct >= 50 ? 'rgba(253,230,138,0.9)' : 'rgba(254,202,202,0.9)');
 
         rowHtml += `
             <td style="padding:12px;text-align:center;">
-                <span style="font-weight:700;font-size:13px;color:#1e293b;background:#f8fafc;padding:3px 8px;border-radius:8px;border:1px solid #e2e8f0;">
+                <span style="font-weight:700;font-size:13px;color:#1e293b;background:rgba(255,255,255,0.7);backdrop-filter:blur(8px);padding:3px 8px;border-radius:8px;border:1px solid rgba(226,232,240,0.85);box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                     ${presentCount} <span style="color:#94a3b8;font-weight:normal;">/</span> ${totalDays}
                 </span>
             </td>
@@ -6019,7 +6023,7 @@ function renderWeeklyAttendanceTable(students, last7Dates, attendanceMapByStuden
         rowHtml += `
             <td style="padding:12px 14px;text-align:center;">
                 <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
-                    <span style="font-size:12px;font-weight:700;padding:2px 8px;border-radius:12px;background:${pctBg};color:${pctColor};border:1px solid ${pctBorder};">
+                    <span style="font-size:12px;font-weight:700;padding:2px 8px;border-radius:12px;background:${pctBg};color:${pctColor};border:1px solid ${pctBorder};backdrop-filter:blur(6px);box-shadow:0 2px 6px rgba(0,0,0,0.04);">
                         ${pct}%
                     </span>
                 </div>
@@ -6031,7 +6035,7 @@ function renderWeeklyAttendanceTable(students, last7Dates, attendanceMapByStuden
 
         rowHtml += `
             <td style="padding:12px 16px;text-align:center;">
-                <button type="button" class="btn" style="padding:5px 10px;font-size:11px;font-weight:600;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.background='#2563eb';this.style.color='#fff';this.style.borderColor='#2563eb';" onmouseout="this.style.background='#f1f5f9';this.style.color='#334155';this.style.borderColor='#cbd5e1';" onclick="openStudentAttendanceHistoryModal('${escapeHtml(s.id)}', '${escapeHtml(s.name || '')}', '${escapeHtml(s.rollNo || '')}', '${escapeHtml(s.course || '')}')" title="View Full Attendance Details">
+                <button type="button" class="btn" style="padding:5px 10px;font-size:11px;font-weight:600;background:rgba(241,245,249,0.8);backdrop-filter:blur(6px);color:#334155;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.background='#2563eb';this.style.color='#fff';this.style.borderColor='#2563eb';" onmouseout="this.style.background='rgba(241,245,249,0.8)';this.style.color='#334155';this.style.borderColor='#cbd5e1';" onclick="openStudentAttendanceHistoryModal('${escapeHtml(s.id)}', '${escapeHtml(s.name || '')}', '${escapeHtml(s.rollNo || '')}', '${escapeHtml(s.course || '')}')" title="View Full Attendance Details">
                     Details <i class="fas fa-chevron-right" style="font-size:9px;"></i>
                 </button>
             </td>
@@ -6128,21 +6132,21 @@ async function openStudentAttendanceHistoryModal(studentId, studentName, rollNo,
 
         // Render 4 Quick Stats
         let statsHtml = `
-            <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px;border-radius:8px;text-align:center;">
-                <div style="font-size:22px;font-weight:700;color:#16a34a;">${present}</div>
-                <div style="font-size:12px;color:#15803d;font-weight:500;">Present</div>
+            <div style="background:rgba(240,253,244,0.85);backdrop-filter:blur(10px);border:1px solid rgba(187,247,208,0.9);padding:14px;border-radius:12px;text-align:center;box-shadow:0 4px 14px rgba(22,163,74,0.08);">
+                <div style="font-size:24px;font-weight:800;color:#16a34a;">${present}</div>
+                <div style="font-size:12px;color:#15803d;font-weight:600;margin-top:2px;">Present</div>
             </div>
-            <div style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:8px;text-align:center;">
-                <div style="font-size:22px;font-weight:700;color:#dc2626;">${absent}</div>
-                <div style="font-size:12px;color:#b91c1c;font-weight:500;">Absent</div>
+            <div style="background:rgba(254,242,242,0.85);backdrop-filter:blur(10px);border:1px solid rgba(254,202,202,0.9);padding:14px;border-radius:12px;text-align:center;box-shadow:0 4px 14px rgba(220,38,38,0.08);">
+                <div style="font-size:24px;font-weight:800;color:#dc2626;">${absent}</div>
+                <div style="font-size:12px;color:#b91c1c;font-weight:600;margin-top:2px;">Absent</div>
             </div>
-            <div style="background:#fffbeb;border:1px solid #fde68a;padding:12px;border-radius:8px;text-align:center;">
-                <div style="font-size:22px;font-weight:700;color:#d97706;">${late}</div>
-                <div style="font-size:12px;color:#b45309;font-weight:500;">Late / Holiday (${late + holiday})</div>
+            <div style="background:rgba(255,251,235,0.85);backdrop-filter:blur(10px);border:1px solid rgba(253,230,138,0.9);padding:14px;border-radius:12px;text-align:center;box-shadow:0 4px 14px rgba(217,119,6,0.08);">
+                <div style="font-size:24px;font-weight:800;color:#d97706;">${late}</div>
+                <div style="font-size:12px;color:#b45309;font-weight:600;margin-top:2px;">Late / Holiday (${late + holiday})</div>
             </div>
-            <div style="background:#f0f9ff;border:1px solid #bae6fd;padding:12px;border-radius:8px;text-align:center;">
-                <div style="font-size:22px;font-weight:700;color:#0284c7;">${percentage}%</div>
-                <div style="font-size:12px;color:#0369a1;font-weight:500;">Overall (${present}/${total})</div>
+            <div style="background:rgba(240,249,255,0.85);backdrop-filter:blur(10px);border:1px solid rgba(186,230,253,0.9);padding:14px;border-radius:12px;text-align:center;box-shadow:0 4px 14px rgba(2,132,199,0.08);">
+                <div style="font-size:24px;font-weight:800;color:#0284c7;">${percentage}%</div>
+                <div style="font-size:12px;color:#0369a1;font-weight:600;margin-top:2px;">Overall (${present}/${total})</div>
             </div>
         `;
         document.getElementById('studentAttModalStats').innerHTML = statsHtml;
@@ -6174,9 +6178,9 @@ async function openStudentAttendanceHistoryModal(studentId, studentName, rollNo,
             const meta = getAttendanceStatusMeta(status);
 
             return `
-                <div style="background:${meta.bg};border:1px solid ${meta.border};border-radius:8px;padding:10px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.04);">
+                <div style="background:${meta.bg};border:1px solid ${meta.border};border-radius:10px;padding:10px;text-align:center;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:${meta.glow || '0 1px 3px rgba(0,0,0,0.04)'};">
                     <div style="font-size:11px;color:#64748b;font-weight:600;">${d.shortLabel}</div>
-                    <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">${d.dayName}</div>
+                    <div style="font-size:10px;color:#94a3b8;margin-bottom:4px;">${d.dayName}</div>
                     <div style="font-size:16px;font-weight:800;color:${meta.color};margin-bottom:2px;">${meta.letter}</div>
                     <div style="font-size:10px;font-weight:600;color:${meta.color};">${meta.label}${isAuto ? ' (auto)' : ''}</div>
                 </div>
@@ -6293,18 +6297,23 @@ async function loadAttendanceTable() {
                 const markedStatus = attendanceMap[s.id];
                 const displayStatus = (!markedStatus && batchTimeOver) ? 'absent' : markedStatus;
                 const stripHtml = renderLast7DaysStrip(s, last7Dates, attendanceMapByStudentAndDate, batchTimeOver, todayDate);
+                const avatar = getAvatarColor(s.name);
+                const initials = getInitials(s.name);
 
                 let html = '';
-                html += '<tr>';
-                html += '<td>' + escapeHtml(s.rollNo || '-') + '</td>';
-                html += '<td>';
-                html += '<a href="#" onclick="openStudentAttendanceHistoryModal(\'' + escapeHtml(s.id) + '\', \'' + escapeHtml(s.name || '') + '\', \'' + escapeHtml(s.rollNo || '') + '\', \'' + escapeHtml(s.course || '') + '\'); return false;" style="font-weight:600;color:#2563eb;text-decoration:none;" title="Click to view attendance history">' + escapeHtml(s.name || '-') + '</a>';
+                html += '<tr class="weekly-table-row">';
+                html += '<td style="padding:12px 16px;font-weight:700;color:#475569;font-family:monospace;font-size:13px;">' + escapeHtml(s.rollNo || '-') + '</td>';
+                html += '<td style="padding:12px 16px;">';
+                html += '<div style="display:flex;align-items:center;gap:10px;">';
+                html += '<div style="width:32px;height:32px;border-radius:50%;background:' + avatar.bg + ';color:' + avatar.text + ';font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + initials + '</div>';
+                html += '<a href="#" onclick="openStudentAttendanceHistoryModal(\'' + escapeHtml(s.id) + '\', \'' + escapeHtml(s.name || '') + '\', \'' + escapeHtml(s.rollNo || '') + '\', \'' + escapeHtml(s.course || '') + '\'); return false;" style="font-weight:600;color:#1e293b;text-decoration:none;font-size:13px;transition:color 0.15s;" onmouseover="this.style.color=\'#2563eb\'" onmouseout="this.style.color=\'#1e293b\'" title="Click to view attendance history">' + escapeHtml(s.name || '-') + '</a>';
+                html += '</div>';
                 html += '</td>';
-                html += '<td>' + escapeHtml(s.course || '-') + '</td>';
-                html += '<td>' + escapeHtml(s.batch || '-') + '</td>';
-                html += '<td>' + stripHtml + '</td>';
-                html += '<td>';
-                html += '<select id="att_' + s.id + '" style="padding:6px;border-radius:4px;border:1px solid #e2e8f0;height:40px;">';
+                html += '<td style="padding:12px 16px;color:#64748b;font-size:13px;">' + escapeHtml(s.course || '-') + '</td>';
+                html += '<td style="padding:12px 16px;color:#64748b;font-size:13px;">' + escapeHtml(s.batch || '-') + '</td>';
+                html += '<td style="padding:12px 16px;">' + stripHtml + '</td>';
+                html += '<td style="padding:12px 16px;">';
+                html += '<select id="att_' + s.id + '" style="padding:6px 10px;border-radius:8px;border:1px solid #cbd5e1;background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);height:38px;font-size:13px;outline:none;">';
                 html += '<option value="">Select Status</option>';
                 html += '<option value="present" ' + (displayStatus === 'present' ? 'selected' : '') + '>Present</option>';
                 html += '<option value="absent" ' + (displayStatus === 'absent' ? 'selected' : '') + '>Absent</option>';
@@ -6312,12 +6321,12 @@ async function loadAttendanceTable() {
                 html += '<option value="holiday" ' + (displayStatus === 'holiday' ? 'selected' : '') + '>Holiday</option>';
                 html += '</select>';
                 if (!markedStatus && batchTimeOver) {
-                    html += ' <span style="font-size:11px;color:#dc2626;margin-left:4px;">(auto-absent)</span>';
+                    html += ' <span style="font-size:11px;color:#dc2626;margin-left:4px;font-weight:600;">(auto-absent)</span>';
                 }
                 html += '</td>';
-                html += '<td>';
-                html += '<button class="btn btn-primary" onclick="saveAttendance(\'' + s.id + '\', \'' + date + '\')">Save</button>';
-                html += (attendanceId ? '<button class="btn" onclick="deleteAttendance(\'' + attendanceId + '\', \'' + date + '\')" style="padding:6px 12px;background:#fee2e2;color:#dc2626;margin-left:5px;">Delete</button>' : '');
+                html += '<td style="padding:12px 16px;text-align:center;">';
+                html += '<button class="btn btn-primary" onclick="saveAttendance(\'' + s.id + '\', \'' + date + '\')" style="padding:6px 14px;border-radius:6px;font-size:12px;">Save</button>';
+                html += (attendanceId ? '<button class="btn" onclick="deleteAttendance(\'' + attendanceId + '\', \'' + date + '\')" style="padding:6px 12px;border-radius:6px;font-size:12px;background:rgba(254,226,226,0.85);color:#dc2626;border:1px solid #fca5a5;margin-left:5px;">Delete</button>' : '');
                 html += '</td>';
                 html += '</tr>';
                 return html;
@@ -6336,21 +6345,21 @@ async function loadAttendanceTable() {
             };
             
             let statsHtml = '';
-            statsHtml += '<div style="background:#f0f9ff;padding:16px;border-radius:8px;text-align:center;">';
-            statsHtml += '<div style="font-size:24px;font-weight:700;color:#2563eb;">' + stats.total + '</div>';
-            statsHtml += '<div style="font-size:13px;color:#64748b;">Total Students' + (batchName ? ' (' + escapeHtml(batchName) + ')' : '') + '</div>';
+            statsHtml += '<div style="background:rgba(239,246,255,0.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(191,219,254,0.85);padding:16px;border-radius:14px;text-align:center;box-shadow:0 8px 24px rgba(37,99,235,0.06),inset 0 1px 0 rgba(255,255,255,0.9);">';
+            statsHtml += '<div style="font-size:26px;font-weight:800;color:#2563eb;letter-spacing:-0.5px;">' + stats.total + '</div>';
+            statsHtml += '<div style="font-size:12px;font-weight:600;color:#64748b;margin-top:2px;">Total Students' + (batchName ? ' (' + escapeHtml(batchName) + ')' : '') + '</div>';
             statsHtml += '</div>';
-            statsHtml += '<div style="background:#dcfce7;padding:16px;border-radius:8px;text-align:center;">';
-            statsHtml += '<div style="font-size:24px;font-weight:700;color:#16a34a;">' + stats.present + '</div>';
-            statsHtml += '<div style="font-size:13px;color:#64748b;">Present (Selected Date)</div>';
+            statsHtml += '<div style="background:rgba(236,253,245,0.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(167,243,208,0.85);padding:16px;border-radius:14px;text-align:center;box-shadow:0 8px 24px rgba(16,185,129,0.06),inset 0 1px 0 rgba(255,255,255,0.9);">';
+            statsHtml += '<div style="font-size:26px;font-weight:800;color:#16a34a;letter-spacing:-0.5px;">' + stats.present + '</div>';
+            statsHtml += '<div style="font-size:12px;font-weight:600;color:#059669;margin-top:2px;">Present (Selected Date)</div>';
             statsHtml += '</div>';
-            statsHtml += '<div style="background:#fee2e2;padding:16px;border-radius:8px;text-align:center;">';
-            statsHtml += '<div style="font-size:24px;font-weight:700;color:#dc2626;">' + stats.absent + '</div>';
-            statsHtml += '<div style="font-size:13px;color:#64748b;">Absent (Selected Date)</div>';
+            statsHtml += '<div style="background:rgba(254,242,242,0.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(254,202,202,0.85);padding:16px;border-radius:14px;text-align:center;box-shadow:0 8px 24px rgba(239,68,68,0.06),inset 0 1px 0 rgba(255,255,255,0.9);">';
+            statsHtml += '<div style="font-size:26px;font-weight:800;color:#dc2626;letter-spacing:-0.5px;">' + stats.absent + '</div>';
+            statsHtml += '<div style="font-size:12px;font-weight:600;color:#b91c1c;margin-top:2px;">Absent (Selected Date)</div>';
             statsHtml += '</div>';
-            statsHtml += '<div style="background:#fef3c7;padding:16px;border-radius:8px;text-align:center;">';
-            statsHtml += '<div style="font-size:24px;font-weight:700;color:#f59e0b;">' + stats.late + '</div>';
-            statsHtml += '<div style="font-size:13px;color:#64748b;">Late (Selected Date)</div>';
+            statsHtml += '<div style="background:rgba(255,251,235,0.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(253,230,138,0.85);padding:16px;border-radius:14px;text-align:center;box-shadow:0 8px 24px rgba(245,158,11,0.06),inset 0 1px 0 rgba(255,255,255,0.9);">';
+            statsHtml += '<div style="font-size:26px;font-weight:800;color:#d97706;letter-spacing:-0.5px;">' + stats.late + '</div>';
+            statsHtml += '<div style="font-size:12px;font-weight:600;color:#b45309;margin-top:2px;">Late (Selected Date)</div>';
             statsHtml += '</div>';
             document.getElementById('attendanceStats').innerHTML = statsHtml;
         } else {

@@ -10,81 +10,149 @@
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
     <style>
-        /* ===== 7-Day Weekly Attendance Register — Modern Redesign ===== */
+        /* ===== Attendance Module — Modern Glassmorphism Theme ===== */
+        .attendance-glass-card,
+        #attendanceDailyContainer.data-table,
         .weekly-sheet-card {
-            background: #ffffff;
-            border-radius: 14px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
-            overflow: hidden;
+            background: rgba(255, 255, 255, 0.72) !important;
+            backdrop-filter: blur(20px) saturate(190%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.8) !important;
+            border-radius: 16px !important;
+            box-shadow: 
+                0 12px 35px 0 rgba(31, 38, 135, 0.08),
+                0 2px 8px 0 rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.95) !important;
+            overflow: hidden !important;
             margin-top: 10px;
+            transition: all 0.3s ease;
         }
+
+        /* Glass Table Headers */
+        #attendanceTable thead th,
+        #weeklyAttendanceTable thead th {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(241, 245, 249, 0.82) 100%) !important;
+            backdrop-filter: blur(14px) !important;
+            -webkit-backdrop-filter: blur(14px) !important;
+            color: #1e293b !important;
+            font-weight: 700 !important;
+            border-bottom: 1px solid rgba(203, 213, 225, 0.75) !important;
+            border-right: 1px solid rgba(226, 232, 240, 0.55) !important;
+            padding: 13px 16px !important;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Glass Table Body Rows */
+        #attendanceTable tbody tr,
+        #weeklyAttendanceTable tbody tr.weekly-table-row {
+            background: rgba(255, 255, 255, 0.45) !important;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6) !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        #attendanceTable tbody tr:nth-child(even),
+        #weeklyAttendanceTable tbody tr.weekly-table-row:nth-child(even) {
+            background: rgba(248, 250, 252, 0.52) !important;
+        }
+        #attendanceTable tbody tr:hover,
+        #weeklyAttendanceTable tbody tr.weekly-table-row:hover {
+            background: rgba(238, 242, 255, 0.78) !important;
+            box-shadow: inset 3px 0 0 #2563eb, 0 4px 16px rgba(37, 99, 235, 0.08) !important;
+            transform: translateY(-1px);
+        }
+        #attendanceTable tbody td,
+        #weeklyAttendanceTable tbody td {
+            color: #1e293b !important;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6) !important;
+            border-right: 1px solid rgba(241, 245, 249, 0.6) !important;
+            vertical-align: middle;
+        }
+
+        /* Glass Footer */
+        #weeklyAttendanceTfoot tr {
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.88) 0%, rgba(241, 245, 249, 0.82) 100%) !important;
+            backdrop-filter: blur(14px) !important;
+            -webkit-backdrop-filter: blur(14px) !important;
+            border-top: 2px solid rgba(203, 213, 225, 0.85) !important;
+        }
+
+        /* Glass Header Top Bar */
         .weekly-sheet-header {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            padding: 16px 20px;
-            border-bottom: 1px solid #e2e8f0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(241, 245, 249, 0.75) 100%) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            padding: 16px 22px !important;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.75) !important;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
         }
+
+        /* Glass Date Cards in Header */
         .weekly-date-card {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 6px 10px;
-            border-radius: 10px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.65) !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.85) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             min-width: 62px;
         }
         .weekly-date-card:hover {
-            border-color: #cbd5e1;
-            background: #f1f5f9;
+            border-color: rgba(148, 163, 184, 0.6) !important;
+            background: rgba(241, 245, 249, 0.9) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
         }
         .weekly-date-card.active-day {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-            border-color: #1d4ed8 !important;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(29, 78, 216, 0.98)) !important;
+            border: 1px solid rgba(147, 197, 253, 0.6) !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
         }
         .weekly-date-card.active-day span {
             color: #ffffff !important;
         }
+
+        /* Frosted Glass Status Badges */
         .weekly-status-badge {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             width: 32px;
             height: 32px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 13px;
             font-weight: 700;
-            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+            transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s ease;
             cursor: pointer;
             user-select: none;
         }
         .weekly-status-badge:hover {
-            transform: translateY(-2px) scale(1.12);
-            box-shadow: 0 6px 14px -2px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px) scale(1.14) !important;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
         }
-        .weekly-table-row {
-            transition: background-color 0.15s ease;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .weekly-table-row:hover {
-            background-color: #f8fafc !important;
-        }
+
         .weekly-progress-bar {
             height: 6px;
             width: 100%;
-            background: #e2e8f0;
+            background: rgba(226, 232, 240, 0.8);
             border-radius: 9999px;
             overflow: hidden;
             margin-top: 5px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
         }
         .weekly-progress-fill {
             height: 100%;
@@ -99,9 +167,50 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            background: rgba(255, 255, 255, 0.7) !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.85) !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.7) !important;
+        }
+
+        /* Glass View Mode Toggle & Filter Bar */
+        .attendance-view-toggle {
+            background: rgba(241, 245, 249, 0.75) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.85) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+        }
+
+        /* Attendance Stats Glass Cards */
+        #attendanceStats > div {
+            backdrop-filter: blur(16px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+            border-radius: 14px !important;
+            border: 1px solid rgba(255, 255, 255, 0.85) !important;
+            box-shadow: 0 8px 24px rgba(31, 38, 135, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        #attendanceStats > div:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 12px 28px rgba(31, 38, 135, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+        }
+
+        /* Student Attendance History Modal Glass Theme */
+        #studentAttendanceHistoryModal .modal-content {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(24px) saturate(190%) !important;
+            -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.85) !important;
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+        }
+        #studentAttendanceHistoryModal .modal-header {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.98)) !important;
+            backdrop-filter: blur(16px) !important;
+        }
+        #studentAttendanceHistoryModal .modal-body {
+            background: rgba(248, 250, 252, 0.6) !important;
         }
 
         /* ===== Blog Modal — Glassmorphism ===== */
@@ -4842,21 +4951,23 @@
                 <div id="attendanceStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;"></div>
 
                 <!-- Daily Attendance Table -->
-                <div id="attendanceDailyContainer" class="data-table">
-                    <table id="attendanceTable">
-                        <thead>
-                            <tr>
-                                <th>Roll No</th>
-                                <th>Name</th>
-                                <th>Course</th>
-                                <th>Batch</th>
-                                <th style="min-width:260px;">Last 7 Days</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                <div id="attendanceDailyContainer" class="data-table weekly-sheet-card" style="padding:0;margin-bottom:20px;overflow:hidden;">
+                    <div style="overflow-x:auto;">
+                        <table id="attendanceTable" style="width:100%;border-collapse:collapse;font-size:13px;min-width:800px;">
+                            <thead>
+                                <tr>
+                                    <th style="padding:14px 16px;width:90px;">Roll No</th>
+                                    <th style="padding:14px 16px;min-width:180px;">Student Name</th>
+                                    <th style="padding:14px 16px;min-width:140px;">Course</th>
+                                    <th style="padding:14px 16px;min-width:140px;">Batch</th>
+                                    <th style="padding:14px 16px;min-width:280px;">Last 7 Days</th>
+                                    <th style="padding:14px 16px;min-width:160px;">Status</th>
+                                    <th style="padding:14px 16px;width:120px;text-align:center;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- 7-Day Weekly Register View (Redesigned) -->
