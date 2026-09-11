@@ -10,80 +10,84 @@
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
     <style>
-        /* ===== Attendance Module — Modern Glassmorphism Theme ===== */
+        /* ===== Attendance Module — Dark Glassmorphism (Matching other tables) ===== */
         .attendance-glass-card,
+        #attendanceDailyContainer,
         #attendanceDailyContainer.data-table,
         .weekly-sheet-card {
-            background: rgba(255, 255, 255, 0.72) !important;
-            backdrop-filter: blur(20px) saturate(190%) !important;
-            -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
-            border: 1px solid rgba(255, 255, 255, 0.8) !important;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+            backdrop-filter: blur(25px) !important;
+            -webkit-backdrop-filter: blur(25px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
             border-radius: 16px !important;
             box-shadow: 
-                0 12px 35px 0 rgba(31, 38, 135, 0.08),
-                0 2px 8px 0 rgba(0, 0, 0, 0.04),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.95) !important;
+                0 15px 40px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+                0 0 25px rgba(102, 126, 234, 0.18) !important;
             overflow: hidden !important;
             margin-top: 10px;
+            color: #ffffff !important;
             transition: all 0.3s ease;
         }
 
-        /* Glass Table Headers */
+        /* Glass Table Headers — Matches other tables (rgba(102,126,234,0.3)) */
         #attendanceTable thead th,
         #weeklyAttendanceTable thead th {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(241, 245, 249, 0.82) 100%) !important;
+            background: rgba(102, 126, 234, 0.32) !important;
             backdrop-filter: blur(14px) !important;
             -webkit-backdrop-filter: blur(14px) !important;
-            color: #1e293b !important;
-            font-weight: 700 !important;
-            border-bottom: 1px solid rgba(203, 213, 225, 0.75) !important;
-            border-right: 1px solid rgba(226, 232, 240, 0.55) !important;
-            padding: 13px 16px !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+            padding: 14px 16px !important;
             text-transform: uppercase;
-            font-size: 11px;
+            font-size: 0.78rem;
             letter-spacing: 0.5px;
         }
 
         /* Glass Table Body Rows */
         #attendanceTable tbody tr,
         #weeklyAttendanceTable tbody tr.weekly-table-row {
-            background: rgba(255, 255, 255, 0.45) !important;
-            border-bottom: 1px solid rgba(226, 232, 240, 0.6) !important;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            background: transparent !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+            transition: background-color 0.2s ease, transform 0.15s ease !important;
         }
         #attendanceTable tbody tr:nth-child(even),
         #weeklyAttendanceTable tbody tr.weekly-table-row:nth-child(even) {
-            background: rgba(248, 250, 252, 0.52) !important;
+            background: rgba(255, 255, 255, 0.035) !important;
         }
         #attendanceTable tbody tr:hover,
         #weeklyAttendanceTable tbody tr.weekly-table-row:hover {
-            background: rgba(238, 242, 255, 0.78) !important;
-            box-shadow: inset 3px 0 0 #2563eb, 0 4px 16px rgba(37, 99, 235, 0.08) !important;
-            transform: translateY(-1px);
+            background: rgba(102, 126, 234, 0.22) !important;
+            box-shadow: inset 3px 0 0 #818cf8 !important;
         }
         #attendanceTable tbody td,
         #weeklyAttendanceTable tbody td {
-            color: #1e293b !important;
-            border-bottom: 1px solid rgba(226, 232, 240, 0.6) !important;
-            border-right: 1px solid rgba(241, 245, 249, 0.6) !important;
+            color: #f1f5f9 !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
             vertical-align: middle;
+            padding: 12px 14px !important;
+            font-size: 13px;
         }
 
         /* Glass Footer */
         #weeklyAttendanceTfoot tr {
-            background: linear-gradient(135deg, rgba(248, 250, 252, 0.88) 0%, rgba(241, 245, 249, 0.82) 100%) !important;
+            background: rgba(255, 255, 255, 0.06) !important;
             backdrop-filter: blur(14px) !important;
             -webkit-backdrop-filter: blur(14px) !important;
-            border-top: 2px solid rgba(203, 213, 225, 0.85) !important;
+            border-top: 2px solid rgba(255, 255, 255, 0.18) !important;
+            color: #ffffff !important;
         }
 
         /* Glass Header Top Bar */
         .weekly-sheet-header {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(241, 245, 249, 0.75) 100%) !important;
+            background: rgba(255, 255, 255, 0.06) !important;
             backdrop-filter: blur(16px) !important;
             -webkit-backdrop-filter: blur(16px) !important;
             padding: 16px 22px !important;
-            border-bottom: 1px solid rgba(226, 232, 240, 0.75) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -98,29 +102,36 @@
             align-items: center;
             justify-content: center;
             padding: 6px 10px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.65) !important;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08) !important;
             backdrop-filter: blur(10px) !important;
             -webkit-backdrop-filter: blur(10px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.85) !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.16) !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             min-width: 62px;
         }
         .weekly-date-card:hover {
-            border-color: rgba(148, 163, 184, 0.6) !important;
-            background: rgba(241, 245, 249, 0.9) !important;
+            border-color: rgba(129, 140, 248, 0.6) !important;
+            background: rgba(102, 126, 234, 0.25) !important;
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.25) !important;
         }
         .weekly-date-card.active-day {
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(29, 78, 216, 0.98)) !important;
-            border: 1px solid rgba(147, 197, 253, 0.6) !important;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
+            border: 1px solid rgba(199, 210, 254, 0.4) !important;
             color: #ffffff !important;
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45) !important;
         }
-        .weekly-date-card.active-day span {
+        .weekly-date-card .weekly-day-name {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+        .weekly-date-card .weekly-day-num {
             color: #ffffff !important;
+        }
+        .weekly-date-card .weekly-day-month {
+            color: rgba(255, 255, 255, 0.6) !important;
         }
 
         /* Frosted Glass Status Badges */
@@ -130,29 +141,29 @@
             justify-content: center;
             width: 32px;
             height: 32px;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 13px;
             font-weight: 700;
             backdrop-filter: blur(8px) !important;
             -webkit-backdrop-filter: blur(8px) !important;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
             transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s ease;
             cursor: pointer;
             user-select: none;
         }
         .weekly-status-badge:hover {
-            transform: translateY(-2px) scale(1.14) !important;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+            transform: translateY(-2px) scale(1.16) !important;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4) !important;
         }
 
         .weekly-progress-bar {
             height: 6px;
             width: 100%;
-            background: rgba(226, 232, 240, 0.8);
+            background: rgba(255, 255, 255, 0.15) !important;
             border-radius: 9999px;
             overflow: hidden;
             margin-top: 5px;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
         }
         .weekly-progress-fill {
             height: 100%;
@@ -163,54 +174,60 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
-            background: rgba(255, 255, 255, 0.7) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
             backdrop-filter: blur(10px) !important;
             -webkit-backdrop-filter: blur(10px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.85) !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.7) !important;
+            border: 1px solid rgba(255, 255, 255, 0.16) !important;
+            color: #f1f5f9 !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
         }
 
         /* Glass View Mode Toggle & Filter Bar */
         .attendance-view-toggle {
-            background: rgba(241, 245, 249, 0.75) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
             backdrop-filter: blur(12px) !important;
             -webkit-backdrop-filter: blur(12px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.85) !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
         }
 
-        /* Attendance Stats Glass Cards */
+        /* Attendance Stats Glass Cards — Matching stat-card / stat-mini */
         #attendanceStats > div {
-            backdrop-filter: blur(16px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-            border-radius: 14px !important;
-            border: 1px solid rgba(255, 255, 255, 0.85) !important;
-            box-shadow: 0 8px 24px rgba(31, 38, 135, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
         #attendanceStats > div:hover {
             transform: translateY(-3px) !important;
-            box-shadow: 0 12px 28px rgba(31, 38, 135, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), 0 0 20px rgba(102, 126, 234, 0.25) !important;
         }
 
-        /* Student Attendance History Modal Glass Theme */
+        /* Student Attendance History Modal — Matching Blog Modal */
         #studentAttendanceHistoryModal .modal-content {
-            background: rgba(255, 255, 255, 0.88) !important;
-            backdrop-filter: blur(24px) saturate(190%) !important;
-            -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
-            border: 1px solid rgba(255, 255, 255, 0.85) !important;
-            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+            background: rgba(30, 41, 59, 0.94) !important;
+            backdrop-filter: blur(25px) !important;
+            -webkit-backdrop-filter: blur(25px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            color: #f1f5f9 !important;
         }
         #studentAttendanceHistoryModal .modal-header {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.98)) !important;
-            backdrop-filter: blur(16px) !important;
+            background: #0f172a !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
         }
         #studentAttendanceHistoryModal .modal-body {
-            background: rgba(248, 250, 252, 0.6) !important;
+            background: rgba(15, 23, 42, 0.75) !important;
+            color: #f1f5f9 !important;
+        }
+        #studentAttendanceHistoryModal .modal-footer {
+            background: rgba(15, 23, 42, 0.85) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
         }
 
         /* ===== Blog Modal — Glassmorphism ===== */
@@ -4928,18 +4945,18 @@
             <div id="page-attendance" class="page-content hidden">
                 <div class="page-header">
                     <div class="page-toolbar" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
-                        <div class="attendance-view-toggle" style="display:inline-flex;border-radius:8px;background:#f1f5f9;padding:3px;border:1px solid #cbd5e1;">
-                            <button id="viewDailyBtn" class="btn" type="button" onclick="setAttendanceViewMode('daily')" style="padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;background:#2563eb;color:#fff;border:none;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 2px rgba(0,0,0,0.08);">
+                        <div class="attendance-view-toggle" style="display:inline-flex;border-radius:8px;background:rgba(255,255,255,0.08);padding:3px;border:1px solid rgba(255,255,255,0.18);backdrop-filter:blur(10px);">
+                            <button id="viewDailyBtn" class="btn" type="button" onclick="setAttendanceViewMode('daily')" style="padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(102,126,234,0.4);">
                                 <i class="fas fa-calendar-day"></i> Daily View
                             </button>
-                            <button id="viewWeeklyBtn" class="btn" type="button" onclick="setAttendanceViewMode('weekly')" style="padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;background:transparent;color:#64748b;border:none;cursor:pointer;transition:all 0.2s;">
+                            <button id="viewWeeklyBtn" class="btn" type="button" onclick="setAttendanceViewMode('weekly')" style="padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;background:transparent;color:rgba(255,255,255,0.7);border:none;cursor:pointer;transition:all 0.2s;">
                                 <i class="fas fa-calendar-week"></i> 7-Day Weekly Sheet
                             </button>
                         </div>
-                        <select id="attendanceBatch" aria-label="Attendance batch" style="padding:8px;border-radius:6px;border:1px solid #e2e8f0;min-width:200px;height:40px;">
-                            <option value="">Select Batch</option>
+                        <select id="attendanceBatch" aria-label="Attendance batch" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);color:#fff;min-width:200px;height:40px;">
+                            <option value="" style="background:#1e293b;color:#fff;">Select Batch</option>
                         </select>
-                        <input type="date" id="attendanceDate" style="padding:8px;border-radius:6px;border:1px solid #e2e8f0;height:40px;">
+                        <input type="date" id="attendanceDate" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);color:#fff;height:40px;">
                         <button class="btn btn-primary" onclick="loadAttendanceTable()" style="padding:8px 16px;">Show</button>
                         <button id="markAllPresentBtn" class="btn btn-primary" onclick="markAllPresent()" style="padding:8px 16px;">Mark All Present</button>
                         <button id="saveAllAttendanceBtn" class="btn btn-success" onclick="saveAllAttendance()" style="padding:8px 16px;">Save All</button>
@@ -4975,41 +4992,41 @@
                     <!-- Top Bar: Title, Badges, Search & Legends -->
                     <div class="weekly-sheet-header">
                         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                            <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 10px rgba(37,99,235,0.25);">
+                            <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 12px rgba(99,102,241,0.35);">
                                 <i class="fas fa-calendar-week" style="font-size:18px;"></i>
                             </div>
                             <div>
                                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                                    <h3 style="margin:0;font-size:16px;font-weight:700;color:#0f172a;letter-spacing:-0.2px;">Weekly Attendance Matrix</h3>
-                                    <span id="weeklyDateRangeBadge" style="font-size:12px;background:#e0f2fe;color:#0284c7;padding:3px 10px;border-radius:12px;font-weight:600;border:1px solid #bae6fd;"></span>
-                                    <span id="weeklyBatchNameBadge" style="font-size:12px;background:#f1f5f9;color:#334155;padding:3px 10px;border-radius:12px;font-weight:600;border:1px solid #cbd5e1;"></span>
+                                    <h3 style="margin:0;font-size:16px;font-weight:700;color:#ffffff;letter-spacing:-0.2px;">Weekly Attendance Matrix</h3>
+                                    <span id="weeklyDateRangeBadge" style="font-size:12px;background:rgba(99,102,241,0.25);color:#a5b4fc;padding:3px 10px;border-radius:12px;font-weight:600;border:1px solid rgba(129,140,248,0.4);"></span>
+                                    <span id="weeklyBatchNameBadge" style="font-size:12px;background:rgba(255,255,255,0.1);color:#e2e8f0;padding:3px 10px;border-radius:12px;font-weight:600;border:1px solid rgba(255,255,255,0.2);"></span>
                                 </div>
-                                <div style="font-size:12px;color:#64748b;margin-top:2px;">Full 7-day student attendance register with auto-absent tracking & analytics</div>
+                                <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:2px;">Full 7-day student attendance register with auto-absent tracking & analytics</div>
                             </div>
                         </div>
 
                         <!-- Right Controls: Live Search & Batch Avg -->
                         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                             <div style="position:relative;min-width:220px;">
-                                <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;"></i>
-                                <input type="text" id="weeklySearchInput" oninput="filterWeeklyAttendanceTable(this.value)" placeholder="Search student or roll..." style="width:100%;box-sizing:border-box;padding:8px 12px 8px 34px;border:1px solid #cbd5e1;border-radius:20px;font-size:12px;background:#ffffff;outline:none;transition:all 0.2s;box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                                <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.5);font-size:13px;"></i>
+                                <input type="text" id="weeklySearchInput" oninput="filterWeeklyAttendanceTable(this.value)" placeholder="Search student or roll..." style="width:100%;box-sizing:border-box;padding:8px 12px 8px 34px;border:1px solid rgba(255,255,255,0.2);border-radius:20px;font-size:12px;background:rgba(255,255,255,0.08);color:#fff;outline:none;transition:all 0.2s;">
                             </div>
-                            <div id="weeklyBatchAvgChip" style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;display:inline-flex;align-items:center;gap:6px;">
+                            <div id="weeklyBatchAvgChip" style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;background:rgba(34,197,94,0.2);color:#4ade80;border:1px solid rgba(74,222,128,0.4);display:inline-flex;align-items:center;gap:6px;">
                                 <i class="fas fa-chart-line"></i> Batch Avg: --%
                             </div>
                         </div>
                     </div>
 
                     <!-- Legend Bar -->
-                    <div style="padding:10px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                    <div style="padding:10px 20px;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
                         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                            <span style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Status Legend:</span>
-                            <span class="weekly-legend-pill"><span style="width:9px;height:9px;background:#10b981;border-radius:50%;"></span> Present (P)</span>
-                            <span class="weekly-legend-pill"><span style="width:9px;height:9px;background:#ef4444;border-radius:50%;"></span> Absent / Unmarked (A)</span>
-                            <span class="weekly-legend-pill"><span style="width:9px;height:9px;background:#f59e0b;border-radius:50%;"></span> Late (L)</span>
-                            <span class="weekly-legend-pill"><span style="width:9px;height:9px;background:#f97316;border-radius:50%;"></span> Holiday (H)</span>
+                            <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.5px;">Status Legend:</span>
+                            <span class="weekly-legend-pill"><span style="width:9px;height:9px;background:#22c55e;border-radius:50%;box-shadow:0 0 8px #22c55e;"></span> Present (P)</span>
+                            <span class="weekly-legend-pill"><span style="width:9px;height:9px;background:#ef4444;border-radius:50%;box-shadow:0 0 8px #ef4444;"></span> Absent / Unmarked (A)</span>
+                            <span class="weekly-legend-pill"><span style="width:9px;height:9px;background:#f59e0b;border-radius:50%;box-shadow:0 0 8px #f59e0b;"></span> Late (L)</span>
+                            <span class="weekly-legend-pill"><span style="width:9px;height:9px;background:#f97316;border-radius:50%;box-shadow:0 0 8px #f97316;"></span> Holiday (H)</span>
                         </div>
-                        <div id="weeklyStudentCountBadge" style="font-size:12px;color:#64748b;font-weight:500;"></div>
+                        <div id="weeklyStudentCountBadge" style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:500;"></div>
                     </div>
 
                     <!-- Modern Weekly Sheet Table -->
@@ -6870,44 +6887,44 @@
 
     <!-- Student Attendance History Modal -->
     <div id="studentAttendanceHistoryModal" class="modal" style="display:none;z-index:9999;">
-        <div class="modal-content" style="max-width:760px;width:95%;border-radius:12px;overflow:hidden;background:#ffffff;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
-            <div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#0f172a);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <div class="modal-content" style="max-width:760px;width:95%;border-radius:16px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.55);">
+            <div class="modal-header" style="background:#0f172a;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.12);">
                 <div>
                     <h3 id="studentAttModalName" style="margin:0;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px;color:#fff;">
-                        <i class="fas fa-user-check" style="color:#38bdf8;"></i> Student Attendance History
+                        <i class="fas fa-user-check" style="color:#818cf8;"></i> Student Attendance History
                     </h3>
-                    <div id="studentAttModalSub" style="font-size:12px;color:#94a3b8;margin-top:2px;">Roll No: - | Course: -</div>
+                    <div id="studentAttModalSub" style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:2px;">Roll No: - | Course: -</div>
                 </div>
                 <button class="close-btn" onclick="closeStudentAttendanceHistoryModal()" style="color:#cbd5e1;background:transparent;border:none;font-size:26px;cursor:pointer;line-height:1;">&times;</button>
             </div>
-            <div class="modal-body" style="padding:20px;background:#f8fafc;max-height:80vh;overflow-y:auto;">
+            <div class="modal-body" style="padding:20px;max-height:80vh;overflow-y:auto;">
                 <!-- 4 Stats Cards -->
                 <div id="studentAttModalStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;"></div>
                 
                 <!-- 7-Day Visual Timeline Box -->
-                <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:12px;padding:16px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-                        <h4 style="margin:0;font-size:14px;color:#1e293b;display:flex;align-items:center;gap:6px;">
-                            <i class="fas fa-history" style="color:#6366f1;"></i> Past 7 Days Attendance Breakdown
+                        <h4 style="margin:0;font-size:14px;color:#fff;display:flex;align-items:center;gap:6px;">
+                            <i class="fas fa-history" style="color:#818cf8;"></i> Past 7 Days Attendance Breakdown
                         </h4>
-                        <span id="studentAttModal7DayScore" style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;background:#e0f2fe;color:#0284c7;"></span>
+                        <span id="studentAttModal7DayScore" style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;background:rgba(99,102,241,0.25);color:#a5b4fc;border:1px solid rgba(129,140,248,0.4);"></span>
                     </div>
                     <div id="studentAttModal7DaysList" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;"></div>
                 </div>
 
                 <!-- Complete Attendance Records Table -->
-                <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                    <h4 style="margin:0 0 12px 0;font-size:14px;color:#1e293b;display:flex;align-items:center;gap:6px;">
-                        <i class="fas fa-list-check" style="color:#059669;"></i> Detailed Attendance Records
+                <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+                    <h4 style="margin:0 0 12px 0;font-size:14px;color:#fff;display:flex;align-items:center;gap:6px;">
+                        <i class="fas fa-list-check" style="color:#4ade80;"></i> Detailed Attendance Records
                     </h4>
-                    <div style="max-height:220px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:6px;">
+                    <div style="max-height:220px;overflow-y:auto;border:1px solid rgba(255,255,255,0.12);border-radius:8px;">
                         <table style="width:100%;font-size:13px;border-collapse:collapse;">
                             <thead>
-                                <tr style="background:#f1f5f9;border-bottom:1px solid #cbd5e1;text-align:left;position:sticky;top:0;">
-                                    <th style="padding:8px 12px;">Date</th>
-                                    <th style="padding:8px 12px;">Status</th>
-                                    <th style="padding:8px 12px;">Course</th>
-                                    <th style="padding:8px 12px;">Batch</th>
+                                <tr style="background:rgba(102,126,234,0.35);border-bottom:1px solid rgba(255,255,255,0.15);color:#fff;text-align:left;position:sticky;top:0;">
+                                    <th style="padding:8px 12px;color:#fff;">Date</th>
+                                    <th style="padding:8px 12px;color:#fff;">Status</th>
+                                    <th style="padding:8px 12px;color:#fff;">Course</th>
+                                    <th style="padding:8px 12px;color:#fff;">Batch</th>
                                 </tr>
                             </thead>
                             <tbody id="studentAttModalRecordsTbody"></tbody>
@@ -6915,7 +6932,7 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer" style="background:#f1f5f9;padding:12px 20px;display:flex;justify-content:flex-end;border-top:1px solid #e2e8f0;">
+            <div class="modal-footer" style="padding:12px 20px;display:flex;justify-content:flex-end;border-top:1px solid rgba(255,255,255,0.1);">
                 <button class="btn btn-secondary" onclick="closeStudentAttendanceHistoryModal()" style="padding:8px 18px;">Close</button>
             </div>
         </div>
