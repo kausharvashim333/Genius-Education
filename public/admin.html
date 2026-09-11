@@ -4724,24 +4724,65 @@
             <!-- Attendance Page -->
             <div id="page-attendance" class="page-content hidden">
                 <div class="page-header">
-                    <div class="page-toolbar">
+                    <div class="page-toolbar" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+                        <div class="attendance-view-toggle" style="display:inline-flex;border-radius:8px;background:#f1f5f9;padding:3px;border:1px solid #cbd5e1;">
+                            <button id="viewDailyBtn" class="btn" type="button" onclick="setAttendanceViewMode('daily')" style="padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;background:#2563eb;color:#fff;border:none;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 2px rgba(0,0,0,0.08);">
+                                <i class="fas fa-calendar-day"></i> Daily View
+                            </button>
+                            <button id="viewWeeklyBtn" class="btn" type="button" onclick="setAttendanceViewMode('weekly')" style="padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;background:transparent;color:#64748b;border:none;cursor:pointer;transition:all 0.2s;">
+                                <i class="fas fa-calendar-week"></i> 7-Day Weekly Sheet
+                            </button>
+                        </div>
                         <select id="attendanceBatch" aria-label="Attendance batch" style="padding:8px;border-radius:6px;border:1px solid #e2e8f0;min-width:200px;height:40px;">
                             <option value="">Select Batch</option>
                         </select>
                         <input type="date" id="attendanceDate" style="padding:8px;border-radius:6px;border:1px solid #e2e8f0;height:40px;">
                         <button class="btn btn-primary" onclick="loadAttendanceTable()" style="padding:8px 16px;">Show</button>
-                        <button class="btn btn-primary" onclick="markAllPresent()" style="padding:8px 16px;">Mark All Present</button>
-                        <button class="btn btn-success" onclick="saveAllAttendance()" style="padding:8px 16px;">Save All</button>
+                        <button id="markAllPresentBtn" class="btn btn-primary" onclick="markAllPresent()" style="padding:8px 16px;">Mark All Present</button>
+                        <button id="saveAllAttendanceBtn" class="btn btn-success" onclick="saveAllAttendance()" style="padding:8px 16px;">Save All</button>
                         <button class="btn btn-secondary" onclick="downloadAttendanceReport()" style="padding:8px 16px;"><i class="fas fa-download"></i> Report</button>
                         <button class="btn btn-success" onclick="exportAttendanceToExcel()" style="background:#16a34a;"><i class="fas fa-file-excel"></i> Export to Excel</button>
                     </div>
                 </div>
                 <div id="holidayInfo" style="display:none;"></div>
                 <div id="attendanceStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;"></div>
-                <div class="data-table">
+
+                <!-- Daily Attendance Table -->
+                <div id="attendanceDailyContainer" class="data-table">
                     <table id="attendanceTable">
-                        <thead><tr><th>Roll No</th><th>Name</th><th>Course</th><th>Batch</th><th>Status</th><th>Actions</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Roll No</th>
+                                <th>Name</th>
+                                <th>Course</th>
+                                <th>Batch</th>
+                                <th style="min-width:260px;">Last 7 Days</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
                         <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- 7-Day Weekly Register View -->
+                <div id="attendanceWeeklyContainer" class="data-table" style="display:none;overflow-x:auto;">
+                    <div style="background:#f8fafc;padding:12px 16px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                        <div style="font-weight:600;color:#1e293b;font-size:14px;display:flex;align-items:center;gap:8px;">
+                            <i class="fas fa-calendar-alt" style="color:#2563eb;"></i>
+                            <span>7-Day Attendance Register</span>
+                            <span id="weeklyDateRangeBadge" style="font-size:12px;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:12px;font-weight:500;"></span>
+                        </div>
+                        <div style="font-size:12px;color:#64748b;display:flex;align-items:center;gap:12px;">
+                            <span><span style="display:inline-block;width:10px;height:10px;background:#22c55e;border-radius:50%;margin-right:4px;"></span>Present</span>
+                            <span><span style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:50%;margin-right:4px;"></span>Absent (Auto/Unmarked)</span>
+                            <span><span style="display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:50%;margin-right:4px;"></span>Late</span>
+                            <span><span style="display:inline-block;width:10px;height:10px;background:#fb923c;border-radius:50%;margin-right:4px;"></span>Holiday</span>
+                        </div>
+                    </div>
+                    <table id="weeklyAttendanceTable" style="width:100%;">
+                        <thead id="weeklyAttendanceThead"></thead>
+                        <tbody id="weeklyAttendanceTbody"></tbody>
                     </table>
                 </div>
             </div>
@@ -6587,6 +6628,59 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeHolidayModal()" style="padding:8px 16px;">Cancel</button>
                 <button class="btn btn-primary" onclick="saveHoliday()" style="padding:8px 16px;">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Attendance History Modal -->
+    <div id="studentAttendanceHistoryModal" class="modal" style="display:none;z-index:9999;">
+        <div class="modal-content" style="max-width:760px;width:95%;border-radius:12px;overflow:hidden;background:#ffffff;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#0f172a);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                    <h3 id="studentAttModalName" style="margin:0;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px;color:#fff;">
+                        <i class="fas fa-user-check" style="color:#38bdf8;"></i> Student Attendance History
+                    </h3>
+                    <div id="studentAttModalSub" style="font-size:12px;color:#94a3b8;margin-top:2px;">Roll No: - | Course: -</div>
+                </div>
+                <button class="close-btn" onclick="closeStudentAttendanceHistoryModal()" style="color:#cbd5e1;background:transparent;border:none;font-size:26px;cursor:pointer;line-height:1;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding:20px;background:#f8fafc;max-height:80vh;overflow-y:auto;">
+                <!-- 4 Stats Cards -->
+                <div id="studentAttModalStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;"></div>
+                
+                <!-- 7-Day Visual Timeline Box -->
+                <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                        <h4 style="margin:0;font-size:14px;color:#1e293b;display:flex;align-items:center;gap:6px;">
+                            <i class="fas fa-history" style="color:#6366f1;"></i> Past 7 Days Attendance Breakdown
+                        </h4>
+                        <span id="studentAttModal7DayScore" style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;background:#e0f2fe;color:#0284c7;"></span>
+                    </div>
+                    <div id="studentAttModal7DaysList" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;"></div>
+                </div>
+
+                <!-- Complete Attendance Records Table -->
+                <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <h4 style="margin:0 0 12px 0;font-size:14px;color:#1e293b;display:flex;align-items:center;gap:6px;">
+                        <i class="fas fa-list-check" style="color:#059669;"></i> Detailed Attendance Records
+                    </h4>
+                    <div style="max-height:220px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:6px;">
+                        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:#f1f5f9;border-bottom:1px solid #cbd5e1;text-align:left;position:sticky;top:0;">
+                                    <th style="padding:8px 12px;">Date</th>
+                                    <th style="padding:8px 12px;">Status</th>
+                                    <th style="padding:8px 12px;">Course</th>
+                                    <th style="padding:8px 12px;">Batch</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentAttModalRecordsTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background:#f1f5f9;padding:12px 20px;display:flex;justify-content:flex-end;border-top:1px solid #e2e8f0;">
+                <button class="btn btn-secondary" onclick="closeStudentAttendanceHistoryModal()" style="padding:8px 18px;">Close</button>
             </div>
         </div>
     </div>

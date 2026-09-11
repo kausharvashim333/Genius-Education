@@ -5686,6 +5686,376 @@ async function deleteBlog(blogId) {
     }
 }
 
+// ===== 7-Day Attendance and View Mode Management =====
+let currentAttendanceViewMode = 'daily';
+
+function setAttendanceViewMode(mode) {
+    currentAttendanceViewMode = mode || 'daily';
+    const dailyContainer = document.getElementById('attendanceDailyContainer');
+    const weeklyContainer = document.getElementById('attendanceWeeklyContainer');
+    const dailyBtn = document.getElementById('viewDailyBtn');
+    const weeklyBtn = document.getElementById('viewWeeklyBtn');
+    const markAllBtn = document.getElementById('markAllPresentBtn');
+    const saveAllBtn = document.getElementById('saveAllAttendanceBtn');
+
+    if (currentAttendanceViewMode === 'weekly') {
+        if (dailyContainer) dailyContainer.style.display = 'none';
+        if (weeklyContainer) weeklyContainer.style.display = 'block';
+        if (dailyBtn) {
+            dailyBtn.style.background = 'transparent';
+            dailyBtn.style.color = '#64748b';
+            dailyBtn.style.boxShadow = 'none';
+        }
+        if (weeklyBtn) {
+            weeklyBtn.style.background = '#2563eb';
+            weeklyBtn.style.color = '#fff';
+            weeklyBtn.style.boxShadow = '0 1px 2px rgba(0,0,0,0.08)';
+        }
+        if (markAllBtn) markAllBtn.style.display = 'none';
+        if (saveAllBtn) saveAllBtn.style.display = 'none';
+    } else {
+        if (dailyContainer) dailyContainer.style.display = 'block';
+        if (weeklyContainer) weeklyContainer.style.display = 'none';
+        if (dailyBtn) {
+            dailyBtn.style.background = '#2563eb';
+            dailyBtn.style.color = '#fff';
+            dailyBtn.style.boxShadow = '0 1px 2px rgba(0,0,0,0.08)';
+        }
+        if (weeklyBtn) {
+            weeklyBtn.style.background = 'transparent';
+            weeklyBtn.style.color = '#64748b';
+            weeklyBtn.style.boxShadow = 'none';
+        }
+        if (markAllBtn) markAllBtn.style.display = '';
+        if (saveAllBtn) saveAllBtn.style.display = '';
+    }
+    loadAttendanceTable();
+}
+
+function getLast7Dates(refDateStr) {
+    const dates = [];
+    let baseDate;
+    if (refDateStr && typeof refDateStr === 'string' && refDateStr.includes('-')) {
+        const parts = refDateStr.split('-');
+        baseDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    } else {
+        baseDate = new Date();
+    }
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() - i);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const iso = `${yyyy}-${mm}-${dd}`;
+        const dayName = dayNames[d.getDay()];
+        const monthName = monthNames[d.getMonth()];
+        dates.push({
+            date: iso,
+            dayName: dayName,
+            dayNum: dd,
+            shortLabel: `${dd} ${monthName}`,
+            fullLabel: `${dd}-${monthName}-${yyyy}`,
+            isRefDate: i === 0
+        });
+    }
+    return dates;
+}
+
+function getAttendanceStatusMeta(status) {
+    switch (status) {
+        case 'present':
+            return { letter: 'P', label: 'Present', bg: '#dcfce7', color: '#15803d', border: '#86efac' };
+        case 'absent':
+            return { letter: 'A', label: 'Absent', bg: '#fee2e2', color: '#b91c1c', border: '#fca5a5' };
+        case 'late':
+            return { letter: 'L', label: 'Late', bg: '#fef3c7', color: '#b45309', border: '#fde68a' };
+        case 'holiday':
+            return { letter: 'H', label: 'Holiday', bg: '#ffedd5', color: '#c2410c', border: '#fdba74' };
+        default:
+            return { letter: '-', label: 'Not Marked', bg: '#f1f5f9', color: '#94a3b8', border: '#e2e8f0' };
+    }
+}
+
+function renderLast7DaysStrip(student, last7Dates, attendanceMapByStudentAndDate, batchTimeOver, todayDate) {
+    const studentRecords = attendanceMapByStudentAndDate[student.id] || {};
+    let presentCount = 0;
+    let absentCount = 0;
+    let lateCount = 0;
+    let holidayCount = 0;
+
+    const badgesHtml = last7Dates.map(d => {
+        let status = studentRecords[d.date];
+        const isPast = d.date < todayDate;
+        const isTodayOver = d.date === todayDate && batchTimeOver;
+        let isAutoAbsent = false;
+
+        // Unmarked count automatically as absent for any past day or when batch time is over
+        if (!status) {
+            if (isPast || isTodayOver || d.date <= todayDate) {
+                status = 'absent';
+                isAutoAbsent = true;
+            }
+        }
+
+        if (status === 'present') presentCount++;
+        else if (status === 'absent') absentCount++;
+        else if (status === 'late') lateCount++;
+        else if (status === 'holiday') holidayCount++;
+
+        const meta = getAttendanceStatusMeta(status);
+        const isCurrent = d.isRefDate;
+        const currentStyle = isCurrent ? 'box-shadow:0 0 0 2px #2563eb;font-weight:800;' : '';
+
+        return `<span title="${d.fullLabel} (${d.dayName}): ${meta.label}${isAutoAbsent ? ' (auto-absent)' : ''}" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:700;background:${meta.bg};color:${meta.color};border:1px solid ${meta.border};cursor:pointer;user-select:none;transition:transform 0.15s;${currentStyle}" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">${meta.letter}</span>`;
+    }).join('');
+
+    const totalDays = last7Dates.length || 7;
+    const pct = Math.round((presentCount / totalDays) * 100);
+    const pctBadgeColor = pct >= 75 ? 'background:#dcfce7;color:#15803d;border:1px solid #86efac;' : (pct >= 50 ? 'background:#fef3c7;color:#b45309;border:1px solid #fde68a;' : 'background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;');
+
+    const escapedName = escapeHtml(student.name || '');
+    const escapedRoll = escapeHtml(student.rollNo || '');
+    const escapedCourse = escapeHtml(student.course || '');
+
+    return `
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;">
+            <div style="display:inline-flex;gap:4px;align-items:center;" onclick="openStudentAttendanceHistoryModal('${escapeHtml(student.id)}', '${escapedName}', '${escapedRoll}', '${escapedCourse}')" title="Click to view full attendance history">
+                ${badgesHtml}
+            </div>
+            <span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:10px;${pctBadgeColor}white-space:nowrap;" title="7-Day attendance: ${presentCount} present of ${totalDays} days (${pct}%). Unmarked counted as absent.">
+                ${presentCount}/7 (${pct}%)
+            </span>
+            <button type="button" class="btn" style="padding:2px 6px;font-size:11px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:4px;cursor:pointer;" onclick="openStudentAttendanceHistoryModal('${escapeHtml(student.id)}', '${escapedName}', '${escapedRoll}', '${escapedCourse}')" title="View Student History">
+                <i class="fas fa-history"></i>
+            </button>
+        </div>
+    `;
+}
+
+function renderWeeklyAttendanceTable(students, last7Dates, attendanceMapByStudentAndDate, batchTimeOver, todayDate) {
+    const thead = document.getElementById('weeklyAttendanceThead');
+    const tbody = document.getElementById('weeklyAttendanceTbody');
+    const badge = document.getElementById('weeklyDateRangeBadge');
+    if (badge && last7Dates.length > 0) {
+        badge.textContent = `${last7Dates[0].shortLabel} — ${last7Dates[last7Dates.length - 1].shortLabel}`;
+    }
+
+    if (!thead || !tbody) return;
+
+    let headHtml = '<tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;text-align:left;">';
+    headHtml += '<th style="padding:10px 12px;font-weight:600;">Roll No</th>';
+    headHtml += '<th style="padding:10px 12px;font-weight:600;">Name</th>';
+    headHtml += '<th style="padding:10px 12px;font-weight:600;">Course</th>';
+    last7Dates.forEach(d => {
+        const isCurrent = d.isRefDate;
+        headHtml += `<th style="padding:10px 8px;text-align:center;font-weight:600;min-width:65px;${isCurrent ? 'background:#e0f2fe;color:#0369a1;' : ''}">
+            <div style="font-size:12px;">${escapeHtml(d.shortLabel)}</div>
+            <div style="font-size:11px;font-weight:normal;opacity:0.8;">${escapeHtml(d.dayName)}</div>
+        </th>`;
+    });
+    headHtml += '<th style="padding:10px 12px;text-align:center;font-weight:600;">Present / 7</th>';
+    headHtml += '<th style="padding:10px 12px;text-align:center;font-weight:600;">7-Day %</th>';
+    headHtml += '<th style="padding:10px 12px;text-align:center;font-weight:600;">Actions</th>';
+    headHtml += '</tr>';
+    thead.innerHTML = headHtml;
+
+    if (!students || students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="' + (last7Dates.length + 5) + '" style="text-align:center;padding:30px;color:#64748b;">No students found for this batch.</td></tr>';
+        return;
+    }
+
+    const dayPresentTotals = {};
+    last7Dates.forEach(d => { dayPresentTotals[d.date] = 0; });
+
+    let bodyHtml = students.map(s => {
+        const studentRecords = attendanceMapByStudentAndDate[s.id] || {};
+        let presentCount = 0;
+
+        let rowHtml = '<tr style="border-bottom:1px solid #f1f5f9;">';
+        rowHtml += `<td style="padding:10px 12px;font-weight:600;">${escapeHtml(s.rollNo || '-')}</td>`;
+        rowHtml += `<td style="padding:10px 12px;">
+            <a href="#" onclick="openStudentAttendanceHistoryModal('${escapeHtml(s.id)}', '${escapeHtml(s.name || '')}', '${escapeHtml(s.rollNo || '')}', '${escapeHtml(s.course || '')}'); return false;" style="font-weight:600;color:#2563eb;text-decoration:none;">
+                ${escapeHtml(s.name || '-')}
+            </a>
+        </td>`;
+        rowHtml += `<td style="padding:10px 12px;font-size:13px;color:#475569;">${escapeHtml(s.course || '-')}</td>`;
+
+        last7Dates.forEach(d => {
+            let status = studentRecords[d.date];
+            const isPast = d.date < todayDate;
+            const isTodayOver = d.date === todayDate && batchTimeOver;
+            let isAuto = false;
+
+            // Unmarked counts automatically as absent
+            if (!status && (isPast || isTodayOver || d.date <= todayDate)) {
+                status = 'absent';
+                isAuto = true;
+            }
+
+            if (status === 'present') {
+                presentCount++;
+                dayPresentTotals[d.date] = (dayPresentTotals[d.date] || 0) + 1;
+            }
+            const meta = getAttendanceStatusMeta(status);
+            const isCurrent = d.isRefDate;
+
+            rowHtml += `<td style="padding:8px;text-align:center;${isCurrent ? 'background:#f0f9ff;' : ''}">
+                <span title="${escapeHtml(s.name)} - ${d.fullLabel}: ${meta.label}${isAuto ? ' (auto-absent)' : ''}" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;font-size:12px;font-weight:700;background:${meta.bg};color:${meta.color};border:1px solid ${meta.border};">
+                    ${meta.letter}
+                </span>
+            </td>`;
+        });
+
+        const totalDays = last7Dates.length || 7;
+        const pct = Math.round((presentCount / totalDays) * 100);
+        const pctColor = pct >= 75 ? '#16a34a' : (pct >= 50 ? '#d97706' : '#dc2626');
+
+        rowHtml += `<td style="padding:10px 12px;text-align:center;font-weight:700;color:#1e293b;">${presentCount} / ${totalDays}</td>`;
+        rowHtml += `<td style="padding:10px 12px;text-align:center;"><span style="font-weight:700;color:${pctColor};">${pct}%</span></td>`;
+        rowHtml += `<td style="padding:10px 12px;text-align:center;">
+            <button type="button" class="btn btn-sm" style="padding:4px 10px;font-size:12px;background:#e0f2fe;color:#0284c7;border:none;border-radius:4px;cursor:pointer;" onclick="openStudentAttendanceHistoryModal('${escapeHtml(s.id)}', '${escapeHtml(s.name || '')}', '${escapeHtml(s.rollNo || '')}', '${escapeHtml(s.course || '')}')">
+                <i class="fas fa-eye"></i> Details
+            </button>
+        </td>`;
+        rowHtml += '</tr>';
+        return rowHtml;
+    }).join('');
+
+    // Summary footer row showing batch total presents each day
+    bodyHtml += '<tr style="background:#f1f5f9;font-weight:700;border-top:2px solid #cbd5e1;">';
+    bodyHtml += '<td colspan="3" style="padding:10px 12px;color:#1e293b;">Batch Daily Total Present</td>';
+    last7Dates.forEach(d => {
+        const count = dayPresentTotals[d.date] || 0;
+        bodyHtml += `<td style="padding:10px 8px;text-align:center;color:#15803d;background:#dcfce7;font-size:13px;">${count}</td>`;
+    });
+    bodyHtml += `<td colspan="3" style="padding:10px 12px;text-align:center;color:#64748b;font-size:12px;">Total Students: ${students.length}</td>`;
+    bodyHtml += '</tr>';
+
+    tbody.innerHTML = bodyHtml;
+}
+
+async function openStudentAttendanceHistoryModal(studentId, studentName, rollNo, course) {
+    const modal = document.getElementById('studentAttendanceHistoryModal');
+    if (!modal) return;
+
+    document.getElementById('studentAttModalName').innerHTML = `<i class="fas fa-user-check" style="color:#38bdf8;"></i> ${escapeHtml(studentName || 'Student')} - Attendance History`;
+    document.getElementById('studentAttModalSub').textContent = `Roll No: ${rollNo || '-'} | Course: ${course || '-'}`;
+    document.getElementById('studentAttModalStats').innerHTML = '<div style="grid-column:span 4;text-align:center;padding:20px;color:#64748b;"><i class="fas fa-spinner fa-spin"></i> Loading attendance details...</div>';
+    document.getElementById('studentAttModal7DaysList').innerHTML = '';
+    document.getElementById('studentAttModalRecordsTbody').innerHTML = '';
+    document.getElementById('studentAttModal7DayScore').textContent = '';
+
+    modal.style.display = 'block';
+
+    try {
+        const res = await fetch('/api/attendance/' + encodeURIComponent(studentId));
+        const data = await res.json();
+        if (!res.ok || !data.success || !data.attendance) throw new Error('Failed to load student attendance');
+
+        const att = data.attendance;
+        const present = att.present || 0;
+        const absent = att.absent || 0;
+        const late = att.late || 0;
+        const holiday = att.holiday || 0;
+        const total = att.total || 0;
+        const percentage = att.percentage || 0;
+        const records = Array.isArray(att.records) ? [...att.records] : [];
+
+        // Render 4 Quick Stats
+        let statsHtml = `
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px;border-radius:8px;text-align:center;">
+                <div style="font-size:22px;font-weight:700;color:#16a34a;">${present}</div>
+                <div style="font-size:12px;color:#15803d;font-weight:500;">Present</div>
+            </div>
+            <div style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:8px;text-align:center;">
+                <div style="font-size:22px;font-weight:700;color:#dc2626;">${absent}</div>
+                <div style="font-size:12px;color:#b91c1c;font-weight:500;">Absent</div>
+            </div>
+            <div style="background:#fffbeb;border:1px solid #fde68a;padding:12px;border-radius:8px;text-align:center;">
+                <div style="font-size:22px;font-weight:700;color:#d97706;">${late}</div>
+                <div style="font-size:12px;color:#b45309;font-weight:500;">Late / Holiday (${late + holiday})</div>
+            </div>
+            <div style="background:#f0f9ff;border:1px solid #bae6fd;padding:12px;border-radius:8px;text-align:center;">
+                <div style="font-size:22px;font-weight:700;color:#0284c7;">${percentage}%</div>
+                <div style="font-size:12px;color:#0369a1;font-weight:500;">Overall (${present}/${total})</div>
+            </div>
+        `;
+        document.getElementById('studentAttModalStats').innerHTML = statsHtml;
+
+        // Build 7-day breakdown for this student based on attendanceDate input (or today)
+        const dateInput = document.getElementById('attendanceDate');
+        const refDate = (dateInput && dateInput.value) ? dateInput.value : new Date().toISOString().split('T')[0];
+        const last7Dates = getLast7Dates(refDate);
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const recordsMap = {};
+        records.forEach(r => {
+            if (r.date) recordsMap[r.date] = r;
+        });
+
+        let p7Count = 0;
+        let list7Html = last7Dates.map(d => {
+            const r = recordsMap[d.date];
+            let status = r ? r.status : '';
+            let isAuto = false;
+
+            // Unmarked counts automatically as absent for past days or today
+            if (!status && d.date <= todayStr) {
+                status = 'absent';
+                isAuto = true;
+            }
+
+            if (status === 'present') p7Count++;
+            const meta = getAttendanceStatusMeta(status);
+
+            return `
+                <div style="background:${meta.bg};border:1px solid ${meta.border};border-radius:8px;padding:10px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.04);">
+                    <div style="font-size:11px;color:#64748b;font-weight:600;">${d.shortLabel}</div>
+                    <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">${d.dayName}</div>
+                    <div style="font-size:16px;font-weight:800;color:${meta.color};margin-bottom:2px;">${meta.letter}</div>
+                    <div style="font-size:10px;font-weight:600;color:${meta.color};">${meta.label}${isAuto ? ' (auto)' : ''}</div>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('studentAttModal7DaysList').innerHTML = list7Html;
+        const p7Pct = Math.round((p7Count / 7) * 100);
+        document.getElementById('studentAttModal7DayScore').textContent = `7-Day Score: ${p7Count}/7 Present (${p7Pct}%)`;
+
+        // Render full records table (sort descending by date)
+        records.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        if (records.length === 0) {
+            document.getElementById('studentAttModalRecordsTbody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#64748b;">No past attendance records found for this student.</td></tr>';
+        } else {
+            document.getElementById('studentAttModalRecordsTbody').innerHTML = records.map(r => {
+                const meta = getAttendanceStatusMeta(r.status);
+                return `
+                    <tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:8px 12px;font-weight:500;">${formatDate(r.date)}</td>
+                        <td style="padding:8px 12px;">
+                            <span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:${meta.bg};color:${meta.color};border:1px solid ${meta.border};">
+                                ${meta.label}${r.autoMarked ? ' (auto)' : ''}
+                            </span>
+                        </td>
+                        <td style="padding:8px 12px;color:#475569;">${escapeHtml(r.course || '-')}</td>
+                        <td style="padding:8px 12px;color:#475569;">${escapeHtml(r.batch || '-')}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    } catch (e) {
+        console.error('Error loading student attendance history:', e);
+        document.getElementById('studentAttModalStats').innerHTML = '<div style="grid-column:span 4;text-align:center;padding:20px;color:#dc2626;">Unable to load student attendance details.</div>';
+    }
+}
+
+function closeStudentAttendanceHistoryModal() {
+    const modal = document.getElementById('studentAttendanceHistoryModal');
+    if (modal) modal.style.display = 'none';
+}
+
 async function loadAttendanceTable() {
     try {
         const batch = document.getElementById('attendanceBatch').value;
@@ -5695,6 +6065,8 @@ async function loadAttendanceTable() {
             // Clear if no batch or date selected
             document.getElementById('attendanceStats').innerHTML = '';
             renderEmptyState(document.getElementById('attendanceTable').querySelector('tbody'), 'calendar-check', 'Select a batch and date to view attendance.');
+            const weeklyTbody = document.getElementById('weeklyAttendanceTbody');
+            if (weeklyTbody) weeklyTbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:30px;color:#64748b;">Select a batch and date to view 7-day attendance register.</td></tr>';
             return;
         }
         
@@ -5710,40 +6082,64 @@ async function loadAttendanceTable() {
         const tbody = document.getElementById('attendanceTable').querySelector('tbody');
         
         if (students.length > 0) {
-            // Load existing attendance for this date
+            // Load existing attendance
             const attendanceRes = await fetch('/api/attendance');
             const attendanceData = await attendanceRes.json();
             if (!attendanceRes.ok || !attendanceData.success) throw new Error('Unable to load attendance');
             if (batch !== document.getElementById('attendanceBatch').value || date !== document.getElementById('attendanceDate').value) return;
+            
+            const last7Dates = getLast7Dates(date);
+            const last7DatesSet = new Set(last7Dates.map(d => d.date));
+            const studentIds = new Set(students.map(s => String(s.id)));
+
             const attendanceMap = {};
             const attendanceIds = {};
-            const studentIds = new Set(students.map(s => String(s.id)));
+            const attendanceMapByStudentAndDate = {};
+
             if (attendanceData.success && attendanceData.attendance) {
                 attendanceData.attendance.forEach(a => {
-                    if (a.date === date && studentIds.has(String(a.studentId))) {
-                        attendanceMap[a.studentId] = a.status;
-                        attendanceIds[a.studentId] = a.id;
+                    const sid = String(a.studentId);
+                    if (studentIds.has(sid)) {
+                        if (a.date === date) {
+                            attendanceMap[a.studentId] = a.status;
+                            attendanceIds[a.studentId] = a.id;
+                        }
+                        if (last7DatesSet.has(a.date)) {
+                            if (!attendanceMapByStudentAndDate[a.studentId]) attendanceMapByStudentAndDate[a.studentId] = {};
+                            attendanceMapByStudentAndDate[a.studentId][a.date] = a.status;
+                        }
                     }
                 });
             }
 
-            // Check if batch time is over — unmarked students count as absent
+            // Check if batch time is over or date is in the past — unmarked students count as absent
             const batchSelect = document.getElementById('attendanceBatch');
             const batchOption = batchSelect.options[batchSelect.selectedIndex];
             const batchTiming = batchOption ? (batchOption.dataset.timing || '') : '';
-            const isToday = date === new Date().toISOString().split('T')[0];
-            const batchTimeOver = isToday && isBatchTimeOverClient(batchTiming);
+            const todayDate = new Date().toISOString().split('T')[0];
+            const isToday = date === todayDate;
+            const isPastDate = date < todayDate;
+            const batchTimeOver = isPastDate || (isToday && isBatchTimeOverClient(batchTiming));
 
+            // Render 7-Day Weekly Register
+            renderWeeklyAttendanceTable(students, last7Dates, attendanceMapByStudentAndDate, batchTimeOver, todayDate);
+
+            // Render Daily Attendance Table
             tbody.innerHTML = students.map(s => {
                 const attendanceId = attendanceIds[s.id];
                 const markedStatus = attendanceMap[s.id];
                 const displayStatus = (!markedStatus && batchTimeOver) ? 'absent' : markedStatus;
+                const stripHtml = renderLast7DaysStrip(s, last7Dates, attendanceMapByStudentAndDate, batchTimeOver, todayDate);
+
                 let html = '';
                 html += '<tr>';
-                html += '<td>' + s.rollNo + '</td>';
-                html += '<td>' + s.name + '</td>';
-                html += '<td>' + s.course + '</td>';
-                html += '<td>' + (s.batch || '-') + '</td>';
+                html += '<td>' + escapeHtml(s.rollNo || '-') + '</td>';
+                html += '<td>';
+                html += '<a href="#" onclick="openStudentAttendanceHistoryModal(\'' + escapeHtml(s.id) + '\', \'' + escapeHtml(s.name || '') + '\', \'' + escapeHtml(s.rollNo || '') + '\', \'' + escapeHtml(s.course || '') + '\'); return false;" style="font-weight:600;color:#2563eb;text-decoration:none;" title="Click to view attendance history">' + escapeHtml(s.name || '-') + '</a>';
+                html += '</td>';
+                html += '<td>' + escapeHtml(s.course || '-') + '</td>';
+                html += '<td>' + escapeHtml(s.batch || '-') + '</td>';
+                html += '<td>' + stripHtml + '</td>';
                 html += '<td>';
                 html += '<select id="att_' + s.id + '" style="padding:6px;border-radius:4px;border:1px solid #e2e8f0;height:40px;">';
                 html += '<option value="">Select Status</option>';
@@ -5764,7 +6160,7 @@ async function loadAttendanceTable() {
                 return html;
             }).join('');
             
-            // Calculate statistics — unmarked students count as absent if batch time is over
+            // Calculate statistics — unmarked students count as absent if batch time is over or past date
             const batchName = batchOption ? batchOption.text : '';
             const unmarkedCount = students.length - Object.keys(attendanceMap).length;
             const manualAbsent = Object.values(attendanceMap).filter(s => s === 'absent').length;
@@ -5783,22 +6179,25 @@ async function loadAttendanceTable() {
             statsHtml += '</div>';
             statsHtml += '<div style="background:#dcfce7;padding:16px;border-radius:8px;text-align:center;">';
             statsHtml += '<div style="font-size:24px;font-weight:700;color:#16a34a;">' + stats.present + '</div>';
-            statsHtml += '<div style="font-size:13px;color:#64748b;">Present</div>';
+            statsHtml += '<div style="font-size:13px;color:#64748b;">Present (Selected Date)</div>';
             statsHtml += '</div>';
             statsHtml += '<div style="background:#fee2e2;padding:16px;border-radius:8px;text-align:center;">';
             statsHtml += '<div style="font-size:24px;font-weight:700;color:#dc2626;">' + stats.absent + '</div>';
-            statsHtml += '<div style="font-size:13px;color:#64748b;">Absent</div>';
+            statsHtml += '<div style="font-size:13px;color:#64748b;">Absent (Selected Date)</div>';
             statsHtml += '</div>';
             statsHtml += '<div style="background:#fef3c7;padding:16px;border-radius:8px;text-align:center;">';
             statsHtml += '<div style="font-size:24px;font-weight:700;color:#f59e0b;">' + stats.late + '</div>';
-            statsHtml += '<div style="font-size:13px;color:#64748b;">Late</div>';
+            statsHtml += '<div style="font-size:13px;color:#64748b;">Late (Selected Date)</div>';
             statsHtml += '</div>';
             document.getElementById('attendanceStats').innerHTML = statsHtml;
         } else {
             renderEmptyState(tbody, 'user-graduate', 'No students found for this batch.');
+            const weeklyTbody = document.getElementById('weeklyAttendanceTbody');
+            if (weeklyTbody) weeklyTbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:30px;color:#64748b;">No students found for this batch.</td></tr>';
             document.getElementById('attendanceStats').innerHTML = '';
         }
     } catch (e) {
+        console.error('Attendance error:', e);
         document.getElementById('attendanceStats').innerHTML = '';
         renderEmptyState(document.getElementById('attendanceTable').querySelector('tbody'), 'calendar-check', 'Unable to load attendance. Please try again.');
         showNotification('Error loading attendance!', 'error');
@@ -5898,6 +6297,40 @@ async function downloadAttendanceReport() {
         if (!attendanceRes.ok || !attendanceData.success) throw new Error('Unable to load attendance');
         
         if (students && students.length > 0) {
+            if (currentAttendanceViewMode === 'weekly') {
+                const last7Dates = getLast7Dates(date);
+                const attMapByStudentAndDate = {};
+                if (attendanceData && attendanceData.attendance) {
+                    attendanceData.attendance.forEach(a => {
+                        if (!attMapByStudentAndDate[a.studentId]) attMapByStudentAndDate[a.studentId] = {};
+                        attMapByStudentAndDate[a.studentId][a.date] = a.status;
+                    });
+                }
+                let csv = 'Roll No,Name,Course,Batch';
+                last7Dates.forEach(d => { csv += ',"' + d.fullLabel + ' (' + d.dayName + ')"'; });
+                csv += ',Present Count,Total Days,Attendance %\n';
+                students.forEach(s => {
+                    csv += s.rollNo + ',"' + (s.name || '').replace(/"/g, '""') + '","' + (s.course || '') + '","' + (s.batch || '-') + '"';
+                    let presentCount = 0;
+                    last7Dates.forEach(d => {
+                        const status = (attMapByStudentAndDate[s.id] && attMapByStudentAndDate[s.id][d.date]) || 'Not Marked';
+                        if (status === 'present') presentCount++;
+                        csv += ',"' + status + '"';
+                    });
+                    const pct = Math.round((presentCount / last7Dates.length) * 100);
+                    csv += ',' + presentCount + ',' + last7Dates.length + ',' + pct + '%\n';
+                });
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'weekly_attendance_batch_' + batch + '_' + date + '.csv';
+                a.click();
+                window.URL.revokeObjectURL(url);
+                showNotification('Weekly attendance report downloaded!', 'success');
+                return;
+            }
+
             const attendanceMap = {};
             if (attendanceData && attendanceData.attendance) {
                 attendanceData.attendance.forEach(a => {
@@ -17075,6 +17508,39 @@ async function exportAttendanceToExcel() {
         const res = await fetch('/api/attendance');
         const result = await res.json();
         if (!res.ok || !result.success) throw new Error('Unable to load attendance');
+
+        if (currentAttendanceViewMode === 'weekly') {
+            const last7Dates = getLast7Dates(date);
+            const attMapByStudentAndDate = {};
+            result.attendance.forEach(a => {
+                if (!attMapByStudentAndDate[a.studentId]) attMapByStudentAndDate[a.studentId] = {};
+                attMapByStudentAndDate[a.studentId][a.date] = a.status;
+            });
+            const data = students.map(s => {
+                const row = {
+                    'Roll No': s.rollNo || '',
+                    'Name': s.name || '',
+                    'Course': s.course || '',
+                    'Batch': s.batch || ''
+                };
+                let presentCount = 0;
+                last7Dates.forEach(d => {
+                    const status = (attMapByStudentAndDate[s.id] && attMapByStudentAndDate[s.id][d.date]) || 'Not Marked';
+                    if (status === 'present') presentCount++;
+                    row[`${d.fullLabel} (${d.dayName})`] = status;
+                });
+                row['Present / 7'] = `${presentCount} / ${last7Dates.length}`;
+                row['7-Day Attendance %'] = `${Math.round((presentCount / last7Dates.length) * 100)}%`;
+                return row;
+            });
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Weekly Attendance');
+            XLSX.writeFile(wb, 'Weekly_Attendance_Batch_' + batch + '_' + date + '.xlsx');
+            showNotification('Weekly attendance exported successfully!', 'success');
+            return;
+        }
+
         const attendanceMap = {};
         result.attendance.forEach(a => {
             if (a.date === date) attendanceMap[a.studentId] = a.status;
